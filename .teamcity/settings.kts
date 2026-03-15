@@ -74,9 +74,9 @@ object Build : BuildType({
                 rm -rf ${'$'}DEPLOY_DIR/frontend-dist
                 cp -r frontend/dist ${'$'}DEPLOY_DIR/frontend-dist
 
-                # 환경 변수 파일 복사
-                cp backend/main-service/.env.prd ${'$'}DEPLOY_DIR/main-service.env
-                cp backend/.env.local ${'$'}DEPLOY_DIR/shared.env
+                # 환경 변수 파일 복사 (git 외부 secrets 경로에서)
+                cp /home/gijunpark/secrets/main-service.env ${'$'}DEPLOY_DIR/main-service.env
+                cp /home/gijunpark/secrets/shared.env ${'$'}DEPLOY_DIR/shared.env
 
                 echo "=== Step 2: Stop existing services ==="
                 docker stop lol-frontend lol-api-gateway lol-main-service lol-eureka 2>/dev/null || true
