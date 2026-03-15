@@ -7,7 +7,6 @@ contextBridge.exposeInMainWorld('lol', {
   startCollect: () => ipcRenderer.send('collect:start'),
   requestStatus: () => ipcRenderer.send('lcu:status-request'),
   installUpdate: () => ipcRenderer.send('update:install'),
-
   onLog: (cb: (type: string, message: string) => void) => {
     ipcRenderer.removeAllListeners('collect:log');
     ipcRenderer.on('collect:log', (_e, type: string, message: string) => cb(type, message));

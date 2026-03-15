@@ -3,11 +3,7 @@ import * as https from 'https';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export interface LcuCredentials {
-  port: string;
-  password: string;
-}
-
+export interface LcuCredentials { port: string; password: string; }
 export interface LcuStatus {
   connected: boolean;
   gameName?: string;
@@ -33,8 +29,7 @@ export function findLockfile(): string | null {
 }
 
 export function parseLockfile(filePath: string): LcuCredentials {
-  const raw = fs.readFileSync(filePath, 'utf8');
-  const [, , port, password] = raw.split(':');
+  const [, , port, password] = fs.readFileSync(filePath, 'utf8').split(':');
   return { port: port.trim(), password: password.trim() };
 }
 
@@ -49,18 +44,11 @@ export async function lcuGet<T>(port: string, password: string, endpoint: string
 
 export async function getStatus(): Promise<LcuStatus> {
   const lockfilePath = findLockfile();
-  if (!lockfilePath) {
-    return { connected: false, reason: 'lockfile 없음 — 롤 클라이언트를 실행해주세요' };
-  }
+  if (!lockfilePath) return { connected: false, reason: 'lockfile 없음 — 롤 클라이언트를 실행해주세요' };
   const { port, password } = parseLockfile(lockfilePath);
   try {
     const data = await lcuGet<Record<string, string>>(port, password, '/lol-summoner/v1/current-summoner');
-    return {
-      connected: true,
-      gameName: data['gameName'] ?? data['displayName'],
-      tagLine: data['tagLine'] ?? '',
-      puuid: data['puuid'],
-    };
+    return { connected: true, gameName: data['gameName'] ?? data['displayName'], tagLine: data['tagLine'] ?? '', puuid: data['puuid'] };
   } catch {
     return { connected: false, reason: '클라이언트 응답 없음 — 로그인 확인' };
   }

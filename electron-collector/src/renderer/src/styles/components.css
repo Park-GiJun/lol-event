@@ -1,0 +1,58 @@
+/* 카드 */
+.card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+}
+.card-title { font-size: var(--font-size-md); font-weight: 600; color: var(--color-primary); }
+
+/* 버튼 */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--spacing-xs); padding: 8px 16px;
+  border-radius: var(--radius-md); font-size: var(--font-size-sm);
+  font-weight: 600; border: 1px solid transparent;
+  transition: all 0.15s ease; white-space: nowrap; cursor: pointer;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--color-primary); color: var(--color-text-inverse); border-color: var(--color-primary); }
+.btn-primary:hover:not(:disabled) { background: var(--color-primary-hover); }
+.btn-secondary { background: transparent; color: var(--color-text-primary); border-color: var(--color-border); }
+.btn-secondary:hover:not(:disabled) { border-color: var(--color-primary); color: var(--color-primary); }
+.btn-ghost { background: transparent; color: var(--color-text-secondary); border-color: transparent; }
+.btn-ghost:hover:not(:disabled) { color: var(--color-text-primary); background: var(--color-bg-hover); }
+.btn-sm { padding: 5px 10px; font-size: var(--font-size-xs); }
+.btn-loading { opacity: 0.7; cursor: wait; }
+
+/* SSE 로그 */
+.sse-log {
+  background: #050d18;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  height: 300px; overflow-y: auto;
+  font-family: 'Consolas', 'D2Coding', monospace;
+  font-size: var(--font-size-xs);
+}
+.sse-line     { padding: 1px 0; line-height: 1.5; }
+.sse-info     { color: #7EB8F7; }
+.sse-warn     { color: var(--color-warning); }
+.sse-error    { color: var(--color-error); }
+.sse-done     { color: var(--color-win); font-weight: 600; }
+.sse-progress { color: var(--color-text-secondary); }
+
+/* 업데이트 배너 */
+.update-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  background: rgba(11,196,180,0.08);
+  border: 1px solid rgba(11,196,180,0.3);
+  border-radius: var(--radius-md); padding: 10px var(--spacing-md);
+  font-size: var(--font-size-sm); color: var(--color-win);
+  margin-bottom: var(--spacing-md);
+}
