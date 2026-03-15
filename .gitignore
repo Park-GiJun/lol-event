@@ -50,3 +50,10 @@ installer/builder-debug.yml
 installer/builder-effective-config.yaml
 installer/win-unpacked/
 electron-collector/release/
+electron-collector/out/
+
+# Claude Code
+.claude/
+
+# Windows crash dump
+*.stackdump

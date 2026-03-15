@@ -8,9 +8,9 @@
       <module name="lol-event-backend.eureka-server" options="-parameters" />
       <module name="lol-event-backend.eureka-server.main" options="-parameters" />
       <module name="lol-event-backend.eureka-server.test" options="-parameters" />
-      <module name="lol-event-backend.main-service" options="-parameters -proc:none" />
-      <module name="lol-event-backend.main-service.main" options="-parameters -proc:none" />
-      <module name="lol-event-backend.main-service.test" options="-parameters -proc:none" />
+      <module name="lol-event-backend.main-service" options="-parameters" />
+      <module name="lol-event-backend.main-service.main" options="-parameters" />
+      <module name="lol-event-backend.main-service.test" options="-parameters" />
     </option>
   </component>
 </project>
