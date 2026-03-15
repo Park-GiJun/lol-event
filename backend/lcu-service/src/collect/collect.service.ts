@@ -8,6 +8,11 @@ export interface SseEvent {
   data: string;
 }
 
+export interface CollectedMatch {
+  matchId: string;
+  [key: string]: unknown;
+}
+
 const CUSTOM_QUEUE_IDS = new Set([0, 3130, 3270]);
 const MAX_GAMES = 500;
 const PAGE = 20;
@@ -73,7 +78,7 @@ export class CollectService {
     }
 
     const champMap = await this.getChampMap();
-    const newMatches: unknown[] = [];
+    const newMatches: CollectedMatch[] = [];
     const seenGameIds = new Set<number>();
     let begIndex = 0;
 
