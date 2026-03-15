@@ -1,0 +1,2 @@
+installer/*.exe filter=lfs diff=lfs merge=lfs -text
+installer/*.exe.blockmap filter=lfs diff=lfs merge=lfs -text

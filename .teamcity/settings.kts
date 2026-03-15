@@ -84,17 +84,17 @@ object Build : BuildType({
                 cp backend/eureka-server/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/eureka-server.jar
                 cp backend/api-gateway/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/api-gateway.jar
                 cp backend/main-service/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/main-service.jar
-                # downloads 폴더 (installer) 보존
-                mkdir -p ${'$'}DEPLOY_DIR/frontend-dist-downloads-backup
-                cp -r ${'$'}DEPLOY_DIR/frontend-dist/downloads/. ${'$'}DEPLOY_DIR/frontend-dist-downloads-backup/ 2>/dev/null || true
-
                 rm -rf ${'$'}DEPLOY_DIR/frontend-dist
                 cp -r frontend/dist ${'$'}DEPLOY_DIR/frontend-dist
 
-                # downloads 복원
+                # installer/ 디렉토리가 있으면 downloads 에 배포
                 mkdir -p ${'$'}DEPLOY_DIR/frontend-dist/downloads
-                cp -r ${'$'}DEPLOY_DIR/frontend-dist-downloads-backup/. ${'$'}DEPLOY_DIR/frontend-dist/downloads/ 2>/dev/null || true
-                rm -rf ${'$'}DEPLOY_DIR/frontend-dist-downloads-backup
+                if ls installer/*.exe 1>/dev/null 2>&1; then
+                    cp installer/*.exe ${'$'}DEPLOY_DIR/frontend-dist/downloads/
+                    cp installer/latest.yml ${'$'}DEPLOY_DIR/frontend-dist/downloads/ 2>/dev/null || true
+                    cp installer/*.blockmap ${'$'}DEPLOY_DIR/frontend-dist/downloads/ 2>/dev/null || true
+                    echo "installer 배포 완료"
+                fi
 
                 echo "=== Step 1-b: Copy lcu-service artifacts ==="
                 mkdir -p ${'$'}DEPLOY_DIR/lcu-service

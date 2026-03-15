@@ -44,3 +44,9 @@ dist/
 
 # OS
 Thumbs.db
+
+# Electron builder 임시 파일 (installer/*.exe 는 LFS로 추적)
+installer/builder-debug.yml
+installer/builder-effective-config.yaml
+installer/win-unpacked/
+electron-collector/release/

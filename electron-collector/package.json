@@ -22,7 +22,7 @@
     "appId": "net.gijun.lol-collector",
     "productName": "LoL 수집기",
     "directories": {
-      "output": "release"
+      "output": "../installer"
     },
     "files": [
       "dist/**/*",
