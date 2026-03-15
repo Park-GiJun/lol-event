@@ -125,26 +125,6 @@ function HallCard({ emoji, label, stat, basis, mode }: { emoji: string; label: s
   );
 }
 
-function SummaryCard({ emoji, label, value, sub }: { emoji: string; label: string; value: string | number; sub?: string }) {
-  return (
-    <div className="summary-stat-card">
-      <div className="summary-stat-emoji">{emoji}</div>
-      <div className="summary-stat-value">{typeof value === 'number' ? value.toLocaleString() : value}</div>
-      <div className="summary-stat-label">{label}</div>
-      {sub && <div className="summary-stat-sub">{sub}</div>}
-    </div>
-  );
-}
-
-function ObjectCard({ emoji, label, value }: { emoji: string; label: string; value: number }) {
-  return (
-    <div className="obj-card">
-      <div className="obj-emoji">{emoji}</div>
-      <div className="obj-value">{value.toLocaleString()}</div>
-      <div className="obj-label">{label}</div>
-    </div>
-  );
-}
 
 function OverviewTab({ mode }: { mode: string }) {
   const [data, setData]       = useState<OverviewStats | null>(null);

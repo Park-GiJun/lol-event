@@ -96,8 +96,8 @@ export function ChampionLink({ champion, championId: _championId, children, clas
   const [data, setData]       = useState<ChampionDetailStats | null>(null);
   const [loading, setLoading] = useState(false);
   const triggerRef = useRef<HTMLSpanElement>(null);
-  const showTimer  = useRef<ReturnType<typeof setTimeout>>();
-  const hideTimer  = useRef<ReturnType<typeof setTimeout>>();
+  const showTimer  = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const hideTimer  = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const fetchData = useCallback(async () => {
     const key = `${champion}:${mode}`;
