@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Shield, Sword, Eye, Coins } from 'lucide-react';
 import { api } from '../lib/api/api';
-import type { PlayerDetailStats, ChampionStat, RecentMatchStat } from '../lib/types/stats';
+import type { PlayerDetailStats, ChampionStat, RecentMatchStat, LaneStat } from '../lib/types/stats';
 import { useDragon } from '../context/DragonContext';
 import { LoadingCenter } from '../components/common/Spinner';
 import { Button } from '../components/common/Button';
@@ -109,6 +109,121 @@ function ChampionTable({ stats }: { stats: ChampionStat[] }) {
   );
 }
 
+// ── 포지션 통계 ───────────────────────────────────────
+const POSITION_META: Record<string, {
+  label: string; emoji: string;
+  keyStats: { key: keyof LaneStat; label: string; format: (v: number) => string }[];
+}> = {
+  TOP: {
+    label: '탑', emoji: '🛡️',
+    keyStats: [
+      { key: 'avgDamage',      label: '평균 딜량',    format: v => v.toLocaleString() },
+      { key: 'avgDamageTaken', label: '평균 피해량',   format: v => v.toLocaleString() },
+      { key: 'avgCs',          label: '평균 CS',      format: v => v.toFixed(1) },
+      { key: 'avgGold',        label: '평균 골드',    format: v => v.toLocaleString() },
+    ],
+  },
+  JUNGLE: {
+    label: '정글', emoji: '🌲',
+    keyStats: [
+      { key: 'avgNeutralMinions',  label: '중립 몬스터',   format: v => v.toFixed(1) },
+      { key: 'avgObjectiveDamage', label: '오브젝트 딜',   format: v => v.toLocaleString() },
+      { key: 'avgDamage',          label: '평균 딜량',     format: v => v.toLocaleString() },
+      { key: 'avgKills',           label: '평균 킬',       format: v => v.toFixed(1) },
+    ],
+  },
+  MID: {
+    label: '미드', emoji: '⚡',
+    keyStats: [
+      { key: 'avgDamage',   label: '평균 딜량',  format: v => v.toLocaleString() },
+      { key: 'avgKills',    label: '평균 킬',    format: v => v.toFixed(1) },
+      { key: 'kda',         label: 'KDA',        format: v => v.toFixed(2) },
+      { key: 'avgCs',       label: '평균 CS',    format: v => v.toFixed(1) },
+    ],
+  },
+  BOTTOM: {
+    label: '원딜', emoji: '🏹',
+    keyStats: [
+      { key: 'avgDamage',      label: '평균 딜량',  format: v => v.toLocaleString() },
+      { key: 'avgCs',          label: '평균 CS',    format: v => v.toFixed(1) },
+      { key: 'avgGold',        label: '평균 골드',  format: v => v.toLocaleString() },
+      { key: 'kda',            label: 'KDA',        format: v => v.toFixed(2) },
+    ],
+  },
+  SUPPORT: {
+    label: '서폿', emoji: '💫',
+    keyStats: [
+      { key: 'avgWardsPlaced',    label: '평균 와드',  format: v => v.toFixed(1) },
+      { key: 'avgCcTime',         label: 'CC 시간(초)', format: v => v.toFixed(1) },
+      { key: 'avgVisionScore',    label: '시야 점수',  format: v => v.toFixed(1) },
+      { key: 'avgAssists',        label: '평균 어시',  format: v => v.toFixed(1) },
+    ],
+  },
+};
+
+function LaneStatSection({ laneStats }: { laneStats: LaneStat[] }) {
+  const [selected, setSelected] = useState<string | null>(laneStats[0]?.position ?? null);
+  if (laneStats.length === 0) return null;
+  const stat = laneStats.find(s => s.position === selected);
+  const meta = selected ? POSITION_META[selected] : null;
+  const wrColor = (wr: number) => wr >= 60 ? 'var(--color-win)' : wr >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
+
+  return (
+    <div className="card" style={{ marginBottom: 20 }}>
+      <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 'var(--font-size-sm)' }}>포지션별 통계</div>
+
+      {/* 탭 */}
+      <div className="lane-tabs">
+        {laneStats.map(s => {
+          const m = POSITION_META[s.position];
+          return (
+            <button key={s.position}
+              className={`lane-tab ${selected === s.position ? 'active' : ''}`}
+              onClick={() => setSelected(s.position)}>
+              <span className="lane-tab-emoji">{m?.emoji}</span>
+              <span className="lane-tab-label">{m?.label ?? s.position}</span>
+              <span className="lane-tab-games">{s.games}판</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {stat && meta && (
+        <div className="lane-stat-body">
+          {/* 승률 + KDA 요약 */}
+          <div className="lane-summary">
+            <div className="lane-summary-wr">
+              <div style={{ fontSize: 26, fontWeight: 800, color: wrColor(stat.winRate) }}>{stat.winRate}%</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{stat.wins}승 {stat.games - stat.wins}패</div>
+              <div style={{ marginTop: 4, height: 5, width: 80, background: 'var(--color-bg-hover)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ width: `${stat.winRate}%`, height: '100%', background: wrColor(stat.winRate), borderRadius: 3 }} />
+              </div>
+            </div>
+            <div className="lane-summary-kda">
+              <div style={{ fontSize: 22, fontWeight: 800 }}>{stat.kda.toFixed(2)} KDA</div>
+              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+                {stat.avgKills.toFixed(1)} /&nbsp;
+                <span style={{ color: 'var(--color-error)' }}>{stat.avgDeaths.toFixed(1)}</span>
+                &nbsp;/ {stat.avgAssists.toFixed(1)}
+              </div>
+            </div>
+          </div>
+
+          {/* 포지션 핵심 스탯 */}
+          <div className="lane-key-stats">
+            {meta.keyStats.map(({ key, label, format }) => (
+              <div key={key} className="lane-key-stat">
+                <div className="lane-key-stat-value">{format(stat[key] as number)}</div>
+                <div className="lane-key-stat-label">{label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function RecentMatchCard({ m }: { m: RecentMatchStat }) {
   const date = new Date(m.gameCreation);
   const kda = m.deaths === 0 ? 'Perfect' : ((m.kills + m.assists) / m.deaths).toFixed(2);
@@ -168,7 +283,7 @@ export function PlayerStatsPage() {
     <div>
       <div className="page-header flex items-center justify-between">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button className="back-btn" onClick={() => navigate(-1)}><ChevronLeft size={18} /></button>
+          <button className="back-btn" onClick={() => navigate('/player-stats')}><ChevronLeft size={18} /></button>
           <div>
             <h1 className="page-title">{riotId.split('#')[0]}</h1>
             <p className="page-subtitle" style={{ fontFamily: 'monospace' }}>#{riotId.split('#')[1]}</p>
@@ -210,6 +325,9 @@ export function PlayerStatsPage() {
               <StatCard icon={<Eye size={14} />} label="평균 시야" value={data.avgVisionScore.toFixed(1)} />
             </div>
           </div>
+
+          {/* 포지션 통계 */}
+          {data.laneStats?.length > 0 && <LaneStatSection laneStats={data.laneStats} />}
 
           {/* 챔피언 통계 */}
           {data.championStats.length > 0 && <ChampionTable stats={data.championStats} />}

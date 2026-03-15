@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api/api';
-import type { StatsResponse, PlayerStats } from '../lib/types/stats';
+import type { OverviewStats, PlayerLeaderStat, ChampionPickStat } from '../lib/types/stats';
 import { LoadingCenter } from '../components/common/Spinner';
 import { Button } from '../components/common/Button';
+import { useDragon } from '../context/DragonContext';
 import '../styles/pages/stats.css';
 
 const MODES = [
@@ -12,70 +13,116 @@ const MODES = [
   { value: 'all',    label: '전체' },
 ];
 
-const MIN_GAMES = 3;
+// ── 챔피언 이미지 URL 헬퍼 ────────────────────────────
+function champImgUrl(championId: number, champions: ReturnType<typeof useDragon>['champions']): string | null {
+  const c = champions.get(championId);
+  return c?.imageUrl ?? null;
+}
 
-function HighlightCard({ label, player, value, sub }: {
-  label: string; player: string; value: string | number; sub?: string;
-}) {
-  const navigate = useNavigate();
+// ── 챔피언 픽 카드 ────────────────────────────────────
+function ChampPickCard({ stat, champions, onClick }: { stat: ChampionPickStat; champions: ReturnType<typeof useDragon>['champions']; onClick?: () => void }) {
+  const imgUrl = champImgUrl(stat.championId, champions);
+  const wrColor = stat.winRate >= 60 ? 'var(--color-win)' : stat.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
   return (
-    <div className="highlight-card" onClick={() => navigate(`/stats/player/${encodeURIComponent(player)}`)}>
-      <div className="highlight-label">{label}</div>
-      <div className="highlight-player">{player.split('#')[0]}</div>
-      <div className="highlight-value">{value}</div>
-      {sub && <div className="highlight-sub">{sub}</div>}
+    <div className="champ-pick-card" onClick={onClick} style={{ cursor: onClick ? 'pointer' : undefined }}>
+      <div className="champ-pick-img-wrap">
+        {imgUrl
+          ? <img src={imgUrl} alt={stat.champion} className="champ-pick-img" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          : <div className="champ-pick-img-fallback">{stat.champion.slice(0, 2)}</div>
+        }
+      </div>
+      <div className="champ-pick-name">{stat.champion}</div>
+      <div className="champ-pick-meta">
+        <span className="champ-pick-count">{stat.picks}픽</span>
+        <span className="champ-pick-wr" style={{ color: wrColor }}>{stat.winRate}%</span>
+      </div>
     </div>
   );
 }
 
-function Highlights({ stats }: { stats: PlayerStats[] }) {
-  const qualified = stats.filter(s => s.games >= MIN_GAMES);
-  if (qualified.length === 0) return null;
+// 기준 배지
+function BasisBadge({ basis }: { basis: 'per-min' | 'per-match' | 'total' }) {
+  const map = { 'per-min': { text: '/분', color: '#7c6af7' }, 'per-match': { text: '/경기', color: '#4a9eff' }, 'total': { text: '누적', color: '#888' } };
+  const { text, color } = map[basis];
+  return <span style={{ fontSize: 9, fontWeight: 700, background: color + '22', color, borderRadius: 4, padding: '1px 5px', border: `1px solid ${color}44` }}>{text}</span>;
+}
 
-  const best = (fn: (s: PlayerStats) => number) =>
-    qualified.reduce((a, b) => fn(a) >= fn(b) ? a : b);
-
-  const cards = [
-    { label: '👑 승률 최고', s: best(s => s.winRate), val: (s: PlayerStats) => `${s.winRate}%`, sub: (s: PlayerStats) => `${s.games}판` },
-    { label: '⚔️ KDA 장인', s: best(s => s.kda), val: (s: PlayerStats) => s.kda.toFixed(2), sub: () => 'KDA' },
-    { label: '🗡️ 킬 장인',  s: best(s => s.avgKills), val: (s: PlayerStats) => s.avgKills.toFixed(1), sub: () => '평균 킬' },
-    { label: '💥 딜 장인',  s: best(s => s.avgDamage), val: (s: PlayerStats) => s.avgDamage.toLocaleString(), sub: () => '평균 딜량' },
-    { label: '🌾 CS 장인',  s: best(s => s.avgCs), val: (s: PlayerStats) => s.avgCs.toFixed(1), sub: () => '평균 CS' },
-    { label: '🎮 판수왕',   s: best(s => s.games), val: (s: PlayerStats) => `${s.games}판`, sub: () => '최다 경기' },
-  ];
-
+// ── 명예의 전당 카드 ──────────────────────────────────
+function HallCard({ emoji, label, stat, basis }: { emoji: string; label: string; stat: PlayerLeaderStat | null; basis: 'per-min' | 'per-match' | 'total' }) {
+  const navigate = useNavigate();
+  if (!stat) return (
+    <div className="hall-card hall-card--empty">
+      <div className="hall-emoji">{emoji}</div>
+      <div className="hall-label">{label}</div>
+      <div className="hall-empty-text">데이터 없음</div>
+    </div>
+  );
   return (
-    <div className="highlights-row">
-      {cards.map(({ label, s, val, sub }) => (
-        <HighlightCard key={label} label={label} player={s.riotId} value={val(s)} sub={sub(s)} />
-      ))}
+    <div className="hall-card" onClick={() => navigate(`/player-stats/${encodeURIComponent(stat.riotId)}`)}>
+      <div className="hall-emoji">{emoji}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
+        <div className="hall-label">{label}</div>
+        <BasisBadge basis={basis} />
+      </div>
+      <div className="hall-player">{stat.riotId.split('#')[0]}</div>
+      <div className="hall-value">{stat.displayValue}</div>
+      <div className="hall-games">{stat.games}판</div>
+    </div>
+  );
+}
+
+// ── 오브젝트 통계 카드 ────────────────────────────────
+function ObjectCard({ emoji, label, value }: { emoji: string; label: string; value: number }) {
+  return (
+    <div className="obj-card">
+      <div className="obj-emoji">{emoji}</div>
+      <div className="obj-value">{value.toLocaleString()}</div>
+      <div className="obj-label">{label}</div>
     </div>
   );
 }
 
 export function StatsPage() {
-  const [data, setData]     = useState<StatsResponse | null>(null);
-  const [mode, setMode]     = useState('normal');
+  const [data, setData]       = useState<OverviewStats | null>(null);
+  const [mode, setMode]       = useState('normal');
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const { champions }         = useDragon();
+  const navigate              = useNavigate();
 
   const load = useCallback(async () => {
     setLoading(true);
-    try { setData(await api.get<StatsResponse>(`/stats?mode=${mode}`)); }
+    try { setData(await api.get<OverviewStats>(`/stats/overview?mode=${mode}`)); }
     finally { setLoading(false); }
   }, [mode]);
 
   useEffect(() => { load(); }, [load]);
 
-  const winColor = (r: number) =>
-    r >= 60 ? 'var(--color-win)' : r >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
+  const hallCards: { emoji: string; label: string; stat: PlayerLeaderStat | null; basis: 'per-min' | 'per-match' | 'total' }[] = data ? [
+    { emoji: '👑', label: '승률왕',        stat: data.winRateLeader,          basis: 'per-match' },
+    { emoji: '⚔️', label: 'KDA왕',         stat: data.kdaLeader,              basis: 'per-match' },
+    { emoji: '🗡️', label: '킬왕',          stat: data.killsLeader,            basis: 'per-match' },
+    { emoji: '💥', label: '딜량왕',         stat: data.damageLeader,           basis: 'per-min' },
+    { emoji: '💰', label: '골드왕',         stat: data.goldLeader,             basis: 'per-min' },
+    { emoji: '🌾', label: 'CS왕',          stat: data.csLeader,               basis: 'per-min' },
+    { emoji: '👁️', label: '시야왕',         stat: data.visionLeader,           basis: 'per-min' },
+    { emoji: '🏰', label: '오브젝트 딜왕',  stat: data.objectiveDamageLeader,  basis: 'per-min' },
+    { emoji: '🏯', label: '포탑왕',         stat: data.turretKillsLeader,      basis: 'per-match' },
+    { emoji: '⭐', label: '펜타킬',         stat: data.pentaKillsLeader,       basis: 'total' },
+    { emoji: '🔭', label: '와드왕',         stat: data.wardsLeader,            basis: 'per-match' },
+    { emoji: '🧊', label: 'CC왕',          stat: data.ccLeader,               basis: 'per-min' },
+    { emoji: '🎮', label: '판수왕',         stat: data.mostGamesPlayed,        basis: 'total' },
+  ] : [];
 
   return (
     <div>
+      {/* ── 헤더 ── */}
       <div className="page-header flex items-center justify-between">
         <div>
           <h1 className="page-title">전체 통계</h1>
-          <p className="page-subtitle">경기 수: {data?.matchCount ?? 0}건</p>
+          <p className="page-subtitle">
+            총 {data?.matchCount ?? 0}경기
+            {data?.avgGameMinutes ? ` · 평균 ${data.avgGameMinutes}분` : ''}
+          </p>
         </div>
         <div className="flex gap-sm">
           {MODES.map(m => (
@@ -85,56 +132,54 @@ export function StatsPage() {
         </div>
       </div>
 
-      {loading ? <LoadingCenter /> : (
+      {loading ? <LoadingCenter /> : !data ? null : (
         <>
-          {data && <Highlights stats={data.stats} />}
-
-          <div className="card">
-            <div className="table-wrapper">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>플레이어</th>
-                    <th className="table-number">판수</th>
-                    <th className="table-number">승률</th>
-                    <th className="table-number">KDA</th>
-                    <th className="table-number">평균 킬</th>
-                    <th className="table-number">평균 데스</th>
-                    <th className="table-number">평균 어시</th>
-                    <th className="table-number">평균 딜량</th>
-                    <th>주요 챔피언</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data?.stats.map((s, i) => (
-                    <tr key={s.riotId}>
-                      <td style={{ color: 'var(--color-text-secondary)' }}>{i + 1}</td>
-                      <td>
-                        <button className="player-name-btn"
-                          onClick={() => navigate(`/stats/player/${encodeURIComponent(s.riotId)}`)}>
-                          {s.riotId}
-                        </button>
-                      </td>
-                      <td className="table-number">{s.games}</td>
-                      <td className="table-number font-bold" style={{ color: winColor(s.winRate) }}>{s.winRate}%</td>
-                      <td className="table-number">{s.kda.toFixed(2)}</td>
-                      <td className="table-number">{s.avgKills}</td>
-                      <td className="table-number">{s.avgDeaths}</td>
-                      <td className="table-number">{s.avgAssists}</td>
-                      <td className="table-number">{s.avgDamage.toLocaleString()}</td>
-                      <td><div className="flex gap-sm">{s.topChampions.map(c => (
-                        <span key={c.champ} className="badge badge-normal">{c.champ} {c.count}</span>
-                      ))}</div></td>
-                    </tr>
-                  ))}
-                  {!data?.stats.length && (
-                    <tr><td colSpan={10} style={{ textAlign: 'center', color: 'var(--color-text-secondary)', padding: '32px' }}>데이터 없음</td></tr>
-                  )}
-                </tbody>
-              </table>
+          {/* ── 챔피언 픽 통계 ── */}
+          <section className="stats-section">
+            <h2 className="stats-section-title">🏆 많이 사용된 챔피언</h2>
+            <div className="champ-pick-grid">
+              {data.topPickedChampions.map(s => (
+                <ChampPickCard key={s.championId} stat={s} champions={champions}
+                  onClick={() => navigate(`/stats/champion/${encodeURIComponent(s.champion)}?mode=${mode}`)} />
+              ))}
             </div>
-          </div>
+          </section>
+
+          {/* ── 승률 높은 챔피언 ── */}
+          {data.topWinRateChampions.length > 0 && (
+            <section className="stats-section">
+              <h2 className="stats-section-title">📈 승률 높은 챔피언 <span className="stats-section-sub">(최소 3픽)</span></h2>
+              <div className="champ-pick-grid">
+                {data.topWinRateChampions.map(s => (
+                  <ChampPickCard key={s.championId} stat={s} champions={champions}
+                    onClick={() => navigate(`/stats/champion/${encodeURIComponent(s.champion)}?mode=${mode}`)} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ── 명예의 전당 ── */}
+          <section className="stats-section">
+            <h2 className="stats-section-title">🏅 명예의 전당</h2>
+            <div className="hall-grid">
+              {hallCards.map(c => (
+                <HallCard key={c.label} emoji={c.emoji} label={c.label} stat={c.stat} basis={c.basis} />
+              ))}
+            </div>
+          </section>
+
+          {/* ── 오브젝트 통계 ── */}
+          <section className="stats-section">
+            <h2 className="stats-section-title">🎯 전체 오브젝트 통계</h2>
+            <div className="obj-grid">
+              <ObjectCard emoji="🐉" label="드래곤"     value={data.totalDragonKills} />
+              <ObjectCard emoji="🐲" label="바론"       value={data.totalBaronKills} />
+              <ObjectCard emoji="🏰" label="포탑"       value={data.totalTowerKills} />
+              <ObjectCard emoji="🦅" label="전령"       value={data.totalRiftHeraldKills} />
+              <ObjectCard emoji="🏚️" label="억제기"     value={data.totalInhibitorKills} />
+              <ObjectCard emoji="💀" label="퍼스트 블러드" value={data.totalFirstBloods} />
+            </div>
+          </section>
         </>
       )}
     </div>

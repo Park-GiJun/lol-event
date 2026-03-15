@@ -3,6 +3,8 @@ package com.gijun.main.application.port.`in`
 import com.gijun.main.application.dto.match.command.SaveMatchesCommand
 import com.gijun.main.application.dto.match.result.MatchResult
 import com.gijun.main.application.dto.match.result.SaveMatchesResult
+import com.gijun.main.application.dto.stats.result.ChampionDetailStats
+import com.gijun.main.application.dto.stats.result.OverviewStats
 import com.gijun.main.application.dto.stats.result.PlayerDetailStatsResult
 import com.gijun.main.application.dto.stats.result.StatsResult
 
@@ -24,4 +26,12 @@ interface GetStatsUseCase {
 
 interface GetPlayerStatsUseCase {
     fun getPlayerStats(riotId: String, mode: String): PlayerDetailStatsResult
+}
+
+interface GetOverviewStatsUseCase {
+    fun getOverviewStats(mode: String): OverviewStats
+}
+
+interface GetChampionStatsUseCase {
+    fun getChampionStats(champion: String, mode: String): ChampionDetailStats
 }

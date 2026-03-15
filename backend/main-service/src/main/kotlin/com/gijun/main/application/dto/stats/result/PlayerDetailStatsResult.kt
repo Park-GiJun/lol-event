@@ -31,6 +31,26 @@ data class RecentMatchStat(
     val queueId: Int,
 )
 
+data class LaneStat(
+    val position: String,          // TOP / JUNGLE / MID / BOTTOM / SUPPORT
+    val games: Int,
+    val wins: Int,
+    val winRate: Int,
+    val avgKills: Double,
+    val avgDeaths: Double,
+    val avgAssists: Double,
+    val kda: Double,
+    val avgDamage: Int,
+    val avgCs: Double,
+    val avgGold: Int,
+    val avgVisionScore: Double,
+    val avgDamageTaken: Int,       // 탑/서폿 강조
+    val avgObjectiveDamage: Int,   // 정글 강조
+    val avgWardsPlaced: Double,    // 서폿 강조
+    val avgCcTime: Double,         // 서폿 강조 (timeCCingOthers)
+    val avgNeutralMinions: Double, // 정글 강조
+)
+
 data class PlayerDetailStatsResult(
     val riotId: String,
     val games: Int,
@@ -47,4 +67,5 @@ data class PlayerDetailStatsResult(
     val avgVisionScore: Double,
     val championStats: List<ChampionStat>,
     val recentMatches: List<RecentMatchStat>,
+    val laneStats: List<LaneStat> = emptyList(),
 )

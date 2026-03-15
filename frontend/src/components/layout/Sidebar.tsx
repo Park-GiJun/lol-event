@@ -1,13 +1,14 @@
 import { NavLink } from 'react-router-dom';
-import { Swords, Users, BarChart2, List, Radio, RefreshCw, Monitor } from 'lucide-react';
+import { Swords, Users, BarChart2, List, Radio, RefreshCw, Monitor, UserRound } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { to: '/',           icon: BarChart2, label: '통계' },
-  { to: '/members',    icon: Users,     label: '멤버 관리' },
-  { to: '/matches',    icon: List,      label: '경기 목록' },
-  { to: '/lcu',        icon: Radio,     label: 'LCU 수집' },
-  { to: '/sync',       icon: RefreshCw, label: '동기화' },
-  { to: '/monitoring', icon: Monitor,   label: '모니터링' },
+  { to: '/',             icon: BarChart2,  label: '전체 통계' },
+  { to: '/player-stats', icon: UserRound,  label: '멤버 통계' },
+  { to: '/members',      icon: Users,      label: '멤버 관리' },
+  { to: '/matches',      icon: List,       label: '경기 목록' },
+  { to: '/lcu',          icon: Radio,      label: 'LCU 수집' },
+  { to: '/sync',         icon: RefreshCw,  label: '동기화' },
+  { to: '/monitoring',   icon: Monitor,    label: '모니터링' },
 ];
 
 export function Sidebar() {
