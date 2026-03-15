@@ -477,3 +477,298 @@
   align-items: flex-end;
   gap: 2px;
 }
+
+/* ── Summary Stats Row ───────────────────────────── */
+.summary-stats-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+@media (max-width: 1100px) { .summary-stats-row { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px)  { .summary-stats-row { grid-template-columns: repeat(2, 1fr); } }
+
+.summary-stat-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.summary-stat-emoji { font-size: 22px; line-height: 1; margin-bottom: 2px; }
+.summary-stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+.summary-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.summary-stat-sub {
+  font-size: 10px;
+  color: var(--color-text-disabled);
+}
+
+/* ── Stats Section + Card combo ─────────────────── */
+.stats-section.card {
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.stats-section.card .stats-section-title {
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* ── 3열 레이아웃 (밴/승률 챔피언) ──────────────── */
+.stats-3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media (max-width: 900px) { .stats-3col { grid-template-columns: 1fr; } }
+
+/* ── Small champion grid (밴/승률용) ─────────────── */
+.champ-pick-grid--sm {
+  grid-template-columns: repeat(4, 1fr) !important;
+}
+@media (max-width: 600px) { .champ-pick-grid--sm { grid-template-columns: repeat(3, 1fr) !important; } }
+
+/* ── Advanced Stats Tab (고급통계) ──────────────── */
+.adv-tab-header {
+  display: flex;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 20px;
+  gap: 0;
+}
+
+/* ── Overview Hero Banner ────────────────────────── */
+.overview-hero-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.overview-hero-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-right: 24px;
+  min-width: 100px;
+}
+.overview-hero-number {
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.overview-hero-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.overview-hero-sub {
+  font-size: 11px;
+  color: var(--color-text-disabled);
+  margin-top: 2px;
+}
+.overview-hero-divider {
+  width: 1px;
+  height: 60px;
+  background: var(--color-border);
+  margin-right: 24px;
+  flex-shrink: 0;
+}
+.overview-hero-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  padding: 0 12px;
+  border-right: 1px solid var(--color-border);
+}
+.overview-hero-stat:last-child { border-right: none; }
+.overview-hero-stat-emoji { font-size: 20px; line-height: 1; }
+.overview-hero-stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.overview-hero-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+.overview-hero-stat-sub {
+  font-size: 10px;
+  color: var(--color-text-disabled);
+}
+
+/* ── Overview Spotlight 4인방 ─────────────────────── */
+.overview-spotlight-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.overview-spotlight-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.overview-spotlight-card.clickable {
+  cursor: pointer;
+}
+.overview-spotlight-card.clickable:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+.overview-spotlight-emoji { font-size: 24px; line-height: 1; margin-bottom: 2px; }
+.overview-spotlight-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--color-text-secondary);
+}
+.overview-spotlight-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+.overview-spotlight-value {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.overview-spotlight-games {
+  font-size: 10px;
+  color: var(--color-text-disabled);
+}
+.overview-spotlight-empty {
+  font-size: 11px;
+  color: var(--color-text-disabled);
+  margin-top: 6px;
+}
+
+/* ── Overview 2열 메인 ───────────────────────────── */
+.overview-main-row {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 14px;
+  margin-bottom: 14px;
+  align-items: start;
+}
+@media (max-width: 1100px) { .overview-main-row { grid-template-columns: 1fr; } }
+
+.overview-main-left  { margin-bottom: 0 !important; }
+.overview-main-right { display: flex; flex-direction: column; gap: 14px; }
+
+/* 픽률 챔피언 그리드 (메인용 5열) */
+.overview-champ-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+.overview-champ-grid--sm {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+@media (max-width: 1100px) {
+  .overview-champ-grid     { grid-template-columns: repeat(6, 1fr); }
+  .overview-champ-grid--sm { grid-template-columns: repeat(4, 1fr) !important; }
+}
+
+/* ── Hall of Fame 그룹 ───────────────────────────── */
+.hall-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.hall-group {}
+.hall-group-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+.hall-group-sub {
+  font-size: 10px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-text-disabled);
+}
+.hall-group-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+@media (max-width: 1100px) { .hall-group-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 600px)  { .hall-group-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* ── Stats Page Tab Bar ──────────────────────────── */
+.stats-tab-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0;
+}
+.stats-tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.stats-tab-btn:hover { color: var(--color-text-primary); }
+.stats-tab-btn.active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}

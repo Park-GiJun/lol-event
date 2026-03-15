@@ -31,6 +31,17 @@ class MatchWebAdapter(
     fun saveBulk(@RequestBody command: SaveMatchesCommand): CommonApiResponse<SaveMatchesResult> =
         CommonApiResponse.success(saveMatchesUseCase.save(command))
 
+    @Operation(summary = "경기 단건 조회", description = "matchId로 경기 상세 데이터를 반환합니다")
+    @GetMapping("/{matchId}")
+    fun getById(
+        @Parameter(description = "조회할 경기 ID", example = "KR_8126722699")
+        @PathVariable matchId: String
+    ): CommonApiResponse<com.gijun.main.application.dto.match.result.MatchResult> =
+        CommonApiResponse.success(
+            getMatchesUseCase.getById(matchId)
+                ?: throw com.gijun.common.exception.DomainNotFoundException("경기를 찾을 수 없습니다: $matchId")
+        )
+
     @Operation(summary = "경기 삭제", description = "matchId로 경기 데이터를 삭제합니다")
     @DeleteMapping("/{matchId}")
     fun delete(

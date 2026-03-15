@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Swords, Users, BarChart2, List, Radio, RefreshCw, Monitor, UserRound } from 'lucide-react';
+import { Swords, Users, BarChart2, List, Radio, RefreshCw, Shield, UserRound, X } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/',             icon: BarChart2,  label: '전체 통계' },
@@ -8,15 +8,25 @@ const NAV_ITEMS = [
   { to: '/matches',      icon: List,       label: '경기 목록' },
   { to: '/lcu',          icon: Radio,      label: 'LCU 수집' },
   { to: '/sync',         icon: RefreshCw,  label: '동기화' },
-  { to: '/monitoring',   icon: Monitor,    label: '모니터링' },
+  { to: '/admin',        icon: Shield,     label: '어드민' },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  drawerOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ drawerOpen = false, onClose }: SidebarProps) {
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${drawerOpen ? ' sidebar--open' : ''}`}>
       <div className="sidebar-logo">
         <Swords size={22} color="var(--color-primary)" />
         <span className="sidebar-logo-text">LoL 내전</span>
+        {onClose && (
+          <button className="sidebar-close-btn" onClick={onClose} aria-label="닫기">
+            <X size={18} />
+          </button>
+        )}
       </div>
       <nav className="sidebar-nav">
         {NAV_ITEMS.map(({ to, icon: Icon, label }) => (

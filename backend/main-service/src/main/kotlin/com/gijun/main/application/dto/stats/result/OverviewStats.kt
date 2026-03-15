@@ -37,6 +37,7 @@ data class OverviewStats(
     val wardsLeader: PlayerLeaderStat?,
     val ccLeader: PlayerLeaderStat?,
     val mostGamesPlayed: PlayerLeaderStat?,
+    val firstBloodLeader: PlayerLeaderStat?,
 
     // 전체 오브젝트 집계
     val totalBaronKills: Int,
@@ -45,4 +46,5 @@ data class OverviewStats(
     val totalRiftHeraldKills: Int,
     val totalInhibitorKills: Int,
     val totalFirstBloods: Int,
+    val totalCs: Long,
 )

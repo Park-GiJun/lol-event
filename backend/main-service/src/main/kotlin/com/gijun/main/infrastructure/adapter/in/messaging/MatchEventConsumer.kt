@@ -8,6 +8,7 @@ import com.gijun.main.domain.model.member.Member
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -16,6 +17,7 @@ class MatchEventConsumer(
     private val objectMapper: ObjectMapper,
     private val matchPersistencePort: MatchPersistencePort,
     private val memberPersistencePort: MemberPersistencePort,
+    private val kafkaTemplate: KafkaTemplate<String, String>,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -28,6 +30,7 @@ class MatchEventConsumer(
 
             // 매치 upsert (이미 MatchPersistenceAdapter.save가 upsert 처리)
             matchPersistencePort.save(input.toDomain())
+            kafkaTemplate.send("lol.stats.rebuild", matchId, "match_saved")
 
             // 참가자 자동 멤버 등록
             autoRegisterMembers(input)

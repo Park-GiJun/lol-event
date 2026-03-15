@@ -5,6 +5,7 @@ import type { StatsResponse, PlayerStats } from '../lib/types/stats';
 import { LoadingCenter } from '../components/common/Spinner';
 import { Button } from '../components/common/Button';
 import { useDragon } from '../context/DragonContext';
+import { PlayerLink } from '../components/common/PlayerLink';
 import '../styles/pages/stats.css';
 
 const MODES = [
@@ -162,10 +163,12 @@ export function MemberStatsListPage() {
                     onClick={() => navigate(`/player-stats/${encodeURIComponent(s.riotId)}`)}>
                     <td><RankBadge rank={i + 1} /></td>
                     <td>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <span style={{ fontWeight: 700, fontSize: 13 }}>{s.riotId.split('#')[0]}</span>
-                        <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>#{s.riotId.split('#')[1]}</span>
-                      </div>
+                      <PlayerLink riotId={s.riotId} mode={mode}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <span style={{ fontWeight: 700, fontSize: 13 }}>{s.riotId.split('#')[0]}</span>
+                          <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>#{s.riotId.split('#')[1]}</span>
+                        </div>
+                      </PlayerLink>
                     </td>
                     <td>
                       <span style={{ fontWeight: 600, fontSize: 14 }}>{s.games}</span>

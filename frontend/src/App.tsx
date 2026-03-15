@@ -11,7 +11,7 @@ import { MembersPage } from './pages/MembersPage';
 import { MatchesPage } from './pages/MatchesPage';
 import { LcuPage } from './pages/LcuPage';
 import { SyncPage } from './pages/SyncPage';
-import { MonitoringPage } from './pages/MonitoringPage';
+import { AdminPage } from './pages/AdminPage';
 import { ErrorModal } from './components/common/ErrorModal';
 
 function App() {
@@ -33,7 +33,7 @@ function App() {
           <Route path="matches" element={<MatchesPage />} />
           <Route path="lcu" element={<LcuPage />} />
           <Route path="sync" element={<SyncPage />} />
-          <Route path="monitoring" element={<MonitoringPage />} />
+          <Route path="admin" element={<AdminPage />} />
         </Route>
       </Routes>
       <ErrorModal

@@ -18,7 +18,7 @@ eureka:
 
 lcu:
   service:
-    url: ${LCU_SERVICE_URL:http://localhost:3001}
+    url: ${LCU_SERVICE_URL:http://localhost:3002}
 
 grafana:
   url: ${GRAFANA_URL:http://localhost:3001}

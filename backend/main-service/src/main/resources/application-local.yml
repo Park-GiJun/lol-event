@@ -8,6 +8,15 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  batch:
+    job:
+      enabled: false   # 서버 시작 시 자동 실행 방지
+    jdbc:
+      initialize-schema: always
+      table-prefix: lol_event.BATCH_
 
 eureka:
   instance:
@@ -17,3 +26,6 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://localhost:8761/eureka/
+
+scheduling:
+  enabled: true

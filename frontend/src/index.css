@@ -9,3 +9,5 @@
 @import './styles/components/sse.css';
 @import './styles/layouts/sidebar.css';
 @import './styles/pages/monitoring.css';
+@import './styles/components/popup.css';
+@import './styles/mobile.css';

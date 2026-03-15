@@ -15,9 +15,13 @@ class GetPlayerStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
 ) : GetPlayerStatsUseCase {
 
-    private fun resolvePosition(lane: String?, role: String?): String? = when {
-        lane == "TOP"                                          -> "TOP"
-        lane == "JUNGLE"                                       -> "JUNGLE"
+    /**
+     * Riot API의 lane/role 필드는 커스텀 게임에서 부정확합니다.
+     * JUNGLE은 neutralMinionsKilled >= 30 으로 실제 정글 여부를 추가 검증합니다.
+     */
+    private fun resolvePosition(lane: String?, role: String?, neutralMinionsKilled: Int): String? = when {
+        lane == "TOP"                                         -> "TOP"
+        lane == "JUNGLE" && neutralMinionsKilled >= 30        -> "JUNGLE"
         lane == "MID" || lane == "MIDDLE"                     -> "MID"
         lane == "BOTTOM" && role == "DUO_SUPPORT"             -> "SUPPORT"
         lane == "BOTTOM"                                       -> "BOTTOM"
@@ -47,7 +51,7 @@ class GetPlayerStatsHandler(
                         champion = p.champion, championId = p.championId, win = p.win,
                         kills = p.kills, deaths = p.deaths, assists = p.assists,
                         damage = p.damage, cs = p.cs, gold = p.gold, visionScore = p.visionScore,
-                        position = resolvePosition(p.lane, p.role),
+                        position = resolvePosition(p.lane, p.role, p.neutralMinionsKilled),
                         damageTaken = p.totalDamageTaken,
                         objectiveDamage = p.damageDealtToObjectives,
                         wardsPlaced = p.wardsPlaced,

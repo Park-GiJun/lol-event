@@ -148,12 +148,117 @@
 
 .match-player-row {
   display: grid;
-  grid-template-columns: 80px 1fr auto;
+  grid-template-columns: 80px 1fr auto auto;
   align-items: center;
   gap: 6px;
   font-size: var(--font-size-xs);
-  padding: 1px 0;
+  padding: 1px 2px;
+  border-radius: 3px;
 }
+.match-player-ace {
+  background: rgba(200, 155, 60, 0.08);
+}
+.match-player-mvp {
+  background: rgba(11, 196, 180, 0.06);
+}
+
+/* ── MVP / ACE 배지 (카드용) ────────────────────────────── */
+.match-mvp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 8px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+.match-mvp-badge--ace {
+  background: rgba(200, 155, 60, 0.18);
+  color: var(--color-primary);
+  border: 1px solid rgba(200, 155, 60, 0.35);
+}
+.match-mvp-badge--team {
+  background: rgba(11, 196, 180, 0.12);
+  color: var(--color-win);
+  border: 1px solid rgba(11, 196, 180, 0.25);
+}
+
+/* ── Scoreboard MVP 배지 ─────────────────────────────────── */
+.sb-mvp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 8px;
+  margin-left: 5px;
+  vertical-align: middle;
+}
+.sb-mvp-badge--ace  { background: rgba(200,155,60,0.18); color: var(--color-primary); border: 1px solid rgba(200,155,60,0.35); }
+.sb-mvp-badge--team { background: rgba(11,196,180,0.12);  color: var(--color-win);     border: 1px solid rgba(11,196,180,0.25); }
+.sb-row-ace  { background: rgba(200, 155, 60, 0.05); }
+.sb-row-mvp  { background: rgba(11, 196, 180, 0.04); }
+
+/* ── Match Group (날짜별 묶음) ───────────────────────────── */
+.match-group {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.match-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: var(--color-bg-tertiary);
+  border: none;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+.match-group-header:hover { background: var(--color-bg-hover, rgba(255,255,255,0.04)); }
+
+.match-group-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-text-secondary);
+}
+.match-group-date {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.match-group-count {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1px 8px;
+}
+.match-group-summary { display: flex; align-items: center; gap: 8px; }
+.match-group-winloss {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.match-group-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--color-bg-secondary, var(--color-bg));
+}
+.match-group-body .match-group { margin-bottom: 0; }
+.match-group-body .match-card  { margin-bottom: 0; }
 
 .match-champion {
   font-weight: 600;

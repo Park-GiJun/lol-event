@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Shield, Sword, Eye, Coins } from 'lucide-react';
 import { api } from '../lib/api/api';
 import type { PlayerDetailStats, ChampionStat, RecentMatchStat, LaneStat } from '../lib/types/stats';
+import type { Match } from '../lib/types/match';
 import { useDragon } from '../context/DragonContext';
 import { LoadingCenter } from '../components/common/Spinner';
 import { Button } from '../components/common/Button';
+import { ChampionLink } from '../components/common/ChampionLink';
+import { MatchDetailModal } from './MatchesPage';
 import '../styles/pages/stats.css';
 
 const MODES = [
-  { value: 'all',    label: '전체' },
   { value: 'normal', label: '5v5 내전' },
   { value: 'aram',   label: '칼바람' },
 ];
@@ -57,6 +59,7 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
 
 function ChampionTable({ stats }: { stats: ChampionStat[] }) {
   const maxDmg = Math.max(...stats.map(s => s.avgDamage), 1);
+  const { champions } = useDragon();
   return (
     <div className="card" style={{ marginBottom: 20 }}>
       <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 'var(--font-size-sm)' }}>챔피언별 통계</div>
@@ -75,15 +78,19 @@ function ChampionTable({ stats }: { stats: ChampionStat[] }) {
             </tr>
           </thead>
           <tbody>
-            {stats.map(s => (
+            {stats.map(s => {
+              const nameKo = champions.get(s.championId)?.nameKo || s.champion;
+              return (
               <tr key={s.champion}>
                 <td>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <ChampImg championId={s.championId} champion={s.champion} size={28} />
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 'var(--font-size-xs)' }}>{s.champion}</div>
-                      <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>{s.games}판 {s.wins}승</div>
-                    </div>
+                    <ChampionLink champion={s.champion} championId={s.championId}>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 'var(--font-size-xs)' }}>{nameKo}</div>
+                        <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>{s.games}판 {s.wins}승</div>
+                      </div>
+                    </ChampionLink>
                   </div>
                 </td>
                 <td className="table-number">{s.games}</td>
@@ -101,7 +108,8 @@ function ChampionTable({ stats }: { stats: ChampionStat[] }) {
                 <td className="table-number">{s.avgCs.toFixed(1)}</td>
                 <td className="table-number">{s.avgGold.toLocaleString()}</td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -224,17 +232,21 @@ function LaneStatSection({ laneStats }: { laneStats: LaneStat[] }) {
   );
 }
 
-function RecentMatchCard({ m }: { m: RecentMatchStat }) {
-  const date = new Date(m.gameCreation);
-  const kda = m.deaths === 0 ? 'Perfect' : ((m.kills + m.assists) / m.deaths).toFixed(2);
+function RecentMatchCard({ m, onClick }: { m: RecentMatchStat; onClick: () => void }) {
+  const { champions } = useDragon();
+  const date    = new Date(m.gameCreation);
+  const kda     = m.deaths === 0 ? 'Perfect' : ((m.kills + m.assists) / m.deaths).toFixed(2);
+  const nameKo  = champions.get(m.championId)?.nameKo || m.champion;
   return (
-    <div className={`recent-match-card ${m.win ? 'win' : 'loss'}`}>
+    <div className={`recent-match-card ${m.win ? 'win' : 'loss'}`}
+      onClick={onClick}
+      style={{ cursor: 'pointer' }}>
       <div className="recent-match-champ">
         <ChampImg championId={m.championId} champion={m.champion} size={40} />
         <span className={`recent-match-result ${m.win ? 'win' : 'loss'}`}>{m.win ? '승' : '패'}</span>
       </div>
       <div className="recent-match-info">
-        <div style={{ fontWeight: 700, fontSize: 'var(--font-size-xs)' }}>{m.champion}</div>
+        <div style={{ fontWeight: 700, fontSize: 'var(--font-size-xs)' }}>{nameKo}</div>
         <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>
           {QUEUE_LABEL[m.queueId] ?? m.queueId} · {fmt(m.gameDuration)}
         </div>
@@ -264,9 +276,11 @@ function RecentMatchCard({ m }: { m: RecentMatchStat }) {
 export function PlayerStatsPage() {
   const { riotId: encodedId } = useParams<{ riotId: string }>();
   const riotId = decodeURIComponent(encodedId ?? '');
-  const [data, setData] = useState<PlayerDetailStats | null>(null);
-  const [mode, setMode] = useState('all');
-  const [loading, setLoading] = useState(true);
+  const [data, setData]           = useState<PlayerDetailStats | null>(null);
+  const [mode, setMode]           = useState('normal');
+  const [loading, setLoading]     = useState(true);
+  const [modalMatch, setModalMatch] = useState<Match | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -275,6 +289,16 @@ export function PlayerStatsPage() {
       .then(setData)
       .finally(() => setLoading(false));
   }, [riotId, mode]);
+
+  const openMatch = useCallback(async (matchId: string) => {
+    setModalLoading(true);
+    try {
+      const match = await api.get<Match>(`/matches/${encodeURIComponent(matchId)}`);
+      setModalMatch(match);
+    } finally {
+      setModalLoading(false);
+    }
+  }, []);
 
   const winColor = (r: number) =>
     r >= 60 ? 'var(--color-win)' : r >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
@@ -336,12 +360,25 @@ export function PlayerStatsPage() {
           {data.recentMatches.length > 0 && (
             <div className="card">
               <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 'var(--font-size-sm)' }}>최근 경기</div>
+              {modalLoading && (
+                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>경기 불러오는 중…</div>
+              )}
               <div className="recent-matches-list">
-                {data.recentMatches.map(m => <RecentMatchCard key={`${m.matchId}-${m.champion}`} m={m} />)}
+                {data.recentMatches.map(m => (
+                  <RecentMatchCard
+                    key={`${m.matchId}-${m.champion}`}
+                    m={m}
+                    onClick={() => openMatch(m.matchId)}
+                  />
+                ))}
               </div>
             </div>
           )}
         </>
+      )}
+
+      {modalMatch && (
+        <MatchDetailModal match={modalMatch} onClose={() => setModalMatch(null)} />
       )}
     </div>
   );

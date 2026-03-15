@@ -169,6 +169,12 @@ class GetOverviewStatsHandler(
             .maxByOrNull { it.value.size }
             ?.let { (riotId, es) -> PlayerLeaderStat(riotId, "${es.size}판", es.size) }
 
+        val firstBloodLeader = leader(
+            minGames = 1,
+            score    = { es -> es.count { it.p.firstBloodKill }.toDouble() },
+            display  = { _, v -> "${v.toInt()}회" },
+        )
+
         // ── 전체 오브젝트 + 경기 시간 집계 ──────────────────
         val totalDurationSec = matches.sumOf { it.gameDuration }
         val avgGameMin       = if (matches.isNotEmpty())
@@ -193,12 +199,14 @@ class GetOverviewStatsHandler(
             wardsLeader          = wardsLeader,
             ccLeader             = ccLeader,
             mostGamesPlayed      = mostGamesPlayed,
+            firstBloodLeader     = firstBloodLeader,
             totalBaronKills      = allTeams.sumOf { it.baronKills },
             totalDragonKills     = allTeams.sumOf { it.dragonKills },
             totalTowerKills      = allTeams.sumOf { it.towerKills },
             totalRiftHeraldKills = allTeams.sumOf { it.riftHeraldKills },
             totalInhibitorKills  = allTeams.sumOf { it.inhibitorKills },
             totalFirstBloods     = matches.count { m -> m.teams.any { it.firstBlood } },
+            totalCs              = allP.sumOf { it.cs }.toLong(),
         )
     }
 

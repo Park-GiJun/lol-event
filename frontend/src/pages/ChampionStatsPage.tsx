@@ -5,6 +5,7 @@ import type { ChampionDetailStats, ChampionPlayerStat } from '../lib/types/stats
 import { LoadingCenter } from '../components/common/Spinner';
 import { Button } from '../components/common/Button';
 import { useDragon } from '../context/DragonContext';
+import { PlayerLink } from '../components/common/PlayerLink';
 import '../styles/pages/stats.css';
 
 const MODES = [
@@ -69,7 +70,7 @@ function KdaDisplay({ kda, kills, deaths, assists }: { kda: number; kills: numbe
 export function ChampionStatsPage() {
   const { champion } = useParams<{ champion: string }>();
   const navigate = useNavigate();
-  const { champions } = useDragon();
+  const { champions, items } = useDragon();
 
   const [data, setData]       = useState<ChampionDetailStats | null>(null);
   const [mode, setMode]       = useState('normal');
@@ -112,7 +113,9 @@ export function ChampionStatsPage() {
             />
           )}
           <div>
-            <h1 className="page-title">{data?.champion ?? champion} 장인 랭킹</h1>
+            <h1 className="page-title">
+              {(data?.championId && champions.get(data.championId)?.nameKo) || data?.champion || champion} 장인 랭킹
+            </h1>
             <p className="page-subtitle">
               총 {data?.totalGames ?? 0}경기 · 승률 {data?.winRate ?? 0}% · {sorted.length}명
             </p>
@@ -127,6 +130,45 @@ export function ChampionStatsPage() {
       </div>
 
       {loading ? <LoadingCenter /> : (
+        <>
+        {/* 인기 아이템 */}
+        {data && data.itemStats.length > 0 && (
+          <div className="card" style={{ marginBottom: 16 }}>
+            <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', marginBottom: 12 }}>
+              인기 아이템 <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--color-text-secondary)' }}>픽률 기준</span>
+            </div>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              {data.itemStats.map((item, idx) => {
+                const itemData = items.get(item.itemId);
+                const wrColor  = item.winRate >= 60 ? 'var(--color-win)' : item.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
+                return (
+                  <div key={item.itemId} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                    <div style={{ position: 'relative' }}>
+                      {idx === 0 && (
+                        <div style={{
+                          position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
+                          fontSize: 9, fontWeight: 700, color: '#FFD700', whiteSpace: 'nowrap',
+                        }}>1위</div>
+                      )}
+                      {itemData?.imageUrl
+                        ? <img src={itemData.imageUrl} alt={itemData.nameKo}
+                            style={{ width: 44, height: 44, borderRadius: 6, border: `2px solid ${idx === 0 ? '#FFD700' : 'var(--color-border)'}`, objectFit: 'cover' }}
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                        : <div style={{ width: 44, height: 44, borderRadius: 6, background: 'var(--color-bg-hover)', border: '2px solid var(--color-border)' }} />
+                      }
+                    </div>
+                    <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', textAlign: 'center', maxWidth: 52, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {itemData?.nameKo ?? `#${item.itemId}`}
+                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: wrColor }}>{item.winRate}%</div>
+                    <div style={{ fontSize: 9, color: 'var(--color-text-disabled)' }}>{item.picks}픽</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="card">
           {/* 정렬 탭 */}
           <div className="member-sort-tabs">
@@ -161,10 +203,12 @@ export function ChampionStatsPage() {
                     onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
                     <td><RankBadge rank={i + 1} /></td>
                     <td>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <span style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</span>
-                        <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</span>
-                      </div>
+                      <PlayerLink riotId={p.riotId} mode={mode}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <span style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</span>
+                          <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</span>
+                        </div>
+                      </PlayerLink>
                     </td>
                     <td>
                       <span style={{ fontWeight: 600, fontSize: 14 }}>{p.games}</span>
@@ -189,6 +233,7 @@ export function ChampionStatsPage() {
             </table>
           </div>
         </div>
+        </>
       )}
     </div>
   );

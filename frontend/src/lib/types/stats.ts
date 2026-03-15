@@ -108,6 +108,13 @@ export interface ChampionPlayerStat {
   avgVisionScore: number;
 }
 
+export interface ChampionItemStat {
+  itemId: number;
+  picks: number;
+  wins: number;
+  winRate: number;
+}
+
 export interface ChampionDetailStats {
   champion: string;
   championId: number;
@@ -115,6 +122,7 @@ export interface ChampionDetailStats {
   totalWins: number;
   winRate: number;
   players: ChampionPlayerStat[];
+  itemStats: ChampionItemStat[];
 }
 
 export interface ChampionPickStat {
@@ -150,10 +158,73 @@ export interface OverviewStats {
   wardsLeader: PlayerLeaderStat | null;
   ccLeader: PlayerLeaderStat | null;
   mostGamesPlayed: PlayerLeaderStat | null;
+  firstBloodLeader: PlayerLeaderStat | null;
   totalBaronKills: number;
   totalDragonKills: number;
   totalTowerKills: number;
   totalRiftHeraldKills: number;
   totalInhibitorKills: number;
   totalFirstBloods: number;
+  totalCs: number;
+}
+
+// ── 고급 통계 타입 ──────────────────────────────────
+
+export interface MvpPlayerStat {
+  riotId: string;
+  games: number;
+  mvpCount: number;
+  aceCount: number;
+  mvpRate: number;
+  avgMvpScore: number;
+  topChampion: string | null;
+}
+
+export interface MvpStatsResult {
+  rankings: MvpPlayerStat[];
+  totalGames: number;
+}
+
+export interface ChampionSynergy {
+  champion1: string;
+  champion1Id: number;
+  champion2: string;
+  champion2Id: number;
+  games: number;
+  wins: number;
+  winRate: number;
+  avgCombinedKills: number;
+}
+
+export interface ChampionSynergyResult {
+  synergies: ChampionSynergy[];
+  totalGames: number;
+}
+
+export interface DuoStat {
+  player1: string;
+  player2: string;
+  games: number;
+  wins: number;
+  winRate: number;
+  avgKills: number;
+  avgDeaths: number;
+  avgAssists: number;
+  kda: number;
+}
+
+export interface DuoStatsResult {
+  duos: DuoStat[];
+}
+
+export interface StreakResult {
+  riotId: string;
+  currentStreak: number;
+  currentStreakType: 'WIN' | 'LOSS' | 'NONE';
+  longestWinStreak: number;
+  longestLossStreak: number;
+  recentForm: string[];
+  totalGames: number;
+  wins: number;
+  losses: number;
 }

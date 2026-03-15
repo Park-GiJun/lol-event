@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional
 class GetMatchesHandler(private val matchPersistencePort: MatchPersistencePort) : GetMatchesUseCase {
     override fun getAll(mode: String): List<MatchResult> =
         matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode)).map { MatchResult.from(it) }
+
+    override fun getById(matchId: String): MatchResult? =
+        matchPersistencePort.findByMatchId(matchId)?.let { MatchResult.from(it) }
 }
 
 fun modeToQueueIds(mode: String): List<Int> = when (mode) {

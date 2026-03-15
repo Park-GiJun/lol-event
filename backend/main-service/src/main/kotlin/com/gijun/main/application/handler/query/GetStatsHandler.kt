@@ -6,6 +6,7 @@ import com.gijun.main.application.dto.stats.result.StatsResult
 import com.gijun.main.application.port.`in`.GetStatsUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.application.port.out.MemberPersistencePort
+import com.gijun.main.application.port.out.StatsCachePersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -13,12 +14,42 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class GetStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
-    private val memberPersistencePort: MemberPersistencePort
+    private val memberPersistencePort: MemberPersistencePort,
+    private val statsCachePersistencePort: StatsCachePersistencePort,
 ) : GetStatsUseCase {
 
     override fun getStats(mode: String): StatsResult {
+        val queueIds = modeToQueueIds(mode)
+        val matchCount = matchPersistencePort.countByQueueIds(queueIds)
+
+        // 배치가 집계한 스냅샷이 있으면 캐시 우선 사용 (중복 집계 없음)
+        val cached = statsCachePersistencePort.findPlayerCacheByMode(mode)
+        if (cached.isNotEmpty()) {
+            val stats = cached
+                .sortedWith(compareByDescending<com.gijun.main.application.port.out.PlayerStatsCache> { it.winRate }
+                    .thenByDescending { it.games })
+                .map { c ->
+                    PlayerStatsResult(
+                        riotId       = c.riotId,
+                        games        = c.games,
+                        wins         = c.wins,
+                        losses       = c.losses,
+                        winRate      = c.winRate,
+                        avgKills     = c.avgKills,
+                        avgDeaths    = c.avgDeaths,
+                        avgAssists   = c.avgAssists,
+                        kda          = c.kda,
+                        avgDamage    = c.avgDamage,
+                        avgCs        = c.avgCs,
+                        topChampions = listOfNotNull(c.topChampion?.let { ChampionCount(it, 0) }),
+                    )
+                }
+            return StatsResult(stats, matchCount)
+        }
+
+        // 캐시 없음 → 원본 계산 (배치 미실행 초기 상태)
         val members = memberPersistencePort.findAll()
-        val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
+        val matches = matchPersistencePort.findAllWithParticipants(queueIds)
 
         data class Acc(
             val riotId: String,
@@ -30,7 +61,6 @@ class GetStatsHandler(
         )
 
         val accByPuuid  = members.associate { it.puuid  to Acc(it.riotId) }.toMutableMap()
-        // participant.puuid가 구 UUID 형식이거나 null일 경우를 위해 riotId로도 조회
         val accByRiotId = members.associate { it.riotId to accByPuuid[it.puuid]!! }
 
         for (match in matches) {
@@ -68,6 +98,6 @@ class GetStatsHandler(
             }
             .sortedWith(compareByDescending<PlayerStatsResult> { it.winRate }.thenByDescending { it.games })
 
-        return StatsResult(stats, matches.size.toLong())
+        return StatsResult(stats, matchCount)
     }
 }

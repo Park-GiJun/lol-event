@@ -15,6 +15,13 @@ data class ChampionPlayerStat(
     val avgVisionScore: Double,
 )
 
+data class ChampionItemStat(
+    val itemId: Int,
+    val picks: Int,
+    val wins: Int,
+    val winRate: Int,
+)
+
 data class ChampionDetailStats(
     val champion: String,
     val championId: Int,
@@ -22,4 +29,5 @@ data class ChampionDetailStats(
     val totalWins: Int,
     val winRate: Int,
     val players: List<ChampionPlayerStat>,
+    val itemStats: List<ChampionItemStat> = emptyList(),
 )

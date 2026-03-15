@@ -1,9 +1,11 @@
 package com.gijun.main.application.handler.query
 
 import com.gijun.main.application.dto.stats.result.ChampionDetailStats
+import com.gijun.main.application.dto.stats.result.ChampionItemStat
 import com.gijun.main.application.dto.stats.result.ChampionPlayerStat
 import com.gijun.main.application.port.`in`.GetChampionStatsUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
+import com.gijun.main.application.port.out.StatsCachePersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -11,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class GetChampionStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val statsCachePersistencePort: StatsCachePersistencePort,
 ) : GetChampionStatsUseCase {
 
     override fun getChampionStats(champion: String, mode: String): ChampionDetailStats {
@@ -63,6 +66,34 @@ class GetChampionStatsHandler(
             }
             .sortedByDescending { it.games }
 
+        // ── 아이템 통계 — 배치 캐시 우선, 없으면 실시간 계산 ────────
+        val cachedItems = statsCachePersistencePort.findChampionItemCacheByChampionAndMode(championName, mode)
+        val itemStats: List<ChampionItemStat> = if (cachedItems.isNotEmpty()) {
+            cachedItems.map { c ->
+                ChampionItemStat(itemId = c.itemId, picks = c.picks, wins = c.wins, winRate = c.winRate)
+            }
+        } else {
+            val TRINKET_IDS = setOf(3340, 3363, 3364, 2052, 2055)
+            pairs
+                .flatMap { (p, _) ->
+                    listOf(p.item0, p.item1, p.item2, p.item3, p.item4, p.item5)
+                        .filter { it > 0 && it !in TRINKET_IDS }
+                        .map { it to p.win }
+                }
+                .groupBy { it.first }
+                .map { (itemId, entries) ->
+                    val iWins = entries.count { it.second }
+                    ChampionItemStat(
+                        itemId  = itemId,
+                        picks   = entries.size,
+                        wins    = iWins,
+                        winRate = if (entries.isNotEmpty()) iWins * 100 / entries.size else 0,
+                    )
+                }
+                .sortedByDescending { it.picks }
+                .take(6)
+        }
+
         return ChampionDetailStats(
             champion   = championName,
             championId = championId,
@@ -70,6 +101,7 @@ class GetChampionStatsHandler(
             totalWins  = totalWins,
             winRate    = totalWins * 100 / totalGames,
             players    = players,
+            itemStats  = itemStats,
         )
     }
 }
