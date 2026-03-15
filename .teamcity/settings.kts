@@ -19,6 +19,7 @@ object Build : BuildType({
         backend/main-service/build/libs/*.jar => jars/
         frontend/dist/** => frontend-dist/
         backend/lcu-service/dist/** => lcu-service-dist/
+        electron-collector/dist/** => electron-collector-dist/
     """.trimIndent()
 
     vcs {
@@ -54,6 +55,15 @@ object Build : BuildType({
             """.trimIndent()
         }
         script {
+            id = "electron_build"
+            name = "Electron Collector - Install & Build (TypeScript only)"
+            workingDir = "electron-collector"
+            scriptContent = """
+                npm ci
+                npm run build
+            """.trimIndent()
+        }
+        script {
             id = "deploy"
             name = "Deploy - Services to Host"
             scriptContent = """
@@ -71,8 +81,17 @@ object Build : BuildType({
                 cp backend/eureka-server/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/eureka-server.jar
                 cp backend/api-gateway/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/api-gateway.jar
                 cp backend/main-service/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/main-service.jar
+                # downloads 폴더 (installer) 보존
+                mkdir -p ${'$'}DEPLOY_DIR/frontend-dist-downloads-backup
+                cp -r ${'$'}DEPLOY_DIR/frontend-dist/downloads/. ${'$'}DEPLOY_DIR/frontend-dist-downloads-backup/ 2>/dev/null || true
+
                 rm -rf ${'$'}DEPLOY_DIR/frontend-dist
                 cp -r frontend/dist ${'$'}DEPLOY_DIR/frontend-dist
+
+                # downloads 복원
+                mkdir -p ${'$'}DEPLOY_DIR/frontend-dist/downloads
+                cp -r ${'$'}DEPLOY_DIR/frontend-dist-downloads-backup/. ${'$'}DEPLOY_DIR/frontend-dist/downloads/ 2>/dev/null || true
+                rm -rf ${'$'}DEPLOY_DIR/frontend-dist-downloads-backup
 
                 echo "=== Step 2: Stop existing services ==="
                 docker stop lol-frontend lol-api-gateway lol-main-service lol-eureka 2>/dev/null || true
