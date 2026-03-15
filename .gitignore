@@ -7,6 +7,11 @@
 # Config Server 실제 설정 파일 (민감 정보 - 절대 커밋 금지)
 backend/eureka-server/src/main/resources/config/application.yml
 backend/eureka-server/src/main/resources/config/application.yaml
+config/application.yml
+config/application.yaml
+
+# Deploy artifacts
+deploy/
 
 # Gradle
 .gradle/
