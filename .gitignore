@@ -1,0 +1,40 @@
+# Environment files (민감 정보 - 절대 커밋 금지)
+.env
+.env.local
+.env.prd
+.env.*.local
+
+# Config Server 실제 설정 파일 (민감 정보 - 절대 커밋 금지)
+backend/eureka-server/src/main/resources/config/application.yml
+backend/eureka-server/src/main/resources/config/application.yaml
+
+# Gradle
+.gradle/
+build/
+**/build/
+out/
+
+# IntelliJ IDEA
+*.iml
+*.ipr
+*.iws
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/shelf/
+.idea/httpRequests/
+.idea/dataSources/
+.idea/dynamic.xml
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Node.js
+node_modules/
+dist/
+
+# OS
+Thumbs.db
