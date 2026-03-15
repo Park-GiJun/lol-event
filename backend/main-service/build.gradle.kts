@@ -20,8 +20,12 @@ dependencies {
 
     // Spring Cloud
     implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
-    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
     implementation("org.springframework.cloud:spring-cloud-starter-config")
+
+    // Ktor Client
+    implementation("io.ktor:ktor-client-core:3.1.1")
+    implementation("io.ktor:ktor-client-cio:3.1.1")
+    implementation("io.ktor:ktor-client-content-negotiation:3.1.1")
 
     // Database
     runtimeOnly("org.postgresql:postgresql")
