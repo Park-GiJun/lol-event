@@ -1,0 +1,13 @@
+apiVersion: 1
+
+providers:
+  - name: 'lol-event'
+    orgId: 1
+    folder: 'LoL Event'
+    folderUid: 'lol-event'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards

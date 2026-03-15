@@ -1,0 +1,28 @@
+# 기존 stockSimulator-prometheus에 추가할 scrape 설정
+# docker exec stockSimulator-prometheus cat /etc/prometheus/prometheus.yml 로 기존 설정 확인 후
+# 아래 job들을 scrape_configs 에 추가 (또는 신규 prometheus 실행 시 단독 사용)
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'lol-event-monitor'
+
+scrape_configs:
+  - job_name: 'lol-api-gateway'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['host.docker.internal:9832']
+        labels:
+          application: 'api-gateway'
+          env: 'local'
+
+  - job_name: 'lol-main-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['host.docker.internal:8081']
+        labels:
+          application: 'main-service'
+          env: 'local'

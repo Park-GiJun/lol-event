@@ -7,7 +7,7 @@
     <springProfile name="default,dev,local">
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
-                <pattern>%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx</pattern>
+                <pattern>%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr([%X{traceId:--}]){yellow} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx</pattern>
                 <charset>UTF-8</charset>
             </encoder>
         </appender>
@@ -32,9 +32,16 @@
                 <maxHistory>30</maxHistory>
                 <totalSizeCap>3GB</totalSizeCap>
             </rollingPolicy>
-            <encoder>
-                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-                <charset>UTF-8</charset>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"app":"${APP_NAME}"}</customFields>
+                <fieldNames>
+                    <timestamp>@timestamp</timestamp>
+                    <message>message</message>
+                    <logger>logger</logger>
+                    <thread>thread</thread>
+                    <level>level</level>
+                </fieldNames>
+                <includeMdcKeyName>traceId</includeMdcKeyName>
             </encoder>
         </appender>
 
@@ -51,9 +58,9 @@
                 <maxHistory>30</maxHistory>
                 <totalSizeCap>3GB</totalSizeCap>
             </rollingPolicy>
-            <encoder>
-                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-                <charset>UTF-8</charset>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"app":"${APP_NAME}"}</customFields>
+                <includeMdcKeyName>traceId</includeMdcKeyName>
             </encoder>
         </appender>
 

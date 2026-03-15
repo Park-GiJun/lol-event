@@ -20,6 +20,12 @@ lcu:
   service:
     url: ${LCU_SERVICE_URL:http://localhost:3001}
 
+grafana:
+  url: ${GRAFANA_URL:http://localhost:3001}
+
+prometheus:
+  url: ${PROMETHEUS_URL:http://localhost:9090}
+
 management:
   endpoints:
     web:
@@ -28,6 +34,8 @@ management:
   endpoint:
     health:
       show-details: always
+    prometheus:
+      enabled: true
   metrics:
     tags:
       application: ${spring.application.name}
