@@ -270,27 +270,16 @@ export class CollectService {
       return;
     }
 
-    if (this.kafkaService.isConnected()) {
-      send('info', `Kafka로 ${newMatches.length}건 전송 중...`);
-      let published = 0;
-      for (const match of newMatches) {
-        try {
-          await this.kafkaService.publishMatch(match.matchId, match);
-          published++;
-        } catch (e) {
-          send('warn', `Kafka 전송 실패 (${match.matchId}): ${(e as Error).message}`);
-        }
-      }
-      send('done', `완료 — Kafka ${published}/${newMatches.length}건 전송`);
-    } else {
-      send('info', `Kafka 미연결 — main-service로 직접 저장 중 (${newMatches.length}건)...`);
+    send('info', `Kafka로 ${newMatches.length}건 전송 중...`);
+    let published = 0;
+    for (const match of newMatches) {
       try {
-        const res = await axios.post(`${mainServiceUrl}/api/matches/bulk`, { matches: newMatches });
-        const result = res.data?.data as { saved?: number; total?: number } | undefined;
-        send('done', `완료 — 직접 저장 ${result?.saved ?? newMatches.length}건 (누적 ${result?.total ?? '?'}건)`);
+        await this.kafkaService.publishMatch(match.matchId, match);
+        published++;
       } catch (e) {
-        send('error', `직접 저장 실패: ${(e as Error).message}`);
+        send('warn', `Kafka 전송 실패 (${match.matchId}): ${(e as Error).message}`);
       }
     }
+    send('done', `완료 — Kafka ${published}/${newMatches.length}건 전송`);
   }
 }
