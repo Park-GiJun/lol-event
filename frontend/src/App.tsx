@@ -4,6 +4,7 @@ import { setErrorHandler } from './lib/api/api';
 import { DragonProvider } from './context/DragonContext';
 import { Layout } from './components/layout/Layout';
 import { StatsPage } from './pages/StatsPage';
+import { PlayerStatsPage } from './pages/PlayerStatsPage';
 import { MembersPage } from './pages/MembersPage';
 import { MatchesPage } from './pages/MatchesPage';
 import { LcuPage } from './pages/LcuPage';
@@ -22,6 +23,7 @@ function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<StatsPage />} />
+          <Route path="stats/player/:riotId" element={<PlayerStatsPage />} />
           <Route path="members" element={<MembersPage />} />
           <Route path="matches" element={<MatchesPage />} />
           <Route path="lcu" element={<LcuPage />} />
