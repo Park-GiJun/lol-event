@@ -39,4 +39,5 @@ export function DragonProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useDragon = () => useContext(DragonContext);

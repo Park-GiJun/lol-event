@@ -53,7 +53,7 @@ export function SyncPage() {
           <p className="page-subtitle">Riot DataDragon에서 최신 챔피언·아이템·스펠 데이터를 받아 DB에 저장하고 캐시를 갱신합니다</p>
         </div>
         <button className="btn btn-primary" onClick={handleSync} disabled={syncing}>
-          {syncing ? <Spinner size={16} /> : <RefreshCw size={16} />}
+          {syncing ? <Spinner size="sm" /> : <RefreshCw size={16} />}
           {syncing ? '동기화 중...' : 'DataDragon 동기화'}
         </button>
       </div>
