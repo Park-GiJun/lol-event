@@ -84,7 +84,7 @@ object Build : BuildType({
                     --restart unless-stopped \
                     -v ${'$'}HOST_DEPLOY/eureka-server.jar:/app.jar:ro \
                     -v ${'$'}HOST_CONFIG:/config:ro \
-                    --env-file /home/gijunpark/secrets/shared.env \
+                    --env-file /lol-event/secrets/shared.env \
                     ${'$'}JAVA_IMAGE java -jar /app.jar \
                     --spring.cloud.config.server.native.search-locations=classpath:/config,file:/config
 
@@ -103,7 +103,7 @@ object Build : BuildType({
                     --network host \
                     --restart unless-stopped \
                     -v ${'$'}HOST_DEPLOY/main-service.jar:/app.jar:ro \
-                    --env-file /home/gijunpark/secrets/main-service.env \
+                    --env-file /lol-event/secrets/main-service.env \
                     ${'$'}JAVA_IMAGE java -jar /app.jar \
                     --spring.profiles.active=prd
 
@@ -112,7 +112,7 @@ object Build : BuildType({
                     --network host \
                     --restart unless-stopped \
                     -v ${'$'}HOST_DEPLOY/api-gateway.jar:/app.jar:ro \
-                    --env-file /home/gijunpark/secrets/shared.env \
+                    --env-file /lol-event/secrets/shared.env \
                     ${'$'}JAVA_IMAGE java -jar /app.jar \
                     --spring.profiles.active=local
 
