@@ -1,0 +1,3 @@
+spring:
+  config:
+    import: configserver:http://${EUREKA_HOST}:${EUREKA_PORT}

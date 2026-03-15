@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://YOUR_DB_HOST:5432/YOUR_DB_NAME?currentSchema=lol_event
+    username: YOUR_DB_USER
+    password: YOUR_DB_PASSWORD
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: lol_event
+        format_sql: true
+        show_sql: false
+    open-in-view: false
+  flyway:
+    schemas:
+      - lol_event
+    default-schema: lol_event
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}

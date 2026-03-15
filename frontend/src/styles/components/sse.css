@@ -1,0 +1,16 @@
+.sse-log {
+  background: #050d18;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  height: 320px;
+  overflow-y: auto;
+  font-family: 'Consolas', 'D2Coding', monospace;
+  font-size: var(--font-size-xs);
+}
+.sse-line { padding: 1px 0; line-height: 1.5; }
+.sse-info { color: #7EB8F7; }
+.sse-warn { color: var(--color-warning); }
+.sse-error { color: var(--color-error); }
+.sse-done { color: var(--color-win); font-weight: 600; }
+.sse-progress { color: var(--color-text-secondary); }

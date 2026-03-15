@@ -1,0 +1,10 @@
+@import './styles/global.css';
+@import './styles/components/button.css';
+@import './styles/components/input.css';
+@import './styles/components/modal.css';
+@import './styles/components/table.css';
+@import './styles/components/card.css';
+@import './styles/components/spinner.css';
+@import './styles/components/badge.css';
+@import './styles/components/sse.css';
+@import './styles/layouts/sidebar.css';

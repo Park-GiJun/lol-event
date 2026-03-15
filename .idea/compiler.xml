@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="lol-event-backend.api-gateway" options="-parameters" />
+      <module name="lol-event-backend.api-gateway.main" options="-parameters" />
+      <module name="lol-event-backend.api-gateway.test" options="-parameters" />
+      <module name="lol-event-backend.eureka-server" options="-parameters" />
+      <module name="lol-event-backend.eureka-server.main" options="-parameters" />
+      <module name="lol-event-backend.eureka-server.test" options="-parameters" />
+      <module name="lol-event-backend.main-service" options="-parameters -proc:none" />
+      <module name="lol-event-backend.main-service.main" options="-parameters -proc:none" />
+      <module name="lol-event-backend.main-service.test" options="-parameters -proc:none" />
+    </option>
+  </component>
+</project>
