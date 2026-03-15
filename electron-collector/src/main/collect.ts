@@ -7,6 +7,7 @@ export interface CollectedMatch {
 }
 
 const SERVER_URL = 'https://api.gijun.net/api';
+const INGEST_URL = `${SERVER_URL}/matches/bulk`;
 const CUSTOM_QUEUE_IDS = new Set([0, 3130, 3270]);
 const MAX_GAMES = 500;
 const PAGE = 20;
@@ -267,12 +268,13 @@ export async function runCollect(send: (type: string, message: string) => void):
 
     send('info', `서버 전송 중 (${newMatches.length}건)...`);
     try {
-      const res = await axios.post<{ published: number }>(
-        `${SERVER_URL}/lcu/ingest`,
+      const res = await axios.post<{ data: { saved: number; skipped: number } }>(
+        INGEST_URL,
         { matches: newMatches },
         { timeout: 30_000 }
       );
-      send('done', `완료 — ${res.data.published}건 Kafka 전송`);
+      const { saved = 0, skipped = 0 } = res.data?.data ?? {};
+      send('done', `완료 — ${saved}건 저장, ${skipped}건 중복 스킵`);
     } catch (e) {
       const ax = e as { response?: { status: number; data: unknown } };
       const detail = ax.response
