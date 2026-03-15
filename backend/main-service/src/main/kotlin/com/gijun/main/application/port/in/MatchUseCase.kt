@@ -1,13 +1,16 @@
 package com.gijun.main.application.port.`in`
 
-import com.gijun.main.application.dto.*
+import com.gijun.main.application.dto.match.command.SaveMatchesCommand
+import com.gijun.main.application.dto.match.result.MatchResult
+import com.gijun.main.application.dto.match.result.SaveMatchesResult
+import com.gijun.main.application.dto.stats.result.StatsResult
 
 interface SaveMatchesUseCase {
-    fun save(request: SaveMatchesRequest): SaveMatchesResponse
+    fun save(command: SaveMatchesCommand): SaveMatchesResult
 }
 
 interface GetMatchesUseCase {
-    fun getAll(mode: String): List<MatchDto>
+    fun getAll(mode: String): List<MatchResult>
 }
 
 interface DeleteMatchUseCase {
@@ -15,5 +18,5 @@ interface DeleteMatchUseCase {
 }
 
 interface GetStatsUseCase {
-    fun getStats(mode: String): StatsResponse
+    fun getStats(mode: String): StatsResult
 }
