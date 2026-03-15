@@ -8,17 +8,17 @@ import com.gijun.main.application.dto.dragon.result.DragonSyncResult
 import com.gijun.main.application.port.`in`.SyncDataDragonUseCase
 import com.gijun.main.infrastructure.adapter.out.cache.DataDragonCacheStore
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
 
 @Tag(name = "DataDragon", description = "DataDragon 정적 데이터 API")
 @RestController
 @RequestMapping("/api/ddragon")
-class DataDragonController(
+class DataDragonWebAdapter(
     private val syncDataDragonUseCase: SyncDataDragonUseCase,
     private val cacheStore: DataDragonCacheStore
 ) {
-
     @Operation(summary = "DataDragon 동기화", description = "최신 버전의 챔피언/아이템/스펠 데이터를 DataDragon에서 받아 DB에 저장하고 캐시를 갱신합니다")
     @PostMapping("/sync")
     fun sync(): CommonApiResponse<DragonSyncResult> =
@@ -31,7 +31,10 @@ class DataDragonController(
 
     @Operation(summary = "챔피언 단건 조회")
     @GetMapping("/champions/{championId}")
-    fun champion(@PathVariable championId: Int): CommonApiResponse<DragonChampionResult?> =
+    fun champion(
+        @Parameter(description = "챔피언 ID", example = "157")
+        @PathVariable championId: Int
+    ): CommonApiResponse<DragonChampionResult?> =
         CommonApiResponse(success = true, data = cacheStore.getChampion(championId))
 
     @Operation(summary = "아이템 목록 조회")
@@ -41,7 +44,10 @@ class DataDragonController(
 
     @Operation(summary = "아이템 단건 조회")
     @GetMapping("/items/{itemId}")
-    fun item(@PathVariable itemId: Int): CommonApiResponse<DragonItemResult?> =
+    fun item(
+        @Parameter(description = "아이템 ID", example = "3157")
+        @PathVariable itemId: Int
+    ): CommonApiResponse<DragonItemResult?> =
         CommonApiResponse(success = true, data = cacheStore.getItem(itemId))
 
     @Operation(summary = "소환사 스펠 목록 조회")
@@ -51,6 +57,9 @@ class DataDragonController(
 
     @Operation(summary = "소환사 스펠 단건 조회")
     @GetMapping("/spells/{spellId}")
-    fun spell(@PathVariable spellId: Int): CommonApiResponse<DragonSummonerSpellResult?> =
+    fun spell(
+        @Parameter(description = "스펠 ID", example = "4")
+        @PathVariable spellId: Int
+    ): CommonApiResponse<DragonSummonerSpellResult?> =
         CommonApiResponse(success = true, data = cacheStore.getSpell(spellId))
 }
