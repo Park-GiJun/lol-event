@@ -24,13 +24,13 @@ function getRendererPath(): string {
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 440,
-    height: 560,
-    minWidth: 360,
-    minHeight: 480,
+    width: 500,
+    height: 620,
+    minWidth: 420,
+    minHeight: 520,
     resizable: true,
     title: 'LoL 수집기',
-    frame: false,          // 타이틀바 커스텀
+    frame: false,
     titleBarStyle: 'hidden',
     backgroundColor: '#0d0f14',
     webPreferences: {
@@ -107,6 +107,9 @@ function setupAutoUpdater() {
 // IPC 핸들러
 function setupIPC() {
   ipcMain.handle('app:version', () => app.getVersion());
+
+  ipcMain.on('win:minimize', () => win?.minimize());
+  ipcMain.on('win:close', () => win?.close());
 
   ipcMain.on('lcu:status-request', async () => {
     const status = await getStatus();

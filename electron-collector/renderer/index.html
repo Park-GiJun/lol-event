@@ -9,14 +9,16 @@
       --bg: #0d0f14;
       --surface: #161920;
       --surface2: #1e2130;
-      --border: #2a2d3e;
+      --border: #252836;
       --primary: #c89b3c;
-      --primary-dim: rgba(200,155,60,0.15);
+      --primary-dim: rgba(200,155,60,0.12);
       --text: #d8d0c0;
-      --text-secondary: #7a7f96;
+      --text-secondary: #6a6f86;
       --win: #0bc4b4;
       --lose: #e84057;
       --warn: #f0a500;
+      --sidebar-w: 52px;
+      --titlebar-h: 36px;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -25,118 +27,176 @@
       font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
       font-size: 13px;
       height: 100vh;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
       user-select: none;
     }
-    /* 드래그 가능 타이틀바 */
+
+    /* ── 타이틀바 ── */
     .titlebar {
-      -webkit-app-region: drag;
+      height: var(--titlebar-h);
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      -webkit-app-region: drag;
+    }
+    .titlebar-left {
       display: flex;
       align-items: center;
       gap: 8px;
+      padding: 0 12px;
+      flex: 1;
+    }
+    .titlebar-left .logo {
+      width: 16px; height: 16px;
+      background: var(--primary);
+      border-radius: 3px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 800; color: #0d0f14;
+    }
+    .titlebar-left .app-name { font-size: 12px; font-weight: 600; color: var(--text); }
+    .titlebar-left .version  { font-size: 10px; color: var(--text-secondary); }
+
+    /* LCU 상태 뱃지 */
+    .lcu-badge {
+      display: flex; align-items: center; gap: 5px;
+      margin-left: auto;
+      font-size: 11px; color: var(--text-secondary);
+    }
+    .lcu-badge .dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #444; flex-shrink: 0;
+    }
+    .lcu-badge .dot.ok  { background: var(--win);  box-shadow: 0 0 4px var(--win); }
+    .lcu-badge .dot.err { background: var(--lose); }
+    .lcu-badge .summoner { color: var(--primary); font-weight: 500; }
+
+    /* 창 컨트롤 버튼 */
+    .wc { -webkit-app-region: no-drag; display: flex; }
+    .wc button {
+      width: 40px; height: var(--titlebar-h);
+      background: transparent; border: none; cursor: pointer;
+      color: var(--text-secondary); font-size: 12px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.1s, color 0.1s;
+    }
+    .wc button:hover       { background: rgba(255,255,255,0.06); color: var(--text); }
+    .wc button.close:hover { background: var(--lose); color: #fff; }
+
+    /* ── 본문 레이아웃 ── */
+    .body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ── 사이드바 ── */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 8px 0;
+      gap: 2px;
       flex-shrink: 0;
     }
-    .titlebar h1 { font-size: 13px; font-weight: 600; color: var(--primary); }
-    .titlebar .version { font-size: 10px; color: var(--text-secondary); margin-left: 4px; }
+    .nav-item {
+      position: relative;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px;
+      height: 52px; width: 100%;
+      background: transparent; border: none; cursor: pointer;
+      color: var(--text-secondary);
+      border-left: 2px solid transparent;
+      transition: color 0.15s, background 0.15s, border-color 0.15s;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    .nav-item.active {
+      color: var(--primary);
+      border-left-color: var(--primary);
+      background: var(--primary-dim);
+    }
+    .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .nav-item .nav-label { font-size: 9px; letter-spacing: 0.2px; }
 
-    .content { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+    .nav-divider {
+      height: 1px; background: var(--border); margin: 4px 8px;
+    }
 
-    /* 상태 카드 */
-    .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .status-card {
+    /* ── 컨텐츠 ── */
+    .content {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page { display: none; flex: 1; flex-direction: column; overflow-y: auto; padding: 14px; }
+    .page.active { display: flex; }
+    .page::-webkit-scrollbar { width: 4px; }
+    .page::-webkit-scrollbar-track { background: transparent; }
+    .page::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── 공통 컴포넌트 ── */
+    .page-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .page-sub   { font-size: 11px; color: var(--text-secondary); margin-bottom: 14px; }
+
+    .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 12px;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
     }
-    .status-card .label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
-    .status-card .val { font-size: 12px; font-weight: 600; }
-    .val.ok { color: var(--win); }
-    .val.error { color: var(--lose); }
-    .val.neutral { color: var(--text-secondary); }
-    .dot {
-      display: inline-block; width: 6px; height: 6px; border-radius: 50%;
-      background: #444; margin-right: 5px; vertical-align: middle;
-      flex-shrink: 0;
+    .card-title {
+      font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--text-secondary);
+      margin-bottom: 10px;
     }
-    .dot.ok { background: var(--win); box-shadow: 0 0 5px var(--win); }
-    .dot.error { background: var(--lose); }
 
-    /* 소환사 정보 */
-    .summoner-bar {
-      background: var(--primary-dim);
-      border: 1px solid rgba(200,155,60,0.3);
-      border-radius: 6px;
-      padding: 8px 12px;
+    .info-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
       font-size: 12px;
-      color: var(--primary);
-      font-weight: 500;
-      display: none;
     }
-    .summoner-bar.visible { display: block; }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .label { color: var(--text-secondary); }
+    .info-row .val   { font-weight: 500; }
+    .val.ok  { color: var(--win); }
+    .val.err { color: var(--lose); }
 
-    /* 업데이트 배너 */
-    .update-bar {
-      background: rgba(11,196,180,0.1);
-      border: 1px solid var(--win);
-      border-radius: 6px;
-      padding: 8px 12px;
-      font-size: 12px;
-      color: var(--win);
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-    .update-bar.visible { display: flex; }
-    .update-bar button {
-      background: var(--win);
-      color: #0d0f14;
-      border: none;
-      border-radius: 4px;
-      padding: 3px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    /* 버튼 */
     .btn {
       display: flex; align-items: center; justify-content: center; gap: 6px;
-      width: 100%; padding: 10px 16px;
-      border: none; border-radius: 6px;
-      font-size: 13px; font-weight: 600; cursor: pointer;
+      padding: 9px 16px; border: none; border-radius: 6px;
+      font-size: 12px; font-weight: 600; cursor: pointer;
       transition: opacity 0.15s, transform 0.1s;
     }
     .btn:disabled { opacity: 0.35; cursor: not-allowed; }
     .btn:not(:disabled):active { transform: scale(0.98); }
-    .btn:not(:disabled):hover { opacity: 0.85; }
-    .btn-primary { background: var(--primary); color: #0d0f14; }
+    .btn:not(:disabled):hover  { opacity: 0.85; }
+    .btn-primary { background: var(--primary); color: #0d0f14; width: 100%; justify-content: center; }
+    .btn-secondary {
+      background: transparent; border: 1px solid var(--border);
+      color: var(--text-secondary); width: 100%; justify-content: center;
+    }
+    .btn-secondary:not(:disabled):hover { border-color: var(--primary); color: var(--primary); }
 
     /* 진행 바 */
-    .progress-wrap {
-      height: 2px; background: var(--border); border-radius: 2px; overflow: hidden;
-    }
-    .progress-bar { height: 100%; background: var(--primary); width: 0; transition: width 0.3s; }
-    .progress-bar.running {
-      animation: slide 1.2s ease-in-out infinite;
-    }
+    .progress-wrap { height: 2px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
+    .progress-bar  { height: 100%; background: var(--primary); width: 0; transition: width 0.3s; }
+    .progress-bar.running { animation: slide 1.2s ease-in-out infinite; }
     @keyframes slide {
       0%   { transform: translateX(-100%); width: 60%; }
-      100% { transform: translateX(200%); width: 60%; }
+      100% { transform: translateX(200%);  width: 60%; }
     }
 
     /* 로그 */
-    .log-wrap { flex: 1; display: flex; flex-direction: column; gap: 6px; min-height: 0; }
-    .log-title { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.4px; }
     .log {
-      flex: 1;
-      background: var(--surface);
+      background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 6px;
       overflow-y: auto;
@@ -144,137 +204,269 @@
       font-family: 'Cascadia Code', 'Consolas', 'D2Coding', monospace;
       font-size: 11px;
       line-height: 1.9;
-      min-height: 140px;
-      max-height: 180px;
+      height: 160px;
+      flex-shrink: 0;
     }
-    .log::-webkit-scrollbar { width: 4px; }
-    .log::-webkit-scrollbar-track { background: transparent; }
-    .log::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-    .log-info { color: var(--text-secondary); }
-    .log-progress { color: #5a7fa8; }
-    .log-warn { color: var(--warn); }
-    .log-error { color: var(--lose); }
-    .log-done { color: var(--win); font-weight: 600; }
+    .log::-webkit-scrollbar { width: 3px; }
+    .log::-webkit-scrollbar-thumb { background: var(--border); }
+    .log-info     { color: var(--text-secondary); }
+    .log-progress { color: #4a6fa8; }
+    .log-warn     { color: var(--warn); }
+    .log-error    { color: var(--lose); }
+    .log-done     { color: var(--win); font-weight: 600; }
+
+    /* 업데이트 배너 */
+    .update-bar {
+      display: none; align-items: center; justify-content: space-between; gap: 8px;
+      background: rgba(11,196,180,0.08);
+      border: 1px solid rgba(11,196,180,0.3);
+      border-radius: 6px; padding: 8px 12px;
+      font-size: 11px; color: var(--win);
+      margin-bottom: 10px;
+    }
+    .update-bar.visible { display: flex; }
+    .update-bar button {
+      background: var(--win); color: #0d0f14;
+      border: none; border-radius: 4px;
+      padding: 3px 10px; font-size: 11px; font-weight: 600; cursor: pointer;
+    }
+
+    /* placeholder 페이지 */
+    .placeholder {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px;
+      color: var(--text-secondary);
+    }
+    .placeholder svg { opacity: 0.2; }
+    .placeholder .ph-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+    .placeholder .ph-sub   { font-size: 11px; }
   </style>
 </head>
 <body>
-  <div class="titlebar">
-    <h1>LoL 수집기</h1>
+
+<!-- 타이틀바 -->
+<div class="titlebar">
+  <div class="titlebar-left">
+    <div class="logo">L</div>
+    <span class="app-name">LoL 수집기</span>
     <span class="version" id="appVersion"></span>
+    <div class="lcu-badge" id="lcuBadge">
+      <span class="dot" id="lcuDot"></span>
+      <span id="lcuLabel">확인 중...</span>
+      <span class="summoner" id="summoner"></span>
+    </div>
   </div>
+  <div class="wc">
+    <button onclick="window.lol.minimize()" title="최소화">
+      <svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor"/></svg>
+    </button>
+    <button class="close" onclick="window.lol.close()" title="닫기">
+      <svg width="10" height="10" viewBox="0 0 10 10">
+        <line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" stroke-width="1.5"/>
+        <line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+    </button>
+  </div>
+</div>
 
-  <div class="content">
-    <!-- 상태 -->
-    <div class="status-grid">
-      <div class="status-card">
-        <div class="label">LoL 클라이언트</div>
-        <div class="val" id="lcuStatus"><span class="dot" id="lcuDot"></span>확인 중...</div>
-      </div>
-      <div class="status-card">
-        <div class="label">서버</div>
-        <div class="val ok"><span class="dot ok"></span>api.gijun.net</div>
-      </div>
-    </div>
+<!-- 본문 -->
+<div class="body">
 
-    <!-- 소환사 -->
-    <div class="summoner-bar" id="summonerBar"></div>
-
-    <!-- 업데이트 -->
-    <div class="update-bar" id="updateBar">
-      <span id="updateMsg"></span>
-      <button onclick="window.lol.installUpdate()">지금 설치</button>
-    </div>
-
-    <!-- 진행 바 -->
-    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
-
-    <!-- 수집 버튼 -->
-    <button class="btn btn-primary" id="collectBtn" onclick="startCollect()" disabled>
-      수집 시작
+  <!-- 사이드바 -->
+  <nav class="sidebar">
+    <button class="nav-item active" data-page="collect" onclick="navigate('collect')" title="수집">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+      <span class="nav-label">수집</span>
     </button>
 
-    <!-- 로그 -->
-    <div class="log-wrap">
-      <div class="log-title">수집 로그</div>
+    <button class="nav-item" data-page="live-game" onclick="navigate('live-game')" title="현재 게임">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="10"/>
+        <polygon points="10,8 16,12 10,16"/>
+      </svg>
+      <span class="nav-label">현재게임</span>
+    </button>
+
+    <button class="nav-item" data-page="champ-select" onclick="navigate('champ-select')" title="챔피언 선택">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M12 2a5 5 0 015 5c0 3-2 5.5-5 8-3-2.5-5-5-5-8a5 5 0 015-5z"/>
+        <path d="M12 21v-6"/>
+      </svg>
+      <span class="nav-label">챔선택</span>
+    </button>
+
+    <div class="nav-divider"></div>
+
+    <button class="nav-item" data-page="summoner" onclick="navigate('summoner')" title="소환사 검색">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="M21 21l-4.35-4.35"/>
+      </svg>
+      <span class="nav-label">검색</span>
+    </button>
+  </nav>
+
+  <!-- 컨텐츠 -->
+  <div class="content">
+
+    <!-- 수집 페이지 -->
+    <div class="page active" id="page-collect">
+      <div class="page-title">매치 수집</div>
+      <div class="page-sub">LCU에서 내전 데이터를 수집해 서버로 전송합니다</div>
+
+      <div class="update-bar" id="updateBar">
+        <span id="updateMsg"></span>
+        <button onclick="window.lol.installUpdate()">설치</button>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <button class="btn btn-primary" id="collectBtn" onclick="startCollect()" disabled>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        수집 시작
+      </button>
+
+      <div style="height:10px"></div>
+
+      <div class="card-title">수집 로그</div>
       <div class="log" id="log"><span class="log-info">대기 중...</span></div>
     </div>
-  </div>
 
-  <script>
-    const logEl = document.getElementById('log');
-    const collectBtn = document.getElementById('collectBtn');
-    const lcuStatusEl = document.getElementById('lcuStatus');
-    const lcuDot = document.getElementById('lcuDot');
-    const summonerBar = document.getElementById('summonerBar');
-    const progressBar = document.getElementById('progressBar');
-    const updateBar = document.getElementById('updateBar');
-    const updateMsg = document.getElementById('updateMsg');
+    <!-- 현재 게임 -->
+    <div class="page" id="page-live-game">
+      <div class="page-title">현재 게임</div>
+      <div class="page-sub">진행 중인 게임의 참가자 정보</div>
+      <div class="placeholder">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/>
+          <polygon points="10,8 16,12 10,16"/>
+        </svg>
+        <div class="ph-title">준비 중</div>
+        <div class="ph-sub">곧 추가될 기능입니다</div>
+      </div>
+    </div>
 
-    // 버전 표시
-    window.lol.getVersion().then(v => {
-      document.getElementById('appVersion').textContent = `v${v}`;
-    });
+    <!-- 챔피언 선택 -->
+    <div class="page" id="page-champ-select">
+      <div class="page-title">챔피언 선택</div>
+      <div class="page-sub">챔피언 선택 화면의 실시간 정보</div>
+      <div class="placeholder">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 2a5 5 0 015 5c0 3-2 5.5-5 8-3-2.5-5-5-5-8a5 5 0 015-5z"/>
+          <path d="M12 21v-6"/>
+        </svg>
+        <div class="ph-title">준비 중</div>
+        <div class="ph-sub">곧 추가될 기능입니다</div>
+      </div>
+    </div>
 
-    function addLog(type, message) {
-      const first = logEl.querySelector('.log-info');
-      if (first && first.textContent === '대기 중...') first.remove();
-      const div = document.createElement('div');
-      div.className = `log-${type}`;
-      div.textContent = message;
-      logEl.appendChild(div);
-      logEl.scrollTop = logEl.scrollHeight;
+    <!-- 소환사 검색 -->
+    <div class="page" id="page-summoner">
+      <div class="page-title">소환사 검색</div>
+      <div class="page-sub">소환사 정보 및 전적 조회</div>
+      <div class="placeholder">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="M21 21l-4.35-4.35"/>
+        </svg>
+        <div class="ph-title">준비 중</div>
+        <div class="ph-sub">곧 추가될 기능입니다</div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /body -->
+
+<script>
+  // ── 네비게이션 ──
+  function navigate(pageId) {
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+    document.querySelector(`[data-page="${pageId}"]`).classList.add('active');
+    document.getElementById(`page-${pageId}`).classList.add('active');
+  }
+
+  // ── 버전 ──
+  window.lol.getVersion().then(v => {
+    document.getElementById('appVersion').textContent = `v${v}`;
+  });
+
+  // ── LCU 상태 ──
+  window.lol.onStatus(status => {
+    const dot   = document.getElementById('lcuDot');
+    const label = document.getElementById('lcuLabel');
+    const sum   = document.getElementById('summoner');
+    if (status.connected) {
+      dot.className = 'dot ok';
+      label.textContent = '연결됨';
+      sum.textContent = `${status.gameName}#${status.tagLine}`;
+      document.getElementById('collectBtn').disabled = false;
+    } else {
+      dot.className = 'dot err';
+      label.textContent = status.reason || '미연결';
+      sum.textContent = '';
+      document.getElementById('collectBtn').disabled = true;
     }
+  });
 
-    function setCollecting(v) {
-      collectBtn.disabled = v;
-      collectBtn.textContent = v ? '수집 중...' : '수집 시작';
-      progressBar.className = v ? 'progress-bar running' : 'progress-bar';
-      if (!v) progressBar.style.width = '0';
-    }
+  // ── 수집 ──
+  const logEl = document.getElementById('log');
+  const progressBar = document.getElementById('progressBar');
 
-    function startCollect() {
-      logEl.innerHTML = '';
-      setCollecting(true);
-      window.lol.startCollect();
-    }
+  function addLog(type, message) {
+    const first = logEl.querySelector('.log-info');
+    if (first && first.textContent === '대기 중...') first.remove();
+    const div = document.createElement('div');
+    div.className = `log-${type}`;
+    div.textContent = message;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
 
-    // LCU 상태 업데이트
-    window.lol.onStatus(status => {
-      if (status.connected) {
-        lcuDot.className = 'dot ok';
-        lcuStatusEl.className = 'val ok';
-        lcuStatusEl.innerHTML = `<span class="dot ok"></span>연결됨`;
-        summonerBar.textContent = `${status.gameName}#${status.tagLine}`;
-        summonerBar.classList.add('visible');
-        collectBtn.disabled = false;
-      } else {
-        lcuDot.className = 'dot error';
-        lcuStatusEl.className = 'val error';
-        lcuStatusEl.innerHTML = `<span class="dot error"></span>${status.reason || '미연결'}`;
-        summonerBar.classList.remove('visible');
-        collectBtn.disabled = true;
-      }
+  function setCollecting(v) {
+    document.getElementById('collectBtn').disabled = v;
+    document.getElementById('collectBtn').querySelector('span') !== null
+      ? null
+      : null;
+    document.getElementById('collectBtn').childNodes.forEach(n => {
+      if (n.nodeType === 3) n.textContent = v ? ' 수집 중...' : ' 수집 시작';
     });
+    progressBar.className = v ? 'progress-bar running' : 'progress-bar';
+    if (!v) progressBar.style.width = '0';
+  }
 
-    // 수집 로그
-    window.lol.onLog((type, message) => {
-      addLog(type, message);
-      if (type === 'done' || type === 'error') setCollecting(false);
-    });
+  function startCollect() {
+    logEl.innerHTML = '';
+    setCollecting(true);
+    window.lol.startCollect();
+  }
 
-    // 자동 업데이트
-    window.lol.onUpdateAvailable(info => {
-      updateMsg.textContent = `새 버전 v${info.version} 다운로드 중...`;
-      updateBar.classList.add('visible');
-    });
-    window.lol.onUpdateDownloaded(info => {
-      updateMsg.textContent = `v${info.version} 준비 완료`;
-      updateBar.classList.add('visible');
-    });
+  window.lol.onLog((type, message) => {
+    addLog(type, message);
+    if (type === 'done' || type === 'error') setCollecting(false);
+  });
 
-    // 초기 상태 요청
-    window.lol.requestStatus();
-    setInterval(() => window.lol.requestStatus(), 5000);
-  </script>
+  // ── 자동 업데이트 ──
+  window.lol.onUpdateAvailable(info => {
+    document.getElementById('updateMsg').textContent = `v${info.version} 다운로드 중...`;
+    document.getElementById('updateBar').classList.add('visible');
+  });
+  window.lol.onUpdateDownloaded(info => {
+    document.getElementById('updateMsg').textContent = `v${info.version} 업데이트 준비 완료`;
+    document.getElementById('updateBar').classList.add('visible');
+  });
+
+  // ── 초기화 ──
+  window.lol.requestStatus();
+  setInterval(() => window.lol.requestStatus(), 5000);
+</script>
 </body>
 </html>

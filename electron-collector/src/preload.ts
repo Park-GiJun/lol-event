@@ -2,6 +2,8 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('lol', {
   getVersion: () => ipcRenderer.invoke('app:version'),
+  minimize: () => ipcRenderer.send('win:minimize'),
+  close: () => ipcRenderer.send('win:close'),
   startCollect: () => ipcRenderer.send('collect:start'),
   requestStatus: () => ipcRenderer.send('lcu:status-request'),
   installUpdate: () => ipcRenderer.send('update:install'),
