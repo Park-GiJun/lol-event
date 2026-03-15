@@ -1,6 +1,6 @@
 {
   "name": "lol-collector",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "LoL 내전 데이터 수집기",
   "main": "dist/main.js",
   "scripts": {
@@ -38,7 +38,8 @@
     },
     "win": {
       "target": "nsis",
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.ico",
+      "artifactName": "lol-collector-setup.exe"
     },
     "nsis": {
       "oneClick": true,

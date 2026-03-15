@@ -13,13 +13,13 @@ project {
 object Build : BuildType({
     name = "Build"
 
+    // node_modules 제외 — artifact 1000개 제한 때문
     artifactRules = """
         backend/eureka-server/build/libs/*.jar => jars/
         backend/api-gateway/build/libs/*.jar => jars/
         backend/main-service/build/libs/*.jar => jars/
         frontend/dist/** => frontend-dist/
         backend/lcu-service/dist/** => lcu-service-dist/
-        backend/lcu-service/node_modules/** => lcu-service-modules/
         backend/lcu-service/package.json => lcu-service-dist/
         electron-collector/dist/** => electron-collector-dist/
     """.trimIndent()
@@ -59,10 +59,10 @@ object Build : BuildType({
         }
         script {
             id = "electron_build"
-            name = "Electron Collector - Install & Build (TypeScript only)"
+            name = "Electron Collector - TypeScript Check"
             workingDir = "electron-collector"
             scriptContent = """
-                npm ci
+                ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci
                 npm run build
             """.trimIndent()
         }
@@ -87,7 +87,7 @@ object Build : BuildType({
                 rm -rf ${'$'}DEPLOY_DIR/frontend-dist
                 cp -r frontend/dist ${'$'}DEPLOY_DIR/frontend-dist
 
-                # installer/ 디렉토리가 있으면 downloads 에 배포
+                # installer/ 에 exe 있으면 downloads 에 배포
                 mkdir -p ${'$'}DEPLOY_DIR/frontend-dist/downloads
                 if ls installer/*.exe 1>/dev/null 2>&1; then
                     cp installer/*.exe ${'$'}DEPLOY_DIR/frontend-dist/downloads/
@@ -99,8 +99,8 @@ object Build : BuildType({
                 echo "=== Step 1-b: Copy lcu-service artifacts ==="
                 mkdir -p ${'$'}DEPLOY_DIR/lcu-service
                 cp -r backend/lcu-service/dist ${'$'}DEPLOY_DIR/lcu-service/dist
-                cp -r backend/lcu-service/node_modules ${'$'}DEPLOY_DIR/lcu-service/node_modules
                 cp backend/lcu-service/package.json ${'$'}DEPLOY_DIR/lcu-service/
+                cp backend/lcu-service/package-lock.json ${'$'}DEPLOY_DIR/lcu-service/ 2>/dev/null || true
 
                 echo "=== Step 2: Stop existing services ==="
                 docker stop lol-frontend lol-api-gateway lol-main-service lol-eureka lol-lcu-service 2>/dev/null || true
@@ -151,13 +151,16 @@ object Build : BuildType({
                     -v ${'$'}HOST_DEPLOY/frontend-dist:/app:ro \
                     ${'$'}NODE_IMAGE sh -c "npm install -g serve && serve -s /app -l 8080"
 
-                echo "=== Step 7: Start LCU Service ==="
+                echo "=== Step 7: Install lcu-service deps & Start ==="
+                docker run --rm \
+                    -v ${'$'}HOST_DEPLOY/lcu-service:/app \
+                    ${'$'}NODE_IMAGE sh -c "cd /app && npm ci --production"
                 docker run -d --name lol-lcu-service \
                     --network host \
                     --restart unless-stopped \
                     -v ${'$'}HOST_DEPLOY/lcu-service:/app:ro \
                     --env-file /lol-event/secrets/shared.env \
-                    ${'$'}NODE_IMAGE sh -c "cd /app && node dist/main"
+                    ${'$'}NODE_IMAGE sh -c "node /app/dist/main"
 
                 echo "=== Deploy Complete ==="
                 echo "Frontend:    http://localhost:8080"

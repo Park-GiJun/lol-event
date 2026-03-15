@@ -1,7 +1,7 @@
 import { Download, Monitor } from 'lucide-react';
 import { Button } from '../components/common/Button';
 
-const INSTALLER_URL = `https://gijun.net/downloads/${encodeURIComponent('LoL 수집기 Setup 1.0.0.exe')}`;
+const INSTALLER_URL = 'https://gijun.net/downloads/lol-collector-setup.exe';
 
 export function LcuPage() {
   return (
