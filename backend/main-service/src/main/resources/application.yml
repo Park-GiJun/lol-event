@@ -49,8 +49,8 @@ riot:
 springdoc:
   api-docs:
     path: /api-docs
-  swagger-ui:
-    path: /swagger-ui.html
     enabled: true
+  swagger-ui:
+    enabled: false   # UI는 SwaggerUiController에서 직접 서빙
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
