@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Trash2, Clock, Calendar, ChevronRight } from 'lucide-react';
 import { api } from '../lib/api/api';
 import type { Match, Participant, Team } from '../lib/types/match';
+import { useDragon } from '../context/DragonContext';
 import { Button } from '../components/common/Button';
 import { Modal } from '../components/common/Modal';
 import { LoadingCenter } from '../components/common/Spinner';
@@ -35,6 +36,74 @@ function shortVersion(v?: string) {
   if (!v) return null;
   const parts = v.split('.');
   return parts.slice(0, 2).join('.');
+}
+
+// ── Dragon Image Helpers ───────────────────────────────────────────────────
+function ChampionImg({ championId, champion, size, side }: {
+  championId: number;
+  champion: string;
+  size: number;
+  side: 'blue' | 'red';
+}) {
+  const { champions } = useDragon();
+  const data = champions.get(championId);
+  if (data?.imageUrl) {
+    return (
+      <img
+        src={data.imageUrl}
+        alt={champion}
+        width={size}
+        height={size}
+        className={`dragon-champ-img ${side}`}
+        style={{ borderRadius: size <= 20 ? 3 : 4 }}
+        onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+      />
+    );
+  }
+  return (
+    <div className={`sb-champion-badge ${side}`} style={{ width: size, height: size, fontSize: size * 0.36 }}>
+      {champion.slice(0, 2)}
+    </div>
+  );
+}
+
+function ItemImg({ itemId }: { itemId: number }) {
+  const { items } = useDragon();
+  if (!itemId) return <div className="dragon-item-empty" />;
+  const data = items.get(itemId);
+  if (data?.imageUrl) {
+    return (
+      <img
+        src={data.imageUrl}
+        alt={data.nameKo}
+        title={data.nameKo}
+        width={22}
+        height={22}
+        className="dragon-item-img"
+        onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+      />
+    );
+  }
+  return <div className="dragon-item-empty" />;
+}
+
+function SpellImg({ spellId }: { spellId: number }) {
+  const { spells } = useDragon();
+  const data = spells.get(spellId);
+  if (data?.imageUrl) {
+    return (
+      <img
+        src={data.imageUrl}
+        alt={data.nameKo}
+        title={data.nameKo}
+        width={16}
+        height={16}
+        className="dragon-spell-img"
+        onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+      />
+    );
+  }
+  return <div className="dragon-spell-empty" />;
 }
 
 // ── Match Card (List) ──────────────────────────────────────────────────────
@@ -94,7 +163,10 @@ function TeamColumn({ participants, side, win }: {
       <div className="match-players">
         {participants.map((p, i) => (
           <div key={i} className="match-player-row">
-            <span className="match-champion">{p.champion}</span>
+            <div className="match-champion-cell">
+              <ChampionImg championId={p.championId} champion={p.champion} size={16} side={side} />
+              <span className="match-champion">{p.champion}</span>
+            </div>
             <span className="match-player-name">{p.riotId.split('#')[0]}</span>
             <span className="match-kda">{p.kills}/{p.deaths}/{p.assists}</span>
           </div>
@@ -157,12 +229,21 @@ function Scoreboard({ match }: { match: Match }) {
                       {/* 플레이어 */}
                       <td>
                         <div className="sb-player">
-                          <div className={`sb-champion-badge ${side}`}>
-                            {p.champion.slice(0, 2)}
+                          <div className="sb-champ-spell-col">
+                            <ChampionImg championId={p.championId} champion={p.champion} size={34} side={side} />
+                            <div className="sb-spells">
+                              <SpellImg spellId={p.spell1Id} />
+                              <SpellImg spellId={p.spell2Id} />
+                            </div>
                           </div>
                           <div className="sb-player-info">
                             <div className="sb-champion-name">{p.champion}</div>
                             <div className="sb-riot-id">{p.riotId.split('#')[0]}</div>
+                            <div className="sb-items">
+                              {[p.item0, p.item1, p.item2, p.item3, p.item4, p.item5, p.item6].map((id, idx) => (
+                                <ItemImg key={idx} itemId={id} />
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </td>
@@ -300,7 +381,7 @@ function PlayerStatBlock({ p, tab }: { p: Participant; tab: Tab }) {
   return (
     <div className="stat-player-block">
       <div className="stat-player-header">
-        <span className={`sb-champion-badge ${p.team}`}>{p.champion.slice(0, 2)}</span>
+        <ChampionImg championId={p.championId} champion={p.champion} size={24} side={p.team} />
         <span>{p.champion}</span>
         <span style={{ color: 'var(--color-text-secondary)', fontWeight: 400 }}>
           {p.riotId.split('#')[0]}

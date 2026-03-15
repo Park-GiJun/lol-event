@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useState } from 'react';
 import { setErrorHandler } from './lib/api/api';
+import { DragonProvider } from './context/DragonContext';
 import { Layout } from './components/layout/Layout';
 import { StatsPage } from './pages/StatsPage';
 import { MembersPage } from './pages/MembersPage';
@@ -15,6 +16,7 @@ function App() {
   setErrorHandler((title, message) => setError({ title, message }));
 
   return (
+    <DragonProvider>
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
@@ -32,6 +34,7 @@ function App() {
         onClose={() => setError(null)}
       />
     </BrowserRouter>
+    </DragonProvider>
   );
 }
 
