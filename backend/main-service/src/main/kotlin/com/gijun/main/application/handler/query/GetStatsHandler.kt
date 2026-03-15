@@ -29,11 +29,13 @@ class GetStatsHandler(
             val champions: MutableMap<String, Int> = mutableMapOf()
         )
 
-        val statsMap = members.associate { it.puuid to Acc(it.riotId) }.toMutableMap()
+        val accByPuuid  = members.associate { it.puuid  to Acc(it.riotId) }.toMutableMap()
+        // participant.puuid가 구 UUID 형식이거나 null일 경우를 위해 riotId로도 조회
+        val accByRiotId = members.associate { it.riotId to accByPuuid[it.puuid]!! }
 
         for (match in matches) {
             for (p in match.participants) {
-                val s = statsMap[p.puuid] ?: continue
+                val s = (p.puuid?.let { accByPuuid[it] }) ?: accByRiotId[p.riotId] ?: continue
                 s.games++
                 if (p.win) s.wins++ else s.losses++
                 s.kills += p.kills; s.deaths += p.deaths; s.assists += p.assists
@@ -42,7 +44,7 @@ class GetStatsHandler(
             }
         }
 
-        val stats = statsMap.values
+        val stats = accByPuuid.values
             .filter { it.games > 0 }
             .map { s ->
                 PlayerStatsResult(
