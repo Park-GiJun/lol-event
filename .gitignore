@@ -12,7 +12,7 @@ backend/eureka-server/src/main/resources/config/application.yaml
 .gradle/
 build/
 **/build/
-out/
+/out/
 
 # IntelliJ IDEA
 *.iml

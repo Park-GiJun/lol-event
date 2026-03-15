@@ -1,4 +1,4 @@
--- V5: TRUNCATE 후 재삽입 (V3 데이터 복원)
+-- V6: TRUNCATE 후 재삽입 (V3 데이터 복원)
 
 -- matches
 INSERT INTO lol_event.matches (match_id, queue_id, game_creation, game_duration, game_mode, game_type, game_version, map_id, season_id, platform_id)
@@ -11275,193 +11275,155 @@ ON CONFLICT (match_db_id, riot_id) DO NOTHING;
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, FALSE, 0, 0, 0, 0, 0, 0,
     FALSE, FALSE, FALSE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8126722699'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8126722699';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, TRUE, 0, 0, 4, 1, 0, 0,
     TRUE, TRUE, FALSE, TRUE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8126722699'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8126722699';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, TRUE, 0, 0, 4, 1, 0, 0,
     TRUE, TRUE, FALSE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8126707041'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8126707041';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, FALSE, 0, 0, 2, 1, 0, 0,
     FALSE, FALSE, FALSE, TRUE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8126707041'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8126707041';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, TRUE, 1, 3, 7, 0, 1, 0,
     TRUE, TRUE, TRUE, FALSE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8126511528'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8126511528';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, FALSE, 0, 1, 1, 0, 0, 3,
     FALSE, FALSE, FALSE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8126511528'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8126511528';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, TRUE, 1, 3, 8, 1, 0, 2,
     TRUE, TRUE, TRUE, TRUE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8126408337'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8126408337';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, FALSE, 1, 3, 6, 0, 1, 1,
     FALSE, FALSE, FALSE, FALSE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8126408337'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8126408337';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, FALSE, 0, 1, 4, 0, 1, 3,
     FALSE, FALSE, FALSE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8120201616'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8120201616';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, TRUE, 1, 3, 8, 1, 0, 0,
     TRUE, TRUE, TRUE, TRUE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8120201616'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8120201616';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, FALSE, 1, 3, 5, 0, 1, 2,
     FALSE, TRUE, TRUE, FALSE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8130327734'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8130327734';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, TRUE, 1, 3, 9, 1, 0, 1,
     TRUE, FALSE, FALSE, TRUE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8130327734'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8130327734';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, FALSE, 0, 2, 3, 0, 0, 0,
     FALSE, FALSE, FALSE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8127941301'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8127941301';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, TRUE, 1, 3, 9, 3, 1, 3,
     TRUE, TRUE, TRUE, TRUE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8127941301'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8127941301';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, TRUE, 1, 2, 7, 1, 1, 1,
     FALSE, TRUE, TRUE, TRUE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8127868142'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8127868142';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, FALSE, 0, 0, 1, 0, 0, 2,
     TRUE, FALSE, FALSE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8127868142'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8127868142';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, FALSE, 0, 2, 4, 0, 0, 2,
     FALSE, TRUE, FALSE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8127782209'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8127782209';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, TRUE, 1, 2, 7, 1, 1, 1,
     TRUE, FALSE, TRUE, TRUE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8127782209'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8127782209';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, FALSE, 0, 2, 1, 0, 0, 1,
     FALSE, FALSE, FALSE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8126601903'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8126601903';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, TRUE, 1, 2, 8, 1, 1, 2,
     TRUE, TRUE, TRUE, TRUE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8126601903'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8126601903';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, TRUE, 2, 3, 7, 2, 1, 2,
     TRUE, TRUE, TRUE, TRUE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8126515206'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8126515206';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, FALSE, 0, 1, 2, 0, 0, 1,
     FALSE, FALSE, FALSE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8126515206'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8126515206';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, FALSE, 0, 2, 2, 0, 0, 2,
     TRUE, FALSE, FALSE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8126403710'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8126403710';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, TRUE, 2, 3, 14, 5, 1, 1,
     FALSE, TRUE, TRUE, TRUE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8126403710'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8126403710';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, TRUE, 1, 3, 10, 2, 0, 3,
     TRUE, TRUE, TRUE, TRUE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8121376833'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8121376833';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, FALSE, 0, 0, 0, 0, 0, 0,
     FALSE, FALSE, FALSE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8121376833'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8121376833';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, FALSE, 1, 1, 6, 0, 0, 0,
     FALSE, TRUE, TRUE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8121256382'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8121256382';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, TRUE, 0, 4, 8, 1, 1, 3,
     TRUE, FALSE, FALSE, TRUE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8121256382'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8121256382';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, FALSE, 1, 3, 6, 0, 0, 3,
     TRUE, TRUE, TRUE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8120036674'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8120036674';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, TRUE, 1, 3, 10, 2, 0, 0,
     FALSE, FALSE, FALSE, TRUE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8120036674'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8120036674';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, TRUE, 1, 3, 10, 3, 0, 3,
     TRUE, FALSE, TRUE, TRUE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8119928840'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8119928840';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, FALSE, 0, 2, 3, 0, 0, 0,
     FALSE, TRUE, FALSE, FALSE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8119928840'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8119928840';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, TRUE, 1, 2, 11, 2, 0, 3,
     TRUE, FALSE, TRUE, TRUE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8130454657'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8130454657';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, FALSE, 0, 0, 2, 0, 1, 0,
     FALSE, TRUE, FALSE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8130454657'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8130454657';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, FALSE, 1, 0, 5, 1, 1, 3,
     FALSE, FALSE, TRUE, TRUE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8130332670'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8130332670';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, TRUE, 0, 4, 7, 1, 0, 0,
     TRUE, TRUE, FALSE, FALSE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8130332670'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8130332670';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 100, FALSE, 1, 3, 7, 1, 0, 0,
     TRUE, TRUE, TRUE, TRUE, TRUE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8130236009'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8130236009';
 INSERT INTO lol_event.match_teams (match_db_id, team_id, win, baron_kills, dragon_kills, tower_kills, inhibitor_kills, rift_herald_kills, horde_kills, first_blood, first_tower, first_baron, first_inhibitor, first_dragon)
 SELECT m.id, 200, TRUE, 0, 2, 7, 1, 1, 3,
     FALSE, FALSE, FALSE, FALSE, FALSE
-FROM lol_event.matches m WHERE m.match_id = 'KR_8130236009'
-ON CONFLICT (match_db_id, riot_id) DO NOTHING;
+FROM lol_event.matches m WHERE m.match_id = 'KR_8130236009';
 
 -- members
 INSERT INTO lol_event.members (riot_id, puuid, registered_at)
