@@ -136,6 +136,7 @@ export interface OverviewStats {
   avgGameMinutes: number;
   topPickedChampions: ChampionPickStat[];
   topWinRateChampions: ChampionPickStat[];
+  topBannedChampions: ChampionPickStat[];
   winRateLeader: PlayerLeaderStat | null;
   kdaLeader: PlayerLeaderStat | null;
   killsLeader: PlayerLeaderStat | null;

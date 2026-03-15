@@ -47,6 +47,22 @@ class GetOverviewStatsHandler(
         val topPicked   = champStats.sortedByDescending { it.picks }.take(15)
         val topWinRate  = champStats.filter { it.picks >= 3 }.sortedByDescending { it.winRate }.take(8)
 
+        // ── 챔피언 밴 통계 ────────────────────────────────────
+        val topBanned = allTeams.flatMap { it.bans }
+            .filter { it.championId > 0 }
+            .groupBy { it.championId }
+            .map { (champId, bans) ->
+                ChampionPickStat(
+                    champion   = bans.first().championName,
+                    championId = champId,
+                    picks      = bans.size,
+                    wins       = 0,
+                    winRate    = 0,
+                )
+            }
+            .sortedByDescending { it.picks }
+            .take(15)
+
         // ── 플레이어별 집계 ───────────────────────────────────
         val byPlayer = allEntries.groupBy { it.p.riotId }
         val MIN = 3
@@ -163,6 +179,7 @@ class GetOverviewStatsHandler(
             avgGameMinutes       = avgGameMin,
             topPickedChampions   = topPicked,
             topWinRateChampions  = topWinRate,
+            topBannedChampions   = topBanned,
             winRateLeader        = winRateLeader,
             kdaLeader            = kdaLeader,
             killsLeader          = killsLeader,

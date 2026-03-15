@@ -1,6 +1,7 @@
 package com.gijun.main.application.dto.match.command
 
 import com.gijun.main.domain.model.match.Match
+import com.gijun.main.domain.model.match.MatchBan
 import com.gijun.main.domain.model.match.MatchParticipant
 import com.gijun.main.domain.model.match.MatchTeam
 
@@ -150,19 +151,29 @@ data class ParticipantInput(
     )
 }
 
+data class BanInput(
+    val championId: Int,
+    val championName: String,
+    val pickTurn: Int = 0,
+) {
+    fun toDomain() = MatchBan(championId = championId, championName = championName, pickTurn = pickTurn)
+}
+
 data class TeamInput(
     val teamId: Int,
     val win: Boolean = false,
     val baronKills: Int = 0, val dragonKills: Int = 0, val towerKills: Int = 0,
     val inhibitorKills: Int = 0, val riftHeraldKills: Int = 0, val hordeKills: Int = 0,
     val firstBlood: Boolean = false, val firstTower: Boolean = false,
-    val firstBaron: Boolean = false, val firstInhibitor: Boolean = false, val firstDragon: Boolean = false
+    val firstBaron: Boolean = false, val firstInhibitor: Boolean = false, val firstDragon: Boolean = false,
+    val bans: List<BanInput> = emptyList(),
 ) {
     fun toDomain() = MatchTeam(
         teamId = teamId, win = win,
         baronKills = baronKills, dragonKills = dragonKills, towerKills = towerKills,
         inhibitorKills = inhibitorKills, riftHeraldKills = riftHeraldKills, hordeKills = hordeKills,
         firstBlood = firstBlood, firstTower = firstTower, firstBaron = firstBaron,
-        firstInhibitor = firstInhibitor, firstDragon = firstDragon
+        firstInhibitor = firstInhibitor, firstDragon = firstDragon,
+        bans = bans.map { it.toDomain() },
     )
 }

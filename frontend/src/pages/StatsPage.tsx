@@ -145,6 +145,31 @@ export function StatsPage() {
             </div>
           </section>
 
+          {/* ── 많이 밴된 챔피언 ── */}
+          {data.topBannedChampions.length > 0 && (
+            <section className="stats-section">
+              <h2 className="stats-section-title">🚫 많이 밴된 챔피언</h2>
+              <div className="champ-pick-grid">
+                {data.topBannedChampions.map(s => (
+                  <div key={s.championId} className="champ-pick-card">
+                    <div className="champ-pick-img-wrap">
+                      {champImgUrl(s.championId, champions)
+                        ? <img src={champImgUrl(s.championId, champions)!} alt={s.champion} className="champ-pick-img"
+                            style={{ filter: 'grayscale(60%)' }}
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                        : <div className="champ-pick-img-fallback">{s.champion.slice(0, 2)}</div>
+                      }
+                    </div>
+                    <div className="champ-pick-name">{s.champion}</div>
+                    <div className="champ-pick-meta">
+                      <span className="champ-pick-count">{s.picks}밴</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* ── 승률 높은 챔피언 ── */}
           {data.topWinRateChampions.length > 0 && (
             <section className="stats-section">

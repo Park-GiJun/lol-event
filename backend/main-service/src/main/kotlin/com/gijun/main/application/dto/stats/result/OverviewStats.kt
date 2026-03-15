@@ -21,6 +21,7 @@ data class OverviewStats(
     // 챔피언 통계
     val topPickedChampions: List<ChampionPickStat>,
     val topWinRateChampions: List<ChampionPickStat>,  // 최소 3픽 이상
+    val topBannedChampions: List<ChampionPickStat>,
 
     // 플레이어 명예의 전당
     val winRateLeader: PlayerLeaderStat?,

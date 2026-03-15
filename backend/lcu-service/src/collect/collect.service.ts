@@ -237,6 +237,13 @@ export class CollectService {
             firstBaron: b(t.firstBaron),
             firstInhibitor: b(t.firstInhibitor),
             firstDragon: b(t.firstDargon), // LCU 오탈자 그대로
+            bans: ((t.bans as Array<Record<string, unknown>>) ?? [])
+              .filter(ban => n(ban.championId) > 0)
+              .map(ban => ({
+                championId: n(ban.championId),
+                championName: champMap[String(n(ban.championId))] ?? `Champion_${n(ban.championId)}`,
+                pickTurn: n(ban.pickTurn),
+              })),
           }));
 
           newMatches.push({

@@ -14,5 +14,6 @@ data class MatchTeam(
     val firstTower: Boolean = false,
     val firstBaron: Boolean = false,
     val firstInhibitor: Boolean = false,
-    val firstDragon: Boolean = false
+    val firstDragon: Boolean = false,
+    val bans: List<MatchBan> = emptyList(),
 )
