@@ -1,4 +1,4 @@
-package com.gijun.main.infrastructure.cache
+package com.gijun.main.infrastructure.adapter.out.cache
 
 import com.gijun.main.application.dto.dragon.result.DragonChampionResult
 import com.gijun.main.application.dto.dragon.result.DragonItemResult

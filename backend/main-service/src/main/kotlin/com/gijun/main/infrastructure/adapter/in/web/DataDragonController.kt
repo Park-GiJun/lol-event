@@ -6,7 +6,7 @@ import com.gijun.main.application.dto.dragon.result.DragonItemResult
 import com.gijun.main.application.dto.dragon.result.DragonSummonerSpellResult
 import com.gijun.main.application.dto.dragon.result.DragonSyncResult
 import com.gijun.main.application.port.`in`.SyncDataDragonUseCase
-import com.gijun.main.infrastructure.cache.DataDragonCacheStore
+import com.gijun.main.infrastructure.adapter.out.cache.DataDragonCacheStore
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*

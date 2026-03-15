@@ -4,7 +4,7 @@ import com.gijun.main.application.dto.dragon.result.DragonSyncResult
 import com.gijun.main.application.port.`in`.SyncDataDragonUseCase
 import com.gijun.main.application.port.out.DragonDataPort
 import com.gijun.main.infrastructure.adapter.out.client.DataDragonAdapter
-import com.gijun.main.infrastructure.cache.DataDragonCacheStore
+import com.gijun.main.infrastructure.adapter.out.cache.DataDragonCacheStore
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
