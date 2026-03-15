@@ -6,6 +6,7 @@ export interface CollectedMatch {
   [key: string]: unknown;
 }
 
+const SERVER_URL = 'https://api.gijun.net/api';
 const CUSTOM_QUEUE_IDS = new Set([0, 3130, 3270]);
 const MAX_GAMES = 500;
 const PAGE = 20;
@@ -31,16 +32,7 @@ async function getChampMap(): Promise<Record<string, string>> {
   return champCache;
 }
 
-let collectedMatches: CollectedMatch[] = [];
 let isCollecting = false;
-
-export function getCollectedMatches(): CollectedMatch[] {
-  return collectedMatches;
-}
-
-export function getIsCollecting(): boolean {
-  return isCollecting;
-}
 
 export async function runCollect(send: (type: string, message: string) => void): Promise<void> {
   if (isCollecting) {
@@ -49,7 +41,6 @@ export async function runCollect(send: (type: string, message: string) => void):
   }
 
   isCollecting = true;
-  collectedMatches = [];
 
   try {
     const lockfilePath = findLockfile();
@@ -264,12 +255,21 @@ export async function runCollect(send: (type: string, message: string) => void):
       }
     }
 
-    collectedMatches = newMatches;
-
     if (newMatches.length === 0) {
       send('done', '수집 완료 — 내전 0건');
-    } else {
-      send('done', `수집 완료 — ${newMatches.length}건. [서버 동기화] 버튼으로 저장하세요.`);
+      return;
+    }
+
+    send('info', `서버 전송 중 (${newMatches.length}건)...`);
+    try {
+      const res = await axios.post<{ published: number }>(
+        `${SERVER_URL}/lcu/ingest`,
+        { matches: newMatches },
+        { timeout: 30_000 }
+      );
+      send('done', `완료 — ${res.data.published}건 Kafka 전송`);
+    } catch (e) {
+      send('error', `서버 전송 실패: ${(e as Error).message}`);
     }
   } finally {
     isCollecting = false;

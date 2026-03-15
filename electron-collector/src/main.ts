@@ -1,78 +1,148 @@
-import { app, Tray, Menu, nativeImage, shell, dialog } from 'electron';
+import { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, dialog } from 'electron';
+import { autoUpdater } from 'electron-updater';
 import path from 'path';
-import { startServer, stopServer } from './server';
+import { getStatus } from './lcu';
+import { runCollect } from './collect';
 
-// Windows 알림 센터 앱 ID
 app.setAppUserModelId('net.gijun.lol-collector');
+app.on('window-all-closed', () => { /* tray app — 창 닫혀도 유지 */ });
 
-// 창이 없어도 앱 유지
-app.on('window-all-closed', () => { /* tray app — 종료하지 않음 */ });
-
+let win: BrowserWindow | null = null;
 let tray: Tray | null = null;
 
+function getAssetPath(...parts: string[]): string {
+  return app.isPackaged
+    ? path.join(process.resourcesPath, 'assets', ...parts)
+    : path.join(__dirname, '..', 'assets', ...parts);
+}
+
+function getRendererPath(): string {
+  return app.isPackaged
+    ? path.join(app.getAppPath(), 'renderer', 'index.html')
+    : path.join(__dirname, '..', 'renderer', 'index.html');
+}
+
+function createWindow() {
+  win = new BrowserWindow({
+    width: 440,
+    height: 560,
+    minWidth: 360,
+    minHeight: 480,
+    resizable: true,
+    title: 'LoL 수집기',
+    frame: false,          // 타이틀바 커스텀
+    titleBarStyle: 'hidden',
+    backgroundColor: '#0d0f14',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+    icon: getAssetPath('icon.ico'),
+  });
+
+  win.loadFile(getRendererPath());
+
+  win.on('closed', () => { win = null; });
+}
+
+function setupTray() {
+  const iconPath = getAssetPath('icon.ico');
+  let icon = nativeImage.createFromPath(iconPath);
+  if (icon.isEmpty()) icon = nativeImage.createEmpty();
+
+  tray = new Tray(icon);
+  tray.setToolTip('LoL 수집기');
+
+  const menu = Menu.buildFromTemplate([
+    { label: 'LoL 수집기', enabled: false },
+    { type: 'separator' },
+    {
+      label: '창 열기',
+      click: () => {
+        if (win) { win.show(); win.focus(); }
+        else createWindow();
+      },
+    },
+    { label: '웹사이트', click: () => shell.openExternal('https://gijun.net/lcu') },
+    {
+      label: '시작 프로그램 등록',
+      type: 'checkbox',
+      checked: app.getLoginItemSettings().openAtLogin,
+      click: (item) => app.setLoginItemSettings({ openAtLogin: item.checked }),
+    },
+    { type: 'separator' },
+    { label: '종료', click: () => app.quit() },
+  ]);
+
+  tray.setContextMenu(menu);
+  tray.on('double-click', () => {
+    if (win) { win.show(); win.focus(); }
+    else createWindow();
+  });
+}
+
+function setupAutoUpdater() {
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('update-available', (info) => {
+    win?.webContents.send('update:available', info);
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    win?.webContents.send('update:downloaded', info);
+  });
+
+  autoUpdater.on('error', (err) => {
+    console.error('Auto-updater error:', err.message);
+  });
+
+  // 앱 시작 10초 후 업데이트 확인
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch(() => { /* 오프라인 등 무시 */ });
+  }, 10_000);
+}
+
+// IPC 핸들러
+function setupIPC() {
+  ipcMain.handle('app:version', () => app.getVersion());
+
+  ipcMain.on('lcu:status-request', async () => {
+    const status = await getStatus();
+    win?.webContents.send('lcu:status', status);
+  });
+
+  ipcMain.on('collect:start', () => {
+    runCollect((type, message) => {
+      win?.webContents.send('collect:log', type, message);
+    }).catch((e) => {
+      win?.webContents.send('collect:log', 'error', (e as Error).message);
+    });
+  });
+
+  ipcMain.on('update:install', () => {
+    autoUpdater.quitAndInstall();
+  });
+}
+
 app.whenReady().then(async () => {
-  // 중복 실행 방지
-  const gotLock = app.requestSingleInstanceLock();
-  if (!gotLock) {
+  if (!app.requestSingleInstanceLock()) {
     dialog.showErrorBox('LoL 수집기', '이미 실행 중입니다. 시스템 트레이를 확인하세요.');
     app.quit();
     return;
   }
 
-  // Express 서버 시작
-  try {
-    await startServer(3001);
-  } catch {
-    dialog.showErrorBox(
-      'LoL 수집기 — 포트 오류',
-      'localhost:3001 포트가 이미 사용 중입니다.\n기존 수집기를 종료 후 다시 실행하세요.'
-    );
-    app.quit();
-    return;
+  setupIPC();
+  createWindow();
+  setupTray();
+
+  if (app.isPackaged) {
+    setupAutoUpdater();
   }
+});
 
-  // 트레이 아이콘
-  const iconPath = app.isPackaged
-    ? path.join(process.resourcesPath, 'assets', 'icon.ico')
-    : path.join(__dirname, '..', 'assets', 'icon.ico');
-
-  let icon = nativeImage.createFromPath(iconPath);
-  if (icon.isEmpty()) {
-    // 아이콘 파일이 없으면 빈 이미지 (개발 환경 fallback)
-    icon = nativeImage.createEmpty();
-  }
-
-  tray = new Tray(icon);
-  tray.setToolTip('LoL 수집기 — localhost:3001 실행 중');
-
-  const updateMenu = () => Menu.buildFromTemplate([
-    { label: 'LoL 수집기', enabled: false },
-    { label: 'localhost:3001 실행 중', enabled: false },
-    { type: 'separator' },
-    {
-      label: '웹사이트 열기',
-      click: () => shell.openExternal('https://gijun.net/lcu'),
-    },
-    {
-      label: '시작 프로그램에 등록',
-      type: 'checkbox',
-      checked: app.getLoginItemSettings().openAtLogin,
-      click: (item) => {
-        app.setLoginItemSettings({ openAtLogin: item.checked });
-      },
-    },
-    { type: 'separator' },
-    {
-      label: '종료',
-      click: () => {
-        stopServer();
-        app.quit();
-      },
-    },
-  ]);
-
-  tray.setContextMenu(updateMenu());
-
-  // 트레이 클릭 시 메뉴 갱신
-  tray.on('click', () => tray?.setContextMenu(updateMenu()));
+app.on('second-instance', () => {
+  if (win) { win.show(); win.focus(); }
+  else createWindow();
 });

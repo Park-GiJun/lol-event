@@ -19,6 +19,8 @@ object Build : BuildType({
         backend/main-service/build/libs/*.jar => jars/
         frontend/dist/** => frontend-dist/
         backend/lcu-service/dist/** => lcu-service-dist/
+        backend/lcu-service/node_modules/** => lcu-service-modules/
+        backend/lcu-service/package.json => lcu-service-dist/
         electron-collector/dist/** => electron-collector-dist/
     """.trimIndent()
 
@@ -52,6 +54,7 @@ object Build : BuildType({
             scriptContent = """
                 npm ci
                 npm run build
+                npm prune --production
             """.trimIndent()
         }
         script {
@@ -93,9 +96,15 @@ object Build : BuildType({
                 cp -r ${'$'}DEPLOY_DIR/frontend-dist-downloads-backup/. ${'$'}DEPLOY_DIR/frontend-dist/downloads/ 2>/dev/null || true
                 rm -rf ${'$'}DEPLOY_DIR/frontend-dist-downloads-backup
 
+                echo "=== Step 1-b: Copy lcu-service artifacts ==="
+                mkdir -p ${'$'}DEPLOY_DIR/lcu-service
+                cp -r backend/lcu-service/dist ${'$'}DEPLOY_DIR/lcu-service/dist
+                cp -r backend/lcu-service/node_modules ${'$'}DEPLOY_DIR/lcu-service/node_modules
+                cp backend/lcu-service/package.json ${'$'}DEPLOY_DIR/lcu-service/
+
                 echo "=== Step 2: Stop existing services ==="
-                docker stop lol-frontend lol-api-gateway lol-main-service lol-eureka 2>/dev/null || true
-                docker rm lol-frontend lol-api-gateway lol-main-service lol-eureka 2>/dev/null || true
+                docker stop lol-frontend lol-api-gateway lol-main-service lol-eureka lol-lcu-service 2>/dev/null || true
+                docker rm lol-frontend lol-api-gateway lol-main-service lol-eureka lol-lcu-service 2>/dev/null || true
 
                 echo "=== Step 3: Start Eureka Server (Config Server) ==="
                 docker run -d --name lol-eureka \
@@ -141,6 +150,14 @@ object Build : BuildType({
                     --restart unless-stopped \
                     -v ${'$'}HOST_DEPLOY/frontend-dist:/app:ro \
                     ${'$'}NODE_IMAGE sh -c "npm install -g serve && serve -s /app -l 8080"
+
+                echo "=== Step 7: Start LCU Service ==="
+                docker run -d --name lol-lcu-service \
+                    --network host \
+                    --restart unless-stopped \
+                    -v ${'$'}HOST_DEPLOY/lcu-service:/app:ro \
+                    --env-file /lol-event/secrets/shared.env \
+                    ${'$'}NODE_IMAGE sh -c "cd /app && node dist/main"
 
                 echo "=== Deploy Complete ==="
                 echo "Frontend:    http://localhost:8080"

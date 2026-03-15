@@ -289,4 +289,19 @@ export class CollectService {
     }
     send('done', `완료 — Kafka ${published}/${newMatches.length}건 전송`);
   }
+
+  async ingestMatches(matches: Record<string, unknown>[]): Promise<{ published: number }> {
+    let published = 0;
+    for (const match of matches) {
+      const matchId = String(match['matchId'] ?? '');
+      try {
+        await this.kafkaService.publishMatch(matchId, match);
+        published++;
+      } catch (e) {
+        this.logger.warn(`Kafka 전송 실패 (${matchId}): ${(e as Error).message}`);
+      }
+    }
+    this.logger.log(`ingest 완료 — ${published}/${matches.length}건`);
+    return { published };
+  }
 }
