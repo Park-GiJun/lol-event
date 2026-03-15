@@ -1,4 +1,4 @@
-package com.gijun.main.domain.model
+package com.gijun.main.domain.model.dragon
 
 data class DragonItem(
     val itemId: Int,

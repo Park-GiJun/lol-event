@@ -1,6 +1,6 @@
 package com.gijun.main.application.handler.command
 
-import com.gijun.main.application.dto.DragonSyncResponse
+import com.gijun.main.application.dto.dragon.result.DragonSyncResult
 import com.gijun.main.application.port.`in`.SyncDataDragonUseCase
 import com.gijun.main.application.port.out.DragonDataPort
 import com.gijun.main.infrastructure.adapter.out.client.DataDragonAdapter
@@ -17,7 +17,7 @@ class SyncDataDragonHandler(
 
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun sync(): DragonSyncResponse {
+    override fun sync(): DragonSyncResult {
         val version = dataDragonAdapter.fetchLatestVersion()
         log.info("[DataDragon] 최신 버전: $version, 데이터 동기화 시작")
 
@@ -33,7 +33,7 @@ class SyncDataDragonHandler(
         cacheStore.warmUp()
 
         log.info("[DataDragon] 동기화 완료 - 챔피언: ${champions.size}, 아이템: ${items.size}, 스펠: ${spells.size}")
-        return DragonSyncResponse(
+        return DragonSyncResult(
             version = version,
             champions = champions.size,
             items = items.size,

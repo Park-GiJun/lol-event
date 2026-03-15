@@ -1,8 +1,8 @@
-package com.gijun.main.application.dto
+package com.gijun.main.application.dto.stats.result
 
 data class ChampionCount(val champ: String, val count: Int)
 
-data class PlayerStatsDto(
+data class PlayerStatsResult(
     val riotId: String,
     val games: Int,
     val wins: Int,
@@ -17,4 +17,4 @@ data class PlayerStatsDto(
     val topChampions: List<ChampionCount>
 )
 
-data class StatsResponse(val stats: List<PlayerStatsDto>, val matchCount: Long)
+data class StatsResult(val stats: List<PlayerStatsResult>, val matchCount: Long)

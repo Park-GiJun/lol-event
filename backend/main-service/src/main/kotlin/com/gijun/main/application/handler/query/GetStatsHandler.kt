@@ -1,22 +1,24 @@
 package com.gijun.main.application.handler.query
 
-import com.gijun.main.application.dto.*
+import com.gijun.main.application.dto.stats.result.ChampionCount
+import com.gijun.main.application.dto.stats.result.PlayerStatsResult
+import com.gijun.main.application.dto.stats.result.StatsResult
 import com.gijun.main.application.port.`in`.GetStatsUseCase
-import com.gijun.main.application.port.out.MatchPort
-import com.gijun.main.application.port.out.MemberPort
+import com.gijun.main.application.port.out.MatchPersistencePort
+import com.gijun.main.application.port.out.MemberPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional(readOnly = true)
 class GetStatsHandler(
-    private val matchPort: MatchPort,
-    private val memberPort: MemberPort
+    private val matchPersistencePort: MatchPersistencePort,
+    private val memberPersistencePort: MemberPersistencePort
 ) : GetStatsUseCase {
 
-    override fun getStats(mode: String): StatsResponse {
-        val members = memberPort.findAll()
-        val matches = matchPort.findAllWithParticipants(modeToQueueIds(mode))
+    override fun getStats(mode: String): StatsResult {
+        val members = memberPersistencePort.findAll()
+        val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class Acc(
             val riotId: String,
@@ -43,7 +45,7 @@ class GetStatsHandler(
         val stats = statsMap.values
             .filter { it.games > 0 }
             .map { s ->
-                PlayerStatsDto(
+                PlayerStatsResult(
                     riotId = s.riotId,
                     games = s.games,
                     wins = s.wins,
@@ -62,8 +64,8 @@ class GetStatsHandler(
                         .map { ChampionCount(it.key, it.value) }
                 )
             }
-            .sortedWith(compareByDescending<PlayerStatsDto> { it.winRate }.thenByDescending { it.games })
+            .sortedWith(compareByDescending<PlayerStatsResult> { it.winRate }.thenByDescending { it.games })
 
-        return StatsResponse(stats, matches.size.toLong())
+        return StatsResult(stats, matches.size.toLong())
     }
 }

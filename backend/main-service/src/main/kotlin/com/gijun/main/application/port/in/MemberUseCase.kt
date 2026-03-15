@@ -1,14 +1,17 @@
 package com.gijun.main.application.port.`in`
 
-import com.gijun.main.application.dto.*
+import com.gijun.main.application.dto.member.command.RegisterBulkCommand
+import com.gijun.main.application.dto.member.command.RegisterMemberCommand
+import com.gijun.main.application.dto.member.result.BulkRegisterResult
+import com.gijun.main.application.dto.member.result.MemberResult
 
 interface RegisterMemberUseCase {
-    fun register(request: RegisterMemberRequest): MemberDto
-    fun registerBulk(request: RegisterBulkRequest): BulkRegisterResponse
+    fun register(command: RegisterMemberCommand): MemberResult
+    fun registerBulk(command: RegisterBulkCommand): BulkRegisterResult
 }
 
 interface GetMembersUseCase {
-    fun getAll(): List<MemberDto>
+    fun getAll(): List<MemberResult>
 }
 
 interface DeleteMemberUseCase {

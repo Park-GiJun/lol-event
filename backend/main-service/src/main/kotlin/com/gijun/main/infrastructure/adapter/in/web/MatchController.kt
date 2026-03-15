@@ -1,8 +1,10 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
 import com.gijun.common.response.CommonApiResponse
-import com.gijun.main.application.dto.*
-import com.gijun.main.application.port.`in`.*
+import com.gijun.main.application.dto.match.command.SaveMatchesCommand
+import com.gijun.main.application.port.`in`.DeleteMatchUseCase
+import com.gijun.main.application.port.`in`.GetMatchesUseCase
+import com.gijun.main.application.port.`in`.SaveMatchesUseCase
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -17,8 +19,8 @@ class MatchController(
         CommonApiResponse.success(getMatchesUseCase.getAll(mode))
 
     @PostMapping("/bulk")
-    fun saveBulk(@RequestBody request: SaveMatchesRequest) =
-        CommonApiResponse.success(saveMatchesUseCase.save(request))
+    fun saveBulk(@RequestBody command: SaveMatchesCommand) =
+        CommonApiResponse.success(saveMatchesUseCase.save(command))
 
     @DeleteMapping("/{matchId}")
     fun delete(@PathVariable matchId: String): CommonApiResponse<Unit> {

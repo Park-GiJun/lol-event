@@ -1,6 +1,7 @@
 package com.gijun.main.infrastructure.runner
 
 import com.gijun.main.application.port.`in`.SyncDataDragonUseCase
+import com.gijun.main.application.port.out.DragonDataPort
 import com.gijun.main.infrastructure.cache.DataDragonCacheStore
 import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Component
 @Component
 class DataDragonStartupRunner(
     private val syncDataDragonUseCase: SyncDataDragonUseCase,
+    private val dragonDataPort: DragonDataPort,
     private val cacheStore: DataDragonCacheStore
 ) : ApplicationRunner {
 
@@ -17,7 +19,8 @@ class DataDragonStartupRunner(
 
     override fun run(args: ApplicationArguments) {
         runCatching {
-            if (cacheStore.isLoaded()) {
+            val hasData = dragonDataPort.findAllChampions().isNotEmpty()
+            if (hasData) {
                 // DB에 이미 데이터가 있으면 캐시 워밍업만
                 cacheStore.warmUp()
             } else {
