@@ -31,7 +31,7 @@ object Build : BuildType({
             name = "Backend - Gradle Build"
             tasks = "clean build -x test"
             workingDir = "backend"
-            gradleWrapperPath = "backend"
+            gradleWrapperPath = ""
             jdkHome = "%env.JAVA_HOME%"
         }
         script {
