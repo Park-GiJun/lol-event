@@ -14,12 +14,17 @@ class SaveMatchesHandler(private val matchPersistencePort: MatchPersistencePort)
 
     override fun save(command: SaveMatchesCommand): SaveMatchesResult {
         var saved = 0
+        var skipped = 0
         for (input in command.matches) {
+            if (matchPersistencePort.existsByMatchId(input.matchId)) {
+                skipped++
+                continue
+            }
             matchPersistencePort.save(input.toDomain())
             saved++
         }
         val total = matchPersistencePort.countByQueueIds(listOf(0, 3130, 3270))
-        return SaveMatchesResult(saved, 0, total)
+        return SaveMatchesResult(saved, skipped, total)
     }
 
     override fun delete(matchId: String) = matchPersistencePort.deleteByMatchId(matchId)
