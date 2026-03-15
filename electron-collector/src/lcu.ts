@@ -33,8 +33,9 @@ export function findLockfile(): string | null {
 }
 
 export function parseLockfile(filePath: string): LcuCredentials {
-  const [, , port, password] = fs.readFileSync(filePath, 'utf8').split(':');
-  return { port, password };
+  const raw = fs.readFileSync(filePath, 'utf8');
+  const [, , port, password] = raw.split(':');
+  return { port: port.trim(), password: password.trim() };
 }
 
 export async function lcuGet<T>(port: string, password: string, endpoint: string): Promise<T> {

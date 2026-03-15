@@ -56,7 +56,12 @@ export async function runCollect(send: (type: string, message: string) => void):
       summoner = await lcuGet(port, password, '/lol-summoner/v1/current-summoner');
       send('info', `클라이언트 연결 — ${summoner['gameName']}#${summoner['tagLine']}`);
     } catch (e) {
-      send('error', `LCU 연결 실패: ${(e as Error).message}`);
+      const ax = e as { response?: { status: number; data: unknown } };
+      const detail = ax.response
+        ? ` (HTTP ${ax.response.status}: ${JSON.stringify(ax.response.data)})`
+        : '';
+      console.error('[LCU] summoner fetch failed', e);
+      send('error', `LCU 연결 실패${detail} — port:${port}`);
       return;
     }
 
@@ -269,7 +274,12 @@ export async function runCollect(send: (type: string, message: string) => void):
       );
       send('done', `완료 — ${res.data.published}건 Kafka 전송`);
     } catch (e) {
-      send('error', `서버 전송 실패: ${(e as Error).message}`);
+      const ax = e as { response?: { status: number; data: unknown } };
+      const detail = ax.response
+        ? ` (HTTP ${ax.response.status}: ${JSON.stringify(ax.response.data)})`
+        : '';
+      console.error('[Server] ingest failed', e);
+      send('error', `서버 전송 실패${detail}`);
     }
   } finally {
     isCollecting = false;

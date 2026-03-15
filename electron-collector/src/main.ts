@@ -43,6 +43,10 @@ function createWindow() {
 
   win.loadFile(getRendererPath());
 
+  if (!app.isPackaged) {
+    win.webContents.openDevTools({ mode: 'detach' });
+  }
+
   win.on('closed', () => { win = null; });
 }
 
