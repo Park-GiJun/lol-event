@@ -1,7 +1,7 @@
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
 import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
-import jetbrains.buildServer.configs.kotlin.buildSteps.nodeJS
+import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 
 version = "2025.11"
@@ -34,35 +34,24 @@ object Build : BuildType({
             gradleWrapperPath = "backend"
             jdkHome = "%env.JAVA_HOME%"
         }
-        nodeJS {
-            id = "frontend_install"
-            name = "Frontend - Install Dependencies"
-            workingDir = "frontend"
-            shellScript = "npm ci"
-        }
-        nodeJS {
-            id = "frontend_lint"
-            name = "Frontend - Lint"
-            workingDir = "frontend"
-            shellScript = "npm run lint"
-        }
-        nodeJS {
+        script {
             id = "frontend_build"
-            name = "Frontend - Build"
+            name = "Frontend - Install & Build"
             workingDir = "frontend"
-            shellScript = "npm run build"
+            scriptContent = """
+                npm ci
+                npm run lint
+                npm run build
+            """.trimIndent()
         }
-        nodeJS {
-            id = "lcu_install"
-            name = "LCU Service - Install Dependencies"
-            workingDir = "backend/lcu-service"
-            shellScript = "npm ci"
-        }
-        nodeJS {
+        script {
             id = "lcu_build"
-            name = "LCU Service - Build"
+            name = "LCU Service - Install & Build"
             workingDir = "backend/lcu-service"
-            shellScript = "npm run build"
+            scriptContent = """
+                npm ci
+                npm run build
+            """.trimIndent()
         }
     }
 
