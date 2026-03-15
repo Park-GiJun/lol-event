@@ -6,6 +6,7 @@ import { StatsPage } from './pages/StatsPage';
 import { MembersPage } from './pages/MembersPage';
 import { MatchesPage } from './pages/MatchesPage';
 import { LcuPage } from './pages/LcuPage';
+import { SyncPage } from './pages/SyncPage';
 import { ErrorModal } from './components/common/ErrorModal';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route path="members" element={<MembersPage />} />
           <Route path="matches" element={<MatchesPage />} />
           <Route path="lcu" element={<LcuPage />} />
+          <Route path="sync" element={<SyncPage />} />
         </Route>
       </Routes>
       <ErrorModal

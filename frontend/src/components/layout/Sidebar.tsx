@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
-import { Swords, Users, BarChart2, List, Radio } from 'lucide-react';
+import { Swords, Users, BarChart2, List, Radio, RefreshCw } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/',        icon: BarChart2, label: '통계' },
   { to: '/members', icon: Users,     label: '멤버 관리' },
   { to: '/matches', icon: List,      label: '경기 목록' },
   { to: '/lcu',     icon: Radio,     label: 'LCU 수집' },
+  { to: '/sync',    icon: RefreshCw, label: '동기화' },
 ];
 
 export function Sidebar() {
