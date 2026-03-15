@@ -1,5 +1,8 @@
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
+import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
+import jetbrains.buildServer.configs.kotlin.buildSteps.maven
+import jetbrains.buildServer.configs.kotlin.buildSteps.nodeJS
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 
 /*
@@ -36,6 +39,34 @@ object Build : BuildType({
 
     vcs {
         root(DslContext.settingsRoot)
+    }
+
+    steps {
+        gradle {
+            id = "gradle_runner"
+            tasks = "clean build"
+            buildFile = "backend/build.gradle.kts"
+            useGradleWrapper = false
+        }
+        nodeJS {
+            id = "nodejs_runner"
+            workingDir = "frontend"
+            shellScript = "npm ci"
+        }
+        nodeJS {
+            id = "nodejs_runner_1"
+            workingDir = "frontend"
+            shellScript = """
+                npm install eslint-teamcity --no-save
+                npm run lint -- --format ./node_modules/eslint-teamcity/index.js
+            """.trimIndent()
+        }
+        maven {
+            id = "Maven2"
+            goals = "clean test"
+            pomLocation = ".teamcity/pom.xml"
+            runnerArgs = "-Dmaven.test.failure.ignore=true"
+        }
     }
 
     triggers {
