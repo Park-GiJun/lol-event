@@ -1,8 +1,8 @@
 version: 1.0.3
 files:
   - url: lol-collector-setup.exe
-    sha512: 1jeTYacYvPZyrXx80Mm2SKv3xorhKXUSVWXN1ygFhxdF7myfiD7RAF6jd6Crvta+o859/E/CKDDpNJTHDyZciA==
-    size: 83147604
+    sha512: L5Z/G5owpALXhKV4LDp7tyGrAaZINcYHKUovagsYsTgsQ5bsbz1zuZIouVW0A7IW0LWHHExYldW6uB4u0ppOxw==
+    size: 83150400
 path: lol-collector-setup.exe
-sha512: 1jeTYacYvPZyrXx80Mm2SKv3xorhKXUSVWXN1ygFhxdF7myfiD7RAF6jd6Crvta+o859/E/CKDDpNJTHDyZciA==
-releaseDate: '2026-03-15T15:59:54.767Z'
+sha512: L5Z/G5owpALXhKV4LDp7tyGrAaZINcYHKUovagsYsTgsQ5bsbz1zuZIouVW0A7IW0LWHHExYldW6uB4u0ppOxw==
+releaseDate: '2026-03-15T16:05:51.881Z'

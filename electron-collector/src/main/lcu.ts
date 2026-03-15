@@ -42,14 +42,61 @@ export async function lcuGet<T>(port: string, password: string, endpoint: string
   return res.data;
 }
 
-export async function getStatus(): Promise<LcuStatus> {
+function getCredentials(): LcuCredentials | null {
   const lockfilePath = findLockfile();
-  if (!lockfilePath) return { connected: false, reason: 'lockfile 없음 — 롤 클라이언트를 실행해주세요' };
-  const { port, password } = parseLockfile(lockfilePath);
+  if (!lockfilePath) return null;
+  return parseLockfile(lockfilePath);
+}
+
+export async function getStatus(): Promise<LcuStatus> {
+  const creds = getCredentials();
+  if (!creds) return { connected: false, reason: 'lockfile 없음 — 롤 클라이언트를 실행해주세요' };
+  const { port, password } = creds;
   try {
     const data = await lcuGet<Record<string, string>>(port, password, '/lol-summoner/v1/current-summoner');
     return { connected: true, gameName: data['gameName'] ?? data['displayName'], tagLine: data['tagLine'] ?? '', puuid: data['puuid'] };
   } catch {
     return { connected: false, reason: '클라이언트 응답 없음 — 로그인 확인' };
+  }
+}
+
+export async function getLiveGame(): Promise<Record<string, unknown> | null> {
+  const creds = getCredentials();
+  if (!creds) return null;
+  const { port, password } = creds;
+  try {
+    const phase = await lcuGet<string>(port, password, '/lol-gameflow/v1/gameflow-phase');
+    if (phase !== 'InProgress') return { phase };
+    const session = await lcuGet<Record<string, unknown>>(port, password, '/lol-gameflow/v1/session');
+    return { phase, session };
+  } catch {
+    return null;
+  }
+}
+
+export async function getChampSelect(): Promise<Record<string, unknown> | null> {
+  const creds = getCredentials();
+  if (!creds) return null;
+  const { port, password } = creds;
+  try {
+    const session = await lcuGet<Record<string, unknown>>(port, password, '/lol-champ-select/v1/session');
+    return session;
+  } catch {
+    return null;
+  }
+}
+
+export async function getSummonerHistory(puuid: string): Promise<Record<string, unknown> | null> {
+  const creds = getCredentials();
+  if (!creds) return null;
+  const { port, password } = creds;
+  try {
+    const data = await lcuGet<Record<string, unknown>>(
+      port, password,
+      `/lol-match-history/v1/products/lol/${puuid}/matches?begIndex=0&endIndex=19`
+    );
+    return data;
+  } catch {
+    return null;
   }
 }

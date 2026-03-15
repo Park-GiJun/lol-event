@@ -141,6 +141,7 @@ object Build : BuildType({
                     --restart unless-stopped \
                     -v ${'$'}HOST_DEPLOY/api-gateway.jar:/app.jar:ro \
                     --env-file /lol-event/secrets/shared.env \
+                    --env LCU_SERVICE_URL=http://localhost:3002 \
                     ${'$'}JAVA_IMAGE java -jar /app.jar \
                     --spring.profiles.active=local
 
@@ -160,6 +161,8 @@ object Build : BuildType({
                     --restart unless-stopped \
                     -v ${'$'}HOST_DEPLOY/lcu-service:/app:ro \
                     --env-file /lol-event/secrets/shared.env \
+                    --env PORT=3002 \
+                    --env KAFKA_BROKERS=localhost:9094 \
                     ${'$'}NODE_IMAGE sh -c "node /app/dist/main"
 
                 echo "=== Deploy Complete ==="

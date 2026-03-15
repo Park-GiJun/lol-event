@@ -7,6 +7,9 @@ contextBridge.exposeInMainWorld('lol', {
   startCollect: () => ipcRenderer.send('collect:start'),
   requestStatus: () => ipcRenderer.send('lcu:status-request'),
   installUpdate: () => ipcRenderer.send('update:install'),
+  getLiveGame: () => ipcRenderer.invoke('lcu:live-game'),
+  getChampSelect: () => ipcRenderer.invoke('lcu:champ-select'),
+  getSummonerHistory: (puuid: string) => ipcRenderer.invoke('lcu:summoner-history', puuid),
   onLog: (cb: (type: string, message: string) => void) => {
     ipcRenderer.removeAllListeners('collect:log');
     ipcRenderer.on('collect:log', (_e, type: string, message: string) => cb(type, message));

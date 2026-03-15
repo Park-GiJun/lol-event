@@ -1,7 +1,7 @@
 import { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import path, { join } from 'path';
-import { getStatus } from './lcu';
+import { getStatus, getLiveGame, getChampSelect, getSummonerHistory } from './lcu';
 import { runCollect } from './collect';
 
 app.setAppUserModelId('net.gijun.lol-collector');
@@ -86,6 +86,9 @@ function setupIPC(): void {
       win?.webContents.send('collect:log', type, message);
     }).catch((e) => win?.webContents.send('collect:log', 'error', (e as Error).message));
   });
+  ipcMain.handle('lcu:live-game', () => getLiveGame());
+  ipcMain.handle('lcu:champ-select', () => getChampSelect());
+  ipcMain.handle('lcu:summoner-history', (_e, puuid: string) => getSummonerHistory(puuid));
   ipcMain.on('update:install', () => autoUpdater.quitAndInstall());
 }
 
