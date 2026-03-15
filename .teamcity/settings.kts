@@ -74,6 +74,10 @@ object Build : BuildType({
                 rm -rf ${'$'}DEPLOY_DIR/frontend-dist
                 cp -r frontend/dist ${'$'}DEPLOY_DIR/frontend-dist
 
+                # 환경 변수 파일 복사
+                cp backend/main-service/.env.prd ${'$'}DEPLOY_DIR/main-service.env
+                cp backend/.env.local ${'$'}DEPLOY_DIR/shared.env
+
                 echo "=== Step 2: Stop existing services ==="
                 docker stop lol-frontend lol-api-gateway lol-main-service lol-eureka 2>/dev/null || true
                 docker rm lol-frontend lol-api-gateway lol-main-service lol-eureka 2>/dev/null || true
@@ -84,6 +88,7 @@ object Build : BuildType({
                     --restart unless-stopped \
                     -v ${'$'}HOST_DEPLOY/eureka-server.jar:/app.jar:ro \
                     -v ${'$'}HOST_CONFIG:/config:ro \
+                    --env-file ${'$'}HOST_DEPLOY/shared.env \
                     ${'$'}JAVA_IMAGE java -jar /app.jar \
                     --spring.cloud.config.server.native.search-locations=classpath:/config,file:/config
 
@@ -102,14 +107,16 @@ object Build : BuildType({
                     --network host \
                     --restart unless-stopped \
                     -v ${'$'}HOST_DEPLOY/main-service.jar:/app.jar:ro \
+                    --env-file ${'$'}HOST_DEPLOY/main-service.env \
                     ${'$'}JAVA_IMAGE java -jar /app.jar \
-                    --spring.profiles.active=local
+                    --spring.profiles.active=prd
 
                 echo "=== Step 5: Start API Gateway ==="
                 docker run -d --name lol-api-gateway \
                     --network host \
                     --restart unless-stopped \
                     -v ${'$'}HOST_DEPLOY/api-gateway.jar:/app.jar:ro \
+                    --env-file ${'$'}HOST_DEPLOY/shared.env \
                     ${'$'}JAVA_IMAGE java -jar /app.jar \
                     --spring.profiles.active=local
 
