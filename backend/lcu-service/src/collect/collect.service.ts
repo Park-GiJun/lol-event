@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Observable, Subject } from 'rxjs';
 import axios from 'axios';
 import { LcuService } from '../lcu/lcu.service';
+import { KafkaService } from '../kafka/kafka.service';
 
 export interface SseEvent {
   data: string;
@@ -22,7 +23,10 @@ export class CollectService {
   private readonly logger = new Logger(CollectService.name);
   private champCache: Record<string, string> | null = null;
 
-  constructor(private readonly lcuService: LcuService) {}
+  constructor(
+    private readonly lcuService: LcuService,
+    private readonly kafkaService: KafkaService,
+  ) {}
 
   private async getChampMap(): Promise<Record<string, string>> {
     if (this.champCache) return this.champCache;
@@ -261,18 +265,16 @@ export class CollectService {
       return;
     }
 
-    try {
-      send('info', `main-service로 ${newMatches.length}건 전송 중...`);
-      const res = await axios.post<{ data: { saved: number; skipped: number; total: number } }>(
-        `${mainServiceUrl}/api/matches/bulk`,
-        { matches: newMatches },
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-      const { saved, skipped, total } = res.data.data;
-      send('done', `완료 — 신규 ${saved}건 저장, ${skipped}건 스킵 (서버 누적 ${total}건)`);
-    } catch (e) {
-      send('warn', `main-service 전송 실패: ${(e as Error).message}`);
-      send('done', `LCU 수집 ${newMatches.length}건 완료 (서버 저장 실패)`);
+    send('info', `Kafka로 ${newMatches.length}건 전송 중...`);
+    let published = 0;
+    for (const match of newMatches) {
+      try {
+        await this.kafkaService.publishMatch(match.matchId, match);
+        published++;
+      } catch (e) {
+        send('warn', `Kafka 전송 실패 (${match.matchId}): ${(e as Error).message}`);
+      }
     }
+    send('done', `완료 — Kafka ${published}/${newMatches.length}건 전송`);
   }
 }

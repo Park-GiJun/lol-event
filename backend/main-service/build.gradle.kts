@@ -40,6 +40,9 @@ dependencies {
     // Redis (Spring Boot 4.0 호환 - starter 아닌 core 사용)
     implementation("org.redisson:redisson:3.52.0")
 
+    // Kafka
+    implementation("org.springframework.kafka:spring-kafka")
+
     // Kotlin Jackson
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 

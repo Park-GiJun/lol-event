@@ -1,6 +1,13 @@
 spring:
   config:
     import: configserver:http://localhost:8761
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9093}
+    consumer:
+      group-id: main-service-match-consumer
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
 eureka:
   instance:
