@@ -101,18 +101,19 @@ export async function getSummonerHistory(puuid: string): Promise<Record<string, 
   }
 }
 
-export interface OpponentInfo {
+export interface TeamMemberInfo {
   summonerName: string;
-  riotId: string; // gameName#tagLine 형식
+  riotId: string;
+  isMe: boolean;
 }
 
-export interface CustomMostPicksResult {
-  isCustom: boolean;
+export interface CustomTeamsResult {
   phase: string;
-  opponents: OpponentInfo[];
+  blueTeam: TeamMemberInfo[];
+  redTeam: TeamMemberInfo[];
 }
 
-async function summonerIdToInfo(port: string, password: string, summonerId: number): Promise<OpponentInfo | null> {
+async function summonerIdToInfo(port: string, password: string, summonerId: number): Promise<{ summonerName: string; riotId: string } | null> {
   try {
     const summoner = await lcuGet<Record<string, unknown>>(port, password, `/lol-summoner/v1/summoners/${summonerId}`);
     const gameName = (summoner['gameName'] as string) ?? '';
@@ -127,7 +128,7 @@ async function summonerIdToInfo(port: string, password: string, summonerId: numb
   }
 }
 
-export async function getCustomMostPicks(): Promise<CustomMostPicksResult | null> {
+export async function getCustomMostPicks(): Promise<CustomTeamsResult | null> {
   const creds = getCredentials();
   if (!creds) return null;
   const { port, password } = creds;
@@ -138,68 +139,95 @@ export async function getCustomMostPicks(): Promise<CustomMostPicksResult | null
 
     if (cleanPhase === 'Lobby') {
       const lobby = await lcuGet<Record<string, unknown>>(port, password, '/lol-lobby/v2/lobby');
-
       const localMember = lobby['localMember'] as Record<string, unknown> | undefined;
-      const myTeam = localMember?.['team'];
-      const mySummonerId = localMember?.['summonerId'];
+      const mySummonerId = localMember?.['summonerId'] as number | undefined;
       const members = (lobby['members'] as unknown[]) ?? [];
 
-      // 팀 정보가 있으면 다른 팀만, 없으면 자신 summonerId 제외
-      const opponentMembers = (myTeam != null)
-        ? members.filter((m) => (m as Record<string, unknown>)['team'] !== myTeam)
-        : members.filter((m) => (m as Record<string, unknown>)['summonerId'] !== mySummonerId);
+      // 팀 값으로 그룹핑 (작은 값 = 블루, 큰 값 = 레드)
+      const teamMap = new Map<unknown, unknown[]>();
+      for (const m of members) {
+        const team = (m as Record<string, unknown>)['team'];
+        if (!teamMap.has(team)) teamMap.set(team, []);
+        teamMap.get(team)!.push(m);
+      }
+      const teamKeys = [...teamMap.keys()].sort((a, b) => Number(a) - Number(b));
+      const team1 = teamMap.get(teamKeys[0]) ?? [];
+      const team2 = teamKeys.length > 1 ? (teamMap.get(teamKeys[1]) ?? []) : [];
 
-      const opponents = (await Promise.all(
-        opponentMembers.map((m) => {
-          const summonerId = (m as Record<string, unknown>)['summonerId'] as number | undefined;
-          return summonerId ? summonerIdToInfo(port, password, summonerId) : null;
-        })
-      )).filter((o): o is OpponentInfo => o !== null);
+      const toInfo = async (m: unknown): Promise<TeamMemberInfo | null> => {
+        const member = m as Record<string, unknown>;
+        const sid = member['summonerId'] as number | undefined;
+        if (!sid) return null;
+        const info = await summonerIdToInfo(port, password, sid);
+        if (!info) return null;
+        return { ...info, isMe: sid === mySummonerId };
+      };
 
-      return { isCustom: true, phase: cleanPhase, opponents };
+      const [blueTeam, redTeam] = await Promise.all([
+        Promise.all(team1.map(toInfo)).then(r => r.filter((o): o is TeamMemberInfo => o !== null)),
+        Promise.all(team2.map(toInfo)).then(r => r.filter((o): o is TeamMemberInfo => o !== null)),
+      ]);
 
-    } else if (cleanPhase === 'ChampSelect' || cleanPhase === 'InProgress') {
+      return { phase: cleanPhase, blueTeam, redTeam };
+
+    } else if (cleanPhase === 'ChampSelect') {
       const session = await lcuGet<Record<string, unknown>>(port, password, '/lol-gameflow/v1/session');
       const gameData = session['gameData'] as Record<string, unknown> | undefined;
       const queue = gameData?.['queue'] as Record<string, unknown> | undefined;
       const queueId = queue?.['id'] as number | undefined;
-      // queueId 0 = 커스텀, null/undefined도 커스텀으로 간주
-      if (queueId != null && queueId !== 0) return { isCustom: false, phase: cleanPhase, opponents: [] };
+      if (queueId != null && queueId !== 0) return { phase: cleanPhase, blueTeam: [], redTeam: [] };
 
-      if (cleanPhase === 'ChampSelect') {
-        const champSession = await lcuGet<Record<string, unknown>>(port, password, '/lol-champ-select/v1/session');
-        const theirTeam = (champSession['theirTeam'] as unknown[]) ?? [];
+      const champSession = await lcuGet<Record<string, unknown>>(port, password, '/lol-champ-select/v1/session');
+      const myTeamRaw = (champSession['myTeam'] as unknown[]) ?? [];
+      const theirTeamRaw = (champSession['theirTeam'] as unknown[]) ?? [];
+      const localCellId = champSession['localPlayerCellId'] as number | undefined;
+      // cellId 0-4 = 블루팀, 5-9 = 레드팀
+      const iAmBlue = localCellId == null || localCellId < 5;
 
-        const opponents = (await Promise.all(
-          theirTeam.map((s) => {
-            const summonerId = (s as Record<string, unknown>)['summonerId'] as number | undefined;
-            return summonerId ? summonerIdToInfo(port, password, summonerId) : null;
-          })
-        )).filter((o): o is OpponentInfo => o !== null);
+      const toInfo = async (s: unknown): Promise<TeamMemberInfo | null> => {
+        const member = s as Record<string, unknown>;
+        const sid = member['summonerId'] as number | undefined;
+        if (!sid) return null;
+        const info = await summonerIdToInfo(port, password, sid);
+        if (!info) return null;
+        return { ...info, isMe: member['cellId'] === localCellId };
+      };
 
-        return { isCustom: true, phase: cleanPhase, opponents };
-      }
+      const myInfos = (await Promise.all(myTeamRaw.map(toInfo))).filter((o): o is TeamMemberInfo => o !== null);
+      const theirInfos = (await Promise.all(theirTeamRaw.map(toInfo))).filter((o): o is TeamMemberInfo => o !== null);
+      const [blueTeam, redTeam] = iAmBlue ? [myInfos, theirInfos] : [theirInfos, myInfos];
 
-      // InProgress: gameflow session에서 팀 정보 추출
+      return { phase: cleanPhase, blueTeam, redTeam };
+
+    } else if (cleanPhase === 'InProgress') {
+      const session = await lcuGet<Record<string, unknown>>(port, password, '/lol-gameflow/v1/session');
+      const gameData = session['gameData'] as Record<string, unknown> | undefined;
+      const queue = gameData?.['queue'] as Record<string, unknown> | undefined;
+      const queueId = queue?.['id'] as number | undefined;
+      if (queueId != null && queueId !== 0) return { phase: cleanPhase, blueTeam: [], redTeam: [] };
+
       const teamOne = (gameData?.['teamOne'] as unknown[]) ?? [];
       const teamTwo = (gameData?.['teamTwo'] as unknown[]) ?? [];
-      const mySummonerId = (session['localPlayer'] as Record<string, unknown> | undefined)?.['summonerId'];
+      const mySummonerId = (session['localPlayer'] as Record<string, unknown> | undefined)?.['summonerId'] as number | undefined;
 
-      // 내가 속한 팀 판별
-      const inTeamOne = teamOne.some((p) => (p as Record<string, unknown>)['summonerId'] === mySummonerId);
-      const opponentTeam = inTeamOne ? teamTwo : teamOne;
+      const toInfo = async (p: unknown): Promise<TeamMemberInfo | null> => {
+        const player = p as Record<string, unknown>;
+        const sid = player['summonerId'] as number | undefined;
+        if (!sid) return null;
+        const info = await summonerIdToInfo(port, password, sid);
+        if (!info) return null;
+        return { ...info, isMe: sid === mySummonerId };
+      };
 
-      const opponents = (await Promise.all(
-        opponentTeam.map((p) => {
-          const summonerId = (p as Record<string, unknown>)['summonerId'] as number | undefined;
-          return summonerId ? summonerIdToInfo(port, password, summonerId) : null;
-        })
-      )).filter((o): o is OpponentInfo => o !== null);
+      const [blueTeam, redTeam] = await Promise.all([
+        Promise.all(teamOne.map(toInfo)).then(r => r.filter((o): o is TeamMemberInfo => o !== null)),
+        Promise.all(teamTwo.map(toInfo)).then(r => r.filter((o): o is TeamMemberInfo => o !== null)),
+      ]);
 
-      return { isCustom: true, phase: cleanPhase, opponents };
+      return { phase: cleanPhase, blueTeam, redTeam };
 
     } else {
-      return { isCustom: false, phase: cleanPhase, opponents: [] };
+      return { phase: cleanPhase, blueTeam: [], redTeam: [] };
     }
   } catch {
     return null;
