@@ -134,16 +134,25 @@ export async function getCustomMostPicks(): Promise<CustomMostPicksResult | null
 
   try {
     const phase = await lcuGet<string>(port, password, '/lol-gameflow/v1/gameflow-phase');
+    const cleanPhase = (phase as string).replace(/"/g, '').trim();
 
-    if (phase === 'Lobby') {
+    if (cleanPhase === 'Lobby') {
       const lobby = await lcuGet<Record<string, unknown>>(port, password, '/lol-lobby/v2/lobby');
       const gameConfig = lobby['gameConfig'] as Record<string, unknown> | undefined;
-      if (gameConfig?.['gameType'] !== 'CUSTOM') return { isCustom: false, phase, opponents: [] };
+
+      // gameType 대소문자 무관하게 CUSTOM 포함 여부 체크
+      const gameType = ((gameConfig?.['gameType'] as string) ?? '').toUpperCase();
+      if (!gameType.includes('CUSTOM')) return { isCustom: false, phase: cleanPhase, opponents: [] };
 
       const localMember = lobby['localMember'] as Record<string, unknown> | undefined;
       const myTeam = localMember?.['team'];
+      const mySummonerId = localMember?.['summonerId'];
       const members = (lobby['members'] as unknown[]) ?? [];
-      const opponentMembers = members.filter((m) => (m as Record<string, unknown>)['team'] !== myTeam);
+
+      // 팀 정보가 있으면 다른 팀만, 없으면 자신 summonerId 제외
+      const opponentMembers = (myTeam != null)
+        ? members.filter((m) => (m as Record<string, unknown>)['team'] !== myTeam)
+        : members.filter((m) => (m as Record<string, unknown>)['summonerId'] !== mySummonerId);
 
       const opponents = (await Promise.all(
         opponentMembers.map((m) => {
@@ -152,29 +161,50 @@ export async function getCustomMostPicks(): Promise<CustomMostPicksResult | null
         })
       )).filter((o): o is OpponentInfo => o !== null);
 
-      return { isCustom: true, phase, opponents };
+      return { isCustom: true, phase: cleanPhase, opponents };
 
-    } else if (phase === 'ChampSelect') {
+    } else if (cleanPhase === 'ChampSelect' || cleanPhase === 'InProgress') {
       const session = await lcuGet<Record<string, unknown>>(port, password, '/lol-gameflow/v1/session');
       const gameData = session['gameData'] as Record<string, unknown> | undefined;
       const queue = gameData?.['queue'] as Record<string, unknown> | undefined;
       const queueId = queue?.['id'] as number | undefined;
-      if (queueId !== 0) return { isCustom: false, phase, opponents: [] };
+      // queueId 0 = 커스텀, null/undefined도 커스텀으로 간주
+      if (queueId != null && queueId !== 0) return { isCustom: false, phase: cleanPhase, opponents: [] };
 
-      const champSession = await lcuGet<Record<string, unknown>>(port, password, '/lol-champ-select/v1/session');
-      const theirTeam = (champSession['theirTeam'] as unknown[]) ?? [];
+      if (cleanPhase === 'ChampSelect') {
+        const champSession = await lcuGet<Record<string, unknown>>(port, password, '/lol-champ-select/v1/session');
+        const theirTeam = (champSession['theirTeam'] as unknown[]) ?? [];
+
+        const opponents = (await Promise.all(
+          theirTeam.map((s) => {
+            const summonerId = (s as Record<string, unknown>)['summonerId'] as number | undefined;
+            return summonerId ? summonerIdToInfo(port, password, summonerId) : null;
+          })
+        )).filter((o): o is OpponentInfo => o !== null);
+
+        return { isCustom: true, phase: cleanPhase, opponents };
+      }
+
+      // InProgress: gameflow session에서 팀 정보 추출
+      const teamOne = (gameData?.['teamOne'] as unknown[]) ?? [];
+      const teamTwo = (gameData?.['teamTwo'] as unknown[]) ?? [];
+      const mySummonerId = (session['localPlayer'] as Record<string, unknown> | undefined)?.['summonerId'];
+
+      // 내가 속한 팀 판별
+      const inTeamOne = teamOne.some((p) => (p as Record<string, unknown>)['summonerId'] === mySummonerId);
+      const opponentTeam = inTeamOne ? teamTwo : teamOne;
 
       const opponents = (await Promise.all(
-        theirTeam.map((s) => {
-          const summonerId = (s as Record<string, unknown>)['summonerId'] as number | undefined;
+        opponentTeam.map((p) => {
+          const summonerId = (p as Record<string, unknown>)['summonerId'] as number | undefined;
           return summonerId ? summonerIdToInfo(port, password, summonerId) : null;
         })
       )).filter((o): o is OpponentInfo => o !== null);
 
-      return { isCustom: true, phase, opponents };
+      return { isCustom: true, phase: cleanPhase, opponents };
 
     } else {
-      return { isCustom: false, phase, opponents: [] };
+      return { isCustom: false, phase: cleanPhase, opponents: [] };
     }
   } catch {
     return null;
