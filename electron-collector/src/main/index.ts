@@ -96,6 +96,7 @@ function setupIPC(): void {
   ipcMain.handle('lcu:champ-select', () => getChampSelect());
   ipcMain.handle('lcu:summoner-history', (_e, puuid: string) => getSummonerHistory(puuid));
   ipcMain.handle('lcu:custom-most-picks', () => getCustomMostPicks());
+  ipcMain.handle('app:open-external', (_e, url: string) => shell.openExternal(url));
   ipcMain.on('update:install', () => autoUpdater.quitAndInstall());
 }
 

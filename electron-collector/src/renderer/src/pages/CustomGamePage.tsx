@@ -77,7 +77,10 @@ function PlayerCard({ player, accentColor }: { player: PlayerData; accentColor: 
         {player.isMe && (
           <span style={{ fontSize: 9, background: accentColor, color: '#fff', borderRadius: 3, padding: '1px 4px', fontWeight: 700, flexShrink: 0 }}>나</span>
         )}
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span
+          onClick={() => window.lol.openExternal(`https://gijun.net/player-stats/${encodeURIComponent(player.riotId)}`)}
+          style={{ fontSize: 12, fontWeight: 600, color: accentColor, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer', textDecoration: 'underline' }}
+        >
           {player.summonerName || player.riotId}
         </span>
       </div>

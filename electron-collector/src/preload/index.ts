@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('lol', {
   getChampSelect: () => ipcRenderer.invoke('lcu:champ-select'),
   getSummonerHistory: (puuid: string) => ipcRenderer.invoke('lcu:summoner-history', puuid),
   getCustomMostPicks: () => ipcRenderer.invoke('lcu:custom-most-picks'),
+  openExternal: (url: string) => ipcRenderer.invoke('app:open-external', url),
   onLog: (cb: (type: string, message: string) => void) => {
     ipcRenderer.removeAllListeners('collect:log');
     ipcRenderer.on('collect:log', (_e, type: string, message: string) => cb(type, message));
