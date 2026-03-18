@@ -71,7 +71,13 @@ function RankBadge({ rank }: { rank: number }) {
 }
 
 // ── 개요 탭 컴포넌트 ──────────────────────────────────
-function ChampPickCard({ stat, champions, onClick }: { stat: ChampionPickStat; champions: ReturnType<typeof useDragon>['champions']; onClick?: () => void }) {
+function ChampPickCard({ stat, champions, onClick, countLabel, imgStyle }: {
+  stat: ChampionPickStat;
+  champions: ReturnType<typeof useDragon>['champions'];
+  onClick?: () => void;
+  countLabel?: string;
+  imgStyle?: React.CSSProperties;
+}) {
   const imgUrl = champImgUrl(stat.championId, champions);
   const nameKo = champions.get(stat.championId)?.nameKo || stat.champion;
   const wrColor = stat.winRate >= 60 ? 'var(--color-win)' : stat.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
@@ -80,14 +86,14 @@ function ChampPickCard({ stat, champions, onClick }: { stat: ChampionPickStat; c
       <div className="champ-pick-card" onClick={onClick} style={{ cursor: 'pointer' }}>
         <div className="champ-pick-img-wrap">
           {imgUrl
-            ? <img src={imgUrl} alt={nameKo} className="champ-pick-img" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            ? <img src={imgUrl} alt={nameKo} className="champ-pick-img" style={imgStyle} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             : <div className="champ-pick-img-fallback">{nameKo.slice(0, 2)}</div>
           }
         </div>
         <div className="champ-pick-name">{nameKo}</div>
         <div className="champ-pick-meta">
-          <span className="champ-pick-count">{stat.picks}픽</span>
-          {stat.winRate > 0 && <span className="champ-pick-wr" style={{ color: wrColor }}>{stat.winRate}%</span>}
+          <span className="champ-pick-count">{countLabel ?? `${stat.picks}픽`}</span>
+          {!countLabel && stat.winRate > 0 && <span className="champ-pick-wr" style={{ color: wrColor }}>{stat.winRate}%</span>}
         </div>
       </div>
     </ChampionLink>
@@ -241,7 +247,7 @@ function OverviewTab({ mode }: { mode: string }) {
         <section className="stats-section card overview-main-left">
           <h2 className="stats-section-title">🏆 많이 사용된 챔피언</h2>
           <div className="overview-champ-grid">
-            {data.topPickedChampions.slice(0, 10).map(s => (
+            {data.topPickedChampions.slice(0, 20).map(s => (
               <ChampPickCard key={s.championId} stat={s} champions={champions}
                 onClick={() => navigate(`/stats/champion/${encodeURIComponent(s.champion)}?mode=${mode}`)} />
             ))}
@@ -255,17 +261,10 @@ function OverviewTab({ mode }: { mode: string }) {
               <h2 className="stats-section-title">🚫 많이 밴된 챔피언</h2>
               <div className="overview-champ-grid overview-champ-grid--sm">
                 {data.topBannedChampions.slice(0, 6).map(s => (
-                  <div key={s.championId} className="champ-pick-card">
-                    <div className="champ-pick-img-wrap">
-                      {champImgUrl(s.championId, champions)
-                        ? <img src={champImgUrl(s.championId, champions)!} alt={s.champion} className="champ-pick-img"
-                            style={{ filter: 'grayscale(60%)' }}
-                            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                        : <div className="champ-pick-img-fallback">{s.champion.slice(0, 2)}</div>}
-                    </div>
-                    <div className="champ-pick-name">{s.champion}</div>
-                    <div className="champ-pick-meta"><span className="champ-pick-count">{s.picks}밴</span></div>
-                  </div>
+                  <ChampPickCard key={s.championId} stat={s} champions={champions}
+                    countLabel={`${s.picks}밴`}
+                    imgStyle={{ filter: 'grayscale(60%)' }}
+                    onClick={() => navigate(`/stats/champion/${encodeURIComponent(s.champion)}?mode=${mode}`)} />
                 ))}
               </div>
             </section>
