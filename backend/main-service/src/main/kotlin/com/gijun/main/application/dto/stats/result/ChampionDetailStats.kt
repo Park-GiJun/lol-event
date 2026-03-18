@@ -22,6 +22,20 @@ data class ChampionItemStat(
     val winRate: Int,
 )
 
+data class ChampionLaneStat(
+    val position: String,
+    val games: Int,
+    val wins: Int,
+    val winRate: Int,
+    val avgKills: Double,
+    val avgDeaths: Double,
+    val avgAssists: Double,
+    val kda: Double,
+    val avgDamage: Int,
+    val avgCs: Double,
+    val avgGold: Int,
+)
+
 data class ChampionDetailStats(
     val champion: String,
     val championId: Int,
@@ -30,4 +44,5 @@ data class ChampionDetailStats(
     val winRate: Int,
     val players: List<ChampionPlayerStat>,
     val itemStats: List<ChampionItemStat> = emptyList(),
+    val laneStats: List<ChampionLaneStat> = emptyList(),
 )

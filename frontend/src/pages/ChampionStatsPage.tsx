@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api/api';
-import type { ChampionDetailStats, ChampionPlayerStat } from '../lib/types/stats';
+import type { ChampionDetailStats, ChampionPlayerStat, ChampionLaneStat } from '../lib/types/stats';
 import { LoadingCenter } from '../components/common/Spinner';
 import { Button } from '../components/common/Button';
 import { useDragon } from '../context/DragonContext';
@@ -22,6 +22,77 @@ const SORT_COLS: { key: keyof ChampionPlayerStat; label: string }[] = [
   { key: 'avgVisionScore', label: '시야' },
   { key: 'avgCs',          label: 'CS' },
 ];
+
+const LANE_META: Record<string, { label: string; emoji: string }> = {
+  TOP:     { label: '탑',   emoji: '🛡️' },
+  JUNGLE:  { label: '정글', emoji: '🌲' },
+  MID:     { label: '미드', emoji: '⚡' },
+  BOTTOM:  { label: '원딜', emoji: '🏹' },
+  SUPPORT: { label: '서폿', emoji: '💫' },
+};
+
+function ChampionLaneStats({ laneStats }: { laneStats: ChampionLaneStat[] }) {
+  const [selected, setSelected] = useState<string>(laneStats[0]?.position ?? '');
+  if (laneStats.length === 0) return null;
+  const stat = laneStats.find(s => s.position === selected);
+  const wrColor = (wr: number) => wr >= 60 ? 'var(--color-win)' : wr >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
+
+  return (
+    <div className="card" style={{ marginBottom: 16 }}>
+      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', marginBottom: 12 }}>포지션별 통계</div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+        {laneStats.map(s => {
+          const m = LANE_META[s.position] ?? { label: s.position, emoji: '' };
+          const wr = s.winRate;
+          const c = wr >= 60 ? 'var(--color-win)' : wr >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
+          return (
+            <button key={s.position}
+              className={`lane-tab ${selected === s.position ? 'active' : ''}`}
+              onClick={() => setSelected(s.position)}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '8px 14px', minWidth: 72 }}>
+              <span style={{ fontSize: 16 }}>{m.emoji}</span>
+              <span className="lane-tab-label">{m.label}</span>
+              <span style={{ fontSize: 10, fontWeight: 700, color: c }}>{s.winRate}%</span>
+              <span className="lane-tab-games">{s.games}판</span>
+            </button>
+          );
+        })}
+      </div>
+      {stat && (
+        <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+          {/* 승률 */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 80 }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: wrColor(stat.winRate) }}>{stat.winRate}%</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{stat.wins}승 {stat.games - stat.wins}패</div>
+            <div style={{ height: 5, width: 70, background: 'var(--color-bg-hover)', borderRadius: 3, overflow: 'hidden' }}>
+              <div style={{ width: `${stat.winRate}%`, height: '100%', background: wrColor(stat.winRate), borderRadius: 3 }} />
+            </div>
+          </div>
+          {/* KDA */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ fontSize: 22, fontWeight: 800 }}>{stat.kda.toFixed(2)} KDA</div>
+            <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+              {stat.avgKills.toFixed(1)} /&nbsp;
+              <span style={{ color: 'var(--color-error)' }}>{stat.avgDeaths.toFixed(1)}</span>
+              &nbsp;/ {stat.avgAssists.toFixed(1)}
+            </div>
+          </div>
+          {/* 기타 스탯 */}
+          {[
+            { label: '평균 딜량', value: stat.avgDamage.toLocaleString() },
+            { label: '평균 CS',   value: stat.avgCs.toFixed(1) },
+            { label: '평균 골드', value: stat.avgGold.toLocaleString() },
+          ].map(({ label, value }) => (
+            <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <div style={{ fontSize: 18, fontWeight: 700 }}>{value}</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const RANK_COLORS: Record<number, string> = { 1: '#FFD700', 2: '#C0C0C0', 3: '#CD7F32' };
 
@@ -167,6 +238,11 @@ export function ChampionStatsPage() {
               })}
             </div>
           </div>
+        )}
+
+        {/* 라인별 통계 */}
+        {data && data.laneStats?.length > 0 && (
+          <ChampionLaneStats laneStats={data.laneStats} />
         )}
 
         <div className="card">

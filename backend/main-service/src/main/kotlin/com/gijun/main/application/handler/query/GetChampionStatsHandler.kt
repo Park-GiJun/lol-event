@@ -2,6 +2,7 @@ package com.gijun.main.application.handler.query
 
 import com.gijun.main.application.dto.stats.result.ChampionDetailStats
 import com.gijun.main.application.dto.stats.result.ChampionItemStat
+import com.gijun.main.application.dto.stats.result.ChampionLaneStat
 import com.gijun.main.application.dto.stats.result.ChampionPlayerStat
 import com.gijun.main.application.port.`in`.GetChampionStatsUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
@@ -15,6 +16,15 @@ class GetChampionStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val statsCachePersistencePort: StatsCachePersistencePort,
 ) : GetChampionStatsUseCase {
+
+    private fun resolvePosition(lane: String?, role: String?, neutralMinionsKilled: Int): String? = when {
+        lane == "TOP"                                                          -> "TOP"
+        lane == "JUNGLE" && neutralMinionsKilled >= 30                        -> "JUNGLE"
+        lane == "MID" || lane == "MIDDLE"                                     -> "MID"
+        lane == "BOTTOM" && (role == "DUO_SUPPORT" || role == "SUPPORT")      -> "SUPPORT"
+        lane == "BOTTOM"                                                       -> "BOTTOM"
+        else                                                                   -> null
+    }
 
     override fun getChampionStats(champion: String, mode: String): ChampionDetailStats {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
@@ -94,6 +104,32 @@ class GetChampionStatsHandler(
                 .take(6)
         }
 
+        // ── 라인별 통계 ──────────────────────────────────────────────
+        val POSITION_ORDER = listOf("TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT")
+        val laneStats = pairs
+            .mapNotNull { (p, _) ->
+                val pos = resolvePosition(p.lane, p.role, p.neutralMinionsKilled) ?: return@mapNotNull null
+                pos to p
+            }
+            .groupBy { it.first }
+            .map { (pos, entries) ->
+                val ps = entries.map { it.second }
+                val lg = ps.size; val lw = ps.count { it.win }
+                val lk = ps.sumOf { it.kills }; val ld = ps.sumOf { it.deaths }; val la = ps.sumOf { it.assists }
+                ChampionLaneStat(
+                    position   = pos,
+                    games      = lg, wins = lw, winRate = lw * 100 / lg,
+                    avgKills   = r1(lk.toDouble() / lg),
+                    avgDeaths  = r1(ld.toDouble() / lg),
+                    avgAssists = r1(la.toDouble() / lg),
+                    kda        = kda(lk, ld, la),
+                    avgDamage  = ps.sumOf { it.damage } / lg,
+                    avgCs      = r1(ps.sumOf { it.cs }.toDouble() / lg),
+                    avgGold    = ps.sumOf { it.gold } / lg,
+                )
+            }
+            .sortedBy { POSITION_ORDER.indexOf(it.position).let { i -> if (i == -1) 99 else i } }
+
         return ChampionDetailStats(
             champion   = championName,
             championId = championId,
@@ -102,6 +138,7 @@ class GetChampionStatsHandler(
             winRate    = totalWins * 100 / totalGames,
             players    = players,
             itemStats  = itemStats,
+            laneStats  = laneStats,
         )
     }
 }

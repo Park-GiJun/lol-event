@@ -115,6 +115,20 @@ export interface ChampionItemStat {
   winRate: number;
 }
 
+export interface ChampionLaneStat {
+  position: string;
+  games: number;
+  wins: number;
+  winRate: number;
+  avgKills: number;
+  avgDeaths: number;
+  avgAssists: number;
+  kda: number;
+  avgDamage: number;
+  avgCs: number;
+  avgGold: number;
+}
+
 export interface ChampionDetailStats {
   champion: string;
   championId: number;
@@ -123,6 +137,7 @@ export interface ChampionDetailStats {
   winRate: number;
   players: ChampionPlayerStat[];
   itemStats: ChampionItemStat[];
+  laneStats: ChampionLaneStat[];
 }
 
 export interface ChampionPickStat {
