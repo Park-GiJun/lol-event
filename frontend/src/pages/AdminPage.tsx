@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Lock, RefreshCw, Play, Users, Trophy, Zap, X } from 'lucide-react';
+import { Shield, Lock, RefreshCw, Play, Users, Trophy, Zap, X, Trash2 } from 'lucide-react';
 import { api } from '../lib/api/api';
 import type {
   StatsResponse,
@@ -86,6 +86,8 @@ export function AdminPage() {
   const [triggerMsg, setTriggerMsg] = useState('');
   const [triggeringItems, setTriggeringItems] = useState(false);
   const [triggerItemMsg, setTriggerItemMsg] = useState('');
+  const [clearingCache, setClearingCache] = useState(false);
+  const [clearCacheMsg, setClearCacheMsg] = useState('');
 
   // data
   const [allStats, setAllStats] = useState<PlayerStats[]>([]);
@@ -148,6 +150,19 @@ export function AdminPage() {
       setTimeout(async () => setBatchStatus(await api.get<BatchStatus>('/batch/status')), 2000);
     } catch { setTriggerMsg('배치 실행에 실패했습니다.'); }
     finally { setTriggering(false); }
+  }
+
+  async function clearAllCache() {
+    setClearingCache(true); setClearCacheMsg('');
+    try {
+      await Promise.all([
+        api.post('/ddragon/sync', {}),
+        api.post('/batch/trigger', {}),
+      ]);
+      setClearCacheMsg('전체 캐시가 초기화되었습니다.');
+      setTimeout(async () => setBatchStatus(await api.get<BatchStatus>('/batch/status')), 2000);
+    } catch { setClearCacheMsg('캐시 초기화에 실패했습니다.'); }
+    finally { setClearingCache(false); }
   }
 
   async function triggerItemStats() {
@@ -251,6 +266,17 @@ export function AdminPage() {
           {triggerItemMsg && (
             <span style={{ fontSize: 13, color: triggerItemMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
               {triggerItemMsg}
+            </span>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
+          <button className="btn btn-secondary" onClick={clearAllCache} disabled={clearingCache}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-loss)' }}>
+            <Trash2 size={14} />{clearingCache ? '초기화 중...' : '전체 캐시 초기화'}
+          </button>
+          {clearCacheMsg && (
+            <span style={{ fontSize: 13, color: clearCacheMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
+              {clearCacheMsg}
             </span>
           )}
         </div>

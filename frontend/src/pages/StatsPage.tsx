@@ -373,7 +373,7 @@ function MvpTab({ mode }: { mode: string }) {
                   </div>
                 </td>
                 <td className="table-number" style={{ fontWeight: 700 }}>{p.avgMvpScore.toFixed(2)}</td>
-                <td style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{p.topChampion ?? '—'}</td>
+                <td style={{ fontSize: 12, color: 'var(--color-text-secondary)', wordBreak: 'keep-all', overflowWrap: 'break-word' }}>{p.topChampion ?? '—'}</td>
               </tr>
             ))}
             {!data.rankings.length && (
