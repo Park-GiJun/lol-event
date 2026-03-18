@@ -1,7 +1,7 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, dialog, Notification } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import path, { join } from 'path';
-import { getStatus, getLiveGame, getChampSelect, getSummonerHistory, getCustomMostPicks } from './lcu';
+import { getStatus, getLiveGame, getChampSelect, getChampSelectFull, getSummonerHistory, getCustomMostPicks, findLockfile, parseLockfile, lcuGet } from './lcu';
 import { runCollect } from './collect';
 
 app.setAppUserModelId('net.gijun.lol-collector');
@@ -79,6 +79,51 @@ function setupAutoUpdater(): void {
   autoUpdater.checkForUpdates().catch(() => win?.webContents.send('update:not-available'));
 }
 
+// ── 자동 수집 (게임 종료 감지) ─────────────────────────
+let lastPhase = '';
+let autoCollectScheduled = false;
+
+async function checkAndAutoCollect() {
+  const lockfilePath = findLockfile();
+  if (!lockfilePath) { lastPhase = ''; return; }
+  try {
+    const { port, password } = parseLockfile(lockfilePath);
+    const raw = await lcuGet<string>(port, password, '/lol-gameflow/v1/gameflow-phase');
+    const phase = String(raw).replace(/"/g, '').trim();
+
+    // InProgress → EndOfGame/WaitingForStats/None 전환 시 자동 수집 트리거
+    if (
+      lastPhase === 'InProgress' &&
+      (phase === 'EndOfGame' || phase === 'WaitingForStats' || phase === 'None' || phase === 'Lobby') &&
+      !autoCollectScheduled
+    ) {
+      autoCollectScheduled = true;
+      win?.webContents.send('collect:auto-status', '게임 종료 감지 — 30초 후 자동 수집 시작');
+      setTimeout(() => {
+        autoCollectScheduled = false;
+        runCollect((type, message) => {
+          win?.webContents.send('collect:log', type, message);
+          if (type === 'done') {
+            if (Notification.isSupported()) {
+              new Notification({ title: 'LoL 수집기', body: message }).show();
+            }
+            win?.webContents.send('collect:auto-status', `자동 수집 완료 — ${message}`);
+          }
+          if (type === 'error') {
+            win?.webContents.send('collect:auto-status', `자동 수집 실패 — ${message}`);
+          }
+        }).catch((e: Error) => {
+          win?.webContents.send('collect:log', 'error', e.message);
+          win?.webContents.send('collect:auto-status', '');
+        });
+      }, 30_000);
+    }
+    lastPhase = phase;
+  } catch {
+    // LCU 미연결 시 무시
+  }
+}
+
 function setupIPC(): void {
   ipcMain.handle('app:version', () => app.getVersion());
   ipcMain.on('win:minimize', () => win?.minimize());
@@ -90,10 +135,14 @@ function setupIPC(): void {
   ipcMain.on('collect:start', () => {
     runCollect((type, message) => {
       win?.webContents.send('collect:log', type, message);
+      if (type === 'done' && Notification.isSupported()) {
+        new Notification({ title: 'LoL 수집기', body: message }).show();
+      }
     }).catch((e) => win?.webContents.send('collect:log', 'error', (e as Error).message));
   });
   ipcMain.handle('lcu:live-game', () => getLiveGame());
   ipcMain.handle('lcu:champ-select', () => getChampSelect());
+  ipcMain.handle('lcu:champ-select-full', () => getChampSelectFull());
   ipcMain.handle('lcu:summoner-history', (_e, puuid: string) => getSummonerHistory(puuid));
   ipcMain.handle('lcu:custom-most-picks', () => getCustomMostPicks());
   ipcMain.handle('app:open-external', (_e, url: string) => shell.openExternal(url));
@@ -110,6 +159,7 @@ app.whenReady().then(() => {
   createWindow();
   setupTray();
   if (app.isPackaged) setupAutoUpdater();
+  setInterval(checkAndAutoCollect, 30_000);
 });
 
 app.on('second-instance', () => { if (win) { win.show(); win.focus(); } else createWindow(); });

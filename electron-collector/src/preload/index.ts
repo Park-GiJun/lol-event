@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('lol', {
   getChampSelect: () => ipcRenderer.invoke('lcu:champ-select'),
   getSummonerHistory: (puuid: string) => ipcRenderer.invoke('lcu:summoner-history', puuid),
   getCustomMostPicks: () => ipcRenderer.invoke('lcu:custom-most-picks'),
+  getChampSelectFull: () => ipcRenderer.invoke('lcu:champ-select-full'),
   openExternal: (url: string) => ipcRenderer.invoke('app:open-external', url),
   onLog: (cb: (type: string, message: string) => void) => {
     ipcRenderer.removeAllListeners('collect:log');
@@ -43,5 +44,9 @@ contextBridge.exposeInMainWorld('lol', {
   onUpdateDownloaded: (cb: (info: Record<string, unknown>) => void) => {
     ipcRenderer.removeAllListeners('update:downloaded');
     ipcRenderer.on('update:downloaded', (_e, info: Record<string, unknown>) => cb(info));
+  },
+  onAutoStatus: (cb: (message: string) => void) => {
+    ipcRenderer.removeAllListeners('collect:auto-status');
+    ipcRenderer.on('collect:auto-status', (_e, message: string) => cb(message));
   },
 });

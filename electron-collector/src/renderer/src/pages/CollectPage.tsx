@@ -12,6 +12,7 @@ export function CollectPage() {
   const [collecting, setCollecting] = useState(false);
   const [lcuConnected, setLcuConnected] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<{ version: string; ready: boolean } | null>(null);
+  const [autoStatus, setAutoStatus] = useState<string>('');
   const logRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,6 +22,7 @@ export function CollectPage() {
       setTimeout(() => logRef.current?.scrollTo(0, logRef.current.scrollHeight), 0);
       if (type === 'done' || type === 'error') setCollecting(false);
     });
+    window.lol.onAutoStatus((message) => setAutoStatus(message));
     window.lol.onUpdateAvailable((info) => setUpdateInfo({ version: String((info as { version: string }).version), ready: false }));
     window.lol.onUpdateDownloaded((info) => setUpdateInfo({ version: String((info as { version: string }).version), ready: true }));
   }, []);
@@ -48,6 +50,17 @@ export function CollectPage() {
               지금 설치
             </button>
           )}
+        </div>
+      )}
+
+      {autoStatus && (
+        <div style={{
+          padding: '8px 12px', marginBottom: 'var(--spacing-md)',
+          borderRadius: 'var(--radius-sm)',
+          background: 'rgba(59,158,255,0.1)', border: '1px solid rgba(59,158,255,0.3)',
+          color: 'var(--color-info)', fontSize: 'var(--font-size-sm)',
+        }}>
+          ⚡ {autoStatus}
         </div>
       )}
 
