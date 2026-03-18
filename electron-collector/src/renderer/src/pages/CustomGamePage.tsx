@@ -58,6 +58,7 @@ function ChampIcon({ championId, champion, winRate, games }: { championId: numbe
         {champion}
       </span>
       <span style={{ fontSize: 9, color: wrColor, fontWeight: 600 }}>{winRate}%</span>
+      <span style={{ fontSize: 9, color: 'var(--color-text-secondary)' }}>{games}판</span>
     </div>
   );
 }
