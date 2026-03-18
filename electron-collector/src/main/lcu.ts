@@ -139,21 +139,13 @@ export async function getCustomMostPicks(): Promise<CustomTeamsResult | null> {
 
     if (cleanPhase === 'Lobby') {
       const lobby = await lcuGet<Record<string, unknown>>(port, password, '/lol-lobby/v2/lobby');
-      console.log('[LCU] lobby raw:', JSON.stringify(lobby, null, 2));
+      const gameConfig = lobby['gameConfig'] as Record<string, unknown> | undefined;
       const localMember = lobby['localMember'] as Record<string, unknown> | undefined;
       const mySummonerId = localMember?.['summonerId'] as number | undefined;
-      const members = (lobby['members'] as unknown[]) ?? [];
 
-      // 팀 값으로 그룹핑 (작은 값 = 블루, 큰 값 = 레드)
-      const teamMap = new Map<unknown, unknown[]>();
-      for (const m of members) {
-        const team = (m as Record<string, unknown>)['team'];
-        if (!teamMap.has(team)) teamMap.set(team, []);
-        teamMap.get(team)!.push(m);
-      }
-      const teamKeys = [...teamMap.keys()].sort((a, b) => Number(a) - Number(b));
-      const team1 = teamMap.get(teamKeys[0]) ?? [];
-      const team2 = teamKeys.length > 1 ? (teamMap.get(teamKeys[1]) ?? []) : [];
+      // customTeam100 = 블루팀, customTeam200 = 레드팀
+      const team100 = (gameConfig?.['customTeam100'] as unknown[]) ?? [];
+      const team200 = (gameConfig?.['customTeam200'] as unknown[]) ?? [];
 
       const toInfo = async (m: unknown): Promise<TeamMemberInfo | null> => {
         const member = m as Record<string, unknown>;
@@ -165,8 +157,8 @@ export async function getCustomMostPicks(): Promise<CustomTeamsResult | null> {
       };
 
       const [blueTeam, redTeam] = await Promise.all([
-        Promise.all(team1.map(toInfo)).then(r => r.filter((o): o is TeamMemberInfo => o !== null)),
-        Promise.all(team2.map(toInfo)).then(r => r.filter((o): o is TeamMemberInfo => o !== null)),
+        Promise.all(team100.map(toInfo)).then(r => r.filter((o): o is TeamMemberInfo => o !== null)),
+        Promise.all(team200.map(toInfo)).then(r => r.filter((o): o is TeamMemberInfo => o !== null)),
       ]);
 
       return { phase: cleanPhase, blueTeam, redTeam };
