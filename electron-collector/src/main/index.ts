@@ -66,11 +66,13 @@ function setupTray(): void {
 
 function setupAutoUpdater(): void {
   autoUpdater.autoDownload = true;
-  autoUpdater.autoInstallOnAppQuit = true;
+  autoUpdater.autoInstallOnAppQuit = false;
   autoUpdater.on('update-available', (info) => win?.webContents.send('update:available', info));
-  autoUpdater.on('update-downloaded', (info) => win?.webContents.send('update:downloaded', info));
+  autoUpdater.on('update-downloaded', () => {
+    autoUpdater.quitAndInstall(false, true);
+  });
   autoUpdater.on('error', (err) => console.error('updater:', err.message));
-  setTimeout(() => autoUpdater.checkForUpdates().catch(() => {}), 10_000);
+  autoUpdater.checkForUpdates().catch(() => {});
 }
 
 function setupIPC(): void {
