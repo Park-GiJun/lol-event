@@ -139,6 +139,7 @@ export async function getCustomMostPicks(): Promise<CustomTeamsResult | null> {
 
     if (cleanPhase === 'Lobby') {
       const lobby = await lcuGet<Record<string, unknown>>(port, password, '/lol-lobby/v2/lobby');
+      console.log('[LCU] lobby raw:', JSON.stringify(lobby, null, 2));
       const localMember = lobby['localMember'] as Record<string, unknown> | undefined;
       const mySummonerId = localMember?.['summonerId'] as number | undefined;
       const members = (lobby['members'] as unknown[]) ?? [];

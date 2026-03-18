@@ -29,7 +29,7 @@ interface PlayerData extends TeamMember {
 
 async function fetchChampionStats(riotId: string): Promise<ChampionStat[] | null> {
   try {
-    const res = await fetch(`${SERVER_URL}/api/stats/player/${encodeURIComponent(riotId)}?mode=all`);
+    const res = await fetch(`${SERVER_URL}/api/stats/player/${encodeURIComponent(riotId)}?mode=normal`);
     if (!res.ok) return null;
     const json = await res.json() as { data?: { championStats?: ChampionStat[] } };
     const stats = json.data?.championStats;
