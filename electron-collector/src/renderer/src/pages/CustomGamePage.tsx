@@ -81,7 +81,7 @@ export function CustomGamePage() {
       setPhase(result.phase);
       setIsCustom(result.isCustom);
 
-      if (!result.isCustom || result.opponents.length === 0) {
+      if (result.opponents.length === 0) {
         setOpponents([]);
         return;
       }
@@ -155,16 +155,11 @@ export function CustomGamePage() {
             }}>
               {(phaseLabel[phase] ?? phase) || '연결 중...'}
             </span>
-            {phase && !isCustom && (
-              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-warning)' }}>
-                커스텀 게임이 아닙니다
-              </span>
-            )}
           </div>
         )}
       </div>
 
-      {isCustom && opponents.length === 0 && !loading && (
+      {opponents.length === 0 && !loading && phase && (
         <div className="card">
           <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
             {phase === 'Lobby' ? '상대팀에 아직 플레이어가 없습니다' : '상대팀 정보를 가져올 수 없습니다'}

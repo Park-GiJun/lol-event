@@ -138,13 +138,6 @@ export async function getCustomMostPicks(): Promise<CustomMostPicksResult | null
 
     if (cleanPhase === 'Lobby') {
       const lobby = await lcuGet<Record<string, unknown>>(port, password, '/lol-lobby/v2/lobby');
-      const gameConfig = lobby['gameConfig'] as Record<string, unknown> | undefined;
-
-      // gameType 대소문자 무관 CUSTOM 포함 OR queueId === 0 (커스텀 게임)
-      const gameType = ((gameConfig?.['gameType'] as string) ?? '').toUpperCase();
-      const lobbyQueueId = gameConfig?.['queueId'] as number | undefined;
-      const isCustomGame = gameType.includes('CUSTOM') || lobbyQueueId === 0;
-      if (!isCustomGame) return { isCustom: false, phase: cleanPhase, opponents: [] };
 
       const localMember = lobby['localMember'] as Record<string, unknown> | undefined;
       const myTeam = localMember?.['team'];
