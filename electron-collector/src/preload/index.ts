@@ -19,9 +19,25 @@ contextBridge.exposeInMainWorld('lol', {
     ipcRenderer.removeAllListeners('lcu:status');
     ipcRenderer.on('lcu:status', (_e, s: Record<string, unknown>) => cb(s));
   },
+  onUpdateChecking: (cb: () => void) => {
+    ipcRenderer.removeAllListeners('update:checking');
+    ipcRenderer.on('update:checking', () => cb());
+  },
+  onUpdateNotAvailable: (cb: () => void) => {
+    ipcRenderer.removeAllListeners('update:not-available');
+    ipcRenderer.on('update:not-available', () => cb());
+  },
   onUpdateAvailable: (cb: (info: Record<string, unknown>) => void) => {
     ipcRenderer.removeAllListeners('update:available');
     ipcRenderer.on('update:available', (_e, info: Record<string, unknown>) => cb(info));
+  },
+  onUpdateProgress: (cb: (percent: number) => void) => {
+    ipcRenderer.removeAllListeners('update:progress');
+    ipcRenderer.on('update:progress', (_e, percent: number) => cb(percent));
+  },
+  onUpdateInstalling: (cb: () => void) => {
+    ipcRenderer.removeAllListeners('update:installing');
+    ipcRenderer.on('update:installing', () => cb());
   },
   onUpdateDownloaded: (cb: (info: Record<string, unknown>) => void) => {
     ipcRenderer.removeAllListeners('update:downloaded');

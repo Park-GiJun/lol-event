@@ -34,26 +34,30 @@ async function fetchChampionStats(riotId: string): Promise<ChampionStat[] | null
     const json = await res.json() as { data?: { championStats?: ChampionStat[] } };
     const stats = json.data?.championStats;
     if (!stats || stats.length === 0) return null;
-    return stats.slice(0, 3);
+    return stats.slice(0, 6);
   } catch {
     return null;
   }
 }
 
-function ChampIcon({ championId, champion }: { championId: number; champion: string }) {
+function ChampIcon({ championId, champion, winRate, games }: { championId: number; champion: string; winRate: number; games: number }) {
   const src = `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/${championId}.png`;
+  const wrColor = winRate >= 60 ? 'var(--color-success)' : winRate >= 50 ? 'var(--color-warning)' : 'var(--color-error)';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-      <img
-        src={src}
-        alt={champion}
-        title={champion}
-        style={{ width: 36, height: 36, borderRadius: 4, border: '1px solid var(--color-border)', objectFit: 'cover' }}
-        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-      />
-      <span style={{ fontSize: 9, color: 'var(--color-text-secondary)', maxWidth: 40, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <div style={{ position: 'relative' }}>
+        <img
+          src={src}
+          alt={champion}
+          title={`${champion} ${games}판 ${winRate}%`}
+          style={{ width: 32, height: 32, borderRadius: 4, border: `2px solid ${wrColor}`, objectFit: 'cover', display: 'block' }}
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+        />
+      </div>
+      <span style={{ fontSize: 9, color: 'var(--color-text-secondary)', maxWidth: 36, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {champion}
       </span>
+      <span style={{ fontSize: 9, color: wrColor, fontWeight: 600 }}>{winRate}%</span>
     </div>
   );
 }
@@ -61,39 +65,27 @@ function ChampIcon({ championId, champion }: { championId: number; champion: str
 function PlayerCard({ player, accentColor }: { player: PlayerData; accentColor: string }) {
   return (
     <div style={{
-      padding: '10px 12px',
-      borderRadius: 8,
+      padding: '8px 10px',
+      borderRadius: 6,
       background: 'var(--color-bg-secondary)',
+      borderLeft: `3px solid ${player.isMe ? accentColor : 'transparent'}`,
       border: `1px solid ${player.isMe ? accentColor : 'var(--color-border)'}`,
       marginBottom: 6,
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 6 }}>
         {player.isMe && (
-          <span style={{ fontSize: 9, background: accentColor, color: '#fff', borderRadius: 3, padding: '1px 5px', fontWeight: 700 }}>나</span>
+          <span style={{ fontSize: 9, background: accentColor, color: '#fff', borderRadius: 3, padding: '1px 4px', fontWeight: 700, flexShrink: 0 }}>나</span>
         )}
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {player.summonerName || player.riotId}
         </span>
-        {player.riotId && player.summonerName !== player.riotId && (
-          <span style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>{player.riotId}</span>
-        )}
       </div>
-
       {player.championStats === null ? (
-        <span style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>내전 기록 없음</span>
+        <span style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>기록 없음</span>
       ) : (
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {player.championStats.map((stat, i) => (
-            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-              <ChampIcon championId={stat.championId} champion={stat.champion} />
-              <span style={{ fontSize: 9, color: 'var(--color-text-secondary)' }}>{stat.games}판</span>
-              <span style={{
-                fontSize: 9,
-                color: stat.winRate >= 60 ? 'var(--color-success)' : stat.winRate >= 50 ? 'var(--color-warning)' : 'var(--color-error)',
-              }}>
-                {stat.winRate}%
-              </span>
-            </div>
+            <ChampIcon key={i} championId={stat.championId} champion={stat.champion} winRate={stat.winRate} games={stat.games} />
           ))}
         </div>
       )}
@@ -103,20 +95,29 @@ function PlayerCard({ player, accentColor }: { player: PlayerData; accentColor: 
 
 function TeamColumn({ title, color, players }: { title: string; color: string; players: PlayerData[] }) {
   return (
-    <div style={{ flex: 1, minWidth: 0 }}>
+    <div style={{
+      flex: 1, minWidth: 0,
+      background: 'var(--color-bg-secondary)',
+      borderRadius: 8,
+      border: `1px solid ${color}44`,
+      overflow: 'hidden',
+    }}>
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        marginBottom: 10, paddingBottom: 8,
+        padding: '10px 12px',
+        background: `${color}22`,
         borderBottom: `2px solid ${color}`,
+        display: 'flex', alignItems: 'center', gap: 8,
       }}>
         <span style={{ fontWeight: 700, fontSize: 14, color }}>{title}</span>
         <span style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{players.length}명</span>
       </div>
-      {players.length === 0 ? (
-        <p style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>플레이어 없음</p>
-      ) : (
-        players.map((p, i) => <PlayerCard key={p.riotId || i} player={p} accentColor={color} />)
-      )}
+      <div style={{ padding: '10px 10px' }}>
+        {players.length === 0 ? (
+          <p style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>플레이어 없음</p>
+        ) : (
+          players.map((p, i) => <PlayerCard key={p.riotId || i} player={p} accentColor={color} />)
+        )}
+      </div>
     </div>
   );
 }
