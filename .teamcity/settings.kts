@@ -2,7 +2,6 @@ import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
 import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
-import jetbrains.buildServer.configs.kotlin.triggers.vcs
 
 version = "2025.11"
 
@@ -13,7 +12,6 @@ project {
 object Build : BuildType({
     name = "Build"
 
-    // node_modules 제외 — artifact 1000개 제한 때문
     artifactRules = """
         backend/eureka-server/build/libs/*.jar => jars/
         backend/api-gateway/build/libs/*.jar => jars/
@@ -23,6 +21,39 @@ object Build : BuildType({
         backend/lcu-service/package.json => lcu-service-dist/
         electron-collector/dist/** => electron-collector-dist/
     """.trimIndent()
+
+    params {
+        // 빌드 항목
+        checkbox("build.backend", "true",
+            label = "[빌드] Backend (Gradle)", description = "eureka-server, api-gateway, main-service JAR 빌드",
+            checked = "true", unchecked = "false")
+        checkbox("build.frontend", "true",
+            label = "[빌드] Frontend", description = "React 앱 빌드",
+            checked = "true", unchecked = "false")
+        checkbox("build.lcu", "true",
+            label = "[빌드] LCU Service", description = "Node.js LCU 서비스 빌드",
+            checked = "true", unchecked = "false")
+        checkbox("build.electron", "false",
+            label = "[빌드] Electron Collector", description = "Electron 앱 TypeScript 빌드",
+            checked = "true", unchecked = "false")
+
+        // 배포 항목
+        checkbox("deploy.eureka", "true",
+            label = "[배포] Eureka Server", description = "Eureka / Config Server 재배포",
+            checked = "true", unchecked = "false")
+        checkbox("deploy.main", "true",
+            label = "[배포] Main Service", description = "main-service 재배포",
+            checked = "true", unchecked = "false")
+        checkbox("deploy.gateway", "true",
+            label = "[배포] API Gateway", description = "api-gateway 재배포",
+            checked = "true", unchecked = "false")
+        checkbox("deploy.frontend", "true",
+            label = "[배포] Frontend", description = "프론트엔드 정적 파일 재배포",
+            checked = "true", unchecked = "false")
+        checkbox("deploy.lcu", "true",
+            label = "[배포] LCU Service", description = "lcu-service 재배포",
+            checked = "true", unchecked = "false")
+    }
 
     vcs {
         root(DslContext.settingsRoot)
@@ -36,6 +67,9 @@ object Build : BuildType({
             workingDir = "backend"
             gradleWrapperPath = ""
             jdkHome = "%env.JAVA_HOME%"
+            conditions {
+                equals("build.backend", "true")
+            }
         }
         script {
             id = "frontend_build"
@@ -46,6 +80,9 @@ object Build : BuildType({
                 npm run lint
                 npm run build
             """.trimIndent()
+            conditions {
+                equals("build.frontend", "true")
+            }
         }
         script {
             id = "lcu_build"
@@ -56,6 +93,9 @@ object Build : BuildType({
                 npm run build
                 npm prune --production
             """.trimIndent()
+            conditions {
+                equals("build.lcu", "true")
+            }
         }
         script {
             id = "electron_build"
@@ -65,6 +105,9 @@ object Build : BuildType({
                 ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci
                 npm run build
             """.trimIndent()
+            conditions {
+                equals("build.electron", "true")
+            }
         }
         script {
             id = "deploy"
@@ -72,6 +115,15 @@ object Build : BuildType({
             scriptContent = """
                 #!/bin/bash
                 set -e
+
+                DEPLOY_BACKEND="%build.backend%"
+                DEPLOY_FRONTEND="%build.frontend%"
+                DEPLOY_LCU="%build.lcu%"
+                DO_EUREKA="%deploy.eureka%"
+                DO_MAIN="%deploy.main%"
+                DO_GATEWAY="%deploy.gateway%"
+                DO_FRONTEND="%deploy.frontend%"
+                DO_LCU="%deploy.lcu%"
 
                 DEPLOY_DIR="/lol-event/deploy"
                 HOST_DEPLOY="/home/gijunpark/lol-event/deploy"
@@ -81,100 +133,126 @@ object Build : BuildType({
 
                 echo "=== Step 1: Copy build artifacts ==="
                 mkdir -p ${'$'}DEPLOY_DIR
-                cp backend/eureka-server/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/eureka-server.jar
-                cp backend/api-gateway/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/api-gateway.jar
-                cp backend/main-service/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/main-service.jar
-                rm -rf ${'$'}DEPLOY_DIR/frontend-dist
-                cp -r frontend/dist ${'$'}DEPLOY_DIR/frontend-dist
 
-                # installer/ 에 exe 있으면 downloads 에 배포
-                mkdir -p ${'$'}DEPLOY_DIR/frontend-dist/downloads
-                if ls installer/*.exe 1>/dev/null 2>&1; then
-                    cp installer/*.exe ${'$'}DEPLOY_DIR/frontend-dist/downloads/
-                    cp installer/latest.yml ${'$'}DEPLOY_DIR/frontend-dist/downloads/ 2>/dev/null || true
-                    cp installer/*.blockmap ${'$'}DEPLOY_DIR/frontend-dist/downloads/ 2>/dev/null || true
-                    echo "installer 배포 완료"
+                if [ "${'$'}DEPLOY_BACKEND" = "true" ]; then
+                    cp backend/eureka-server/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/eureka-server.jar
+                    cp backend/api-gateway/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/api-gateway.jar
+                    cp backend/main-service/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/main-service.jar
+                    echo "Backend JARs 복사 완료"
                 fi
 
-                echo "=== Step 1-b: Copy lcu-service artifacts ==="
-                mkdir -p ${'$'}DEPLOY_DIR/lcu-service
-                cp -r backend/lcu-service/dist ${'$'}DEPLOY_DIR/lcu-service/dist
-                cp backend/lcu-service/package.json ${'$'}DEPLOY_DIR/lcu-service/
-                cp backend/lcu-service/package-lock.json ${'$'}DEPLOY_DIR/lcu-service/ 2>/dev/null || true
+                if [ "${'$'}DEPLOY_FRONTEND" = "true" ]; then
+                    rm -rf ${'$'}DEPLOY_DIR/frontend-dist
+                    cp -r frontend/dist ${'$'}DEPLOY_DIR/frontend-dist
+                    mkdir -p ${'$'}DEPLOY_DIR/frontend-dist/downloads
+                    if ls installer/*.exe 1>/dev/null 2>&1; then
+                        cp installer/*.exe ${'$'}DEPLOY_DIR/frontend-dist/downloads/
+                        cp installer/latest.yml ${'$'}DEPLOY_DIR/frontend-dist/downloads/ 2>/dev/null || true
+                        cp installer/*.blockmap ${'$'}DEPLOY_DIR/frontend-dist/downloads/ 2>/dev/null || true
+                        echo "installer 배포 완료"
+                    fi
+                    echo "Frontend dist 복사 완료"
+                fi
 
-                echo "=== Step 2: Stop existing services ==="
-                docker stop lol-frontend lol-api-gateway lol-main-service lol-eureka lol-lcu-service 2>/dev/null || true
-                docker rm lol-frontend lol-api-gateway lol-main-service lol-eureka lol-lcu-service 2>/dev/null || true
+                if [ "${'$'}DEPLOY_LCU" = "true" ]; then
+                    mkdir -p ${'$'}DEPLOY_DIR/lcu-service
+                    cp -r backend/lcu-service/dist ${'$'}DEPLOY_DIR/lcu-service/dist
+                    cp backend/lcu-service/package.json ${'$'}DEPLOY_DIR/lcu-service/
+                    cp backend/lcu-service/package-lock.json ${'$'}DEPLOY_DIR/lcu-service/ 2>/dev/null || true
+                    echo "LCU Service 복사 완료"
+                fi
+
+                echo "=== Step 2: Stop selected services ==="
+                if [ "${'$'}DO_EUREKA"   = "true" ]; then docker stop lol-eureka        2>/dev/null || true; docker rm lol-eureka        2>/dev/null || true; fi
+                if [ "${'$'}DO_MAIN"     = "true" ]; then docker stop lol-main-service  2>/dev/null || true; docker rm lol-main-service  2>/dev/null || true; fi
+                if [ "${'$'}DO_GATEWAY"  = "true" ]; then docker stop lol-api-gateway   2>/dev/null || true; docker rm lol-api-gateway   2>/dev/null || true; fi
+                if [ "${'$'}DO_FRONTEND" = "true" ]; then docker stop lol-frontend      2>/dev/null || true; docker rm lol-frontend      2>/dev/null || true; fi
+                if [ "${'$'}DO_LCU"      = "true" ]; then docker stop lol-lcu-service   2>/dev/null || true; docker rm lol-lcu-service   2>/dev/null || true; fi
 
                 echo "=== Step 3: Start Eureka Server (Config Server) ==="
-                docker run -d --name lol-eureka \
-                    --network host \
-                    --restart unless-stopped \
-                    -v ${'$'}HOST_DEPLOY/eureka-server.jar:/app.jar:ro \
-                    -v ${'$'}HOST_CONFIG:/config:ro \
-                    --env-file /lol-event/secrets/shared.env \
-                    ${'$'}JAVA_IMAGE java -jar /app.jar \
-                    --spring.cloud.config.server.native.search-locations=classpath:/config,file:/config
+                if [ "${'$'}DO_EUREKA" = "true" ]; then
+                    docker run -d --name lol-eureka \
+                        --network host \
+                        --restart unless-stopped \
+                        -v ${'$'}HOST_DEPLOY/eureka-server.jar:/app.jar:ro \
+                        -v ${'$'}HOST_CONFIG:/config:ro \
+                        --env-file /lol-event/secrets/shared.env \
+                        ${'$'}JAVA_IMAGE java -jar /app.jar \
+                        --spring.cloud.config.server.native.search-locations=classpath:/config,file:/config
 
-                echo "Waiting for Eureka to start..."
-                for i in ${'$'}(seq 1 30); do
-                    if curl -sf http://localhost:8761/actuator/health > /dev/null 2>&1; then
-                        echo "Eureka is UP!"
-                        break
-                    fi
-                    echo "  waiting... (${'$'}i/30)"
-                    sleep 3
-                done
+                    echo "Waiting for Eureka to start..."
+                    for i in ${'$'}(seq 1 30); do
+                        if curl -sf http://localhost:8761/actuator/health > /dev/null 2>&1; then
+                            echo "Eureka is UP!"
+                            break
+                        fi
+                        echo "  waiting... (${'$'}i/30)"
+                        sleep 3
+                    done
+                else
+                    echo "Eureka 배포 스킵"
+                fi
 
                 echo "=== Step 4: Start Main Service ==="
-                docker run -d --name lol-main-service \
-                    --network host \
-                    --restart unless-stopped \
-                    -v ${'$'}HOST_DEPLOY/main-service.jar:/app.jar:ro \
-                    --env-file /lol-event/secrets/main-service.env \
-                    ${'$'}JAVA_IMAGE java -jar /app.jar \
-                    --spring.profiles.active=prd
+                if [ "${'$'}DO_MAIN" = "true" ]; then
+                    docker run -d --name lol-main-service \
+                        --network host \
+                        --restart unless-stopped \
+                        -v ${'$'}HOST_DEPLOY/main-service.jar:/app.jar:ro \
+                        --env-file /lol-event/secrets/main-service.env \
+                        ${'$'}JAVA_IMAGE java -jar /app.jar \
+                        --spring.profiles.active=prd
+                else
+                    echo "Main Service 배포 스킵"
+                fi
 
                 echo "=== Step 5: Start API Gateway ==="
-                docker run -d --name lol-api-gateway \
-                    --network host \
-                    --restart unless-stopped \
-                    -v ${'$'}HOST_DEPLOY/api-gateway.jar:/app.jar:ro \
-                    --env-file /lol-event/secrets/shared.env \
-                    --env LCU_SERVICE_URL=http://localhost:3002 \
-                    ${'$'}JAVA_IMAGE java -jar /app.jar \
-                    --spring.profiles.active=local
+                if [ "${'$'}DO_GATEWAY" = "true" ]; then
+                    docker run -d --name lol-api-gateway \
+                        --network host \
+                        --restart unless-stopped \
+                        -v ${'$'}HOST_DEPLOY/api-gateway.jar:/app.jar:ro \
+                        --env-file /lol-event/secrets/shared.env \
+                        --env LCU_SERVICE_URL=http://localhost:3002 \
+                        ${'$'}JAVA_IMAGE java -jar /app.jar \
+                        --spring.profiles.active=local
+                else
+                    echo "API Gateway 배포 스킵"
+                fi
 
                 echo "=== Step 6: Start Frontend ==="
-                docker run -d --name lol-frontend \
-                    --network host \
-                    --restart unless-stopped \
-                    -v ${'$'}HOST_DEPLOY/frontend-dist:/app:ro \
-                    ${'$'}NODE_IMAGE sh -c "npm install -g serve && serve -s /app -l 8080"
+                if [ "${'$'}DO_FRONTEND" = "true" ]; then
+                    docker run -d --name lol-frontend \
+                        --network host \
+                        --restart unless-stopped \
+                        -v ${'$'}HOST_DEPLOY/frontend-dist:/app:ro \
+                        ${'$'}NODE_IMAGE sh -c "npm install -g serve && serve -s /app -l 8080"
+                else
+                    echo "Frontend 배포 스킵"
+                fi
 
                 echo "=== Step 7: Install lcu-service deps & Start ==="
-                docker run --rm \
-                    -v ${'$'}HOST_DEPLOY/lcu-service:/app \
-                    ${'$'}NODE_IMAGE sh -c "cd /app && npm ci --production"
-                docker run -d --name lol-lcu-service \
-                    --network host \
-                    --restart unless-stopped \
-                    -v ${'$'}HOST_DEPLOY/lcu-service:/app:ro \
-                    --env-file /lol-event/secrets/shared.env \
-                    --env PORT=3002 \
-                    --env KAFKA_BROKERS=localhost:9094 \
-                    ${'$'}NODE_IMAGE sh -c "node /app/dist/main"
+                if [ "${'$'}DO_LCU" = "true" ]; then
+                    docker run --rm \
+                        -v ${'$'}HOST_DEPLOY/lcu-service:/app \
+                        ${'$'}NODE_IMAGE sh -c "cd /app && npm ci --production"
+                    docker run -d --name lol-lcu-service \
+                        --network host \
+                        --restart unless-stopped \
+                        -v ${'$'}HOST_DEPLOY/lcu-service:/app:ro \
+                        --env-file /lol-event/secrets/shared.env \
+                        --env PORT=3002 \
+                        --env KAFKA_BROKERS=localhost:9094 \
+                        ${'$'}NODE_IMAGE sh -c "node /app/dist/main"
+                else
+                    echo "LCU Service 배포 스킵"
+                fi
 
                 echo "=== Deploy Complete ==="
                 echo "Frontend:    http://localhost:8080"
                 echo "API Gateway: http://localhost:9832"
                 echo "Eureka:      http://localhost:8761"
             """.trimIndent()
-        }
-    }
-
-    triggers {
-        vcs {
         }
     }
 
