@@ -73,9 +73,6 @@ const thS: React.CSSProperties = {
 };
 const tdS: React.CSSProperties = { padding: '10px 12px', verticalAlign: 'middle' };
 
-// ── 드래그 상태 (전역 ref 방식 — 리렌더 없이)
-let _dragRiotId = '';
-let _dragFrom: TeamKey = 'pool';
 
 export function AdminPage() {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem(SESSION_KEY) === 'true');
@@ -164,22 +161,16 @@ export function AdminPage() {
   }
 
   // ── Drag & Drop ────────────────────────────────────
-  function onDragStart(riotId: string, from: TeamKey) {
-    _dragRiotId = riotId;
-    _dragFrom = from;
-  }
-
-  function onDrop(to: TeamKey) {
+  function onDrop(to: TeamKey, riotId: string, from: TeamKey) {
     setDragOver(null);
-    if (!_dragRiotId || _dragFrom === to) return;
+    if (!riotId || from === to) return;
     if (to !== 'pool' && teams[to].length >= 5) return;
     setTeams(prev => {
       const next = { ...prev };
-      next[_dragFrom] = prev[_dragFrom].filter(id => id !== _dragRiotId);
-      next[to] = [...prev[to], _dragRiotId];
+      next[from] = prev[from].filter(id => id !== riotId);
+      next[to] = [...prev[to], riotId];
       return next;
     });
-    _dragRiotId = '';
   }
 
   function removeFromTeam(riotId: string, from: TeamKey) {
@@ -384,7 +375,6 @@ export function AdminPage() {
                 key={id} riotId={id} from="pool"
                 allStats={allStats} mvpStats={mvpStats}
                 color="var(--color-text-primary)"
-                onDragStart={onDragStart}
               />
             ))}
           </div>
@@ -452,7 +442,6 @@ export function AdminPage() {
                       key={id} riotId={id} from={tk}
                       allStats={allStats} mvpStats={mvpStats}
                       color={meta.main}
-                      onDragStart={onDragStart}
                       onRemove={() => removeFromTeam(id, tk)}
                     />
                   ))}
@@ -533,7 +522,7 @@ interface DropZoneProps {
   teamKey: TeamKey;
   dragOver: TeamKey | null;
   onDragOverChange: (key: TeamKey | null) => void;
-  onDrop: (key: TeamKey) => void;
+  onDrop: (to: TeamKey, riotId: string, from: TeamKey) => void;
   style?: React.CSSProperties;
   children: React.ReactNode;
 }
@@ -542,8 +531,18 @@ function DropZone({ teamKey, onDragOverChange, onDrop, style, children }: DropZo
     <div
       style={style}
       onDragOver={e => { e.preventDefault(); onDragOverChange(teamKey); }}
-      onDragLeave={() => onDragOverChange(null)}
-      onDrop={e => { e.preventDefault(); onDrop(teamKey); }}
+      onDragLeave={e => {
+        // 자식 요소로 이동할 때는 dragLeave 무시
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          onDragOverChange(null);
+        }
+      }}
+      onDrop={e => {
+        e.preventDefault();
+        const riotId = e.dataTransfer.getData('riotId');
+        const from = e.dataTransfer.getData('from') as TeamKey;
+        onDrop(teamKey, riotId, from);
+      }}
     >
       {children}
     </div>
@@ -556,16 +555,19 @@ interface PlayerChipProps {
   allStats: PlayerStats[];
   mvpStats: MvpPlayerStat[];
   color: string;
-  onDragStart: (riotId: string, from: TeamKey) => void;
   onRemove?: () => void;
 }
-function PlayerChip({ riotId, from, allStats, mvpStats, color, onDragStart, onRemove }: PlayerChipProps) {
+function PlayerChip({ riotId, from, allStats, mvpStats, color, onRemove }: PlayerChipProps) {
   const stat = allStats.find(s => s.riotId === riotId);
   const mvp = mvpStats.find(m => m.riotId === riotId);
   return (
     <div
       draggable
-      onDragStart={() => onDragStart(riotId, from)}
+      onDragStart={e => {
+        e.dataTransfer.setData('riotId', riotId);
+        e.dataTransfer.setData('from', from);
+        e.dataTransfer.effectAllowed = 'move';
+      }}
       style={{
         display: 'flex', alignItems: 'center', gap: 6,
         padding: '5px 8px', borderRadius: 6,
