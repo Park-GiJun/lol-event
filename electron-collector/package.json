@@ -1,6 +1,6 @@
 {
   "name": "lol-collector",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "LoL 내전 데이터 수집기",
   "main": "out/main/index.js",
   "scripts": {
@@ -42,8 +42,9 @@
       "artifactName": "lol-collector-setup.exe"
     },
     "nsis": {
-      "oneClick": true,
+      "oneClick": false,
       "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "LoL 수집기"

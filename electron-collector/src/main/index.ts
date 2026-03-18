@@ -1,7 +1,7 @@
 import { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import path, { join } from 'path';
-import { getStatus, getLiveGame, getChampSelect, getSummonerHistory } from './lcu';
+import { getStatus, getLiveGame, getChampSelect, getSummonerHistory, getCustomMostPicks } from './lcu';
 import { runCollect } from './collect';
 
 app.setAppUserModelId('net.gijun.lol-collector');
@@ -18,10 +18,10 @@ function getAssetPath(...parts: string[]): string {
 
 function createWindow(): void {
   win = new BrowserWindow({
-    width: 700,
-    height: 680,
-    minWidth: 560,
-    minHeight: 560,
+    width: 960,
+    height: 800,
+    minWidth: 760,
+    minHeight: 680,
     frame: false,
     backgroundColor: '#0A1428',
     webPreferences: {
@@ -89,6 +89,7 @@ function setupIPC(): void {
   ipcMain.handle('lcu:live-game', () => getLiveGame());
   ipcMain.handle('lcu:champ-select', () => getChampSelect());
   ipcMain.handle('lcu:summoner-history', (_e, puuid: string) => getSummonerHistory(puuid));
+  ipcMain.handle('lcu:custom-most-picks', () => getCustomMostPicks());
   ipcMain.on('update:install', () => autoUpdater.quitAndInstall());
 }
 

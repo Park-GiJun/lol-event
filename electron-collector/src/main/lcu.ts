@@ -100,3 +100,83 @@ export async function getSummonerHistory(puuid: string): Promise<Record<string, 
     return null;
   }
 }
+
+export interface OpponentInfo {
+  summonerName: string;
+  riotId: string; // gameName#tagLine 형식
+}
+
+export interface CustomMostPicksResult {
+  isCustom: boolean;
+  phase: string;
+  opponents: OpponentInfo[];
+}
+
+async function summonerIdToInfo(port: string, password: string, summonerId: number): Promise<OpponentInfo | null> {
+  try {
+    const summoner = await lcuGet<Record<string, unknown>>(port, password, `/lol-summoner/v1/summoners/${summonerId}`);
+    const gameName = (summoner['gameName'] as string) ?? '';
+    const tagLine = (summoner['tagLine'] as string) ?? '';
+    const displayName = (summoner['displayName'] as string) ?? gameName;
+    return {
+      riotId: gameName ? `${gameName}#${tagLine}` : displayName,
+      summonerName: displayName || gameName,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function getCustomMostPicks(): Promise<CustomMostPicksResult | null> {
+  const creds = getCredentials();
+  if (!creds) return null;
+  const { port, password } = creds;
+
+  try {
+    const phase = await lcuGet<string>(port, password, '/lol-gameflow/v1/gameflow-phase');
+
+    if (phase === 'Lobby') {
+      const lobby = await lcuGet<Record<string, unknown>>(port, password, '/lol-lobby/v2/lobby');
+      const gameConfig = lobby['gameConfig'] as Record<string, unknown> | undefined;
+      if (gameConfig?.['gameType'] !== 'CUSTOM') return { isCustom: false, phase, opponents: [] };
+
+      const localMember = lobby['localMember'] as Record<string, unknown> | undefined;
+      const myTeam = localMember?.['team'];
+      const members = (lobby['members'] as unknown[]) ?? [];
+      const opponentMembers = members.filter((m) => (m as Record<string, unknown>)['team'] !== myTeam);
+
+      const opponents = (await Promise.all(
+        opponentMembers.map((m) => {
+          const summonerId = (m as Record<string, unknown>)['summonerId'] as number | undefined;
+          return summonerId ? summonerIdToInfo(port, password, summonerId) : null;
+        })
+      )).filter((o): o is OpponentInfo => o !== null);
+
+      return { isCustom: true, phase, opponents };
+
+    } else if (phase === 'ChampSelect') {
+      const session = await lcuGet<Record<string, unknown>>(port, password, '/lol-gameflow/v1/session');
+      const gameData = session['gameData'] as Record<string, unknown> | undefined;
+      const queue = gameData?.['queue'] as Record<string, unknown> | undefined;
+      const queueId = queue?.['id'] as number | undefined;
+      if (queueId !== 0) return { isCustom: false, phase, opponents: [] };
+
+      const champSession = await lcuGet<Record<string, unknown>>(port, password, '/lol-champ-select/v1/session');
+      const theirTeam = (champSession['theirTeam'] as unknown[]) ?? [];
+
+      const opponents = (await Promise.all(
+        theirTeam.map((s) => {
+          const summonerId = (s as Record<string, unknown>)['summonerId'] as number | undefined;
+          return summonerId ? summonerIdToInfo(port, password, summonerId) : null;
+        })
+      )).filter((o): o is OpponentInfo => o !== null);
+
+      return { isCustom: true, phase, opponents };
+
+    } else {
+      return { isCustom: false, phase, opponents: [] };
+    }
+  } catch {
+    return null;
+  }
+}
