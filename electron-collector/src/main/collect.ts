@@ -98,6 +98,9 @@ export async function runCollect(send: (type: string, message: string) => void):
           let detail: Record<string, unknown>;
           try {
             detail = await lcuGet(port, password, `/lol-match-history/v1/games/${game['gameId']}`);
+            if (n(game['queueId']) !== 3270) {
+              console.log(`[collect] raw detail (${matchId}):`, JSON.stringify(detail, null, 2));
+            }
           } catch (e) {
             send('warn', `${matchId} 상세 조회 실패 — ${(e as Error).message}`);
             continue;
@@ -235,7 +238,7 @@ export async function runCollect(send: (type: string, message: string) => void):
               })),
           }));
 
-          newMatches.push({
+          const match = {
             matchId,
             queueId: n(game['queueId']),
             gameCreation: n(game['gameCreation']),
@@ -248,7 +251,12 @@ export async function runCollect(send: (type: string, message: string) => void):
             platformId: s(detail['platformId']),
             participants,
             teams,
-          });
+          };
+
+          if (n(game['queueId']) !== 3270) {
+            console.log(`[collect] parsed match (${matchId}):`, JSON.stringify(match, null, 2));
+          }
+          newMatches.push(match);
 
           send('info', `✅ ${matchId} 저장 (${new Date(n(game['gameCreation'])).toLocaleDateString('ko-KR')})`);
         }

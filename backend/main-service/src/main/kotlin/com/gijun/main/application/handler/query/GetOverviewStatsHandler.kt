@@ -44,7 +44,7 @@ class GetOverviewStatsHandler(
                 winRate    = wins * 100 / ps.size,
             )
         }
-        val topPicked   = champStats.sortedByDescending { it.picks }.take(15)
+        val topPicked   = champStats.sortedByDescending { it.picks }.take(20)
         val topWinRate  = champStats.filter { it.picks >= 3 }.sortedByDescending { it.winRate }.take(8)
 
         // ── 챔피언 밴 통계 ────────────────────────────────────

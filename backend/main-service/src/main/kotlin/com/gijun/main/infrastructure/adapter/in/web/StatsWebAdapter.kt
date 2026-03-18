@@ -4,6 +4,7 @@ import com.gijun.common.response.CommonApiResponse
 import com.gijun.main.application.dto.stats.result.ChampionDetailStats
 import com.gijun.main.application.dto.stats.result.ChampionSynergyResult
 import com.gijun.main.application.dto.stats.result.DuoStatsResult
+import com.gijun.main.application.dto.stats.result.LaneLeaderboardResult
 import com.gijun.main.application.dto.stats.result.MvpStatsResult
 import com.gijun.main.application.dto.stats.result.OverviewStats
 import com.gijun.main.application.dto.stats.result.PlayerDetailStatsResult
@@ -12,6 +13,7 @@ import com.gijun.main.application.dto.stats.result.StreakResult
 import com.gijun.main.application.port.`in`.GetChampionStatsUseCase
 import com.gijun.main.application.port.`in`.GetChampionSynergyUseCase
 import com.gijun.main.application.port.`in`.GetDuoStatsUseCase
+import com.gijun.main.application.port.`in`.GetLaneLeaderboardUseCase
 import com.gijun.main.application.port.`in`.GetMvpStatsUseCase
 import com.gijun.main.application.port.`in`.GetOverviewStatsUseCase
 import com.gijun.main.application.port.`in`.GetPlayerStatsUseCase
@@ -34,6 +36,7 @@ class StatsWebAdapter(
     private val getDuoStatsUseCase: GetDuoStatsUseCase,
     private val getPlayerStreakUseCase: GetPlayerStreakUseCase,
     private val getMvpStatsUseCase: GetMvpStatsUseCase,
+    private val getLaneLeaderboardUseCase: GetLaneLeaderboardUseCase,
 ) {
     @Operation(summary = "전체 내전 통계 개요", description = "챔피언 픽 통계, 명예의 전당, 오브젝트 집계 등 전반적인 통계를 반환합니다")
     @GetMapping("/overview")
@@ -67,10 +70,12 @@ class StatsWebAdapter(
     fun getPlayerStats(
         @Parameter(description = "플레이어 Riot ID (URL 인코딩)", example = "PlayerName%23KR1")
         @PathVariable riotId: String,
-        @RequestParam(defaultValue = "all") mode: String
+        @RequestParam(defaultValue = "all") mode: String,
+        @Parameter(description = "포지션 필터 (TOP/JUNGLE/MID/BOTTOM/SUPPORT), 미입력 시 전체")
+        @RequestParam(required = false) lane: String? = null,
     ): CommonApiResponse<PlayerDetailStatsResult> =
         CommonApiResponse.success(getPlayerStatsUseCase.getPlayerStats(
-            java.net.URLDecoder.decode(riotId, "UTF-8"), mode
+            java.net.URLDecoder.decode(riotId, "UTF-8"), mode, lane
         ))
 
     @Operation(
@@ -123,4 +128,17 @@ class StatsWebAdapter(
         @RequestParam(defaultValue = "normal") mode: String,
     ): CommonApiResponse<MvpStatsResult> =
         CommonApiResponse.success(getMvpStatsUseCase.getMvpStats(mode))
+
+    @Operation(
+        summary = "라인별 플레이어 랭킹",
+        description = "특정 포지션(TOP/JUNGLE/MID/BOTTOM/SUPPORT)에서의 플레이어 통계 랭킹을 반환합니다"
+    )
+    @GetMapping("/lane")
+    fun getLaneLeaderboard(
+        @Parameter(description = "포지션 (TOP/JUNGLE/MID/BOTTOM/SUPPORT)", example = "TOP")
+        @RequestParam lane: String,
+        @Parameter(description = "경기 모드 (normal=5v5내전, aram=칼바람, all=전체)", example = "normal")
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<LaneLeaderboardResult> =
+        CommonApiResponse.success(getLaneLeaderboardUseCase.getLaneLeaderboard(lane, mode))
 }

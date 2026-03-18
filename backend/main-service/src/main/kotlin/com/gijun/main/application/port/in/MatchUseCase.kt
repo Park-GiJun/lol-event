@@ -6,6 +6,7 @@ import com.gijun.main.application.dto.match.result.SaveMatchesResult
 import com.gijun.main.application.dto.stats.result.ChampionDetailStats
 import com.gijun.main.application.dto.stats.result.ChampionSynergyResult
 import com.gijun.main.application.dto.stats.result.DuoStatsResult
+import com.gijun.main.application.dto.stats.result.LaneLeaderboardResult
 import com.gijun.main.application.dto.stats.result.MvpStatsResult
 import com.gijun.main.application.dto.stats.result.OverviewStats
 import com.gijun.main.application.dto.stats.result.PlayerDetailStatsResult
@@ -30,7 +31,7 @@ interface GetStatsUseCase {
 }
 
 interface GetPlayerStatsUseCase {
-    fun getPlayerStats(riotId: String, mode: String): PlayerDetailStatsResult
+    fun getPlayerStats(riotId: String, mode: String, lane: String? = null): PlayerDetailStatsResult
 }
 
 interface GetOverviewStatsUseCase {
@@ -55,4 +56,8 @@ interface GetPlayerStreakUseCase {
 
 interface GetMvpStatsUseCase {
     fun getMvpStats(mode: String): MvpStatsResult
+}
+
+interface GetLaneLeaderboardUseCase {
+    fun getLaneLeaderboard(lane: String, mode: String): LaneLeaderboardResult
 }

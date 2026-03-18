@@ -33,9 +33,11 @@ async function fetchChampionStats(riotId: string): Promise<ChampionStat[] | null
     if (!res.ok) return null;
     const json = await res.json() as { data?: { championStats?: ChampionStat[] } };
     const stats = json.data?.championStats;
+    console.log(`[ChampStats] ${riotId}:`, stats?.slice(0, 3));
     if (!stats || stats.length === 0) return null;
     return stats.slice(0, 6);
-  } catch {
+  } catch (e) {
+    console.error(`[ChampStats] ${riotId} fetch error:`, e);
     return null;
   }
 }
@@ -139,6 +141,7 @@ export function CustomGamePage() {
     setError(null);
     try {
       const result: CustomTeams | null = await window.lol.getCustomMostPicks();
+      console.log('[CustomGame] LCU result:', JSON.stringify(result, null, 2));
       if (!result) { setError('LCU 연결 실패'); return; }
 
       setPhase(result.phase);

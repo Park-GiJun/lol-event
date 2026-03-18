@@ -217,6 +217,33 @@ export interface DuoStatsResult {
   duos: DuoStat[];
 }
 
+export interface PlayerLaneStat {
+  riotId: string;
+  games: number;
+  wins: number;
+  winRate: number;
+  avgKills: number;
+  avgDeaths: number;
+  avgAssists: number;
+  kda: number;
+  avgDamage: number;
+  avgCs: number;
+  avgGold: number;
+  avgVisionScore: number;
+  avgDamageTaken: number;
+  avgObjectiveDamage: number;
+  avgWardsPlaced: number;
+  avgCcTime: number;
+  avgNeutralMinions: number;
+  topChampion: string | null;
+  topChampionId: number | null;
+}
+
+export interface LaneLeaderboardResult {
+  lane: string;
+  players: PlayerLaneStat[];
+}
+
 export interface StreakResult {
   riotId: string;
   currentStreak: number;

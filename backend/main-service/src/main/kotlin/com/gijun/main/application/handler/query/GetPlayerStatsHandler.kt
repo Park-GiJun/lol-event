@@ -16,19 +16,21 @@ class GetPlayerStatsHandler(
 ) : GetPlayerStatsUseCase {
 
     /**
-     * Riot API의 lane/role 필드는 커스텀 게임에서 부정확합니다.
-     * JUNGLE은 neutralMinionsKilled >= 30 으로 실제 정글 여부를 추가 검증합니다.
+     * LCU lane/role 필드는 커스텀 게임에서 부정확할 수 있습니다.
+     * - JUNGLE: neutralMinionsKilled >= 30 으로 실제 정글 여부를 추가 검증
+     * - SUPPORT: LCU는 "DUO_SUPPORT" 대신 "SUPPORT" 또는 "NONE" 사용
+     * - lane=JUNGLE & neutralMinionsKilled < 30: 오분류 탑라이너 → null(미분류) 처리
      */
     private fun resolvePosition(lane: String?, role: String?, neutralMinionsKilled: Int): String? = when {
-        lane == "TOP"                                         -> "TOP"
-        lane == "JUNGLE" && neutralMinionsKilled >= 30        -> "JUNGLE"
-        lane == "MID" || lane == "MIDDLE"                     -> "MID"
-        lane == "BOTTOM" && role == "DUO_SUPPORT"             -> "SUPPORT"
-        lane == "BOTTOM"                                       -> "BOTTOM"
-        else                                                   -> null
+        lane == "TOP"                                                          -> "TOP"
+        lane == "JUNGLE" && neutralMinionsKilled >= 30                        -> "JUNGLE"
+        lane == "MID" || lane == "MIDDLE"                                     -> "MID"
+        lane == "BOTTOM" && (role == "DUO_SUPPORT" || role == "SUPPORT")      -> "SUPPORT"
+        lane == "BOTTOM"                                                       -> "BOTTOM"
+        else                                                                   -> null
     }
 
-    override fun getPlayerStats(riotId: String, mode: String): PlayerDetailStatsResult {
+    override fun getPlayerStats(riotId: String, mode: String, lane: String?): PlayerDetailStatsResult {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class Entry(
@@ -61,24 +63,26 @@ class GetPlayerStatsHandler(
                 }
         }
 
-        if (entries.isEmpty()) return PlayerDetailStatsResult(
+        val filteredEntries = if (lane != null) entries.filter { it.position == lane } else entries
+
+        if (filteredEntries.isEmpty()) return PlayerDetailStatsResult(
             riotId = riotId, games = 0, wins = 0, losses = 0, winRate = 0,
             avgKills = 0.0, avgDeaths = 0.0, avgAssists = 0.0, kda = 0.0,
             avgDamage = 0, avgCs = 0.0, avgGold = 0, avgVisionScore = 0.0,
             championStats = emptyList(), recentMatches = emptyList(), laneStats = emptyList(),
         )
 
-        val games = entries.size
-        val wins  = entries.count { it.win }
-        val kills   = entries.sumOf { it.kills }
-        val deaths  = entries.sumOf { it.deaths }
-        val assists = entries.sumOf { it.assists }
+        val games = filteredEntries.size
+        val wins  = filteredEntries.count { it.win }
+        val kills   = filteredEntries.sumOf { it.kills }
+        val deaths  = filteredEntries.sumOf { it.deaths }
+        val assists = filteredEntries.sumOf { it.assists }
 
         fun r1(v: Double) = (v * 10).toInt() / 10.0
         fun r2(v: Double) = (v * 100).toInt() / 100.0
         fun kda(k: Int, d: Int, a: Int) = if (d > 0) r2((k + a).toDouble() / d) else (k + a).toDouble()
 
-        val championStats = entries.groupBy { it.champion }.map { (champ, es) ->
+        val championStats = filteredEntries.groupBy { it.champion }.map { (champ, es) ->
             val cg = es.size; val cw = es.count { it.win }
             val ck = es.sumOf { it.kills }; val cd = es.sumOf { it.deaths }; val ca = es.sumOf { it.assists }
             ChampionStat(
@@ -92,14 +96,14 @@ class GetPlayerStatsHandler(
             )
         }.sortedByDescending { it.games }
 
-        val recentMatches = entries.sortedByDescending { it.gameCreation }.take(20).map {
+        val recentMatches = filteredEntries.sortedByDescending { it.gameCreation }.take(20).map {
             RecentMatchStat(matchId = it.matchId, champion = it.champion, championId = it.championId,
                 win = it.win, kills = it.kills, deaths = it.deaths, assists = it.assists,
                 damage = it.damage, cs = it.cs, gold = it.gold,
                 gameCreation = it.gameCreation, gameDuration = it.gameDuration, queueId = it.queueId)
         }
 
-        // ── 포지션별 통계 ──────────────────────────────────────
+        // ── 포지션별 통계 (lane 필터 없이 전체 entries 기준) ──────────────────────────────────────
         val POSITION_ORDER = listOf("TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT")
         val laneStats = entries
             .filter { it.position != null }
@@ -134,10 +138,10 @@ class GetPlayerStatsHandler(
             avgDeaths  = r1(deaths.toDouble() / games),
             avgAssists = r1(assists.toDouble() / games),
             kda        = kda(kills, deaths, assists),
-            avgDamage  = entries.sumOf { it.damage } / games,
-            avgCs      = r1(entries.sumOf { it.cs }.toDouble() / games),
-            avgGold    = entries.sumOf { it.gold } / games,
-            avgVisionScore = r1(entries.sumOf { it.visionScore }.toDouble() / games),
+            avgDamage  = filteredEntries.sumOf { it.damage } / games,
+            avgCs      = r1(filteredEntries.sumOf { it.cs }.toDouble() / games),
+            avgGold    = filteredEntries.sumOf { it.gold } / games,
+            avgVisionScore = r1(filteredEntries.sumOf { it.visionScore }.toDouble() / games),
             championStats = championStats,
             recentMatches = recentMatches,
             laneStats = laneStats,

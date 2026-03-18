@@ -51,6 +51,33 @@ data class LaneStat(
     val avgNeutralMinions: Double, // 정글 강조
 )
 
+data class PlayerLaneStat(
+    val riotId: String,
+    val games: Int,
+    val wins: Int,
+    val winRate: Int,
+    val avgKills: Double,
+    val avgDeaths: Double,
+    val avgAssists: Double,
+    val kda: Double,
+    val avgDamage: Int,
+    val avgCs: Double,
+    val avgGold: Int,
+    val avgVisionScore: Double,
+    val avgDamageTaken: Int,
+    val avgObjectiveDamage: Int,
+    val avgWardsPlaced: Double,
+    val avgCcTime: Double,
+    val avgNeutralMinions: Double,
+    val topChampion: String?,
+    val topChampionId: Int?,
+)
+
+data class LaneLeaderboardResult(
+    val lane: String,
+    val players: List<PlayerLaneStat>,
+)
+
 data class PlayerDetailStatsResult(
     val riotId: String,
     val games: Int,
