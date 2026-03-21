@@ -92,6 +92,8 @@ data class PlayerDetailStatsResult(
     val avgCs: Double,
     val avgGold: Int,
     val avgVisionScore: Double,
+    val elo: Double = 1500.0,
+    val eloRank: Int? = null,
     val championStats: List<ChampionStat>,
     val recentMatches: List<RecentMatchStat>,
     val laneStats: List<LaneStat> = emptyList(),

@@ -5,6 +5,7 @@ import com.gijun.main.application.dto.stats.result.LaneStat
 import com.gijun.main.application.dto.stats.result.PlayerDetailStatsResult
 import com.gijun.main.application.dto.stats.result.RecentMatchStat
 import com.gijun.main.application.port.`in`.GetPlayerStatsUseCase
+import com.gijun.main.application.port.out.EloPort
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class GetPlayerStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val eloPort: EloPort,
 ) : GetPlayerStatsUseCase {
 
     /**
@@ -31,6 +33,10 @@ class GetPlayerStatsHandler(
     }
 
     override fun getPlayerStats(riotId: String, mode: String, lane: String?): PlayerDetailStatsResult {
+        val allElos = eloPort.findAll().sortedByDescending { it.elo }
+        val playerElo = allElos.firstOrNull { it.riotId == riotId }
+        val eloRank = allElos.indexOfFirst { it.riotId == riotId }.takeIf { it >= 0 }?.plus(1)
+
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class Entry(
@@ -69,6 +75,7 @@ class GetPlayerStatsHandler(
             riotId = riotId, games = 0, wins = 0, losses = 0, winRate = 0,
             avgKills = 0.0, avgDeaths = 0.0, avgAssists = 0.0, kda = 0.0,
             avgDamage = 0, avgCs = 0.0, avgGold = 0, avgVisionScore = 0.0,
+            elo = playerElo?.elo ?: 1500.0, eloRank = eloRank,
             championStats = emptyList(), recentMatches = emptyList(), laneStats = emptyList(),
         )
 
@@ -142,6 +149,8 @@ class GetPlayerStatsHandler(
             avgCs      = r1(filteredEntries.sumOf { it.cs }.toDouble() / games),
             avgGold    = filteredEntries.sumOf { it.gold } / games,
             avgVisionScore = r1(filteredEntries.sumOf { it.visionScore }.toDouble() / games),
+            elo        = playerElo?.elo ?: 1500.0,
+            eloRank    = eloRank,
             championStats = championStats,
             recentMatches = recentMatches,
             laneStats = laneStats,

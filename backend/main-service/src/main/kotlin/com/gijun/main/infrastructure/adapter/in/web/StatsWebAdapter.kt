@@ -5,6 +5,7 @@ import com.gijun.main.application.dto.stats.result.ChampionDetailStats
 import com.gijun.main.application.dto.stats.result.ChampionMatchupResult
 import com.gijun.main.application.dto.stats.result.ChampionSynergyResult
 import com.gijun.main.application.dto.stats.result.DuoStatsResult
+import com.gijun.main.application.dto.stats.result.EloLeaderboardResult
 import com.gijun.main.application.dto.stats.result.LaneLeaderboardResult
 import com.gijun.main.application.dto.stats.result.MvpStatsResult
 import com.gijun.main.application.dto.stats.result.ObjectiveCorrelationResult
@@ -16,6 +17,7 @@ import com.gijun.main.application.port.`in`.GetChampionMatchupUseCase
 import com.gijun.main.application.port.`in`.GetChampionStatsUseCase
 import com.gijun.main.application.port.`in`.GetChampionSynergyUseCase
 import com.gijun.main.application.port.`in`.GetDuoStatsUseCase
+import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
 import com.gijun.main.application.port.`in`.GetLaneLeaderboardUseCase
 import com.gijun.main.application.port.`in`.GetMvpStatsUseCase
 import com.gijun.main.application.port.`in`.GetObjectiveCorrelationUseCase
@@ -43,6 +45,7 @@ class StatsWebAdapter(
     private val getLaneLeaderboardUseCase: GetLaneLeaderboardUseCase,
     private val getChampionMatchupUseCase: GetChampionMatchupUseCase,
     private val getObjectiveCorrelationUseCase: GetObjectiveCorrelationUseCase,
+    private val getEloLeaderboardUseCase: GetEloLeaderboardUseCase,
 ) {
     @Operation(summary = "전체 내전 통계 개요", description = "챔피언 픽 통계, 명예의 전당, 오브젝트 집계 등 전반적인 통계를 반환합니다")
     @GetMapping("/overview")
@@ -160,6 +163,14 @@ class StatsWebAdapter(
         @RequestParam(defaultValue = "normal") mode: String,
     ): CommonApiResponse<ObjectiveCorrelationResult> =
         CommonApiResponse.success(getObjectiveCorrelationUseCase.getObjectiveCorrelation(mode))
+
+    @Operation(
+        summary = "Elo 리더보드",
+        description = "전체 플레이어 Elo 순위를 반환합니다"
+    )
+    @GetMapping("/elo")
+    fun getEloLeaderboard(): CommonApiResponse<EloLeaderboardResult> =
+        CommonApiResponse.success(getEloLeaderboardUseCase.getLeaderboard())
 
     @Operation(
         summary = "라인별 플레이어 랭킹",

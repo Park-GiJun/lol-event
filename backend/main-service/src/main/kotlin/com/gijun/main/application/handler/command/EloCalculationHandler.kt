@@ -1,6 +1,9 @@
 package com.gijun.main.application.handler.command
 
+import com.gijun.main.application.dto.stats.result.EloLeaderboardResult
+import com.gijun.main.application.dto.stats.result.EloRankEntry
 import com.gijun.main.application.port.`in`.CalculateEloForMatchUseCase
+import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
 import com.gijun.main.application.port.`in`.GetEloUseCase
 import com.gijun.main.application.port.`in`.ResetAndRecalculateEloUseCase
 import com.gijun.main.application.port.out.EloPort
@@ -18,7 +21,7 @@ import kotlin.math.pow
 class EloCalculationHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val eloPort: EloPort,
-) : CalculateEloForMatchUseCase, ResetAndRecalculateEloUseCase, GetEloUseCase {
+) : CalculateEloForMatchUseCase, ResetAndRecalculateEloUseCase, GetEloUseCase, GetEloLeaderboardUseCase {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -50,6 +53,15 @@ class EloCalculationHandler(
 
     override fun getAll(): List<PlayerElo> = eloPort.findAll()
     override fun getByRiotId(riotId: String): PlayerElo? = eloPort.findByRiotId(riotId)
+
+    override fun getLeaderboard(): EloLeaderboardResult {
+        val sorted = eloPort.findAll().sortedByDescending { it.elo }
+        return EloLeaderboardResult(
+            players = sorted.mapIndexed { idx, elo ->
+                EloRankEntry(rank = idx + 1, riotId = elo.riotId, elo = elo.elo, games = elo.games)
+            }
+        )
+    }
 
     // ────────── 핵심 계산 ──────────
 
