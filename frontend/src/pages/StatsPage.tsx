@@ -343,7 +343,7 @@ function EloTab() {
     <div>
       <div style={{ fontWeight: 700, marginBottom: 16, fontSize: 'var(--font-size-sm)' }}>Elo 랭킹</div>
       <div className="table-wrapper">
-        <table className="table">
+        <table className="table member-stats-table">
           <thead>
             <tr>
               <th style={{ width: 48 }}>순위</th>
@@ -358,7 +358,7 @@ function EloTab() {
               const tier = eloTier(entry.elo);
               return (
                 <tr key={entry.riotId}
-                  style={{ cursor: 'pointer' }}
+                  className="member-stats-row"
                   onClick={() => navigate(`/player-stats/${encodeURIComponent(entry.riotId)}`)}>
                   <td><RankBadge rank={entry.rank} /></td>
                   <td>

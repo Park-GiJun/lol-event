@@ -168,23 +168,22 @@ lol-event의 핵심 경험은 "필요한 데이터를 최소 동작으로 얻는
 
 ### Design System Choice
 
-**Tailwind CSS + shadcn/ui**
+**Tailwind CSS + 커스텀 CSS**
 
-기존 Tailwind CSS를 유지하면서 shadcn/ui를 컴포넌트 라이브러리로 채택.
+Tailwind CSS와 커스텀 CSS 클래스(`.table`, `.card`, `.member-stats-table` 등)를 조합하여 컴포넌트를 구현한다.
 
 ### Rationale for Selection
 
-- 기존 Tailwind 코드베이스와 완전 호환 — 마이그레이션 비용 없음
-- headless 아키텍처로 OP.GG 스타일 티어표, 데이터 테이블 자유롭게 구현
-- 단색/라인 아이콘은 Lucide React (shadcn/ui 기본 포함)로 통일
+- 외부 컴포넌트 라이브러리 의존성 없음 — 빌드 크기 최소화
+- 프로젝트 전용 CSS 변수(`--color-*`, `--spacing-*`)와 직접 통합
+- 단색/라인 아이콘은 Lucide React로 통일
 - 다크 테마 기본 지원 — 게임 앱 분위기에 적합
 - 1인 개발 환경에서 빠른 개발 속도 확보
 
 ### Implementation Approach
 
-- shadcn/ui CLI로 필요한 컴포넌트만 선택적 추가
-- 기존 컴포넌트(Button, Input, Modal 등) shadcn/ui로 점진적 교체
-- PlayerLink/ChampionLink hover 위젯은 Popover 컴포넌트 활용
+- 커스텀 CSS 클래스(`.card`, `.table`, `.member-stats-table`, `.btn`)로 공통 스타일 정의
+- PlayerLink/ChampionLink hover 위젯은 CSS position으로 구현
 - 아이콘: Lucide React 단일 라이브러리로 통일
 
 ### Customization Strategy
@@ -349,7 +348,7 @@ lol-event의 핵심 경험은 "필요한 데이터를 최소 동작으로 얻는
 
 ### Implementation Approach
 
-- **Dashboard:** React + Tailwind CSS + shadcn/ui 컴포넌트. 사이드바는 `Layout` 컴포넌트로 전역 적용. 상세 페이지에만 Chart.js 동적 임포트.
+- **Dashboard:** React + Tailwind CSS + 커스텀 CSS. 사이드바는 `Layout` 컴포넌트로 전역 적용. 상세 페이지에만 Chart.js 동적 임포트.
 - **Electron:** 기존 Electron 창 레이아웃에 좌우 분할 그리드 적용. Tailwind `grid-cols-2` 기반.
 - **모바일:** `/m/*` 라우팅으로 분리된 전용 페이지. 하단 탭바는 고정 위치 컴포넌트.
 
@@ -454,19 +453,18 @@ flowchart TD
 
 ### Design System Components
 
-shadcn/ui 기존 컴포넌트 활용:
+커스텀 CSS 클래스 및 Tailwind 유틸리티 활용:
 
-| 컴포넌트 | 용도 |
+| 클래스/컴포넌트 | 용도 |
 |----------|------|
-| `Card` | 플레이어/챔피언 카드, 통계 카드 |
-| `Table` | 리더보드, 챔피언 목록, 매치 목록 |
-| `Badge` | 티어 표시 (S/A/B/C), Elo 변동 |
-| `Popover` | Hover 통계 위젯 (PlayerLink/ChampionLink) |
-| `Breadcrumb` | 계층 탐색 복귀 |
-| `Skeleton` | 로딩 상태 |
-| `Tabs` | 모바일 하단 탭바, 상세 페이지 탭 |
-| `Tooltip` | 아이콘 설명 |
-| `Button` | 재시도, 액션 버튼 |
+| `.card` | 플레이어/챔피언 카드, 통계 카드 |
+| `.table`, `.member-stats-table` | 리더보드, 챔피언 목록, 매치 목록 |
+| `<span>` (인라인 스타일) | 티어 표시 (S/A/B/C), Elo 변동 |
+| CSS position absolute | Hover 통계 위젯 (PlayerLink/ChampionLink) |
+| `<nav>` + `<ol>` | 계층 탐색 복귀 (BreadcrumbNav) |
+| `animate-pulse` (Tailwind) | 로딩 상태 Skeleton |
+| `.member-sort-tabs`, `.member-sort-tab` | 탭 전환 버튼 |
+| `.btn` | 재시도, 액션 버튼 |
 
 ### Custom Components
 
@@ -480,12 +478,12 @@ shadcn/ui 기존 컴포넌트 활용:
 - **용도:** OP.GG 스타일 내전 챔피언 티어표
 - **콘텐츠:** 티어(S/A/B/C) + 챔피언 아이콘 + 승률 + 픽률 + 게임 수
 - **상태:** 티어 섹션 접기/펼치기, 정렬 변경
-- **구현:** shadcn `Table` 기반 커스텀
+- **구현:** `.table.member-stats-table` 커스텀 CSS
 
 #### EloLeaderboard (Dashboard + 모바일)
 - **용도:** 전체 유저 Elo 순위표
 - **콘텐츠:** 순위 + 닉네임 + Elo + 변동폭 + 최근 N게임
-- **상태:** 자신의 행 자동 하이라이트 (`bg-teal-900/20`)
+- **상태:** 자신의 행 자동 하이라이트 (`rgba(11, 196, 180, 0.08)`)
 - **변형:** 데스크톱(테이블) / 모바일(카드 리스트)
 
 #### StatHoverWidget (Dashboard 전용)
@@ -499,7 +497,7 @@ shadcn/ui 기존 컴포넌트 활용:
 - **용도:** 밴 추천 챔피언 표시 태그
 - **콘텐츠:** 챔피언명 + 밴 가치 점수
 - **상태:** 강조(높은 위협도 `#EF4444`) / 일반(`#00B4D8`)
-- **구현:** shadcn `Badge` 기반 커스텀
+- **구현:** `<span>` 인라인 스타일 커스텀
 
 #### MobileBottomNav (모바일 전용)
 - **용도:** 모바일 하단 고정 탭바
@@ -510,7 +508,7 @@ shadcn/ui 기존 컴포넌트 활용:
 ### Component Implementation Strategy
 
 - 모든 커스텀 컴포넌트는 Tailwind 토큰 기반 — 디자인 시스템 색상 변수 사용
-- shadcn/ui 컴포넌트를 래핑(wrapping)하여 확장, 완전 재작성 지양
+- 외부 컴포넌트 라이브러리 미사용 — 커스텀 CSS + Tailwind 직접 구현
 - PlayerLink/ChampionLink + StatHoverWidget 인터페이스는 기존 구현 유지
 - Chart.js는 챔피언/플레이어 상세 페이지에만 동적 임포트 (`React.lazy`)
 

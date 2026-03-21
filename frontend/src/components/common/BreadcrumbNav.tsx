@@ -1,13 +1,5 @@
 import { Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '../ui/breadcrumb';
 
 interface BreadcrumbNavItem {
   label: string;
@@ -17,25 +9,27 @@ interface BreadcrumbNavItem {
 export function BreadcrumbNav({ items }: { items: BreadcrumbNavItem[] }) {
   const navigate = useNavigate();
   return (
-    <Breadcrumb className="breadcrumb-nav">
-      <BreadcrumbList>
+    <nav className="breadcrumb-nav" aria-label="breadcrumb">
+      <ol style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', listStyle: 'none', margin: 0, padding: 0, gap: 4 }}>
         {items.map((item, i) => (
           <Fragment key={i}>
-            <BreadcrumbItem>
+            <li>
               {item.path ? (
-                <BreadcrumbLink asChild>
-                  <button className="breadcrumb-btn" onClick={() => navigate(item.path!)}>
-                    {item.label}
-                  </button>
-                </BreadcrumbLink>
+                <button className="breadcrumb-btn" onClick={() => navigate(item.path!)}>
+                  {item.label}
+                </button>
               ) : (
-                <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                <span aria-current="page">{item.label}</span>
               )}
-            </BreadcrumbItem>
-            {i < items.length - 1 && <BreadcrumbSeparator />}
+            </li>
+            {i < items.length - 1 && (
+              <li aria-hidden="true" style={{ color: 'var(--color-text-disabled)', fontSize: 12 }}>
+                /
+              </li>
+            )}
           </Fragment>
         ))}
-      </BreadcrumbList>
-    </Breadcrumb>
+      </ol>
+    </nav>
   );
 }

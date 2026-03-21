@@ -47,7 +47,7 @@ _This document builds collaboratively through step-by-step discovery. Sections a
 
 - **브라운필드 보존:** 기존 REST API 엔드포인트, 데이터 모델, LCU 동기화 로직 변경 불가
 - **기존 코드 유지:** PlayerLink/ChampionLink(인터페이스), AdminPage, SyncPage, LcuPage, MonitoringPage
-- **기술 스택 고정:** React + TypeScript + Tailwind CSS. shadcn/ui 추가 도입.
+- **기술 스택 고정:** React + TypeScript + Tailwind CSS + 커스텀 CSS.
 - **LCU API:** Electron 전용 로컬 Riot API — 클라이언트 실행 시에만 사용 가능
 - **Chart.js:** 상세 페이지 한정 동적 임포트(`React.lazy`) — 번들 오염 방지
 - **라우팅:** Dashboard(`/`, `/champions/*`, `/players/*`, `/matches/*`) vs 모바일(`/m/*`) 완전 분리
@@ -75,8 +75,8 @@ Brownfield — 기존 React + TypeScript + Tailwind CSS 코드베이스. 새 프
 
 **Styling Solution:**
 - Tailwind CSS (기존) — 커스텀 토큰 추가 (색상, 타이포그래피)
-- shadcn/ui (신규 추가) — headless 컴포넌트 라이브러리
-- Lucide React (아이콘 — shadcn/ui 기본)
+- 커스텀 CSS (`.card`, `.table`, `.member-stats-table`, `.btn` 등)
+- Lucide React (아이콘)
 
 **Build Tooling:**
 - Vite (기존 React 빌드 도구)
@@ -95,7 +95,7 @@ Brownfield — 기존 React + TypeScript + Tailwind CSS 코드베이스. 새 프
 **Desktop:**
 - Electron (기존 `electron-collector` 패키지) — LCU API 연동 로직 유지
 
-**Note:** 기존 코드베이스 위에서 작업하므로 패키지 초기화 없이 shadcn/ui CLI를 통해 컴포넌트를 선택적으로 추가하는 것이 첫 구현 스토리가 됩니다.
+**Note:** 기존 코드베이스 위에서 작업. 외부 컴포넌트 라이브러리 없이 Tailwind CSS + 커스텀 CSS로 모든 UI를 직접 구현합니다.
 
 ## Core Architectural Decisions
 
@@ -195,7 +195,7 @@ return <Component data={data} />
 ### Decision Impact Analysis
 
 **구현 순서:**
-1. shadcn/ui 셋업 + Tailwind 커스텀 토큰 정의
+1. Tailwind 커스텀 토큰 정의 + 커스텀 CSS 클래스 설계
 2. 공통 훅 레이어 (React Query 캐시 설정 + Query Key 컨벤션)
 3. Dashboard 레이아웃 (사이드바 + 라우팅)
 4. 핵심 컴포넌트 (EloLeaderboard, ChampionTierTable)
@@ -539,7 +539,7 @@ styles/components/        ← 기존 커스텀 CSS 유지 (popup.css 등)
 ### Coherence Validation ✅
 
 **Decision Compatibility:**
-- TypeScript + React + Tailwind CSS + shadcn/ui: 완전 호환. 기존 Tailwind 코드베이스에 shadcn/ui headless 컴포넌트 추가는 충돌 없음.
+- TypeScript + React + Tailwind CSS + 커스텀 CSS: 완전 호환. 외부 컴포넌트 라이브러리 없이 직접 구현.
 - React Query + 기존 `api.ts` wrapper: `api.get/post/delete`가 `ApiResponse<T>`를 자동 언래핑하므로 React Query의 `queryFn`에 바로 사용 가능.
 - React Router nested routes + `/m/*` 분기: 기존 라우팅 구조 유지하면서 `<Route path="/m">` 추가 — 충돌 없음.
 - Chart.js + `React.lazy`: Vite 기반 코드 스플리팅 완전 지원.
@@ -634,7 +634,7 @@ styles/components/        ← 기존 커스텀 CSS 유지 (popup.css 등)
 4. 신규 컴포넌트는 반드시 지정된 폴더에 배치
 
 **First Implementation Priority:**
-1. `shadcn/ui` CLI 설치 + `styles/global.css` Tailwind 커스텀 토큰 추가
+1. `styles/global.css` Tailwind 커스텀 토큰 + 커스텀 CSS 클래스 추가
 2. `components/common/InlineError.tsx` + `Skeleton.tsx` 신규 생성
 3. `hooks/useLeaderboard.ts` + React Query 캐시 설정
 4. `components/dashboard/EloLeaderboard.tsx` + `ChampionTierTable.tsx`

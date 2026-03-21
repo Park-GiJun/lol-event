@@ -131,7 +131,7 @@ lol-event는 세 플랫폼이 같은 데이터 소스를 공유하지만 각자 
 
 **공통:** 기존 REST API 유지. React Query로 클라이언트 캐싱.
 
-**Dashboard (웹/데스크톱):** React + TypeScript + Tailwind CSS + shadcn/ui. 좌측 사이드바 레이아웃 전역 적용. Chart.js는 챔피언/플레이어 상세 페이지 한정 동적 임포트(`React.lazy`).
+**Dashboard (웹/데스크톱):** React + TypeScript + Tailwind CSS. 좌측 사이드바 레이아웃 전역 적용. Chart.js는 챔피언/플레이어 상세 페이지 한정 동적 임포트(`React.lazy`).
 
 **모바일 웹:** `/m/*` 전용 라우트. 공통 API 훅 재사용, UI 컴포넌트만 별도. 하단 탭바 고정(`fixed bottom-0`, `safe-area-inset-bottom`).
 

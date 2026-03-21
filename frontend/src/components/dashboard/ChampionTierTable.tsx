@@ -3,19 +3,10 @@ import { useChampions } from '@/hooks/useChampions';
 import { InlineError } from '@/components/common/InlineError';
 import { Skeleton } from '@/components/common/Skeleton';
 import { ChampionLink } from '@/components/common/ChampionLink';
-import { Badge } from '@/components/ui/badge';
 import { useDragon } from '@/context/DragonContext';
 import { TIER_COLORS } from '@/lib/constants/theme';
 import type { TierKey } from '@/lib/constants/theme';
 import type { ChampionPickStat } from '@/lib/types/stats';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 
 // ── 내부 유틸 ────────────────────────────────────────────────
 
@@ -52,39 +43,41 @@ export function ChampionTierTable() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {[3, 2].map((rowCount, si) => (
           <div key={si}>
-            <div className="flex items-center gap-2 py-2 px-1">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 4px' }}>
               <Skeleton className="h-5 w-7 rounded-sm" />
               <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-3 w-10 ml-1" />
+              <Skeleton className="h-3 w-10" style={{ marginLeft: 4 }} />
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>챔피언</TableHead>
-                  <TableHead className="text-right">승률</TableHead>
-                  <TableHead className="text-right">픽률</TableHead>
-                  <TableHead className="text-right">게임</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Array.from({ length: rowCount }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Skeleton className="h-8 w-8 rounded" />
-                        <Skeleton className="h-4 w-20" />
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-4 w-12 ml-auto" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-4 w-10 ml-auto" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-4 w-8 ml-auto" /></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="table-wrapper">
+              <table className="table member-stats-table">
+                <thead>
+                  <tr>
+                    <th>챔피언</th>
+                    <th className="table-number">승률</th>
+                    <th className="table-number">픽률</th>
+                    <th className="table-number">게임</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: rowCount }).map((_, i) => (
+                    <tr key={i}>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Skeleton className="h-8 w-8 rounded" />
+                          <Skeleton className="h-4 w-20" />
+                        </div>
+                      </td>
+                      <td className="table-number"><Skeleton className="h-4 w-12 ml-auto" /></td>
+                      <td className="table-number"><Skeleton className="h-4 w-10 ml-auto" /></td>
+                      <td className="table-number"><Skeleton className="h-4 w-8 ml-auto" /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         ))}
       </div>
@@ -109,7 +102,7 @@ export function ChampionTierTable() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {tierGroups.map(({ tier, champions }) => {
         const tierColor = TIER_COLORS[tier];
         const isExpanded = expanded[tier];
@@ -118,16 +111,16 @@ export function ChampionTierTable() {
           <div key={tier}>
             <button
               type="button"
-              className="flex items-center gap-2 w-full text-left py-2 px-1"
-              style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '8px 4px', background: 'none', border: 'none', cursor: 'pointer' }}
               onClick={() => setExpanded(prev => ({ ...prev, [tier]: !prev[tier] }))}
             >
-              <Badge
-                variant="outline"
-                style={{ color: tierColor, borderColor: tierColor + '66', background: tierColor + '18' }}
-              >
+              <span style={{
+                fontSize: 11, fontWeight: 700, color: tierColor,
+                background: tierColor + '18', borderRadius: 4, padding: '2px 7px',
+                border: `1px solid ${tierColor}66`,
+              }}>
                 {tier}
-              </Badge>
+              </span>
               <span style={{ fontSize: 13, fontWeight: 600, color: tierColor }}>
                 {tier} 티어
               </span>
@@ -140,87 +133,80 @@ export function ChampionTierTable() {
             </button>
 
             {isExpanded && (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>챔피언</TableHead>
-                    <TableHead className="text-right font-mono">승률</TableHead>
-                    <TableHead className="text-right font-mono">픽률</TableHead>
-                    <TableHead className="text-right font-mono">게임</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {champions.map((entry: ChampionPickStat) => {
-                    const dragon = dragonChampions.get(entry.championId);
-                    const displayName = dragon?.nameKo ?? entry.champion;
-                    const imgUrl = dragon?.imageUrl ?? null;
-                    const wrColor = entry.winRate >= 50
-                      ? 'var(--color-win)'
-                      : 'var(--color-loss)';
-                    const pickRate = data.matchCount > 0
-                      ? ((entry.picks / data.matchCount) * 100).toFixed(1)
-                      : '0.0';
+              <div className="table-wrapper">
+                <table className="table member-stats-table">
+                  <thead>
+                    <tr>
+                      <th>챔피언</th>
+                      <th className="table-number">승률</th>
+                      <th className="table-number">픽률</th>
+                      <th className="table-number">게임</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {champions.map((entry: ChampionPickStat) => {
+                      const dragon = dragonChampions.get(entry.championId);
+                      const displayName = dragon?.nameKo ?? entry.champion;
+                      const imgUrl = dragon?.imageUrl ?? null;
+                      const wrColor = entry.winRate >= 50
+                        ? 'var(--color-win)'
+                        : 'var(--color-loss)';
+                      const pickRate = data.matchCount > 0
+                        ? ((entry.picks / data.matchCount) * 100).toFixed(1)
+                        : '0.0';
 
-                    return (
-                      <TableRow key={entry.championId}>
-                        <TableCell>
-                          <ChampionLink champion={entry.champion} championId={entry.championId}>
-                            <div className="flex items-center gap-2">
-                              {imgUrl ? (
-                                <img
-                                  src={imgUrl}
-                                  alt={displayName}
-                                  width={32}
-                                  height={32}
-                                  style={{
-                                    borderRadius: 4,
-                                    border: '1px solid var(--color-border)',
-                                    objectFit: 'cover',
-                                  }}
-                                  onError={e => {
-                                    (e.currentTarget as HTMLImageElement).style.display = 'none';
-                                  }}
-                                />
-                              ) : (
-                                <div style={{
-                                  width: 32, height: 32,
-                                  background: 'var(--color-bg-hover)',
-                                  borderRadius: 4, display: 'flex',
-                                  alignItems: 'center', justifyContent: 'center',
-                                  fontSize: 10, color: 'var(--color-text-secondary)',
-                                }}>
-                                  {displayName.slice(0, 2)}
-                                </div>
-                              )}
-                              <span style={{ fontWeight: 600, fontSize: 13 }}>
-                                {displayName}
-                              </span>
-                            </div>
-                          </ChampionLink>
-                        </TableCell>
-                        <TableCell
-                          className="text-right font-mono"
-                          style={{ fontWeight: 700, color: wrColor }}
-                        >
-                          {entry.winRate.toFixed(1)}%
-                        </TableCell>
-                        <TableCell
-                          className="text-right font-mono"
-                          style={{ color: 'var(--color-text-secondary)' }}
-                        >
-                          {pickRate}%
-                        </TableCell>
-                        <TableCell
-                          className="text-right font-mono"
-                          style={{ color: 'var(--color-text-secondary)' }}
-                        >
-                          {entry.picks}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                      return (
+                        <tr key={entry.championId}>
+                          <td>
+                            <ChampionLink champion={entry.champion} championId={entry.championId}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                {imgUrl ? (
+                                  <img
+                                    src={imgUrl}
+                                    alt={displayName}
+                                    width={32}
+                                    height={32}
+                                    style={{
+                                      borderRadius: 4,
+                                      border: '1px solid var(--color-border)',
+                                      objectFit: 'cover',
+                                    }}
+                                    onError={e => {
+                                      (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                    }}
+                                  />
+                                ) : (
+                                  <div style={{
+                                    width: 32, height: 32,
+                                    background: 'var(--color-bg-hover)',
+                                    borderRadius: 4, display: 'flex',
+                                    alignItems: 'center', justifyContent: 'center',
+                                    fontSize: 10, color: 'var(--color-text-secondary)',
+                                  }}>
+                                    {displayName.slice(0, 2)}
+                                  </div>
+                                )}
+                                <span style={{ fontWeight: 600, fontSize: 13 }}>
+                                  {displayName}
+                                </span>
+                              </div>
+                            </ChampionLink>
+                          </td>
+                          <td className="table-number" style={{ fontWeight: 700, color: wrColor }}>
+                            {entry.winRate.toFixed(1)}%
+                          </td>
+                          <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>
+                            {pickRate}%
+                          </td>
+                          <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>
+                            {entry.picks}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         );
