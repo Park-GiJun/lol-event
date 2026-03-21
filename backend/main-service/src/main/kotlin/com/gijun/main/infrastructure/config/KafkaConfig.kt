@@ -38,4 +38,11 @@ class KafkaConfig(
             .partitions(1)
             .replicas(1)
             .build()
+
+    @Bean
+    fun eloCalculateTopic(): NewTopic =
+        TopicBuilder.name("lol.elo.calculate")
+            .partitions(3)
+            .replicas(1)
+            .build()
 }

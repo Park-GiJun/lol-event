@@ -1,4 +1,4 @@
-package com.gijun.main.infrastructure.runner
+package com.gijun.main.infrastructure.adapter.`in`.runner
 
 import com.gijun.main.application.port.`in`.SyncDataDragonUseCase
 import com.gijun.main.application.port.out.DragonDataPort

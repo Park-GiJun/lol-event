@@ -1,6 +1,6 @@
 package com.gijun.main.infrastructure.adapter.`in`.messaging
 
-import com.gijun.main.infrastructure.batch.scheduler.StatsAggregationScheduler
+import com.gijun.main.infrastructure.adapter.`in`.scheduler.StatsAggregationScheduler
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener

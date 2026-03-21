@@ -13,4 +13,7 @@ interface MatchJpaRepository : JpaRepository<MatchEntity, Long> {
     fun findAllWithParticipantsByQueueIdIn(queueIds: List<Int>): List<MatchEntity>
 
     fun countByQueueIdIn(queueIds: List<Int>): Long
+
+    @Query("SELECT DISTINCT m FROM MatchEntity m LEFT JOIN FETCH m.participants ORDER BY m.gameCreation ASC")
+    fun findAllWithParticipantsOrderedByGameCreation(): List<MatchEntity>
 }

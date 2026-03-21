@@ -31,6 +31,7 @@ class MatchEventConsumer(
             // 매치 upsert (이미 MatchPersistenceAdapter.save가 upsert 처리)
             matchPersistencePort.save(input.toDomain())
             kafkaTemplate.send("lol.stats.rebuild", matchId, "match_saved")
+            kafkaTemplate.send("lol.elo.calculate", matchId, matchId)
 
             // 참가자 자동 멤버 등록
             autoRegisterMembers(input)

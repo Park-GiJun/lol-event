@@ -9,4 +9,5 @@ interface MatchPersistencePort {
     fun findAllWithParticipants(queueIds: List<Int>): List<Match>
     fun deleteByMatchId(matchId: String)
     fun countByQueueIds(queueIds: List<Int>): Long
+    fun findAllOrderedByGameCreation(): List<Match>
 }

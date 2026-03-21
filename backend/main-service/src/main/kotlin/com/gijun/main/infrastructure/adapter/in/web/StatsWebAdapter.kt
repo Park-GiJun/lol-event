@@ -2,19 +2,23 @@ package com.gijun.main.infrastructure.adapter.`in`.web
 
 import com.gijun.common.response.CommonApiResponse
 import com.gijun.main.application.dto.stats.result.ChampionDetailStats
+import com.gijun.main.application.dto.stats.result.ChampionMatchupResult
 import com.gijun.main.application.dto.stats.result.ChampionSynergyResult
 import com.gijun.main.application.dto.stats.result.DuoStatsResult
 import com.gijun.main.application.dto.stats.result.LaneLeaderboardResult
 import com.gijun.main.application.dto.stats.result.MvpStatsResult
+import com.gijun.main.application.dto.stats.result.ObjectiveCorrelationResult
 import com.gijun.main.application.dto.stats.result.OverviewStats
 import com.gijun.main.application.dto.stats.result.PlayerDetailStatsResult
 import com.gijun.main.application.dto.stats.result.StatsResult
 import com.gijun.main.application.dto.stats.result.StreakResult
+import com.gijun.main.application.port.`in`.GetChampionMatchupUseCase
 import com.gijun.main.application.port.`in`.GetChampionStatsUseCase
 import com.gijun.main.application.port.`in`.GetChampionSynergyUseCase
 import com.gijun.main.application.port.`in`.GetDuoStatsUseCase
 import com.gijun.main.application.port.`in`.GetLaneLeaderboardUseCase
 import com.gijun.main.application.port.`in`.GetMvpStatsUseCase
+import com.gijun.main.application.port.`in`.GetObjectiveCorrelationUseCase
 import com.gijun.main.application.port.`in`.GetOverviewStatsUseCase
 import com.gijun.main.application.port.`in`.GetPlayerStatsUseCase
 import com.gijun.main.application.port.`in`.GetPlayerStreakUseCase
@@ -37,6 +41,8 @@ class StatsWebAdapter(
     private val getPlayerStreakUseCase: GetPlayerStreakUseCase,
     private val getMvpStatsUseCase: GetMvpStatsUseCase,
     private val getLaneLeaderboardUseCase: GetLaneLeaderboardUseCase,
+    private val getChampionMatchupUseCase: GetChampionMatchupUseCase,
+    private val getObjectiveCorrelationUseCase: GetObjectiveCorrelationUseCase,
 ) {
     @Operation(summary = "전체 내전 통계 개요", description = "챔피언 픽 통계, 명예의 전당, 오브젝트 집계 등 전반적인 통계를 반환합니다")
     @GetMapping("/overview")
@@ -128,6 +134,32 @@ class StatsWebAdapter(
         @RequestParam(defaultValue = "normal") mode: String,
     ): CommonApiResponse<MvpStatsResult> =
         CommonApiResponse.success(getMvpStatsUseCase.getMvpStats(mode))
+
+    @Operation(
+        summary = "챔피언 상성 매트릭스",
+        description = "champion=X: X의 각 상대 챔피언 vs 승률 / vsChampion=X: X를 상대하는 챔피언 중 카운터픽 추천"
+    )
+    @GetMapping("/matchup")
+    fun getMatchup(
+        @RequestParam(required = false) champion: String?,
+        @RequestParam(required = false) vsChampion: String?,
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<ChampionMatchupResult> =
+        CommonApiResponse.success(getChampionMatchupUseCase.getMatchup(
+            champion?.let { java.net.URLDecoder.decode(it, "UTF-8") },
+            vsChampion?.let { java.net.URLDecoder.decode(it, "UTF-8") },
+            mode,
+        ))
+
+    @Operation(
+        summary = "오브젝트 선점 → 승률 상관관계",
+        description = "퍼블/드래곤/바론/포탑 선점팀의 승률과 미선점팀 승률 비교"
+    )
+    @GetMapping("/objectives")
+    fun getObjectiveCorrelation(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<ObjectiveCorrelationResult> =
+        CommonApiResponse.success(getObjectiveCorrelationUseCase.getObjectiveCorrelation(mode))
 
     @Operation(
         summary = "라인별 플레이어 랭킹",

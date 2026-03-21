@@ -4,7 +4,7 @@ import com.gijun.common.response.CommonApiResponse
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionItemStatsCacheRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionStatsCacheRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.PlayerStatsCacheRepository
-import com.gijun.main.infrastructure.batch.scheduler.StatsAggregationScheduler
+import com.gijun.main.infrastructure.adapter.`in`.scheduler.StatsAggregationScheduler
 import com.gijun.main.infrastructure.batch.tasklet.ChampionItemStatsAggregationTasklet
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag

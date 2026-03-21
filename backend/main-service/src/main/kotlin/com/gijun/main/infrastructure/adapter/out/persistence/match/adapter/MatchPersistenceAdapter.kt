@@ -33,4 +33,7 @@ class MatchPersistenceAdapter(private val repo: MatchJpaRepository) : MatchPersi
     @Transactional
     override fun deleteByMatchId(matchId: String) = repo.deleteByMatchId(matchId)
     override fun countByQueueIds(queueIds: List<Int>): Long = repo.countByQueueIdIn(queueIds)
+
+    override fun findAllOrderedByGameCreation(): List<Match> =
+        repo.findAllWithParticipantsOrderedByGameCreation().map { it.toDomain() }
 }
