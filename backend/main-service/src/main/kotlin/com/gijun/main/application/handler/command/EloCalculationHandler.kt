@@ -32,9 +32,9 @@ class EloCalculationHandler(
     private val log = LoggerFactory.getLogger(javaClass)
 
     companion object {
-        private const val K = 24.0
-        private const val ALPHA = 6.0
-        private const val INITIAL_ELO = 1500.0
+        private const val K = 32.0          // 기본 승/패 변동폭 (동일 Elo 기준 ±16)
+        private const val ALPHA = 12.0      // 퍼포먼스 보정폭 (팀 내 최고/최저 ±6)
+        private const val INITIAL_ELO = 1000.0
         private const val MIN_ELO = 100.0
     }
 

@@ -372,7 +372,7 @@ export function AdminPage() {
                       #{entry.rank}
                     </td>
                     <td style={{ ...tdS, fontWeight: 600 }}><PlayerLink riotId={entry.riotId}>{entry.riotId}</PlayerLink></td>
-                    <td style={{ ...tdS, fontWeight: 700, color: entry.elo >= 1600 ? 'var(--color-win)' : entry.elo < 1400 ? 'var(--color-loss)' : 'var(--color-text-primary)' }}>
+                    <td style={{ ...tdS, fontWeight: 700, color: entry.elo >= 1100 ? 'var(--color-win)' : entry.elo < 900 ? 'var(--color-loss)' : 'var(--color-text-primary)' }}>
                       {entry.elo.toFixed(1)}
                     </td>
                     <td style={{ ...tdS, color: 'var(--color-text-secondary)' }}>{entry.games}판</td>
