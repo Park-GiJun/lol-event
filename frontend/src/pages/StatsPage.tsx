@@ -7,6 +7,7 @@ import type {
   ChampionSynergyResult, ChampionSynergy,
   DuoStatsResult, DuoStat,
   LaneLeaderboardResult, PlayerLaneStat,
+  EloLeaderboardResult, EloRankEntry,
 } from '../lib/types/stats';
 import { LoadingCenter } from '../components/common/Spinner';
 import { Button } from '../components/common/Button';
@@ -23,6 +24,7 @@ const MODES = [
 
 const TABS = [
   { key: 'overview',  label: '📊 개요' },
+  { key: 'elo',       label: '🏅 Elo 랭킹' },
   { key: 'mvp',       label: '🏆 MVP 랭킹' },
   { key: 'lane',      label: '🗺️ 라인별' },
   { key: 'synergy',   label: '⚡ 챔피언 시너지' },
@@ -305,6 +307,88 @@ function OverviewTab({ mode }: { mode: string }) {
         </div>
       </section>
     </>
+  );
+}
+
+// ── Elo 탭 ────────────────────────────────────────────
+function eloTier(elo: number): { label: string; color: string } {
+  if (elo >= 1800) return { label: 'Challenger', color: '#FFD700' };
+  if (elo >= 1700) return { label: 'Master',     color: '#AA47BC' };
+  if (elo >= 1600) return { label: 'Diamond',    color: '#0BC4B4' };
+  if (elo >= 1500) return { label: 'Platinum',   color: '#4A9EFF' };
+  if (elo >= 1400) return { label: 'Gold',       color: '#C89B3C' };
+  if (elo >= 1300) return { label: 'Silver',     color: '#A8A8A8' };
+  return                  { label: 'Bronze',     color: '#CD7F32' };
+}
+
+function EloTab() {
+  const navigate = useNavigate();
+  const [data, setData] = useState<EloLeaderboardResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get<EloLeaderboardResult>('/stats/elo')
+      .then(setData)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <LoadingCenter />;
+  if (!data || data.players.length === 0) return (
+    <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', padding: '24px 0' }}>
+      Elo 데이터가 없습니다. 어드민에서 재집계를 실행하세요.
+    </p>
+  );
+
+  return (
+    <div>
+      <div style={{ fontWeight: 700, marginBottom: 16, fontSize: 'var(--font-size-sm)' }}>Elo 랭킹</div>
+      <div className="table-wrapper">
+        <table className="table">
+          <thead>
+            <tr>
+              <th style={{ width: 48 }}>순위</th>
+              <th>플레이어</th>
+              <th>티어</th>
+              <th className="table-number">Elo</th>
+              <th className="table-number">판수</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.players.map((entry: EloRankEntry) => {
+              const tier = eloTier(entry.elo);
+              return (
+                <tr key={entry.riotId}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate(`/player-stats/${encodeURIComponent(entry.riotId)}`)}>
+                  <td><RankBadge rank={entry.rank} /></td>
+                  <td>
+                    <span style={{ fontWeight: 600 }}>
+                      {entry.riotId.split('#')[0]}
+                    </span>
+                    <span style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginLeft: 4 }}>
+                      #{entry.riotId.split('#')[1]}
+                    </span>
+                  </td>
+                  <td>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: tier.color,
+                      background: tier.color + '22', borderRadius: 4, padding: '2px 7px',
+                      border: `1px solid ${tier.color}44` }}>
+                      {tier.label}
+                    </span>
+                  </td>
+                  <td className="table-number" style={{ fontWeight: 700, color: tier.color }}>
+                    {entry.elo.toFixed(1)}
+                  </td>
+                  <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>
+                    {entry.games}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 }
 
@@ -695,6 +779,7 @@ export function StatsPage() {
 
       {/* 탭 컨텐츠 */}
       {tab === 'overview'  && <OverviewTab mode={mode} />}
+      {tab === 'elo'       && <div className="card" style={{ marginTop: 4 }}><EloTab /></div>}
       {tab === 'mvp'       && <div className="card" style={{ marginTop: 4 }}><MvpTab     mode={mode} /></div>}
       {tab === 'lane'      && <div className="card" style={{ marginTop: 4 }}><LaneTab    mode={mode} /></div>}
       {tab === 'synergy'   && <div className="card" style={{ marginTop: 4 }}><SynergyTab mode={mode} /></div>}

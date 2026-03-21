@@ -1,14 +1,19 @@
 package com.gijun.main.application.handler.command
 
+import com.gijun.main.application.dto.stats.result.EloHistoryEntry
 import com.gijun.main.application.dto.stats.result.EloLeaderboardResult
 import com.gijun.main.application.dto.stats.result.EloRankEntry
+import com.gijun.main.application.dto.stats.result.PlayerEloHistoryResult
 import com.gijun.main.application.port.`in`.CalculateEloForMatchUseCase
+import com.gijun.main.application.port.`in`.GetEloHistoryUseCase
 import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
 import com.gijun.main.application.port.`in`.GetEloUseCase
 import com.gijun.main.application.port.`in`.ResetAndRecalculateEloUseCase
+import com.gijun.main.application.port.out.EloHistoryPort
 import com.gijun.main.application.port.out.EloPort
 import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.domain.model.elo.PlayerElo
+import com.gijun.main.domain.model.elo.PlayerEloHistory
 import com.gijun.main.domain.model.match.Match
 import com.gijun.main.domain.model.match.MatchParticipant
 import org.slf4j.LoggerFactory
@@ -21,7 +26,8 @@ import kotlin.math.pow
 class EloCalculationHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val eloPort: EloPort,
-) : CalculateEloForMatchUseCase, ResetAndRecalculateEloUseCase, GetEloUseCase, GetEloLeaderboardUseCase {
+    private val eloHistoryPort: EloHistoryPort,
+) : CalculateEloForMatchUseCase, ResetAndRecalculateEloUseCase, GetEloUseCase, GetEloLeaderboardUseCase, GetEloHistoryUseCase {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -45,6 +51,7 @@ class EloCalculationHandler(
     override fun resetAndRecalculate() {
         log.info("Elo 전체 초기화 시작")
         eloPort.deleteAll()
+        eloHistoryPort.deleteAll()
         val matches = matchPersistencePort.findAllOrderedByGameCreation()
         log.info("재집계 대상 매치: ${matches.size}개")
         matches.forEach { processMatch(it) }
@@ -53,6 +60,19 @@ class EloCalculationHandler(
 
     override fun getAll(): List<PlayerElo> = eloPort.findAll()
     override fun getByRiotId(riotId: String): PlayerElo? = eloPort.findByRiotId(riotId)
+
+    override fun getHistory(riotId: String, limit: Int): PlayerEloHistoryResult {
+        val allElos = eloPort.findAll().sortedByDescending { it.elo }
+        val currentElo = allElos.firstOrNull { it.riotId == riotId }?.elo ?: INITIAL_ELO
+        val eloRank = allElos.indexOfFirst { it.riotId == riotId }.takeIf { it >= 0 }?.plus(1)
+        val history = eloHistoryPort.findByRiotId(riotId, limit).map {
+            EloHistoryEntry(
+                matchId = it.matchId, eloBefore = it.eloBefore, eloAfter = it.eloAfter,
+                delta = it.delta, win = it.win, gameCreation = it.gameCreation,
+            )
+        }
+        return PlayerEloHistoryResult(riotId = riotId, currentElo = currentElo, eloRank = eloRank, history = history)
+    }
 
     override fun getLeaderboard(): EloLeaderboardResult {
         val sorted = eloPort.findAll().sortedByDescending { it.elo }
@@ -76,6 +96,7 @@ class EloCalculationHandler(
 
         val changes = calcEloChanges(match, currentElos.mapValues { it.value.elo })
 
+        val now = LocalDateTime.now()
         val updated = changes.map { (riotId, delta) ->
             val prev = currentElos[riotId]
             PlayerElo(
@@ -83,10 +104,29 @@ class EloCalculationHandler(
                 riotId = riotId,
                 elo = maxOf(MIN_ELO, (prev?.elo ?: INITIAL_ELO) + delta),
                 games = (prev?.games ?: 0) + 1,
-                updatedAt = LocalDateTime.now(),
+                updatedAt = now,
             )
         }
         eloPort.saveAll(updated)
+
+        val updatedMap = updated.associateBy { it.riotId }
+        val histories = changes.map { (riotId, delta) ->
+            val prev = currentElos[riotId]
+            val eloBefore = prev?.elo ?: INITIAL_ELO
+            val eloAfter = updatedMap[riotId]?.elo ?: eloBefore
+            val participant = match.participants.firstOrNull { it.riotId == riotId }
+            PlayerEloHistory(
+                riotId = riotId,
+                matchId = match.matchId,
+                eloBefore = eloBefore,
+                eloAfter = eloAfter,
+                delta = delta,
+                win = participant?.win ?: false,
+                gameCreation = match.gameCreation,
+                createdAt = now,
+            )
+        }
+        eloHistoryPort.saveAll(histories)
         log.debug("Elo 업데이트 완료 — matchId=${match.matchId}, 대상=${updated.size}명")
     }
 

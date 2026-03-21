@@ -6,6 +6,7 @@ import com.gijun.main.application.dto.stats.result.ChampionMatchupResult
 import com.gijun.main.application.dto.stats.result.ChampionSynergyResult
 import com.gijun.main.application.dto.stats.result.DuoStatsResult
 import com.gijun.main.application.dto.stats.result.EloLeaderboardResult
+import com.gijun.main.application.dto.stats.result.PlayerEloHistoryResult
 import com.gijun.main.application.dto.stats.result.LaneLeaderboardResult
 import com.gijun.main.application.dto.stats.result.MvpStatsResult
 import com.gijun.main.application.dto.stats.result.ObjectiveCorrelationResult
@@ -17,6 +18,7 @@ import com.gijun.main.application.port.`in`.GetChampionMatchupUseCase
 import com.gijun.main.application.port.`in`.GetChampionStatsUseCase
 import com.gijun.main.application.port.`in`.GetChampionSynergyUseCase
 import com.gijun.main.application.port.`in`.GetDuoStatsUseCase
+import com.gijun.main.application.port.`in`.GetEloHistoryUseCase
 import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
 import com.gijun.main.application.port.`in`.GetLaneLeaderboardUseCase
 import com.gijun.main.application.port.`in`.GetMvpStatsUseCase
@@ -46,6 +48,7 @@ class StatsWebAdapter(
     private val getChampionMatchupUseCase: GetChampionMatchupUseCase,
     private val getObjectiveCorrelationUseCase: GetObjectiveCorrelationUseCase,
     private val getEloLeaderboardUseCase: GetEloLeaderboardUseCase,
+    private val getEloHistoryUseCase: GetEloHistoryUseCase,
 ) {
     @Operation(summary = "전체 내전 통계 개요", description = "챔피언 픽 통계, 명예의 전당, 오브젝트 집계 등 전반적인 통계를 반환합니다")
     @GetMapping("/overview")
@@ -72,6 +75,16 @@ class StatsWebAdapter(
     ): CommonApiResponse<ChampionDetailStats> =
         CommonApiResponse.success(getChampionStatsUseCase.getChampionStats(
             java.net.URLDecoder.decode(champion, "UTF-8"), mode
+        ))
+
+    @Operation(summary = "플레이어 Elo 변동 내역", description = "최근 N개 경기의 Elo 변동 히스토리를 반환합니다")
+    @GetMapping("/player/{riotId}/elo-history")
+    fun getEloHistory(
+        @PathVariable riotId: String,
+        @RequestParam(defaultValue = "30") limit: Int,
+    ): CommonApiResponse<PlayerEloHistoryResult> =
+        CommonApiResponse.success(getEloHistoryUseCase.getHistory(
+            java.net.URLDecoder.decode(riotId, "UTF-8"), limit
         ))
 
     @Operation(summary = "플레이어 개인 상세 통계")

@@ -88,9 +88,38 @@ export interface PlayerDetailStats {
   avgCs: number;
   avgGold: number;
   avgVisionScore: number;
+  elo: number;
+  eloRank: number | null;
   championStats: ChampionStat[];
   recentMatches: RecentMatchStat[];
   laneStats: LaneStat[];
+}
+
+export interface EloHistoryEntry {
+  matchId: string;
+  eloBefore: number;
+  eloAfter: number;
+  delta: number;
+  win: boolean;
+  gameCreation: number;
+}
+
+export interface PlayerEloHistoryResult {
+  riotId: string;
+  currentElo: number;
+  eloRank: number | null;
+  history: EloHistoryEntry[];
+}
+
+export interface EloRankEntry {
+  rank: number;
+  riotId: string;
+  elo: number;
+  games: number;
+}
+
+export interface EloLeaderboardResult {
+  players: EloRankEntry[];
 }
 
 export interface ChampionPlayerStat {

@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Shield, Sword, Eye, Coins } from 'lucide-react';
+import { ChevronLeft, Shield, Sword, Eye, Coins, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { api } from '../lib/api/api';
-import type { PlayerDetailStats, ChampionStat, RecentMatchStat, LaneStat } from '../lib/types/stats';
+import type { PlayerDetailStats, ChampionStat, RecentMatchStat, LaneStat, PlayerEloHistoryResult } from '../lib/types/stats';
 import type { Match } from '../lib/types/match';
 import { useDragon } from '../context/DragonContext';
 import { LoadingCenter } from '../components/common/Spinner';
@@ -273,21 +273,36 @@ function RecentMatchCard({ m, onClick }: { m: RecentMatchStat; onClick: () => vo
   );
 }
 
+function eloTier(elo: number): { label: string; color: string } {
+  if (elo >= 1800) return { label: 'Challenger', color: '#FFD700' };
+  if (elo >= 1700) return { label: 'Master',     color: '#AA47BC' };
+  if (elo >= 1600) return { label: 'Diamond',    color: '#0BC4B4' };
+  if (elo >= 1500) return { label: 'Platinum',   color: '#4A9EFF' };
+  if (elo >= 1400) return { label: 'Gold',       color: '#C89B3C' };
+  if (elo >= 1300) return { label: 'Silver',     color: '#A8A8A8' };
+  return                  { label: 'Bronze',     color: '#CD7F32' };
+}
+
 export function PlayerStatsPage() {
   const { riotId: encodedId } = useParams<{ riotId: string }>();
   const riotId = decodeURIComponent(encodedId ?? '');
   const [data, setData]           = useState<PlayerDetailStats | null>(null);
   const [mode, setMode]           = useState('normal');
   const [loading, setLoading]     = useState(true);
+  const [eloHistory, setEloHistory] = useState<PlayerEloHistoryResult | null>(null);
   const [modalMatch, setModalMatch] = useState<Match | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     setLoading(true);
-    api.get<PlayerDetailStats>(`/stats/player/${encodeURIComponent(riotId)}?mode=${mode}`)
-      .then(setData)
-      .finally(() => setLoading(false));
+    Promise.all([
+      api.get<PlayerDetailStats>(`/stats/player/${encodeURIComponent(riotId)}?mode=${mode}`),
+      api.get<PlayerEloHistoryResult>(`/stats/player/${encodeURIComponent(riotId)}/elo-history`),
+    ]).then(([stats, history]) => {
+      setData(stats);
+      setEloHistory(history);
+    }).finally(() => setLoading(false));
   }, [riotId, mode]);
 
   const openMatch = useCallback(async (matchId: string) => {
@@ -349,6 +364,100 @@ export function PlayerStatsPage() {
               <StatCard icon={<Eye size={14} />} label="평균 시야" value={data.avgVisionScore.toFixed(1)} />
             </div>
           </div>
+
+          {/* Elo 카드 + 히스토리 */}
+          {eloHistory && (
+            <div className="card" style={{ marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, fontWeight: 700, fontSize: 'var(--font-size-sm)' }}>
+                <TrendingUp size={15} color="var(--color-primary)" />Elo 레이팅
+              </div>
+              {/* 현재 Elo 요약 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 16, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {(() => {
+                    const tier = eloTier(eloHistory.currentElo);
+                    return (
+                      <>
+                        <span style={{ fontSize: 32, fontWeight: 900, color: tier.color, lineHeight: 1 }}>
+                          {eloHistory.currentElo.toFixed(0)}
+                        </span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: tier.color }}>{tier.label}</span>
+                      </>
+                    );
+                  })()}
+                </div>
+                {eloHistory.eloRank != null && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <span style={{ fontSize: 22, fontWeight: 800, color: eloHistory.eloRank <= 3 ? 'var(--color-primary)' : 'var(--color-text-primary)' }}>
+                      #{eloHistory.eloRank}
+                    </span>
+                    <span style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>전체 순위</span>
+                  </div>
+                )}
+                {eloHistory.history.length > 0 && (() => {
+                  const last5 = eloHistory.history.slice(0, 5);
+                  const net = last5.reduce((s, h) => s + h.delta, 0);
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <span style={{ fontSize: 18, fontWeight: 800, color: net > 0 ? 'var(--color-win)' : net < 0 ? 'var(--color-loss)' : 'var(--color-text-secondary)' }}>
+                        {net > 0 ? '+' : ''}{net.toFixed(1)}
+                      </span>
+                      <span style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>최근 5경기</span>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* 변동 내역 테이블 */}
+              {eloHistory.history.length > 0 && (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className="table" style={{ fontSize: 12 }}>
+                    <thead>
+                      <tr>
+                        <th>결과</th>
+                        <th className="table-number">변동</th>
+                        <th className="table-number">Elo</th>
+                        <th className="table-number">날짜</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {eloHistory.history.map((h, i) => {
+                        const date = new Date(h.gameCreation);
+                        const DeltaIcon = h.delta > 0 ? TrendingUp : h.delta < 0 ? TrendingDown : Minus;
+                        const deltaColor = h.delta > 0 ? 'var(--color-win)' : h.delta < 0 ? 'var(--color-loss)' : 'var(--color-text-secondary)';
+                        return (
+                          <tr key={`${h.matchId}-${i}`}>
+                            <td>
+                              <span style={{ fontWeight: 700, color: h.win ? 'var(--color-win)' : 'var(--color-loss)', fontSize: 11 }}>
+                                {h.win ? '승' : '패'}
+                              </span>
+                            </td>
+                            <td className="table-number">
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, color: deltaColor, fontWeight: 700 }}>
+                                <DeltaIcon size={11} />
+                                {h.delta > 0 ? '+' : ''}{h.delta.toFixed(1)}
+                              </div>
+                            </td>
+                            <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>
+                              {h.eloAfter.toFixed(1)}
+                            </td>
+                            <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>
+                              {date.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {eloHistory.history.length === 0 && (
+                <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', margin: 0 }}>
+                  Elo 변동 내역이 없습니다. 어드민에서 Elo 재집계를 실행하세요.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* 포지션 통계 */}
           {data.laneStats?.length > 0 && <LaneStatSection laneStats={data.laneStats} />}
