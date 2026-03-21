@@ -4,12 +4,14 @@ import { setErrorHandler } from './lib/api/api';
 import { DragonProvider } from './context/DragonContext';
 import { Layout } from './components/layout/Layout';
 import { MobileLayout } from './components/layout/MobileLayout';
-import { StatsPage } from './pages/StatsPage';
+import { HomePage } from './pages/HomePage';
 import { MemberStatsListPage } from './pages/MemberStatsListPage';
 import { PlayerStatsPage } from './pages/PlayerStatsPage';
 import { ChampionStatsPage } from './pages/ChampionStatsPage';
+import { ChampionListPage } from './pages/ChampionListPage';
 import { MembersPage } from './pages/MembersPage';
 import { MatchesPage } from './pages/MatchesPage';
+import { MatchDetailPage } from './pages/MatchDetailPage';
 import { LcuPage } from './pages/LcuPage';
 import { SyncPage } from './pages/SyncPage';
 import { AdminPage } from './pages/AdminPage';
@@ -49,13 +51,15 @@ function App() {
       <Routes>
         {/* Desktop routes */}
         <Route element={<Layout />}>
-          <Route index element={<StatsPage />} />
+          <Route index element={<HomePage />} />
           <Route path="player-stats" element={<MemberStatsListPage />} />
           <Route path="player-stats/:riotId" element={<PlayerStatsPage />} />
           <Route path="stats/player/:riotId" element={<PlayerStatsPage />} />
+          <Route path="champions" element={<ChampionListPage />} />
           <Route path="stats/champion/:champion" element={<ChampionStatsPage />} />
           <Route path="members" element={<MembersPage />} />
           <Route path="matches" element={<MatchesPage />} />
+          <Route path="matches/:matchId" element={<MatchDetailPage />} />
           <Route path="lcu" element={<LcuPage />} />
           <Route path="sync" element={<SyncPage />} />
           <Route path="admin" element={<AdminPage />} />

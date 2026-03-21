@@ -1,3 +1,5 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
 @import './styles/global.css';
 @import './styles/components/button.css';
 @import './styles/components/input.css';

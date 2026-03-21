@@ -1,15 +1,36 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Shield, Sword, Eye, Coins, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { useEffect, useState, useCallback, lazy, Suspense, Component } from 'react';
+import type { ReactNode } from 'react';
+import { useParams } from 'react-router-dom';
+import { Shield, Sword, Eye, Coins, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { api } from '../lib/api/api';
 import type { PlayerDetailStats, ChampionStat, RecentMatchStat, LaneStat, PlayerEloHistoryResult } from '../lib/types/stats';
 import type { Match } from '../lib/types/match';
 import { useDragon } from '../context/DragonContext';
 import { LoadingCenter } from '../components/common/Spinner';
 import { Button } from '../components/common/Button';
+import { ChartSkeleton } from '../components/common/ChartSkeleton';
 import { ChampionLink } from '../components/common/ChampionLink';
 import { MatchDetailModal } from './MatchesPage';
+import { BreadcrumbNav } from '../components/common/BreadcrumbNav';
 import '../styles/pages/stats.css';
+
+const PlayerChartsSection = lazy(
+  () => import('../components/dashboard/PlayerChartsSection')
+    .then(m => ({ default: m.PlayerChartsSection }))
+);
+
+class ChartErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error) { console.error('ChartErrorBoundary:', error); }
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
 
 const MODES = [
   { value: 'normal', label: '5v5 내전' },
@@ -292,10 +313,11 @@ export function PlayerStatsPage() {
   const [eloHistory, setEloHistory] = useState<PlayerEloHistoryResult | null>(null);
   const [modalMatch, setModalMatch] = useState<Match | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
-  const navigate = useNavigate();
+  const { champions } = useDragon();
 
   useEffect(() => {
     setLoading(true);
+    setEloHistory(null);
     Promise.all([
       api.get<PlayerDetailStats>(`/stats/player/${encodeURIComponent(riotId)}?mode=${mode}`),
       api.get<PlayerEloHistoryResult>(`/stats/player/${encodeURIComponent(riotId)}/elo-history`),
@@ -318,11 +340,18 @@ export function PlayerStatsPage() {
   const winColor = (r: number) =>
     r >= 60 ? 'var(--color-win)' : r >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
 
+  const topChampion = data?.championStats[0] ?? null;
+
   return (
     <div>
+      {/* Breadcrumb */}
+      <BreadcrumbNav items={[
+        { label: '홈', path: '/' },
+        { label: '플레이어', path: '/player-stats' },
+        { label: riotId?.split('#')[0] ?? '' },
+      ]} />
       <div className="page-header flex items-center justify-between">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button className="back-btn" onClick={() => navigate('/player-stats')}><ChevronLeft size={18} /></button>
           <div>
             <h1 className="page-title">{riotId.split('#')[0]}</h1>
             <p className="page-subtitle" style={{ fontFamily: 'monospace' }}>#{riotId.split('#')[1]}</p>
@@ -346,6 +375,9 @@ export function PlayerStatsPage() {
               <div className="player-wr-ring" style={{ '--wr-color': winColor(data.winRate) } as React.CSSProperties}>
                 <span style={{ fontSize: 18, fontWeight: 700, color: winColor(data.winRate) }}>{data.winRate}%</span>
                 <span style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>승률</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: data.winRate >= 50 ? 'var(--color-win)' : 'var(--color-loss)' }}>
+                  {data.winRate >= 50 ? '높음' : '낮음'}
+                </span>
               </div>
               <div>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
@@ -363,6 +395,24 @@ export function PlayerStatsPage() {
               <StatCard icon={<Coins size={14} />} label="평균 골드" value={data.avgGold.toLocaleString()} />
               <StatCard icon={<Eye size={14} />} label="평균 시야" value={data.avgVisionScore.toFixed(1)} />
             </div>
+            {topChampion && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
+                <ChampImg championId={topChampion.championId} champion={topChampion.champion} size={36} />
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700 }}>{champions.get(topChampion.championId)?.nameKo ?? topChampion.champion}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{topChampion.games}판</div>
+                </div>
+                <div style={{ marginLeft: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
+                  <span style={{ fontWeight: 700, color: topChampion.winRate >= 50 ? 'var(--color-win)' : 'var(--color-loss)', fontSize: 14 }}>
+                    {topChampion.winRate.toFixed(1)}%
+                  </span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: topChampion.winRate >= 50 ? 'var(--color-win)' : 'var(--color-loss)' }}>
+                    {topChampion.winRate >= 50 ? '높음' : '낮음'}
+                  </span>
+                  <span style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>주력 챔피언</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Elo 카드 + 히스토리 */}
@@ -464,6 +514,19 @@ export function PlayerStatsPage() {
 
           {/* 챔피언 통계 */}
           {data.championStats.length > 0 && <ChampionTable stats={data.championStats} />}
+
+          {/* 통계 차트 (Story 3.4) */}
+          {(data.championStats.length > 0 || (eloHistory && eloHistory.history.length > 0)) && (
+            <ChartErrorBoundary>
+              <Suspense fallback={<ChartSkeleton />}>
+                <PlayerChartsSection
+                  key={`${riotId}-${mode}`}
+                  eloHistory={eloHistory}
+                  championStats={data.championStats}
+                />
+              </Suspense>
+            </ChartErrorBoundary>
+          )}
 
           {/* 최근 경기 */}
           {data.recentMatches.length > 0 && (

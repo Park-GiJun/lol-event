@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lol-event UX Design Directions</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #050810; color: #F0F4FF; }
+
+  /* ── NAV ── */
+  .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #0A0E1A; border-bottom: 1px solid #1E2A4A; padding: 12px 24px; display: flex; gap: 8px; align-items: center; }
+  .nav h1 { font-size: 14px; color: #8899BB; margin-right: 16px; }
+  .tab { padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; color: #8899BB; border: 1px solid transparent; transition: all .2s; }
+  .tab:hover { color: #F0F4FF; background: #161D35; }
+  .tab.active { color: #00B4D8; border-color: #00B4D8; background: rgba(0,180,216,.08); }
+
+  /* ── SCREENS ── */
+  .screen { display: none; padding-top: 56px; min-height: 100vh; }
+  .screen.active { display: block; }
+  .screen-label { text-align: center; padding: 16px; font-size: 12px; color: #4A5568; letter-spacing: .1em; text-transform: uppercase; }
+
+  /* ════════════════════════════════════════
+     DIRECTION A — Command Center (Dense)
+  ════════════════════════════════════════ */
+  .dir-a { background: #0A0E1A; }
+
+  .dir-a .layout { display: flex; height: calc(100vh - 56px); }
+
+  .dir-a .sidebar { width: 220px; background: #0F1629; border-right: 1px solid #1E2A4A; padding: 20px 0; flex-shrink: 0; }
+  .dir-a .sidebar .logo { padding: 0 20px 20px; font-size: 16px; font-weight: 700; color: #00B4D8; border-bottom: 1px solid #1E2A4A; margin-bottom: 8px; }
+  .dir-a .sidebar .nav-item { padding: 10px 20px; font-size: 13px; color: #8899BB; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all .15s; }
+  .dir-a .sidebar .nav-item:hover { background: #161D35; color: #F0F4FF; }
+  .dir-a .sidebar .nav-item.active { color: #00B4D8; background: rgba(0,180,216,.08); border-right: 2px solid #00B4D8; }
+  .dir-a .sidebar .nav-icon { width: 16px; height: 16px; background: currentColor; border-radius: 2px; opacity: .7; }
+
+  .dir-a .main { flex: 1; overflow-y: auto; padding: 20px; }
+  .dir-a .page-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: #F0F4FF; }
+
+  .dir-a .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .dir-a .stat-card { background: #0F1629; border: 1px solid #1E2A4A; border-radius: 8px; padding: 16px; }
+  .dir-a .stat-card .label { font-size: 11px; color: #8899BB; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+  .dir-a .stat-card .value { font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: #F0F4FF; }
+  .dir-a .stat-card .sub { font-size: 11px; color: #00B4D8; margin-top: 4px; }
+
+  .dir-a .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .dir-a .card { background: #0F1629; border: 1px solid #1E2A4A; border-radius: 8px; padding: 16px; }
+  .dir-a .card-title { font-size: 13px; font-weight: 600; color: #F0F4FF; margin-bottom: 12px; display: flex; justify-content: space-between; }
+  .dir-a .card-title span { color: #8899BB; font-weight: 400; }
+
+  .dir-a .tier-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #1E2A4A; }
+  .dir-a .tier-row:last-child { border: none; }
+  .dir-a .tier-badge { width: 28px; height: 28px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  .tier-s { background: rgba(255,215,0,.15); color: #FFD700; }
+  .tier-a { background: rgba(0,180,216,.15); color: #00B4D8; }
+  .tier-b { background: rgba(136,153,187,.15); color: #8899BB; }
+  .dir-a .champ-name { font-size: 13px; flex: 1; color: #F0F4FF; }
+  .dir-a .champ-wr { font-size: 13px; font-family: monospace; }
+  .wr-high { color: #10B981; }
+  .wr-mid { color: #F0F4FF; }
+  .wr-low { color: #EF4444; }
+
+  .dir-a .lb-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #1E2A4A; }
+  .dir-a .lb-row:last-child { border: none; }
+  .dir-a .lb-rank { width: 24px; font-size: 12px; color: #4A5568; font-family: monospace; text-align: center; }
+  .dir-a .lb-rank.top { color: #FFD700; }
+  .dir-a .lb-name { flex: 1; font-size: 13px; color: #F0F4FF; }
+  .dir-a .lb-elo { font-size: 13px; font-family: monospace; color: #00B4D8; }
+
+  /* ════════════════════════════════════════
+     DIRECTION B — Clean Analyst (Spacious)
+  ════════════════════════════════════════ */
+  .dir-b { background: #080C18; }
+
+  .dir-b .topbar { background: #0A0E1A; border-bottom: 1px solid #1E2A4A; padding: 0 32px; display: flex; align-items: center; gap: 32px; height: 52px; }
+  .dir-b .topbar .logo { font-size: 15px; font-weight: 700; color: #00B4D8; margin-right: 16px; }
+  .dir-b .topbar .nav-link { font-size: 13px; color: #8899BB; cursor: pointer; padding: 4px 0; border-bottom: 2px solid transparent; transition: all .15s; }
+  .dir-b .topbar .nav-link:hover { color: #F0F4FF; }
+  .dir-b .topbar .nav-link.active { color: #00B4D8; border-bottom-color: #00B4D8; }
+
+  .dir-b .main { max-width: 1200px; margin: 0 auto; padding: 32px; }
+  .dir-b .page-header { margin-bottom: 28px; }
+  .dir-b .page-header h2 { font-size: 22px; font-weight: 700; color: #F0F4FF; }
+  .dir-b .page-header p { font-size: 13px; color: #8899BB; margin-top: 4px; }
+
+  .dir-b .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .dir-b .kpi { background: #0F1629; border: 1px solid #1E2A4A; border-radius: 12px; padding: 20px 24px; }
+  .dir-b .kpi-label { font-size: 12px; color: #8899BB; margin-bottom: 8px; }
+  .dir-b .kpi-value { font-size: 28px; font-weight: 800; font-family: monospace; color: #F0F4FF; }
+  .dir-b .kpi-accent { color: #00B4D8; }
+  .dir-b .kpi-trend { font-size: 11px; color: #10B981; margin-top: 6px; }
+
+  .dir-b .two-col { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+  .dir-b .panel { background: #0F1629; border: 1px solid #1E2A4A; border-radius: 12px; padding: 20px; }
+  .dir-b .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .dir-b .panel-title { font-size: 14px; font-weight: 600; color: #F0F4FF; }
+  .dir-b .panel-badge { font-size: 11px; color: #8899BB; background: #161D35; padding: 3px 8px; border-radius: 4px; }
+
+  .dir-b .table { width: 100%; border-collapse: collapse; }
+  .dir-b .table th { font-size: 11px; color: #4A5568; text-align: left; padding: 8px 12px; border-bottom: 1px solid #1E2A4A; text-transform: uppercase; letter-spacing: .06em; }
+  .dir-b .table td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #161D35; }
+  .dir-b .table tr:hover td { background: #161D35; cursor: pointer; }
+  .dir-b .table .num { font-family: monospace; }
+
+  .dir-b .rank-list { display: flex; flex-direction: column; gap: 8px; }
+  .dir-b .rank-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 8px; background: #161D35; }
+  .dir-b .rank-num { font-size: 12px; color: #4A5568; font-family: monospace; width: 20px; }
+  .dir-b .rank-name { flex: 1; font-size: 13px; }
+  .dir-b .rank-elo { font-size: 14px; font-family: monospace; color: #00B4D8; font-weight: 600; }
+
+  /* ════════════════════════════════════════
+     DIRECTION C — Electron Lobby
+  ════════════════════════════════════════ */
+  .dir-c { background: #0A0E1A; padding: 20px; }
+
+  .dir-c .lobby { max-width: 960px; margin: 0 auto; }
+  .dir-c .lobby-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #1E2A4A; }
+  .dir-c .lobby-title { font-size: 16px; font-weight: 700; color: #00B4D8; }
+  .dir-c .lobby-badge { font-size: 11px; background: rgba(0,180,216,.1); color: #00B4D8; border: 1px solid rgba(0,180,216,.3); padding: 4px 12px; border-radius: 20px; }
+
+  .dir-c .teams { display: grid; grid-template-columns: 1fr 40px 1fr; gap: 0; }
+  .dir-c .team-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; padding: 8px 12px; margin-bottom: 8px; border-radius: 6px; text-align: center; }
+  .team-blue { background: rgba(59,130,246,.1); color: #60A5FA; }
+  .team-red { background: rgba(239,68,68,.1); color: #F87171; }
+  .dir-c .vs { display: flex; align-items: center; justify-content: center; font-size: 12px; color: #4A5568; font-weight: 700; padding-top: 40px; }
+
+  .dir-c .player-card { background: #0F1629; border: 1px solid #1E2A4A; border-radius: 8px; padding: 12px; margin-bottom: 8px; transition: border-color .15s; }
+  .dir-c .player-card:hover { border-color: #00B4D8; }
+  .dir-c .player-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .dir-c .player-name { font-size: 14px; font-weight: 600; color: #F0F4FF; }
+  .dir-c .player-elo { font-size: 13px; font-family: monospace; color: #00B4D8; }
+  .dir-c .champs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .dir-c .champ-chip { font-size: 11px; padding: 3px 8px; border-radius: 4px; background: #161D35; color: #F0F4FF; border: 1px solid #1E2A4A; display: flex; align-items: center; gap: 4px; }
+  .dir-c .champ-chip .wr { font-family: monospace; color: #10B981; }
+  .dir-c .ban-tag { font-size: 10px; padding: 2px 6px; background: rgba(245,158,11,.1); color: #F59E0B; border: 1px solid rgba(245,158,11,.3); border-radius: 3px; margin-top: 6px; display: inline-block; }
+
+  .dir-c .pick-tag { font-size: 10px; padding: 2px 6px; background: rgba(0,180,216,.1); color: #00B4D8; border: 1px solid rgba(0,180,216,.3); border-radius: 3px; margin-top: 6px; display: inline-block; margin-left: 4px; }
+
+  /* ════════════════════════════════════════
+     DIRECTION D — Mobile Dashboard
+  ════════════════════════════════════════ */
+  .dir-d { background: #080C18; display: flex; justify-content: center; padding: 20px 0; }
+
+  .dir-d .phone { width: 375px; background: #0A0E1A; border-radius: 24px; overflow: hidden; border: 2px solid #1E2A4A; min-height: 700px; }
+  .dir-d .phone-header { background: #0F1629; padding: 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1E2A4A; }
+  .dir-d .phone-logo { font-size: 14px; font-weight: 700; color: #00B4D8; }
+  .dir-d .phone-icon { width: 20px; height: 20px; background: #1E2A4A; border-radius: 4px; }
+
+  .dir-d .phone-content { padding: 16px; }
+  .dir-d .section-title { font-size: 12px; color: #8899BB; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; margin-top: 16px; }
+  .dir-d .section-title:first-child { margin-top: 0; }
+
+  .dir-d .mini-kpi-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+  .dir-d .mini-kpi { background: #0F1629; border: 1px solid #1E2A4A; border-radius: 8px; padding: 12px; }
+  .dir-d .mini-kpi-label { font-size: 10px; color: #8899BB; margin-bottom: 4px; }
+  .dir-d .mini-kpi-value { font-size: 18px; font-weight: 700; font-family: monospace; color: #F0F4FF; }
+  .dir-d .mini-kpi-sub { font-size: 10px; color: #00B4D8; margin-top: 2px; }
+
+  .dir-d .mobile-list-item { background: #0F1629; border: 1px solid #1E2A4A; border-radius: 8px; padding: 12px 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 12px; }
+  .dir-d .m-rank { font-size: 13px; font-family: monospace; color: #4A5568; width: 24px; text-align: center; }
+  .dir-d .m-rank.gold { color: #FFD700; }
+  .dir-d .m-name { flex: 1; font-size: 13px; color: #F0F4FF; }
+  .dir-d .m-elo { font-size: 14px; font-family: monospace; color: #00B4D8; font-weight: 600; }
+
+  .dir-d .tier-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .dir-d .tier-chip { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .dir-d .tier-chip .champ { color: #F0F4FF; font-weight: 400; }
+  .dir-d .tier-chip .pct { font-family: monospace; }
+  .tc-s { background: rgba(255,215,0,.1); color: #FFD700; border: 1px solid rgba(255,215,0,.2); }
+  .tc-a { background: rgba(0,180,216,.1); color: #00B4D8; border: 1px solid rgba(0,180,216,.2); }
+
+  .dir-d .bottom-nav { background: #0F1629; border-top: 1px solid #1E2A4A; padding: 8px 0 12px; display: flex; justify-content: space-around; margin-top: 16px; }
+  .dir-d .bn-item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; padding: 4px 16px; }
+  .dir-d .bn-icon { width: 20px; height: 20px; background: #4A5568; border-radius: 4px; }
+  .dir-d .bn-icon.active-icon { background: #00B4D8; }
+  .dir-d .bn-label { font-size: 10px; color: #4A5568; }
+  .dir-d .bn-label.active-label { color: #00B4D8; }
+
+  /* Tooltip demo */
+  .hover-demo { position: relative; display: inline-block; }
+  .hover-demo .player-link { color: #00B4D8; cursor: pointer; text-decoration: underline; text-decoration-style: dotted; font-size: 13px; }
+  .hover-demo .tooltip { display: none; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #161D35; border: 1px solid #1E2A4A; border-radius: 8px; padding: 10px 14px; width: 200px; z-index: 10; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+  .hover-demo:hover .tooltip { display: block; }
+  .hover-demo .tooltip .tt-name { font-size: 13px; font-weight: 600; color: #F0F4FF; margin-bottom: 8px; }
+  .hover-demo .tooltip .tt-row { display: flex; justify-content: space-between; font-size: 12px; color: #8899BB; padding: 2px 0; }
+  .hover-demo .tooltip .tt-row span:last-child { font-family: monospace; color: #F0F4FF; }
+
+  .demo-note { font-size: 12px; color: #8899BB; margin-top: 12px; padding: 8px 12px; background: rgba(0,180,216,.05); border: 1px solid rgba(0,180,216,.15); border-radius: 6px; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <h1>lol-event Design Directions</h1>
+  <div class="tab active" onclick="show('a')">A. Command Center</div>
+  <div class="tab" onclick="show('b')">B. Clean Analyst</div>
+  <div class="tab" onclick="show('c')">C. Electron Lobby</div>
+  <div class="tab" onclick="show('d')">D. Mobile</div>
+</div>
+
+<!-- ══════════ DIRECTION A ══════════ -->
+<div id="screen-a" class="screen dir-a active">
+  <div class="screen-label">Direction A — Command Center (데스크톱 / 사이드바 + 고밀도)</div>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="logo">lol-event</div>
+      <div class="nav-item active"><span class="nav-icon"></span> 전체 통계</div>
+      <div class="nav-item"><span class="nav-icon"></span> 챔피언</div>
+      <div class="nav-item"><span class="nav-icon"></span> 플레이어</div>
+      <div class="nav-item"><span class="nav-icon"></span> 매치</div>
+      <div class="nav-item" style="margin-top:16px;border-top:1px solid #1E2A4A;padding-top:16px"><span class="nav-icon"></span> 관리</div>
+    </div>
+    <div class="main">
+      <div class="page-title">전체 통계</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="label">총 게임 수</div><div class="value">1,247</div><div class="sub">이번 주 +38</div></div>
+        <div class="stat-card"><div class="label">참여 멤버</div><div class="value">54</div><div class="sub">활성 43명</div></div>
+        <div class="stat-card"><div class="label">평균 Elo</div><div class="value">1,183</div><div class="sub">↑ 12 이번달</div></div>
+        <div class="stat-card"><div class="label">총 챔피언</div><div class="value">87</div><div class="sub">픽됨</div></div>
+      </div>
+      <div class="content-grid">
+        <div class="card">
+          <div class="card-title">챔피언 티어표 <span>내전 기준</span></div>
+          <div class="tier-row"><div class="tier-badge tier-s">S</div><div class="champ-name">야스오</div><div class="champ-wr wr-high">71.4%</div><div style="font-size:11px;color:#4A5568;margin-left:8px">21픽</div></div>
+          <div class="tier-row"><div class="tier-badge tier-s">S</div><div class="champ-name">제드</div><div class="champ-wr wr-high">68.2%</div><div style="font-size:11px;color:#4A5568;margin-left:8px">22픽</div></div>
+          <div class="tier-row"><div class="tier-badge tier-a">A</div><div class="champ-name">아칼리</div><div class="champ-wr wr-high">63.0%</div><div style="font-size:11px;color:#4A5568;margin-left:8px">27픽</div></div>
+          <div class="tier-row"><div class="tier-badge tier-a">A</div><div class="champ-name">카이사</div><div class="champ-wr wr-mid">58.3%</div><div style="font-size:11px;color:#4A5568;margin-left:8px">12픽</div></div>
+          <div class="tier-row"><div class="tier-badge tier-b">B</div><div class="champ-name">루시안</div><div class="champ-wr wr-mid">52.1%</div><div style="font-size:11px;color:#4A5568;margin-left:8px">24픽</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Elo 리더보드</div>
+          <div class="lb-row"><div class="lb-rank top">1</div><div class="lb-name">Faker</div><div class="lb-elo">1,542</div></div>
+          <div class="lb-row"><div class="lb-rank top">2</div><div class="lb-name">Zus</div><div class="lb-elo">1,478</div></div>
+          <div class="lb-row"><div class="lb-rank top">3</div><div class="lb-name">Shadow</div><div class="lb-elo">1,421</div></div>
+          <div class="lb-row"><div class="lb-rank">4</div><div class="lb-name">Blade</div><div class="lb-elo">1,389</div></div>
+          <div class="lb-row"><div class="lb-rank">5</div><div class="lb-name">Alpha</div><div class="lb-elo">1,356</div></div>
+          <p class="demo-note">플레이어 이름 위에 마우스 올리기: <div class="hover-demo" style="display:inline-block"><span class="player-link">Faker</span><div class="tooltip"><div class="tt-name">Faker</div><div class="tt-row"><span>Elo</span><span>1,542</span></div><div class="tt-row"><span>승률</span><span>67.3%</span></div><div class="tt-row"><span>총 게임</span><span>312</span></div><div class="tt-row"><span>주 챔피언</span><span>야스오</span></div></div></div></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ DIRECTION B ══════════ -->
+<div id="screen-b" class="screen dir-b">
+  <div class="screen-label">Direction B — Clean Analyst (상단 탭 + 여유 있는 레이아웃)</div>
+  <div class="topbar">
+    <div class="logo">lol-event</div>
+    <div class="nav-link active">전체</div>
+    <div class="nav-link">챔피언</div>
+    <div class="nav-link">플레이어</div>
+    <div class="nav-link">매치</div>
+  </div>
+  <div class="main">
+    <div class="page-header">
+      <h2>리그 전체 현황</h2>
+      <p>총 1,247게임 · 54명 참여</p>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">총 게임</div><div class="kpi-value">1,247</div><div class="kpi-trend">+38 이번 주</div></div>
+      <div class="kpi"><div class="kpi-label">활성 플레이어</div><div class="kpi-value kpi-accent">43</div></div>
+      <div class="kpi"><div class="kpi-label">평균 Elo</div><div class="kpi-value">1,183</div></div>
+      <div class="kpi"><div class="kpi-label">사용 챔피언</div><div class="kpi-value">87</div></div>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">챔피언 티어표</div><div class="panel-badge">내전 데이터 기준</div></div>
+        <table class="table">
+          <thead><tr><th>티어</th><th>챔피언</th><th>승률</th><th>픽</th><th>밴률</th></tr></thead>
+          <tbody>
+            <tr><td><span style="color:#FFD700;font-weight:700">S</span></td><td>야스오</td><td class="num wr-high">71.4%</td><td class="num">21</td><td class="num">34.2%</td></tr>
+            <tr><td><span style="color:#FFD700;font-weight:700">S</span></td><td>제드</td><td class="num wr-high">68.2%</td><td class="num">22</td><td class="num">28.7%</td></tr>
+            <tr><td><span style="color:#00B4D8;font-weight:700">A</span></td><td>아칼리</td><td class="num wr-high">63.0%</td><td class="num">27</td><td class="num">19.4%</td></tr>
+            <tr><td><span style="color:#00B4D8;font-weight:700">A</span></td><td>카이사</td><td class="num wr-mid">58.3%</td><td class="num">12</td><td class="num">11.2%</td></tr>
+            <tr><td><span style="color:#8899BB;font-weight:700">B</span></td><td>루시안</td><td class="num wr-mid">52.1%</td><td class="num">24</td><td class="num">8.1%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><div class="panel-title">Elo 리더보드</div></div>
+        <div class="rank-list">
+          <div class="rank-item"><div class="rank-num" style="color:#FFD700">1</div><div class="rank-name">Faker</div><div class="rank-elo">1,542</div></div>
+          <div class="rank-item"><div class="rank-num" style="color:#FFD700">2</div><div class="rank-name">Zus</div><div class="rank-elo">1,478</div></div>
+          <div class="rank-item"><div class="rank-num" style="color:#FFD700">3</div><div class="rank-name">Shadow</div><div class="rank-elo">1,421</div></div>
+          <div class="rank-item"><div class="rank-num">4</div><div class="rank-name">Blade</div><div class="rank-elo">1,389</div></div>
+          <div class="rank-item"><div class="rank-num">5</div><div class="rank-name">Alpha</div><div class="rank-elo">1,356</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ DIRECTION C ══════════ -->
+<div id="screen-c" class="screen dir-c">
+  <div class="screen-label">Direction C — Electron 대기방 (좌우 분할 카드 레이아웃)</div>
+  <div class="lobby">
+    <div class="lobby-header">
+      <div class="lobby-title">대기방 분석</div>
+      <div class="lobby-badge">자동 감지됨</div>
+    </div>
+    <div class="teams">
+      <!-- Blue Team -->
+      <div>
+        <div class="team-label team-blue">블루팀</div>
+        <div class="player-card">
+          <div class="player-top"><div class="player-name">Faker</div><div class="player-elo">1,542</div></div>
+          <div class="champs">
+            <div class="champ-chip">야스오 <span class="wr">71%</span></div>
+            <div class="champ-chip">제드 <span class="wr">68%</span></div>
+            <div class="champ-chip">피즈 <span class="wr">60%</span></div>
+          </div>
+        </div>
+        <div class="player-card">
+          <div class="player-top"><div class="player-name">Zus</div><div class="player-elo">1,478</div></div>
+          <div class="champs">
+            <div class="champ-chip">아칼리 <span class="wr">65%</span></div>
+            <div class="champ-chip">르블랑 <span class="wr">61%</span></div>
+          </div>
+        </div>
+        <div class="player-card">
+          <div class="player-top"><div class="player-name">Shadow</div><div class="player-elo">1,421</div></div>
+          <div class="champs">
+            <div class="champ-chip">렉사이 <span class="wr">63%</span></div>
+            <div class="champ-chip">그레이브즈 <span class="wr">58%</span></div>
+          </div>
+          <div>
+            <span class="pick-tag">픽 추천: 렉사이</span>
+          </div>
+        </div>
+        <div class="player-card">
+          <div class="player-top"><div class="player-name">Blade</div><div class="player-elo">1,389</div></div>
+          <div class="champs">
+            <div class="champ-chip">카이사 <span class="wr">59%</span></div>
+            <div class="champ-chip">진 <span class="wr">55%</span></div>
+          </div>
+        </div>
+        <div class="player-card">
+          <div class="player-top"><div class="player-name">Alpha</div><div class="player-elo">1,356</div></div>
+          <div class="champs">
+            <div class="champ-chip">나미 <span class="wr">62%</span></div>
+            <div class="champ-chip">룰루 <span class="wr">57%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vs">VS</div>
+
+      <!-- Red Team -->
+      <div>
+        <div class="team-label team-red">레드팀</div>
+        <div class="player-card">
+          <div class="player-top"><div class="player-name">Nova</div><div class="player-elo">1,312</div></div>
+          <div class="champs">
+            <div class="champ-chip">드레이븐 <span class="wr wr-high" style="color:#EF4444">72%</span></div>
+            <div class="champ-chip">진 <span class="wr">60%</span></div>
+          </div>
+          <div>
+            <span class="ban-tag">밴 추천: 드레이븐</span>
+          </div>
+        </div>
+        <div class="player-card">
+          <div class="player-top"><div class="player-name">Storm</div><div class="player-elo">1,298</div></div>
+          <div class="champs">
+            <div class="champ-chip">빅토르 <span class="wr wr-high" style="color:#EF4444">70%</span></div>
+            <div class="champ-chip">리산드라 <span class="wr">58%</span></div>
+          </div>
+          <div>
+            <span class="ban-tag">밴 추천: 빅토르</span>
+          </div>
+        </div>
+        <div class="player-card">
+          <div class="player-top"><div class="player-name">Rex</div><div class="player-elo">1,267</div></div>
+          <div class="champs">
+            <div class="champ-chip">헤카림 <span class="wr">61%</span></div>
+            <div class="champ-chip">리신 <span class="wr">55%</span></div>
+          </div>
+        </div>
+        <div class="player-card">
+          <div class="player-top"><div class="player-name">Frost</div><div class="player-elo">1,241</div></div>
+          <div class="champs">
+            <div class="champ-chip">이즈리얼 <span class="wr">58%</span></div>
+          </div>
+        </div>
+        <div class="player-card">
+          <div class="player-top"><div class="player-name">Tide</div><div class="player-elo">1,198</div></div>
+          <div class="champs">
+            <div class="champ-chip">블리츠크랭크 <span class="wr">64%</span></div>
+          </div>
+          <div>
+            <span class="ban-tag">밴 추천: 블리츠크랭크</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ DIRECTION D ══════════ -->
+<div id="screen-d" class="screen dir-d">
+  <div>
+    <div class="screen-label" style="margin-bottom:16px">Direction D — 모바일 웹 (375px · 하단 탭바)</div>
+    <div class="phone">
+      <div class="phone-header">
+        <div class="phone-logo">lol-event</div>
+        <div class="phone-icon"></div>
+      </div>
+      <div class="phone-content">
+        <div class="section-title">리그 현황</div>
+        <div class="mini-kpi-row">
+          <div class="mini-kpi"><div class="mini-kpi-label">총 게임</div><div class="mini-kpi-value">1,247</div></div>
+          <div class="mini-kpi"><div class="mini-kpi-label">내 Elo</div><div class="mini-kpi-value" style="color:#00B4D8">1,183</div><div class="mini-kpi-sub">전체 18위</div></div>
+        </div>
+        <div class="section-title">Elo 리더보드</div>
+        <div class="mobile-list-item"><div class="m-rank gold">1</div><div class="m-name">Faker</div><div class="m-elo">1,542</div></div>
+        <div class="mobile-list-item"><div class="m-rank gold">2</div><div class="m-name">Zus</div><div class="m-elo">1,478</div></div>
+        <div class="mobile-list-item"><div class="m-rank gold">3</div><div class="m-name">Shadow</div><div class="m-elo">1,421</div></div>
+        <div class="mobile-list-item"><div class="m-rank">4</div><div class="m-name">Blade</div><div class="m-elo">1,389</div></div>
+        <div class="section-title">챔피언 티어 (S/A)</div>
+        <div class="tier-chips">
+          <div class="tier-chip tc-s"><span>S</span><span class="champ">야스오</span><span class="pct">71%</span></div>
+          <div class="tier-chip tc-s"><span>S</span><span class="champ">제드</span><span class="pct">68%</span></div>
+          <div class="tier-chip tc-a"><span>A</span><span class="champ">아칼리</span><span class="pct">63%</span></div>
+          <div class="tier-chip tc-a"><span>A</span><span class="champ">카이사</span><span class="pct">58%</span></div>
+        </div>
+      </div>
+      <div class="bottom-nav">
+        <div class="bn-item"><div class="bn-icon active-icon"></div><div class="bn-label active-label">홈</div></div>
+        <div class="bn-item"><div class="bn-icon"></div><div class="bn-label">챔피언</div></div>
+        <div class="bn-item"><div class="bn-icon"></div><div class="bn-label">플레이어</div></div>
+        <div class="bn-item"><div class="bn-icon"></div><div class="bn-label">매치</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>

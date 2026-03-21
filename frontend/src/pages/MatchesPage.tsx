@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Trash2, Clock, Calendar, ChevronRight, ChevronDown, Trophy } from 'lucide-react';
 import { api } from '../lib/api/api';
 import type { Match, Participant, Team } from '../lib/types/match';
 import { useDragon } from '../context/DragonContext';
 import { Button } from '../components/common/Button';
 import { Modal } from '../components/common/Modal';
-import { LoadingCenter } from '../components/common/Spinner';
+import { Skeleton } from '../components/common/Skeleton';
 import { PlayerLink } from '../components/common/PlayerLink';
 import { ChampionLink } from '../components/common/ChampionLink';
 import '../styles/pages/matches.css';
@@ -17,15 +18,15 @@ const MODES = [
   { value: 'all',    label: '전체' },
 ];
 
-const QUEUE_LABEL: Record<number, string> = { 0: '커스텀', 3130: '5v5 내전', 3270: '칼바람' };
+export const QUEUE_LABEL: Record<number, string> = { 0: '커스텀', 3130: '5v5 내전', 3270: '칼바람' };
 
-const TABS = ['요약', '딜/피해', '경제', '시야/오브젝트', '멀티킬', '팀 정보'] as const;
-type Tab = typeof TABS[number];
+export const TABS = ['요약', '딜/피해', '경제', '시야/오브젝트', '멀티킬', '팀 정보'] as const;
+export type Tab = typeof TABS[number];
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-function fmt(secs: number) {
+export function fmt(secs: number) {
   const m = Math.floor(secs / 60);
   const s = secs % 60;
   return `${m}:${String(s).padStart(2, '0')}`;
@@ -273,7 +274,7 @@ function MatchGroup({ sessionKey, matches, defaultOpen, onOpen, onDelete }: {
 }
 
 // ── Scoreboard ─────────────────────────────────────────────────────────────
-function Scoreboard({ match }: { match: Match }) {
+export function Scoreboard({ match }: { match: Match }) {
   const maxDmg = Math.max(...match.participants.map(p => p.damage), 1);
   const mvp = calcMvp(match);
   const { champions } = useDragon();
@@ -470,7 +471,7 @@ function PlayerStatBlock({ p, tab }: { p: Participant; tab: Tab }) {
   );
 }
 
-function StatsTab({ match, tab }: { match: Match; tab: Tab }) {
+export function StatsTab({ match, tab }: { match: Match; tab: Tab }) {
   return (
     <div>
       {(['blue', 'red'] as const).map(side => (
@@ -492,7 +493,7 @@ function StatsTab({ match, tab }: { match: Match; tab: Tab }) {
 }
 
 // ── Team Info Tab ──────────────────────────────────────────────────────────
-function TeamInfoTab({ teams }: { teams: Team[] }) {
+export function TeamInfoTab({ teams }: { teams: Team[] }) {
   return (
     <div className="team-info-section">
       {teams.map(t => {
@@ -578,7 +579,7 @@ export function MatchesPage() {
   const [matches, setMatches]   = useState<Match[]>([]);
   const [mode, setMode]         = useState('normal');
   const [loading, setLoading]   = useState(true);
-  const [detail, setDetail]     = useState<Match | null>(null);
+  const navigate = useNavigate();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -623,7 +624,60 @@ export function MatchesPage() {
         </div>
       </div>
 
-      {loading ? <LoadingCenter /> : (
+      {loading ? (
+        <div className="matches-list">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="match-group">
+              <div className="match-group-header" style={{ pointerEvents: 'none' }}>
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+              <div className="match-group-body">
+                <div className="match-card">
+                  <div className="match-card-header">
+                    <div className="match-card-meta" style={{ gap: 8 }}>
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-14" />
+                      <Skeleton className="h-4 w-14" />
+                    </div>
+                  </div>
+                  <div className="match-teams">
+                    <div className="match-team match-team-blue">
+                      <div className="match-team-label">
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                      <div className="match-players">
+                        {Array.from({ length: 5 }).map((_, j) => (
+                          <div key={j} className="match-player-row">
+                            <Skeleton className="h-4 w-4 rounded" />
+                            <Skeleton className="h-3 w-16" />
+                            <Skeleton className="h-3 w-12" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="match-vs">VS</div>
+                    <div className="match-team match-team-red">
+                      <div className="match-team-label">
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                      <div className="match-players">
+                        {Array.from({ length: 5 }).map((_, j) => (
+                          <div key={j} className="match-player-row">
+                            <Skeleton className="h-4 w-4 rounded" />
+                            <Skeleton className="h-3 w-16" />
+                            <Skeleton className="h-3 w-12" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
         <div className="matches-list">
           {groups.length === 0 && (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-text-secondary)' }}>
@@ -636,14 +690,12 @@ export function MatchesPage() {
               sessionKey={g.key}
               matches={g.matches}
               defaultOpen={idx === 0}
-              onOpen={setDetail}
+              onOpen={(m) => navigate(`/matches/${m.matchId}`)}
               onDelete={handleDelete}
             />
           ))}
         </div>
       )}
-
-      {detail && <MatchDetailModal match={detail} onClose={() => setDetail(null)} />}
     </div>
   );
 }

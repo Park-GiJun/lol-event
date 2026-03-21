@@ -127,6 +127,7 @@
   font-size: 15px;
   font-weight: 800;
   min-width: 40px;
+  font-family: var(--font-family-mono);
 }
 
 .popup-wr-bar {
@@ -147,6 +148,7 @@
   font-size: 11px;
   min-width: 54px;
   text-align: right;
+  font-family: var(--font-family-mono);
 }
 
 /* 핵심 스탯 */
@@ -169,6 +171,7 @@
   font-size: 13px;
   font-weight: 700;
   color: var(--color-text-primary);
+  font-family: var(--font-family-mono);
 }
 
 .popup-stat-label {
@@ -217,6 +220,7 @@
 .popup-champ-wr {
   font-size: 10px;
   font-weight: 700;
+  font-family: var(--font-family-mono);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -302,6 +306,7 @@
   font-weight: 700;
   min-width: 32px;
   text-align: right;
+  font-family: var(--font-family-mono);
 }
 
 /* 인기 아이템 */

@@ -101,6 +101,77 @@ export async function getSummonerHistory(puuid: string): Promise<Record<string, 
   }
 }
 
+export interface ChampSelectSlot {
+  cellId: number;
+  summonerId?: number;
+  championId: number;
+  assignedPosition: string;
+  riotId: string;
+  summonerName: string;
+  isMe: boolean;
+}
+
+export interface ChampSelectFull {
+  myTeam: ChampSelectSlot[];
+  theirTeam: ChampSelectSlot[];
+  bans: { championId: number; team: 'blue' | 'red' }[];
+  phase: string;
+  timer: number;
+}
+
+export async function getChampSelectFull(): Promise<ChampSelectFull | null> {
+  const creds = getCredentials();
+  if (!creds) return null;
+  const { port, password } = creds;
+  try {
+    const session = await lcuGet<Record<string, unknown>>(port, password, '/lol-champ-select/v1/session');
+    const myTeamRaw    = (session['myTeam']    as unknown[]) ?? [];
+    const theirTeamRaw = (session['theirTeam'] as unknown[]) ?? [];
+    const localCellId  = session['localPlayerCellId'] as number | undefined;
+    const timerRaw     = session['timer'] as Record<string, unknown> | undefined;
+    const phase        = String(timerRaw?.['phase'] ?? '');
+    const remaining    = (timerRaw?.['adjustedTimeLeftInPhase'] ?? 0) as number;
+
+    const resolveSlot = async (s: unknown): Promise<ChampSelectSlot> => {
+      const slot        = s as Record<string, unknown>;
+      const summonerId  = slot['summonerId'] as number | undefined;
+      const championId  = (slot['championId'] as number) || 0;
+      const cellId      = slot['cellId'] as number ?? 0;
+      const assignedPosition = String(slot['assignedPosition'] ?? '');
+      const isMe = cellId === localCellId;
+      let riotId = '';
+      let summonerName = '';
+      if (summonerId) {
+        const info = await summonerIdToInfo(port, password, summonerId);
+        riotId       = info?.riotId ?? '';
+        summonerName = info?.summonerName ?? '';
+      }
+      return { cellId, summonerId, championId, assignedPosition, riotId, summonerName, isMe };
+    };
+
+    let banIdx = 0;
+    const bans: { championId: number; team: 'blue' | 'red' }[] = [];
+    for (const actionGroup of ((session['actions'] as unknown[][]) ?? [])) {
+      for (const a of actionGroup) {
+        const action = a as { type: string; completed: boolean; championId: number };
+        if (action.type === 'ban' && action.completed && action.championId) {
+          bans.push({ championId: action.championId, team: banIdx < 5 ? 'blue' : 'red' });
+          banIdx++;
+        }
+      }
+    }
+
+    const [myTeam, theirTeam] = await Promise.all([
+      Promise.all(myTeamRaw.map(resolveSlot)),
+      Promise.all(theirTeamRaw.map(resolveSlot)),
+    ]);
+
+    return { myTeam, theirTeam, bans, phase, timer: Math.ceil(remaining / 1000) };
+  } catch {
+    return null;
+  }
+}
+
 export interface TeamMemberInfo {
   summonerName: string;
   riotId: string;

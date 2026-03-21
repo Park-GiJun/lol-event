@@ -57,7 +57,7 @@
 .sidebar-item.active {
   color: var(--color-primary);
   border-left-color: var(--color-primary);
-  background: rgba(200, 155, 60, 0.08);
+  background: rgba(var(--color-primary-rgb), 0.08);
 }
 
 /* ── Main Content ─────────────────────────────────────────── */

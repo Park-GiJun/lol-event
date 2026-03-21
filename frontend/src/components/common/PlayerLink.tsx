@@ -14,6 +14,8 @@ function PlayerPopupContent({ riotId, data }: { riotId: string; data: PlayerDeta
   const wr = data.winRate;
   const wrColor = wr >= 60 ? 'var(--color-win)' : wr >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
   const kdaColor = data.kda >= 4 ? 'var(--color-win)' : data.kda >= 2.5 ? 'var(--color-primary)' : 'var(--color-text-primary)';
+  const eloVal = Number.isFinite(data.elo) ? data.elo : null;
+  const eloColor = (eloVal ?? 0) >= 1200 ? 'var(--color-win)' : (eloVal ?? 0) >= 1000 ? 'var(--color-primary)' : 'var(--color-loss)';
 
   return (
     <div className="popup-player" onClick={() => navigate(`/player-stats/${encodeURIComponent(riotId)}`)}>
@@ -57,6 +59,10 @@ function PlayerPopupContent({ riotId, data }: { riotId: string; data: PlayerDeta
         <div className="popup-stat">
           <div className="popup-stat-value">{data.avgCs.toFixed(1)}</div>
           <div className="popup-stat-label">CS</div>
+        </div>
+        <div className="popup-stat">
+          <div className="popup-stat-value" style={{ color: eloColor }}>{eloVal !== null ? Math.round(eloVal) : '-'}</div>
+          <div className="popup-stat-label">Elo</div>
         </div>
       </div>
 

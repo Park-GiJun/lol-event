@@ -1,9 +1,31 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo, lazy, Suspense, Component } from 'react';
+import type { ReactNode } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api/api';
 import type { ChampionDetailStats, ChampionPlayerStat, ChampionLaneStat } from '../lib/types/stats';
 import { LoadingCenter } from '../components/common/Spinner';
+import { Skeleton } from '../components/common/Skeleton';
+import { ChartSkeleton } from '../components/common/ChartSkeleton';
+import { useChampions } from '../hooks/useChampions';
+
+class ChartErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
+
+const ChampionChartsSection = lazy(
+  () => import('../components/dashboard/ChampionChartsSection')
+    .then(m => ({ default: m.ChampionChartsSection }))
+);
 import { Button } from '../components/common/Button';
+import { BreadcrumbNav } from '../components/common/BreadcrumbNav';
 import { useDragon } from '../context/DragonContext';
 import { PlayerLink } from '../components/common/PlayerLink';
 import '../styles/pages/stats.css';
@@ -148,6 +170,22 @@ export function ChampionStatsPage() {
   const [loading, setLoading] = useState(true);
   const [sort, setSort]       = useState<keyof ChampionPlayerStat>('games');
 
+  const { data: overviewData } = useChampions();
+
+  const overallKda = useMemo(() => {
+    if (!data || data.laneStats.length === 0) return null;
+    const totalGamesLane = data.laneStats.reduce((s, l) => s + l.games, 0);
+    if (totalGamesLane === 0) return null;
+    return data.laneStats.reduce((s, l) => s + l.kda * l.games, 0) / totalGamesLane;
+  }, [data]);
+
+  const pickRate = useMemo(() => {
+    if (!overviewData || !champion) return null;
+    const champStat = overviewData.topPickedChampions.find(c => c.champion === champion);
+    if (!champStat || overviewData.matchCount === 0) return null;
+    return (champStat.picks / overviewData.matchCount * 100).toFixed(1);
+  }, [overviewData, champion]);
+
   const load = useCallback(async () => {
     if (!champion) return;
     setLoading(true);
@@ -168,13 +206,15 @@ export function ChampionStatsPage() {
 
   return (
     <div>
+      {/* Breadcrumb */}
+      <BreadcrumbNav items={[
+        { label: '홈', path: '/' },
+        { label: '챔피언', path: '/champions' },
+        { label: (data?.championId && champions.get(data.championId)?.nameKo) || champion ?? '' },
+      ]} />
       {/* 헤더 */}
       <div className="page-header flex items-center justify-between">
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <button
-            onClick={() => navigate(-1)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', fontSize: 18, padding: '4px 8px' }}
-          >←</button>
           {champImg && (
             <img
               src={champImg}
@@ -199,6 +239,52 @@ export function ChampionStatsPage() {
           ))}
         </div>
       </div>
+
+      {/* 수치 카드 */}
+      {loading ? (
+        <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="card" style={{ minWidth: 110, flex: '1 1 110px', padding: '12px 16px' }}>
+              <Skeleton className="h-7 w-16 mb-1" />
+              <Skeleton className="h-3 w-10" />
+            </div>
+          ))}
+        </div>
+      ) : data ? (
+        <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+          {/* 승률 */}
+          <div className="card" style={{ minWidth: 110, flex: '1 1 110px', padding: '12px 16px' }}>
+            <div className="font-mono" style={{
+              fontSize: 22, fontWeight: 800,
+              color: data.winRate >= 60 ? 'var(--color-win)' : data.winRate < 50 ? 'var(--color-loss)' : 'var(--color-primary)',
+            }}>
+              {data.winRate.toFixed(1)}%
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>승률</div>
+          </div>
+          {/* 총 판수 */}
+          <div className="card" style={{ minWidth: 110, flex: '1 1 110px', padding: '12px 16px' }}>
+            <div className="font-mono" style={{ fontSize: 22, fontWeight: 800 }}>
+              {data.totalGames}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>총 판수</div>
+          </div>
+          {/* 전체 KDA */}
+          <div className="card" style={{ minWidth: 110, flex: '1 1 110px', padding: '12px 16px' }}>
+            <div className="font-mono" style={{ fontSize: 22, fontWeight: 800 }}>
+              {overallKda !== null ? overallKda.toFixed(2) : '—'}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>전체 KDA</div>
+          </div>
+          {/* 픽률 */}
+          <div className="card" style={{ minWidth: 110, flex: '1 1 110px', padding: '12px 16px' }}>
+            <div className="font-mono" style={{ fontSize: 22, fontWeight: 800 }}>
+              {pickRate !== null ? `${pickRate}%` : '—'}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>픽률</div>
+          </div>
+        </div>
+      ) : null}
 
       {loading ? <LoadingCenter /> : (
         <>
@@ -243,6 +329,18 @@ export function ChampionStatsPage() {
         {/* 라인별 통계 */}
         {data && data.laneStats?.length > 0 && (
           <ChampionLaneStats laneStats={data.laneStats} />
+        )}
+
+        {/* 포지션별 차트 (Story 3.2: React.lazy — Chart.js 동적 로딩) */}
+        {data && data.laneStats?.length > 0 && (
+          <ChartErrorBoundary>
+            <Suspense fallback={<ChartSkeleton />}>
+              <ChampionChartsSection
+                key={`${champion}-${mode}`}
+                laneStats={data.laneStats}
+              />
+            </Suspense>
+          </ChartErrorBoundary>
         )}
 
         <div className="card">

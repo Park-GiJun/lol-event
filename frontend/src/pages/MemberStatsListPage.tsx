@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api/api';
 import type { StatsResponse, PlayerStats } from '../lib/types/stats';
-import { LoadingCenter } from '../components/common/Spinner';
+import { Skeleton } from '../components/common/Skeleton';
 import { Button } from '../components/common/Button';
 import { useDragon } from '../context/DragonContext';
 import { PlayerLink } from '../components/common/PlayerLink';
@@ -129,7 +129,51 @@ export function MemberStatsListPage() {
         </div>
       </div>
 
-      {loading ? <LoadingCenter /> : (
+      {loading ? (
+        <div className="card">
+          <div className="member-sort-tabs">
+            {cols.map(c => (
+              <button key={c.key} className="member-sort-tab" disabled>{c.label}</button>
+            ))}
+          </div>
+          <div className="table-wrapper">
+            <table className="table member-stats-table">
+              <thead>
+                <tr>
+                  <th style={{ width: 36 }}>#</th>
+                  <th>플레이어</th>
+                  <th>판수</th>
+                  <th style={{ minWidth: 120 }}>승률</th>
+                  <th>KDA</th>
+                  <th className="table-number">평균 딜</th>
+                  <th className="table-number">CS</th>
+                  <th>주요 챔피언</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <tr key={i}>
+                    <td><Skeleton className="h-6 w-6 rounded-full" /></td>
+                    <td><Skeleton className="h-4 w-28" /></td>
+                    <td><Skeleton className="h-4 w-10" /></td>
+                    <td><Skeleton className="h-4 w-20" /></td>
+                    <td><Skeleton className="h-4 w-14" /></td>
+                    <td><Skeleton className="h-4 w-16" /></td>
+                    <td><Skeleton className="h-4 w-10" /></td>
+                    <td>
+                      <div className="flex gap-1">
+                        {Array.from({ length: 3 }).map((_, j) => (
+                          <Skeleton key={j} className="h-6 w-6 rounded" />
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
         <div className="card">
           {/* 정렬 탭 */}
           <div className="member-sort-tabs">
@@ -196,3 +240,4 @@ export function MemberStatsListPage() {
     </div>
   );
 }
+
