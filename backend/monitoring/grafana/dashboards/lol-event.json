@@ -1,7 +1,7 @@
 {
   "title": "LoL Event - 서비스 모니터링",
   "uid": "lol-event-main",
-  "version": 1,
+  "version": 2,
   "schemaVersion": 38,
   "refresh": "15s",
   "time": { "from": "now-1h", "to": "now" },
@@ -9,10 +9,21 @@
   "templating": {
     "list": [
       {
+        "name": "application",
+        "type": "query",
+        "datasource": "Prometheus",
+        "query": "label_values(jvm_memory_used_bytes, application)",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {},
+        "label": "Application"
+      },
+      {
         "name": "instance",
         "type": "query",
         "datasource": "Prometheus",
-        "query": "label_values(jvm_memory_used_bytes, instance)",
+        "query": "label_values(jvm_memory_used_bytes{application=~\"$application\"}, instance)",
         "refresh": 2,
         "includeAll": true,
         "allValue": ".*",
@@ -23,230 +34,39 @@
   },
   "panels": [
     {
-      "id": 1,
-      "title": "HTTP 요청 처리량 (RPS)",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 20,
+      "title": "서비스 상태",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "reqps"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum(rate(http_server_requests_seconds_count{instance=~\"$instance\"}[1m])) by (instance)",
-          "legendFormat": "{{instance}} - total",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(rate(http_server_requests_seconds_count{instance=~\"$instance\", status=~\"2..\"}[1m])) by (instance)",
-          "legendFormat": "{{instance}} - 2xx",
-          "refId": "B"
-        }
-      ]
-    },
-    {
-      "id": 2,
-      "title": "에러율 (4xx / 5xx)",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "reqps",
+          "mappings": [
+            { "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } }, "type": "value" }
+          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 0.1 },
-              { "color": "red", "value": 1 }
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
             ]
           }
-        },
-        "overrides": [
-          { "matcher": { "id": "byName", "options": "5xx" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "4xx" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
-        ]
-      },
-      "targets": [
-        {
-          "expr": "sum(rate(http_server_requests_seconds_count{instance=~\"$instance\", status=~\"5..\"}[1m])) by (instance)",
-          "legendFormat": "{{instance}} 5xx",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(rate(http_server_requests_seconds_count{instance=~\"$instance\", status=~\"4..\"}[1m])) by (instance)",
-          "legendFormat": "{{instance}} 4xx",
-          "refId": "B"
-        }
-      ]
-    },
-    {
-      "id": 3,
-      "title": "응답 지연 P99 / P95 / P50",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2 },
-          "unit": "s"
         }
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{instance=~\"$instance\"}[1m])) by (le, instance))",
-          "legendFormat": "{{instance}} p99",
-          "refId": "A"
-        },
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{instance=~\"$instance\"}[1m])) by (le, instance))",
-          "legendFormat": "{{instance}} p95",
-          "refId": "B"
-        },
-        {
-          "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{instance=~\"$instance\"}[1m])) by (le, instance))",
-          "legendFormat": "{{instance}} p50",
-          "refId": "C"
-        }
-      ]
-    },
-    {
-      "id": 4,
-      "title": "예외 발생 수 (유형별)",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "short"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum(increase(app_errors_total{instance=~\"$instance\"}[5m])) by (type, instance)",
-          "legendFormat": "{{instance}} - {{type}}",
+          "expr": "up{job=~\"lol-.*\"}",
+          "legendFormat": "{{job}}",
           "refId": "A"
         }
-      ]
-    },
-    {
-      "id": 5,
-      "title": "JVM 힙 메모리 사용량",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2, "fillOpacity": 10 },
-          "unit": "bytes"
-        }
-      },
-      "targets": [
-        {
-          "expr": "jvm_memory_used_bytes{instance=~\"$instance\", area=\"heap\"}",
-          "legendFormat": "{{instance}} used",
-          "refId": "A"
-        },
-        {
-          "expr": "jvm_memory_max_bytes{instance=~\"$instance\", area=\"heap\"}",
-          "legendFormat": "{{instance}} max",
-          "refId": "B"
-        }
-      ]
-    },
-    {
-      "id": 6,
-      "title": "JVM 스레드 수",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2 },
-          "unit": "short"
-        }
-      },
-      "targets": [
-        {
-          "expr": "jvm_threads_live_threads{instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} live",
-          "refId": "A"
-        },
-        {
-          "expr": "jvm_threads_daemon_threads{instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} daemon",
-          "refId": "B"
-        }
-      ]
-    },
-    {
-      "id": 7,
-      "title": "DB 커넥션 풀 (HikariCP)",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2 },
-          "unit": "short"
-        }
-      },
-      "targets": [
-        {
-          "expr": "hikaricp_connections_active{instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} active",
-          "refId": "A"
-        },
-        {
-          "expr": "hikaricp_connections_idle{instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} idle",
-          "refId": "B"
-        },
-        {
-          "expr": "hikaricp_connections_pending{instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} pending",
-          "refId": "C"
-        }
-      ]
-    },
-    {
-      "id": 8,
-      "title": "Endpoint별 요청 처리량 (Top 10)",
-      "type": "timeseries",
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
-      "datasource": "Prometheus",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "lineWidth": 2 },
-          "unit": "reqps"
-        }
-      },
-      "targets": [
-        {
-          "expr": "topk(10, sum(rate(http_server_requests_seconds_count{instance=~\"$instance\"}[1m])) by (uri, method))",
-          "legendFormat": "{{method}} {{uri}}",
-          "refId": "A"
-        }
-      ]
+      ],
+      "options": { "colorMode": "background", "graphMode": "none" }
     },
     {
       "id": 9,
-      "title": "요청 처리량 현재값",
+      "title": "요청 처리량 (RPS)",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 32 },
+      "gridPos": { "h": 4, "w": 4, "x": 6, "y": 0 },
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
@@ -264,7 +84,7 @@
       },
       "targets": [
         {
-          "expr": "sum(rate(http_server_requests_seconds_count{instance=~\"$instance\"}[1m]))",
+          "expr": "sum(rate(http_server_requests_seconds_count{application=~\"$application\"}[1m]))",
           "legendFormat": "RPS",
           "refId": "A"
         }
@@ -274,7 +94,7 @@
       "id": 10,
       "title": "5xx 에러 (1m)",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 32 },
+      "gridPos": { "h": 4, "w": 4, "x": 10, "y": 0 },
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
@@ -291,7 +111,7 @@
       },
       "targets": [
         {
-          "expr": "sum(increase(http_server_requests_seconds_count{instance=~\"$instance\", status=~\"5..\"}[1m])) or vector(0)",
+          "expr": "sum(increase(http_server_requests_seconds_count{application=~\"$application\", status=~\"5..\"}[1m])) or vector(0)",
           "legendFormat": "5xx",
           "refId": "A"
         }
@@ -301,7 +121,7 @@
       "id": 11,
       "title": "JVM CPU 사용률",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 32 },
+      "gridPos": { "h": 4, "w": 4, "x": 14, "y": 0 },
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
@@ -319,7 +139,7 @@
       },
       "targets": [
         {
-          "expr": "process_cpu_usage{instance=~\"$instance\"}",
+          "expr": "avg(process_cpu_usage{application=~\"$application\"})",
           "legendFormat": "CPU",
           "refId": "A"
         }
@@ -329,7 +149,7 @@
       "id": 12,
       "title": "업타임",
       "type": "stat",
-      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 32 },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
@@ -343,9 +163,229 @@
       },
       "targets": [
         {
-          "expr": "process_uptime_seconds{instance=~\"$instance\"}",
-          "legendFormat": "{{instance}}",
+          "expr": "process_uptime_seconds{application=~\"$application\"}",
+          "legendFormat": "{{application}}",
           "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "title": "HTTP 요청 처리량 (RPS)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "reqps"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{application=~\"$application\"}[1m])) by (application)",
+          "legendFormat": "{{application}} - total",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{application=~\"$application\", status=~\"2..\"}[1m])) by (application)",
+          "legendFormat": "{{application}} - 2xx",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "에러율 (4xx / 5xx)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "reqps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.1 },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*5xx.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*4xx.*" }, "properties": [{ "id": "color", "value": { "fixedColor": "orange", "mode": "fixed" } }] }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{application=~\"$application\", status=~\"5..\"}[1m])) by (application)",
+          "legendFormat": "{{application}} 5xx",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{application=~\"$application\", status=~\"4..\"}[1m])) by (application)",
+          "legendFormat": "{{application}} 4xx",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "응답 지연 P99 / P95 / P50",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2 },
+          "unit": "s"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=~\"$application\"}[1m])) by (le, application))",
+          "legendFormat": "{{application}} p99",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=~\"$application\"}[1m])) by (le, application))",
+          "legendFormat": "{{application}} p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{application=~\"$application\"}[1m])) by (le, application))",
+          "legendFormat": "{{application}} p50",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Endpoint별 요청 처리량 (Top 10)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2 },
+          "unit": "reqps"
+        }
+      },
+      "targets": [
+        {
+          "expr": "topk(10, sum(rate(http_server_requests_seconds_count{application=~\"$application\"}[1m])) by (uri, method))",
+          "legendFormat": "{{method}} {{uri}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "JVM 힙 메모리 사용량",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "unit": "bytes"
+        }
+      },
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{application=~\"$application\", area=\"heap\"}",
+          "legendFormat": "{{application}} used",
+          "refId": "A"
+        },
+        {
+          "expr": "jvm_memory_max_bytes{application=~\"$application\", area=\"heap\"}",
+          "legendFormat": "{{application}} max",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "GC Pause 시간",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2 },
+          "unit": "s"
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(jvm_gc_pause_seconds_sum{application=~\"$application\"}[1m])",
+          "legendFormat": "{{application}} {{action}} {{cause}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "JVM 스레드 수",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2 },
+          "unit": "short"
+        }
+      },
+      "targets": [
+        {
+          "expr": "jvm_threads_live_threads{application=~\"$application\"}",
+          "legendFormat": "{{application}} live",
+          "refId": "A"
+        },
+        {
+          "expr": "jvm_threads_daemon_threads{application=~\"$application\"}",
+          "legendFormat": "{{application}} daemon",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "DB 커넥션 풀 (HikariCP)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2 },
+          "unit": "short"
+        }
+      },
+      "targets": [
+        {
+          "expr": "hikaricp_connections_active{application=~\"$application\"}",
+          "legendFormat": "{{application}} active",
+          "refId": "A"
+        },
+        {
+          "expr": "hikaricp_connections_idle{application=~\"$application\"}",
+          "legendFormat": "{{application}} idle",
+          "refId": "B"
+        },
+        {
+          "expr": "hikaricp_connections_pending{application=~\"$application\"}",
+          "legendFormat": "{{application}} pending",
+          "refId": "C"
         }
       ]
     }
