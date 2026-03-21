@@ -13,6 +13,7 @@ data class MvpPlayerStat(
     val avgMvpScore: Double,
     /** MVP 달성 최다 챔피언 */
     val topChampion: String?,
+    val topChampionId: Int?,
 )
 
 data class MvpStatsResult(

@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Trash2, UserPlus, Users } from 'lucide-react';
 import { api } from '../lib/api/api';
+import { PlayerLink } from '../components/common/PlayerLink';
 import type { Member, BulkRegisterResponse } from '../lib/types/member';
 import { Button } from '../components/common/Button';
 import { Input, Textarea } from '../components/common/Input';
@@ -74,7 +75,7 @@ export function MembersPage() {
               <tbody>
                 {members.map(m => (
                   <tr key={m.puuid}>
-                    <td className="font-semibold">{m.riotId}</td>
+                    <td className="font-semibold"><PlayerLink riotId={m.riotId}>{m.riotId}</PlayerLink></td>
                     <td className="text-secondary text-xs truncate" style={{ maxWidth: '200px' }}>{m.puuid}</td>
                     <td className="text-secondary">{new Date(m.registeredAt).toLocaleDateString('ko-KR')}</td>
                     <td>

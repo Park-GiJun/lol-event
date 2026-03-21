@@ -362,12 +362,14 @@ function EloTab() {
                   onClick={() => navigate(`/player-stats/${encodeURIComponent(entry.riotId)}`)}>
                   <td><RankBadge rank={entry.rank} /></td>
                   <td>
-                    <span style={{ fontWeight: 600 }}>
-                      {entry.riotId.split('#')[0]}
-                    </span>
-                    <span style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginLeft: 4 }}>
-                      #{entry.riotId.split('#')[1]}
-                    </span>
+                    <PlayerLink riotId={entry.riotId} mode="all">
+                      <span style={{ fontWeight: 600 }}>
+                        {entry.riotId.split('#')[0]}
+                      </span>
+                      <span style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginLeft: 4 }}>
+                        #{entry.riotId.split('#')[1]}
+                      </span>
+                    </PlayerLink>
                   </td>
                   <td>
                     <span style={{ fontSize: 11, fontWeight: 700, color: tier.color,
@@ -395,6 +397,7 @@ function EloTab() {
 // ── MVP 탭 ────────────────────────────────────────────
 function MvpTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
+  const { champions } = useDragon();
   const [data, setData] = useState<MvpStatsResult | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -458,7 +461,18 @@ function MvpTab({ mode }: { mode: string }) {
                   </div>
                 </td>
                 <td className="table-number" style={{ fontWeight: 700 }}>{p.avgMvpScore.toFixed(2)}</td>
-                <td style={{ fontSize: 12, color: 'var(--color-text-secondary)', wordBreak: 'keep-all', overflowWrap: 'break-word' }}>{p.topChampion ?? '—'}</td>
+                <td>
+                  {p.topChampion && p.topChampionId ? (
+                    <ChampionLink champion={p.topChampion} championId={p.topChampionId} mode={mode}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <ChampImg championId={p.topChampionId} champion={p.topChampion} size={24} />
+                        <span style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>
+                          {champions.get(p.topChampionId)?.nameKo ?? p.topChampion}
+                        </span>
+                      </div>
+                    </ChampionLink>
+                  ) : <span style={{ color: 'var(--color-text-disabled)' }}>—</span>}
+                </td>
               </tr>
             ))}
             {!data.rankings.length && (
@@ -632,10 +646,12 @@ function LaneTab({ mode }: { mode: string }) {
                     </td>
                     <td>
                       {p.topChampionId ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <ChampImg championId={p.topChampionId} champion={champName} size={24} />
-                          <span style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{nameKo}</span>
-                        </div>
+                        <ChampionLink champion={champName} championId={p.topChampionId} mode={mode}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <ChampImg championId={p.topChampionId} champion={champName} size={24} />
+                            <span style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{nameKo}</span>
+                          </div>
+                        </ChampionLink>
                       ) : <span style={{ color: 'var(--color-text-disabled)' }}>—</span>}
                     </td>
                     <td className="table-number">{p.games}</td>

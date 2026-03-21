@@ -40,6 +40,7 @@ class GetMvpStatsHandler(
             var aceCount: Int = 0,
             var totalScore: Double = 0.0,
             val mvpChampions: MutableMap<String, Int> = mutableMapOf(),
+            val mvpChampionIds: MutableMap<String, Int> = mutableMapOf(),
         )
 
         val accMap = mutableMapOf<String, PlayerAcc>()
@@ -62,6 +63,7 @@ class GetMvpStatsHandler(
                 accMap.getOrPut(mvp.riotId) { PlayerAcc() }.mvpCount++
                 accMap[mvp.riotId]!!.mvpChampions[mvp.champion] =
                     (accMap[mvp.riotId]!!.mvpChampions[mvp.champion] ?: 0) + 1
+                accMap[mvp.riotId]!!.mvpChampionIds[mvp.champion] = mvp.championId
             }
 
             // ACE: 전체 최고 점수
@@ -89,6 +91,8 @@ class GetMvpStatsHandler(
                     mvpRate      = acc.mvpCount * 100 / acc.games,
                     avgMvpScore  = r2(acc.totalScore / acc.games),
                     topChampion  = acc.mvpChampions.maxByOrNull { it.value }?.key,
+                    topChampionId = acc.mvpChampions.maxByOrNull { it.value }?.key
+                        ?.let { acc.mvpChampionIds[it] },
                 )
             }
             .sortedWith(compareByDescending<MvpPlayerStat> { it.mvpCount }.thenByDescending { it.aceCount })

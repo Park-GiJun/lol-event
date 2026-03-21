@@ -222,6 +222,7 @@ export interface MvpPlayerStat {
   mvpRate: number;
   avgMvpScore: number;
   topChampion: string | null;
+  topChampionId: number | null;
 }
 
 export interface MvpStatsResult {

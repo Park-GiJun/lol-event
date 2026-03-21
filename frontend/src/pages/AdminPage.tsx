@@ -11,6 +11,7 @@ import type {
   PlayerDetailStats,
   LaneStat,
 } from '../lib/types/stats';
+import { PlayerLink } from '../components/common/PlayerLink';
 import '../styles/pages/monitoring.css';
 import '../styles/pages/stats.css';
 
@@ -370,7 +371,7 @@ export function AdminPage() {
                     <td style={{ ...tdS, fontWeight: 700, color: entry.rank <= 3 ? 'var(--color-primary)' : 'var(--color-text-secondary)', width: 48 }}>
                       #{entry.rank}
                     </td>
-                    <td style={{ ...tdS, fontWeight: 600 }}>{entry.riotId}</td>
+                    <td style={{ ...tdS, fontWeight: 600 }}><PlayerLink riotId={entry.riotId}>{entry.riotId}</PlayerLink></td>
                     <td style={{ ...tdS, fontWeight: 700, color: entry.elo >= 1600 ? 'var(--color-win)' : entry.elo < 1400 ? 'var(--color-loss)' : 'var(--color-text-primary)' }}>
                       {entry.elo.toFixed(1)}
                     </td>
@@ -418,7 +419,7 @@ export function AdminPage() {
                   const mvp = mvpStats.find(m => m.riotId === player.riotId);
                   return (
                     <tr key={player.riotId} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <td style={tdS}><span style={{ fontWeight: 600 }}>{player.riotId}</span></td>
+                      <td style={tdS}><PlayerLink riotId={player.riotId}><span style={{ fontWeight: 600 }}>{player.riotId}</span></PlayerLink></td>
                       <td style={{ ...tdS, color: 'var(--color-primary)', fontWeight: 700 }}>
                         {mvp ? mvp.avgMvpScore.toFixed(1) : '-'}
                         {mvp && mvp.mvpCount > 0 && (
