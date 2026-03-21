@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Lock, RefreshCw, Play, Users, Trophy, Zap, X, Trash2 } from 'lucide-react';
+import { Shield, Lock, RefreshCw, Play, Users, Trophy, Zap, X, Trash2, BarChart2 } from 'lucide-react';
 import { api } from '../lib/api/api';
 import type {
   StatsResponse,
@@ -89,6 +89,12 @@ export function AdminPage() {
   const [clearingCache, setClearingCache] = useState(false);
   const [clearCacheMsg, setClearCacheMsg] = useState('');
 
+  // elo reset
+  const [eloResetting, setEloResetting] = useState(false);
+  const [eloResetMsg, setEloResetMsg] = useState('');
+  const [eloLeaderboard, setEloLeaderboard] = useState<{ rank: number; riotId: string; elo: number; games: number }[]>([]);
+  const [eloLoading, setEloLoading] = useState(false);
+
   // data
   const [allStats, setAllStats] = useState<PlayerStats[]>([]);
   const [mvpStats, setMvpStats] = useState<MvpPlayerStat[]>([]);
@@ -124,6 +130,31 @@ export function AdminPage() {
     if (mr.status === 'fulfilled') setMvpStats((mr.value as MvpStatsResult).rankings);
     if (dr.status === 'fulfilled') setDuoData((dr.value as DuoStatsResult).duos);
     if (br.status === 'fulfilled') setBatchStatus(br.value as BatchStatus);
+    loadEloLeaderboard();
+  }
+
+  async function loadEloLeaderboard() {
+    setEloLoading(true);
+    try {
+      const res = await api.get<{ players: { rank: number; riotId: string; elo: number; games: number }[] }>('/stats/elo');
+      setEloLeaderboard(res.players);
+    } catch { /* 조용히 실패 */ }
+    finally { setEloLoading(false); }
+  }
+
+  async function resetElo() {
+    if (!window.confirm('전체 Elo 데이터를 초기화하고 전체 매치를 재집계합니다.\n매치 수에 따라 시간이 걸릴 수 있습니다. 계속하시겠습니까?')) return;
+    setEloResetting(true);
+    setEloResetMsg('');
+    try {
+      await api.post('/admin/elo/reset', {});
+      setEloResetMsg('Elo 재집계 완료! 리더보드를 새로고침합니다...');
+      await loadEloLeaderboard();
+    } catch {
+      setEloResetMsg('Elo 재집계에 실패했습니다.');
+    } finally {
+      setEloResetting(false);
+    }
   }
 
   async function loadPositions() {
@@ -297,7 +328,67 @@ export function AdminPage() {
         )}
       </section>
 
-      {/* ── 2. 포지션별 승리기여도 ────────────────── */}
+      {/* ── 2. Elo 관리 ──────────────────────────── */}
+      <section className="stats-section card" style={{ marginBottom: 20 }}>
+        <div className="stats-section-title" style={{ justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <BarChart2 size={16} />Elo 관리
+            <span className="stats-section-sub">전체 초기화 후 매치 시간순 재집계</span>
+          </div>
+          <button className="btn btn-secondary" onClick={loadEloLeaderboard} disabled={eloLoading}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+            <RefreshCw size={12} />{eloLoading ? '로딩 중...' : '새로고침'}
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <button className="btn btn-secondary" onClick={resetElo} disabled={eloResetting}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-loss)' }}>
+            <Trash2 size={14} />{eloResetting ? '재집계 중...' : 'Elo 전체 초기화 및 재집계'}
+          </button>
+          {eloResetMsg && (
+            <span style={{ fontSize: 13, color: eloResetMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
+              {eloResetMsg}
+            </span>
+          )}
+        </div>
+
+        {eloLeaderboard.length > 0 && (
+          <div style={{ marginTop: 16, overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  <th style={thS}>순위</th>
+                  <th style={thS}>플레이어</th>
+                  <th style={thS}>Elo</th>
+                  <th style={thS}>판수</th>
+                </tr>
+              </thead>
+              <tbody>
+                {eloLeaderboard.map(entry => (
+                  <tr key={entry.riotId} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <td style={{ ...tdS, fontWeight: 700, color: entry.rank <= 3 ? 'var(--color-primary)' : 'var(--color-text-secondary)', width: 48 }}>
+                      #{entry.rank}
+                    </td>
+                    <td style={{ ...tdS, fontWeight: 600 }}>{entry.riotId}</td>
+                    <td style={{ ...tdS, fontWeight: 700, color: entry.elo >= 1600 ? 'var(--color-win)' : entry.elo < 1400 ? 'var(--color-loss)' : 'var(--color-text-primary)' }}>
+                      {entry.elo.toFixed(1)}
+                    </td>
+                    <td style={{ ...tdS, color: 'var(--color-text-secondary)' }}>{entry.games}판</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {!eloLoading && eloLeaderboard.length === 0 && (
+          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: '12px 0' }}>
+            Elo 데이터가 없습니다. [Elo 전체 초기화 및 재집계] 버튼을 눌러 집계하세요.
+          </p>
+        )}
+      </section>
+
+      {/* ── 3. 포지션별 승리기여도 ────────────────── */}
       <section className="stats-section card" style={{ marginBottom: 20 }}>
         <div className="stats-section-title" style={{ justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -363,7 +454,7 @@ export function AdminPage() {
         )}
       </section>
 
-      {/* ── 3. 팀 빌더 (Drag & Drop 4팀) ─────────── */}
+      {/* ── 4. 팀 빌더 (Drag & Drop 4팀) ─────────── */}
       <section className="stats-section card" style={{ marginBottom: 20 }}>
         <div className="stats-section-title" style={{ justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -503,7 +594,7 @@ export function AdminPage() {
         </div>
       </section>
 
-      {/* ── 4. 전체 듀오 시너지 Top ───────────────── */}
+      {/* ── 5. 전체 듀오 시너지 Top ───────────────── */}
       <section className="stats-section card">
         <div className="stats-section-title">
           <Zap size={16} />듀오 시너지 전체
