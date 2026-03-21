@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { setErrorHandler } from './lib/api/api';
 import { DragonProvider } from './context/DragonContext';
 import { Layout } from './components/layout/Layout';
+import { MobileLayout } from './components/layout/MobileLayout';
 import { StatsPage } from './pages/StatsPage';
 import { MemberStatsListPage } from './pages/MemberStatsListPage';
 import { PlayerStatsPage } from './pages/PlayerStatsPage';
@@ -13,6 +14,28 @@ import { LcuPage } from './pages/LcuPage';
 import { SyncPage } from './pages/SyncPage';
 import { AdminPage } from './pages/AdminPage';
 import { ErrorModal } from './components/common/ErrorModal';
+import { MobileStatsPage } from './pages/mobile/MobileStatsPage';
+import { MobileMatchesPage } from './pages/mobile/MobileMatchesPage';
+import { MobilePlayerListPage } from './pages/mobile/MobilePlayerListPage';
+import { MobilePlayerDetailPage } from './pages/mobile/MobilePlayerDetailPage';
+import { MobileChampionListPage } from './pages/mobile/MobileChampionListPage';
+import { MobileChampionDetailPage } from './pages/mobile/MobileChampionDetailPage';
+import { MobileMorePage } from './pages/mobile/MobileMorePage';
+import { MobileMembersPage } from './pages/mobile/MobileMembersPage';
+import { MobileAdminPage } from './pages/mobile/MobileAdminPage';
+import { MobileSyncPage } from './pages/mobile/MobileSyncPage';
+import { MobileLcuPage } from './pages/mobile/MobileLcuPage';
+import { useIsMobile } from './hooks/useMobile';
+
+function MobileRedirect() {
+  const isMobile = useIsMobile();
+  useEffect(() => {
+    if (isMobile && !window.location.pathname.startsWith('/m')) {
+      window.location.replace('/m');
+    }
+  }, [isMobile]);
+  return null;
+}
 
 function App() {
   const [error, setError] = useState<{ title: string; message: string } | null>(null);
@@ -22,7 +45,9 @@ function App() {
   return (
     <DragonProvider>
     <BrowserRouter>
+      <MobileRedirect />
       <Routes>
+        {/* Desktop routes */}
         <Route element={<Layout />}>
           <Route index element={<StatsPage />} />
           <Route path="player-stats" element={<MemberStatsListPage />} />
@@ -34,6 +59,22 @@ function App() {
           <Route path="lcu" element={<LcuPage />} />
           <Route path="sync" element={<SyncPage />} />
           <Route path="admin" element={<AdminPage />} />
+        </Route>
+
+        {/* Mobile routes */}
+        <Route path="m" element={<MobileLayout />}>
+          <Route index element={<MobileStatsPage />} />
+          <Route path="matches" element={<MobileMatchesPage />} />
+          <Route path="players" element={<MobilePlayerListPage />} />
+          <Route path="player/:riotId" element={<MobilePlayerDetailPage />} />
+          <Route path="champions" element={<MobileChampionListPage />} />
+          <Route path="champion/:champion" element={<MobileChampionDetailPage />} />
+          <Route path="more" element={<MobileMorePage />} />
+          <Route path="members" element={<MobileMembersPage />} />
+          <Route path="admin" element={<MobileAdminPage />} />
+          <Route path="sync" element={<MobileSyncPage />} />
+          <Route path="lcu" element={<MobileLcuPage />} />
+          <Route path="*" element={<Navigate to="/m" replace />} />
         </Route>
       </Routes>
       <ErrorModal

@@ -1,0 +1,770 @@
+/* ── Mobile Layout ─────────────────────────────────────────────────────── */
+
+.m-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--color-bg-primary);
+}
+
+/* Header */
+.m-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  z-index: 100;
+  padding: 0 4px;
+}
+
+.m-header-back {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-text-primary);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.m-header-back:active {
+  background: var(--color-bg-hover);
+}
+
+.m-header-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--color-text-primary);
+  text-align: center;
+  flex: 1;
+}
+
+/* Content */
+.m-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 12px calc(68px + 12px);
+  margin-top: 52px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Bottom Nav */
+.m-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 100;
+}
+
+.m-bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: color 0.15s;
+  padding: 6px 0;
+}
+
+.m-bottom-nav-item.active {
+  color: var(--color-primary);
+}
+
+.m-bottom-nav-item:active {
+  opacity: 0.7;
+}
+
+/* Card */
+.m-card {
+  background: var(--color-bg-card);
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  margin-bottom: 10px;
+}
+
+/* Section Title */
+.m-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Sort Chips */
+.m-sort-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.m-sort-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.m-sort-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--color-bg-hover);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.m-sort-chip.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #0A1428;
+}
+
+/* Mode Chips */
+.m-mode-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.m-mode-chips::-webkit-scrollbar {
+  display: none;
+}
+
+/* Player Card */
+.m-player-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 8px;
+  text-decoration: none;
+  display: block;
+  color: inherit;
+}
+
+.m-player-card:active {
+  background: var(--color-bg-hover);
+}
+
+.m-player-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.m-player-rank {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  background: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+}
+
+.m-player-rank.rank-1 {
+  background: rgba(255, 215, 0, 0.15);
+  color: #FFD700;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.m-player-rank.rank-2 {
+  background: rgba(192, 192, 192, 0.15);
+  color: #C0C0C0;
+  border: 1px solid rgba(192, 192, 192, 0.3);
+}
+
+.m-player-rank.rank-3 {
+  background: rgba(205, 127, 50, 0.15);
+  color: #CD7F32;
+  border: 1px solid rgba(205, 127, 50, 0.3);
+}
+
+.m-player-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.m-player-tag {
+  font-size: 10px;
+  color: var(--color-text-disabled);
+}
+
+.m-player-games {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* Win Bar */
+.m-win-bar-wrap {
+  margin-top: 8px;
+}
+
+.m-win-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+  color: var(--color-text-secondary);
+}
+
+.m-win-bar-label span:first-child {
+  color: var(--color-win);
+  font-weight: 600;
+}
+
+.m-win-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-bg-hover);
+  overflow: hidden;
+}
+
+.m-win-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+  background: var(--color-win);
+}
+
+/* Stat Chips */
+.m-stat-chips {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.m-stat-chip {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-hover);
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
+/* Match Card */
+.m-match-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+}
+
+.m-match-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.m-win-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.m-win-badge.win {
+  background: rgba(11, 196, 180, 0.15);
+  color: var(--color-win);
+  border: 1px solid rgba(11, 196, 180, 0.3);
+}
+
+.m-win-badge.loss {
+  background: rgba(232, 64, 64, 0.15);
+  color: var(--color-loss);
+  border: 1px solid rgba(232, 64, 64, 0.3);
+}
+
+/* Participants */
+.m-participants {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.m-participant-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 3px 0;
+  color: var(--color-text-secondary);
+}
+
+.m-participant-row.is-self {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.m-champ-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.m-champ-icon-placeholder {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  background: var(--color-bg-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--color-text-disabled);
+  flex-shrink: 0;
+}
+
+/* Elo Card */
+.m-elo-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(200,155,60,0.1) 0%, rgba(200,155,60,0.03) 100%);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(200,155,60,0.2);
+}
+
+/* Overview Grid */
+.m-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.m-overview-stat {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+
+.m-overview-stat-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1.2;
+}
+
+.m-overview-stat-label {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+/* Tab Bar */
+.m-tab-bar {
+  display: flex;
+  overflow-x: auto;
+  gap: 4px;
+  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.m-tab-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.m-tab {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--color-text-secondary);
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.m-tab.active {
+  background: var(--color-primary);
+  color: #0A1428;
+}
+
+/* Leader Row */
+.m-leader-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 13px;
+}
+
+.m-leader-row:last-child {
+  border-bottom: none;
+}
+
+/* Empty / Loading */
+.m-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.m-loading {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--color-text-secondary);
+}
+
+/* Champ grid */
+.m-champ-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.m-champ-grid-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 6px 4px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.m-champ-grid-item:active {
+  background: var(--color-bg-hover);
+}
+
+.m-champ-grid-img {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.m-champ-grid-img-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  background: var(--color-bg-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: var(--color-text-disabled);
+}
+
+.m-champ-grid-name {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  text-align: center;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* FAB */
+.m-fab {
+  position: fixed;
+  bottom: 72px;
+  right: 16px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #0A1428;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  z-index: 50;
+  transition: opacity 0.15s;
+}
+
+.m-fab:active {
+  opacity: 0.8;
+}
+
+/* More page grid */
+.m-more-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.m-more-item {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-decoration: none;
+  color: var(--color-text-primary);
+}
+
+.m-more-item:active {
+  background: var(--color-bg-hover);
+}
+
+.m-more-item-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(200,155,60,0.1);
+  border: 1px solid rgba(200,155,60,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+}
+
+.m-more-item-label {
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Search input */
+.m-search {
+  width: 100%;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  outline: none;
+  margin-bottom: 12px;
+  font-family: var(--font-family);
+}
+
+.m-search::placeholder {
+  color: var(--color-text-disabled);
+}
+
+.m-search:focus {
+  border-color: var(--color-primary);
+}
+
+/* Admin */
+.m-admin-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  font-family: var(--font-family);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.m-admin-btn:active {
+  opacity: 0.8;
+}
+
+.m-admin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.m-admin-btn-primary {
+  background: var(--color-primary);
+  color: #0A1428;
+}
+
+.m-admin-btn-danger {
+  background: rgba(232,64,64,0.1);
+  color: var(--color-error);
+  border: 1px solid rgba(232,64,64,0.25);
+}
+
+.m-admin-btn-secondary {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+/* Session group */
+.m-session-group {
+  margin-bottom: 16px;
+}
+
+.m-session-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 0 6px;
+}
+
+/* Mini champ icons row */
+.m-champ-icons {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.m-champ-icon-sm {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.m-champ-icon-sm-placeholder {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: var(--color-bg-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  color: var(--color-text-disabled);
+}
+
+/* Elo badge */
+.m-elo-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+/* Match expand toggle */
+.m-match-toggle {
+  margin-left: auto;
+  color: var(--color-text-disabled);
+  flex-shrink: 0;
+}
+
+/* Password input */
+.m-pw-input {
+  width: 100%;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 16px;
+  color: var(--color-text-primary);
+  outline: none;
+  margin-bottom: 12px;
+  font-family: var(--font-family);
+  text-align: center;
+  letter-spacing: 4px;
+}
+
+.m-pw-input:focus {
+  border-color: var(--color-primary);
+}
+
+/* Lane tabs */
+.m-lane-tab {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-hover);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.m-lane-tab.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #0A1428;
+}
+
+/* Synergy card */
+.m-synergy-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+/* Status indicator */
+.m-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.m-status-dot.ok { background: var(--color-win); }
+.m-status-dot.error { background: var(--color-error); }
+.m-status-dot.skip { background: var(--color-text-disabled); }
