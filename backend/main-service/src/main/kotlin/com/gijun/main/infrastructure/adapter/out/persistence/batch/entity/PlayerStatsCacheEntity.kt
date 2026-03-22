@@ -21,6 +21,8 @@ class PlayerStatsCacheEntity(
     @Column(nullable = false, columnDefinition = "NUMERIC(6,2)") val kda: Double = 0.0,
     @Column(nullable = false) val avgDamage: Int = 0,
     @Column(nullable = false, columnDefinition = "NUMERIC(6,2)") val avgCs: Double = 0.0,
+    @Column(nullable = false) val avgGold: Int = 0,
+    @Column(nullable = false, columnDefinition = "NUMERIC(6,2)") val avgVisionScore: Double = 0.0,
     @Column val topChampion: String? = null,
     @Column(nullable = false) val aggregatedAt: LocalDateTime = LocalDateTime.now(),
 )

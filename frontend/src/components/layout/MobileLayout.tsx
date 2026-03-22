@@ -1,17 +1,18 @@
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { BarChart2, List, UserRound, Swords, MoreHorizontal, ChevronLeft } from 'lucide-react';
+import { BarChart2, List, Trophy, Swords, MoreHorizontal, ChevronLeft } from 'lucide-react';
 import '../../styles/layouts/mobile-layout.css';
 
 const TABS = [
-  { to: '/m',           icon: BarChart2,      label: '통계',    end: true },
+  { to: '/m',           icon: Trophy,         label: '홈',      end: true },
+  { to: '/m/stats',     icon: BarChart2,      label: '통계',    end: false },
   { to: '/m/matches',   icon: List,           label: '경기',    end: false },
-  { to: '/m/players',   icon: UserRound,      label: '플레이어', end: false },
   { to: '/m/champions', icon: Swords,         label: '챔피언',  end: false },
   { to: '/m/more',      icon: MoreHorizontal, label: '더보기',  end: false },
 ];
 
 const TITLES: Record<string, string> = {
-  '/m': '통계',
+  '/m': 'Elo 리더보드',
+  '/m/stats': '통계',
   '/m/matches': '경기 기록',
   '/m/players': '플레이어',
   '/m/champions': '챔피언',

@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
-import { Users, Shield, Database, Monitor } from 'lucide-react';
+import { Users, Shield, Database, Monitor, UserRound } from 'lucide-react';
 
 const ITEMS = [
+  { to: '/m/players', icon: UserRound, label: '플레이어',   desc: '개인 통계 확인' },
   { to: '/m/members', icon: Users,     label: '멤버 관리',  desc: '멤버 등록·삭제' },
   { to: '/m/admin',   icon: Shield,    label: '관리자',     desc: '배치·Elo 관리' },
   { to: '/m/sync',    icon: Database,  label: 'DataDragon', desc: '챔피언·아이템 동기화' },

@@ -1,4 +1,7 @@
 import { useLeaderboard } from '@/hooks/useLeaderboard';
+import { usePlayers } from '@/hooks/usePlayers';
+import { useSortTable } from '@/hooks/useSortTable';
+import { SortableTh } from '@/components/common/SortableTh';
 import { InlineError } from '@/components/common/InlineError';
 import { Skeleton } from '@/components/common/Skeleton';
 import { PlayerLink } from '@/components/common/PlayerLink';
@@ -42,6 +45,22 @@ function RankBadge({ rank }: { rank: number }) {
   );
 }
 
+type SortCol = 'elo' | 'winRate' | 'kda' | 'games';
+
+function ColGroup() {
+  return (
+    <colgroup>
+      <col style={{ width: 48 }} />
+      <col />
+      <col style={{ width: 88 }} />
+      <col style={{ width: 72 }} />
+      <col style={{ width: 72 }} />
+      <col style={{ width: 64 }} />
+      <col style={{ width: 52 }} />
+    </colgroup>
+  );
+}
+
 // ── Props ────────────────────────────────────────────────────
 
 export interface EloLeaderboardProps {
@@ -52,17 +71,32 @@ export interface EloLeaderboardProps {
 
 export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
   const { data, isLoading, error, refetch } = useLeaderboard();
+  const { data: statsData } = usePlayers('all');
+  const { sortKey, sortDir, handleSort, sorted } = useSortTable<SortCol>('elo');
+
+  const statsMap = new Map((statsData?.stats ?? []).map(s => [s.riotId, s]));
+
+  type Row = EloRankEntry & { winRate: number; kda: number };
+
+  const getValue = (key: SortCol, row: Row): number => {
+    if (key === 'elo')     return row.elo;
+    if (key === 'winRate') return row.winRate;
+    if (key === 'kda')     return row.kda;
+    if (key === 'games')   return row.games;
+    return 0;
+  };
 
   if (isLoading) {
     return (
       <div className="table-wrapper">
         <table className="table member-stats-table">
+          <ColGroup />
           <thead>
             <tr>
-              <th style={{ width: 48 }}>순위</th>
-              <th>플레이어</th>
-              <th>티어</th>
+              <th>순위</th><th>플레이어</th><th>티어</th>
               <th className="table-number">Elo</th>
+              <th className="table-number">승률</th>
+              <th className="table-number">KDA</th>
               <th className="table-number">게임</th>
             </tr>
           </thead>
@@ -70,9 +104,11 @@ export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
             {Array.from({ length: 5 }).map((_, i) => (
               <tr key={i}>
                 <td><Skeleton className="h-6 w-6 rounded-full" /></td>
-                <td><Skeleton className="h-4 w-32" /></td>
+                <td><Skeleton className="h-4 w-28" /></td>
                 <td><Skeleton className="h-4 w-16" /></td>
                 <td className="table-number"><Skeleton className="h-4 w-12 ml-auto" /></td>
+                <td className="table-number"><Skeleton className="h-4 w-10 ml-auto" /></td>
+                <td className="table-number"><Skeleton className="h-4 w-10 ml-auto" /></td>
                 <td className="table-number"><Skeleton className="h-4 w-8 ml-auto" /></td>
               </tr>
             ))}
@@ -83,12 +119,7 @@ export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
   }
 
   if (error) {
-    return (
-      <InlineError
-        message="리더보드를 불러오지 못했습니다."
-        onRetry={() => void refetch()}
-      />
-    );
+    return <InlineError message="리더보드를 불러오지 못했습니다." onRetry={() => void refetch()} />;
   }
 
   if (!data || data.players.length === 0) {
@@ -99,46 +130,50 @@ export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
     );
   }
 
+  const rows: Row[] = data.players.map(entry => {
+    const s = statsMap.get(entry.riotId);
+    return { ...entry, winRate: s?.winRate ?? 0, kda: s?.kda ?? 0 };
+  });
+
+  const displayed = sorted(rows, getValue);
+
   return (
     <div className="table-wrapper">
       <table className="table member-stats-table">
+        <ColGroup />
         <thead>
           <tr>
-            <th style={{ width: 48 }}>순위</th>
+            <th>순위</th>
             <th>플레이어</th>
             <th>티어</th>
-            <th className="table-number">Elo</th>
-            <th className="table-number">게임</th>
+            <SortableTh label="Elo"  col="elo"     sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
+            <SortableTh label="승률" col="winRate"  sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
+            <SortableTh label="KDA"  col="kda"      sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
+            <SortableTh label="게임" col="games"    sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
           </tr>
         </thead>
         <tbody>
-          {data.players.map((entry: EloRankEntry) => {
+          {displayed.map((entry) => {
             const tier = eloTier(entry.elo);
             const isCurrentUser = currentRiotId !== undefined && entry.riotId === currentRiotId;
+            const [name, tag = ''] = entry.riotId.split('#');
+            const wrColor = entry.winRate >= 60 ? 'var(--color-win)' : entry.winRate >= 50 ? 'var(--color-primary)' : entry.winRate > 0 ? 'var(--color-loss)' : 'var(--color-text-disabled)';
+            const kdaColor = entry.kda >= 5 ? 'var(--color-win)' : entry.kda >= 3 ? 'var(--color-primary)' : 'var(--color-text-primary)';
             return (
               <tr
                 key={entry.riotId}
                 className="member-stats-row"
                 style={isCurrentUser ? { background: 'rgba(11, 196, 180, 0.08)' } : undefined}
               >
-                <td>
-                  <RankBadge rank={entry.rank} />
-                </td>
+                <td><RankBadge rank={entry.rank} /></td>
                 <td>
                   <PlayerLink riotId={entry.riotId} mode="all">
-                    {(() => {
-                      const [name, tag = ''] = entry.riotId.split('#');
-                      return (
-                        <>
-                          <span style={{ fontWeight: 600 }}>{name}</span>
-                          {tag && (
-                            <span style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginLeft: 4 }}>
-                              #{tag}
-                            </span>
-                          )}
-                        </>
-                      );
-                    })()}
+                    <span style={{ fontWeight: 600 }}>{name}</span>
+                    {tag && (
+                      <span style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginLeft: 4 }}>
+                        #{tag}
+                      </span>
+                    )}
                   </PlayerLink>
                 </td>
                 <td>
@@ -152,6 +187,12 @@ export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
                 </td>
                 <td className="table-number" style={{ fontWeight: 700, color: tier.color }}>
                   {entry.elo.toFixed(1)}
+                </td>
+                <td className="table-number" style={{ fontWeight: 600, color: wrColor }}>
+                  {entry.winRate > 0 ? `${entry.winRate}%` : '—'}
+                </td>
+                <td className="table-number" style={{ fontWeight: 600, color: kdaColor }}>
+                  {entry.kda > 0 ? entry.kda.toFixed(2) : '—'}
                 </td>
                 <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>
                   {entry.games}

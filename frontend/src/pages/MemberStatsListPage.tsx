@@ -4,6 +4,8 @@ import { api } from '../lib/api/api';
 import type { StatsResponse, PlayerStats } from '../lib/types/stats';
 import { Skeleton } from '../components/common/Skeleton';
 import { Button } from '../components/common/Button';
+import { SortableTh } from '../components/common/SortableTh';
+import { useSortTable } from '../hooks/useSortTable';
 import { useDragon } from '../context/DragonContext';
 import { PlayerLink } from '../components/common/PlayerLink';
 import '../styles/pages/stats.css';
@@ -14,11 +16,7 @@ const MODES = [
   { value: 'all',    label: '전체' },
 ];
 
-const RANK_COLORS: Record<number, string> = {
-  1: '#FFD700',
-  2: '#C0C0C0',
-  3: '#CD7F32',
-};
+const RANK_COLORS: Record<number, string> = { 1: '#FFD700', 2: '#C0C0C0', 3: '#CD7F32' };
 
 function RankBadge({ rank }: { rank: number }) {
   const color = RANK_COLORS[rank];
@@ -37,16 +35,16 @@ function RankBadge({ rank }: { rank: number }) {
 function WinRatePill({ winRate, wins, losses }: { winRate: number; wins: number; losses: number }) {
   const color = winRate >= 60 ? 'var(--color-win)' : winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 90 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ fontWeight: 700, fontSize: 13, color, minWidth: 36 }}>{winRate}%</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+        <span style={{ fontWeight: 700, fontSize: 13, color, minWidth: 34 }}>{winRate}%</span>
         <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>
           <span style={{ color: 'var(--color-win)' }}>{wins}W</span>
           {' '}<span style={{ color: 'var(--color-loss)' }}>{losses}L</span>
         </span>
       </div>
-      <div style={{ height: 4, background: 'var(--color-bg-hover)', borderRadius: 2, overflow: 'hidden' }}>
-        <div style={{ width: `${winRate}%`, height: '100%', background: color, borderRadius: 2, transition: 'width 0.3s' }} />
+      <div style={{ height: 3, background: 'var(--color-bg-hover)', borderRadius: 2, overflow: 'hidden', width: 80 }}>
+        <div style={{ width: `${winRate}%`, height: '100%', background: color, borderRadius: 2 }} />
       </div>
     </div>
   );
@@ -86,12 +84,31 @@ function ChampBadges({ champions }: { champions: PlayerStats['topChampions'] }) 
   );
 }
 
+type SortCol = 'games' | 'winRate' | 'kda' | 'avgKills' | 'avgDamage' | 'avgCs' | 'avgGold' | 'avgVisionScore';
+
+function ColGroup() {
+  return (
+    <colgroup>
+      <col style={{ width: 36 }} />
+      <col />
+      <col style={{ width: 52 }} />
+      <col style={{ width: 110 }} />
+      <col style={{ width: 90 }} />
+      <col style={{ width: 80 }} />
+      <col style={{ width: 60 }} />
+      <col style={{ width: 72 }} />
+      <col style={{ width: 68 }} />
+      <col style={{ width: 90 }} />
+    </colgroup>
+  );
+}
+
 export function MemberStatsListPage() {
-  const [data, setData]         = useState<StatsResponse | null>(null);
-  const [mode, setMode]         = useState('normal');
-  const [loading, setLoading]   = useState(true);
-  const [sort, setSort]         = useState<keyof PlayerStats>('winRate');
+  const [data, setData]       = useState<StatsResponse | null>(null);
+  const [mode, setMode]       = useState('normal');
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { sortKey, sortDir, handleSort, sorted } = useSortTable<SortCol>('winRate');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -101,25 +118,26 @@ export function MemberStatsListPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const sorted = data?.stats
-    ? [...data.stats].sort((a, b) => (b[sort] as number) - (a[sort] as number))
-    : [];
+  const getValue = (key: SortCol, s: PlayerStats): number => {
+    if (key === 'games')      return s.games;
+    if (key === 'winRate')    return s.winRate;
+    if (key === 'kda')        return s.kda;
+    if (key === 'avgKills')   return s.avgKills;
+    if (key === 'avgDamage')       return s.avgDamage;
+    if (key === 'avgCs')           return s.avgCs;
+    if (key === 'avgGold')         return s.avgGold;
+    if (key === 'avgVisionScore')  return s.avgVisionScore;
+    return 0;
+  };
 
-  const cols: { key: keyof PlayerStats; label: string }[] = [
-    { key: 'winRate',   label: '승률' },
-    { key: 'kda',       label: 'KDA' },
-    { key: 'avgKills',  label: '킬' },
-    { key: 'avgDamage', label: '딜량' },
-    { key: 'avgCs',     label: 'CS' },
-    { key: 'games',     label: '판수' },
-  ];
+  const displayed = data?.stats ? sorted(data.stats, getValue) : [];
 
   return (
     <div>
       <div className="page-header flex items-center justify-between">
         <div>
           <h1 className="page-title">멤버 통계</h1>
-          <p className="page-subtitle">총 {data?.matchCount ?? 0}경기 · {sorted.length}명</p>
+          <p className="page-subtitle">총 {data?.matchCount ?? 0}경기 · {displayed.length}명</p>
         </div>
         <div className="flex gap-sm">
           {MODES.map(m => (
@@ -129,79 +147,52 @@ export function MemberStatsListPage() {
         </div>
       </div>
 
-      {loading ? (
-        <div className="card">
-          <div className="member-sort-tabs">
-            {cols.map(c => (
-              <button key={c.key} className="member-sort-tab" disabled>{c.label}</button>
-            ))}
-          </div>
-          <div className="table-wrapper">
-            <table className="table member-stats-table">
-              <thead>
-                <tr>
-                  <th style={{ width: 36 }}>#</th>
-                  <th>플레이어</th>
-                  <th>판수</th>
-                  <th style={{ minWidth: 120 }}>승률</th>
-                  <th>KDA</th>
-                  <th className="table-number">평균 딜</th>
-                  <th className="table-number">CS</th>
-                  <th>주요 챔피언</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Array.from({ length: 8 }).map((_, i) => (
+      <div className="card">
+        <div className="table-wrapper">
+          <table className="table member-stats-table">
+            <ColGroup />
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>플레이어</th>
+                <SortableTh label="판수"     col="games"          sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                <SortableTh label="승률"     col="winRate"        sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                <SortableTh label="KDA"      col="kda"            sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+                <SortableTh label="평균 딜"  col="avgDamage"      sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
+                <SortableTh label="CS"       col="avgCs"          sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
+                <SortableTh label="골드"     col="avgGold"        sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
+                <SortableTh label="비전"     col="avgVisionScore" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
+                <th>주요 챔피언</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i}>
                     <td><Skeleton className="h-6 w-6 rounded-full" /></td>
                     <td><Skeleton className="h-4 w-28" /></td>
                     <td><Skeleton className="h-4 w-10" /></td>
                     <td><Skeleton className="h-4 w-20" /></td>
                     <td><Skeleton className="h-4 w-14" /></td>
-                    <td><Skeleton className="h-4 w-16" /></td>
-                    <td><Skeleton className="h-4 w-10" /></td>
+                    <td><Skeleton className="h-4 w-16 ml-auto" /></td>
+                    <td><Skeleton className="h-4 w-10 ml-auto" /></td>
+                    <td><Skeleton className="h-4 w-14 ml-auto" /></td>
+                    <td><Skeleton className="h-4 w-10 ml-auto" /></td>
                     <td>
                       <div className="flex gap-1">
-                        {Array.from({ length: 3 }).map((_, j) => (
-                          <Skeleton key={j} className="h-6 w-6 rounded" />
-                        ))}
+                        {Array.from({ length: 3 }).map((_, j) => <Skeleton key={j} className="h-6 w-6 rounded" />)}
                       </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : (
-        <div className="card">
-          {/* 정렬 탭 */}
-          <div className="member-sort-tabs">
-            {cols.map(c => (
-              <button key={c.key}
-                className={`member-sort-tab ${sort === c.key ? 'active' : ''}`}
-                onClick={() => setSort(c.key)}>
-                {c.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="table-wrapper">
-            <table className="table member-stats-table">
-              <thead>
+                ))
+              ) : displayed.length === 0 ? (
                 <tr>
-                  <th style={{ width: 36 }}>#</th>
-                  <th>플레이어</th>
-                  <th>판수</th>
-                  <th style={{ minWidth: 120 }}>승률</th>
-                  <th>KDA</th>
-                  <th className="table-number">평균 딜</th>
-                  <th className="table-number">CS</th>
-                  <th>주요 챔피언</th>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-secondary)' }}>
+                    데이터 없음
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {sorted.map((s, i) => (
+              ) : (
+                displayed.map((s, i) => (
                   <tr key={s.riotId}
                     className="member-stats-row"
                     onClick={() => navigate(`/player-stats/${encodeURIComponent(s.riotId)}`)}>
@@ -222,22 +213,16 @@ export function MemberStatsListPage() {
                     <td><KdaDisplay kda={s.kda} kills={s.avgKills} deaths={s.avgDeaths} assists={s.avgAssists} /></td>
                     <td className="table-number" style={{ fontSize: 12 }}>{s.avgDamage.toLocaleString()}</td>
                     <td className="table-number" style={{ fontSize: 12 }}>{s.avgCs.toFixed(1)}</td>
+                    <td className="table-number" style={{ fontSize: 12 }}>{(s.avgGold ?? 0).toLocaleString()}</td>
+                    <td className="table-number" style={{ fontSize: 12 }}>{(s.avgVisionScore ?? 0).toFixed(1)}</td>
                     <td><ChampBadges champions={s.topChampions} /></td>
                   </tr>
-                ))}
-                {!sorted.length && (
-                  <tr>
-                    <td colSpan={8} style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-secondary)' }}>
-                      데이터 없음
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
     </div>
   );
 }
-

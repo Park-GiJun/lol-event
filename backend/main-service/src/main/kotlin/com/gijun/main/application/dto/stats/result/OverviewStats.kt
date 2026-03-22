@@ -6,6 +6,12 @@ data class ChampionPickStat(
     val picks: Int,
     val wins: Int,
     val winRate: Int,
+    val kda: Double = 0.0,
+    val avgKills: Double = 0.0,
+    val avgDeaths: Double = 0.0,
+    val avgAssists: Double = 0.0,
+    val avgDamage: Int = 0,
+    val avgCs: Double = 0.0,
 )
 
 data class PlayerLeaderStat(

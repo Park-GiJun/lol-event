@@ -12,6 +12,8 @@ data class PlayerStatsCache(
     val kda: Double,
     val avgDamage: Int,
     val avgCs: Double,
+    val avgGold: Int,
+    val avgVisionScore: Double,
     val topChampion: String?,
 )
 

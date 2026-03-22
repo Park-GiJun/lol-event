@@ -36,7 +36,7 @@ class PlayerStatsAggregationTasklet(
                 val riotId: String,
                 var wins: Int = 0, var losses: Int = 0,
                 var kills: Int = 0, var deaths: Int = 0, var assists: Int = 0,
-                var damage: Int = 0, var cs: Int = 0,
+                var damage: Int = 0, var cs: Int = 0, var gold: Int = 0, var visionScore: Int = 0,
                 var games: Int = 0,
                 val champions: MutableMap<String, Int> = mutableMapOf(),
             )
@@ -50,7 +50,7 @@ class PlayerStatsAggregationTasklet(
                     s.games++
                     if (p.win) s.wins++ else s.losses++
                     s.kills += p.kills; s.deaths += p.deaths; s.assists += p.assists
-                    s.damage += p.damage; s.cs += p.cs
+                    s.damage += p.damage; s.cs += p.cs; s.gold += p.gold; s.visionScore += p.visionScore
                     s.champions[p.champion] = (s.champions[p.champion] ?: 0) + 1
                 }
             }
@@ -77,9 +77,11 @@ class PlayerStatsAggregationTasklet(
                         avgDeaths   = r1(s.deaths.toDouble() / s.games),
                         avgAssists  = r1(s.assists.toDouble() / s.games),
                         kda         = kda,
-                        avgDamage   = s.damage / s.games,
-                        avgCs       = r1(s.cs.toDouble() / s.games),
-                        topChampion = s.champions.maxByOrNull { it.value }?.key,
+                        avgDamage      = s.damage / s.games,
+                        avgCs          = r1(s.cs.toDouble() / s.games),
+                        avgGold        = s.gold / s.games,
+                        avgVisionScore = r1(s.visionScore.toDouble() / s.games),
+                        topChampion    = s.champions.maxByOrNull { it.value }?.key,
                         aggregatedAt = now,
                     )
                 }

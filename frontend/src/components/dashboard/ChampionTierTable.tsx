@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useChampions } from '@/hooks/useChampions';
+import { useSortTable } from '@/hooks/useSortTable';
+import { SortableTh } from '@/components/common/SortableTh';
 import { InlineError } from '@/components/common/InlineError';
 import { Skeleton } from '@/components/common/Skeleton';
 import { ChampionLink } from '@/components/common/ChampionLink';
@@ -19,14 +21,29 @@ function getChampionTier(winRate: number): TierKey {
   return 'C';
 }
 
+type SortCol = 'picks' | 'winRate' | 'pickRate';
+
+function ColGroup() {
+  return (
+    <colgroup>
+      <col />
+      <col style={{ width: 80 }} />
+      <col style={{ width: 74 }} />
+      <col style={{ width: 60 }} />
+    </colgroup>
+  );
+}
+
 // ── 컴포넌트 ─────────────────────────────────────────────────
 
 export function ChampionTierTable() {
   const { data, isLoading, error, refetch } = useChampions();
   const { champions: dragonChampions } = useDragon();
+  const { sortKey, sortDir, handleSort, sorted } = useSortTable<SortCol>('winRate');
 
+  // 기본: 모두 닫힘
   const [expanded, setExpanded] = useState<Record<TierKey, boolean>>({
-    S: true, A: true, B: true, C: true,
+    S: false, A: false, B: false, C: false,
   });
 
   const tierGroups = useMemo(() => {
@@ -49,10 +66,10 @@ export function ChampionTierTable() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 4px' }}>
               <Skeleton className="h-5 w-7 rounded-sm" />
               <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-3 w-10" style={{ marginLeft: 4 }} />
             </div>
             <div className="table-wrapper">
               <table className="table member-stats-table">
+                <ColGroup />
                 <thead>
                   <tr>
                     <th>챔피언</th>
@@ -85,12 +102,7 @@ export function ChampionTierTable() {
   }
 
   if (error) {
-    return (
-      <InlineError
-        message="챔피언 티어표를 불러오지 못했습니다."
-        onRetry={() => void refetch()}
-      />
-    );
+    return <InlineError message="챔피언 티어표를 불러오지 못했습니다." onRetry={() => void refetch()} />;
   }
 
   if (!data || data.topPickedChampions.length === 0) {
@@ -101,22 +113,41 @@ export function ChampionTierTable() {
     );
   }
 
+  const getValue = (key: SortCol, c: ChampionPickStat & { pickRate: number }): number => {
+    if (key === 'winRate')  return c.winRate;
+    if (key === 'picks')    return c.picks;
+    if (key === 'pickRate') return c.pickRate;
+    return 0;
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {tierGroups.map(({ tier, champions }) => {
         const tierColor = TIER_COLORS[tier];
         const isExpanded = expanded[tier];
+
+        const enriched = champions.map(c => ({
+          ...c,
+          pickRate: data.matchCount > 0 ? (c.picks / data.matchCount) * 100 : 0,
+        }));
+        const displayChamps = sorted(enriched, getValue);
 
         return (
           <div key={tier}>
             <button
               type="button"
-              style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left', padding: '8px 4px', background: 'none', border: 'none', cursor: 'pointer' }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                width: '100%', textAlign: 'left',
+                padding: '8px 12px', background: tierColor + '0D',
+                border: `1px solid ${tierColor}33`, borderRadius: isExpanded ? '6px 6px 0 0' : 6,
+                cursor: 'pointer',
+              }}
               onClick={() => setExpanded(prev => ({ ...prev, [tier]: !prev[tier] }))}
             >
               <span style={{
                 fontSize: 11, fontWeight: 700, color: tierColor,
-                background: tierColor + '18', borderRadius: 4, padding: '2px 7px',
+                background: tierColor + '28', borderRadius: 4, padding: '2px 7px',
                 border: `1px solid ${tierColor}66`,
               }}>
                 {tier}
@@ -125,7 +156,7 @@ export function ChampionTierTable() {
                 {tier} 티어
               </span>
               <span style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginLeft: 4 }}>
-                ({champions.length}명)
+                {champions.length}개
               </span>
               <span style={{ marginLeft: 'auto', color: 'var(--color-text-secondary)', fontSize: 12 }}>
                 {isExpanded ? '▲' : '▼'}
@@ -133,27 +164,23 @@ export function ChampionTierTable() {
             </button>
 
             {isExpanded && (
-              <div className="table-wrapper">
+              <div className="table-wrapper" style={{ borderRadius: '0 0 6px 6px', border: `1px solid ${tierColor}22`, borderTop: 'none' }}>
                 <table className="table member-stats-table">
+                  <ColGroup />
                   <thead>
                     <tr>
                       <th>챔피언</th>
-                      <th className="table-number">승률</th>
-                      <th className="table-number">픽률</th>
-                      <th className="table-number">게임</th>
+                      <SortableTh label="승률"  col="winRate"  sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
+                      <SortableTh label="픽률"  col="pickRate" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
+                      <SortableTh label="게임"  col="picks"    sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
                     </tr>
                   </thead>
                   <tbody>
-                    {champions.map((entry: ChampionPickStat) => {
+                    {displayChamps.map((entry) => {
                       const dragon = dragonChampions.get(entry.championId);
                       const displayName = dragon?.nameKo ?? entry.champion;
                       const imgUrl = dragon?.imageUrl ?? null;
-                      const wrColor = entry.winRate >= 50
-                        ? 'var(--color-win)'
-                        : 'var(--color-loss)';
-                      const pickRate = data.matchCount > 0
-                        ? ((entry.picks / data.matchCount) * 100).toFixed(1)
-                        : '0.0';
+                      const wrColor = entry.winRate >= 50 ? 'var(--color-win)' : 'var(--color-loss)';
 
                       return (
                         <tr key={entry.championId}>
@@ -161,34 +188,19 @@ export function ChampionTierTable() {
                             <ChampionLink champion={entry.champion} championId={entry.championId}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 {imgUrl ? (
-                                  <img
-                                    src={imgUrl}
-                                    alt={displayName}
-                                    width={32}
-                                    height={32}
-                                    style={{
-                                      borderRadius: 4,
-                                      border: '1px solid var(--color-border)',
-                                      objectFit: 'cover',
-                                    }}
-                                    onError={e => {
-                                      (e.currentTarget as HTMLImageElement).style.display = 'none';
-                                    }}
-                                  />
+                                  <img src={imgUrl} alt={displayName} width={32} height={32}
+                                    style={{ borderRadius: 4, border: '1px solid var(--color-border)', objectFit: 'cover' }}
+                                    onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                                 ) : (
                                   <div style={{
-                                    width: 32, height: 32,
-                                    background: 'var(--color-bg-hover)',
-                                    borderRadius: 4, display: 'flex',
-                                    alignItems: 'center', justifyContent: 'center',
-                                    fontSize: 10, color: 'var(--color-text-secondary)',
+                                    width: 32, height: 32, background: 'var(--color-bg-hover)',
+                                    borderRadius: 4, display: 'flex', alignItems: 'center',
+                                    justifyContent: 'center', fontSize: 10, color: 'var(--color-text-secondary)',
                                   }}>
                                     {displayName.slice(0, 2)}
                                   </div>
                                 )}
-                                <span style={{ fontWeight: 600, fontSize: 13 }}>
-                                  {displayName}
-                                </span>
+                                <span style={{ fontWeight: 600, fontSize: 13 }}>{displayName}</span>
                               </div>
                             </ChampionLink>
                           </td>
@@ -196,7 +208,7 @@ export function ChampionTierTable() {
                             {entry.winRate.toFixed(1)}%
                           </td>
                           <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>
-                            {pickRate}%
+                            {entry.pickRate.toFixed(1)}%
                           </td>
                           <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>
                             {entry.picks}

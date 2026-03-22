@@ -16,18 +16,20 @@ class StatsCacheAdapter(
     override fun findPlayerCacheByMode(mode: String): List<PlayerStatsCache> =
         playerStatsCacheRepository.findAllByMode(mode).map { e ->
             PlayerStatsCache(
-                riotId      = e.riotId,
-                games       = e.games,
-                wins        = e.wins,
-                losses      = e.losses,
-                winRate     = e.winRate,
-                avgKills    = e.avgKills,
-                avgDeaths   = e.avgDeaths,
-                avgAssists  = e.avgAssists,
-                kda         = e.kda,
-                avgDamage   = e.avgDamage,
-                avgCs       = e.avgCs,
-                topChampion = e.topChampion,
+                riotId         = e.riotId,
+                games          = e.games,
+                wins           = e.wins,
+                losses         = e.losses,
+                winRate        = e.winRate,
+                avgKills       = e.avgKills,
+                avgDeaths      = e.avgDeaths,
+                avgAssists     = e.avgAssists,
+                kda            = e.kda,
+                avgDamage      = e.avgDamage,
+                avgCs          = e.avgCs,
+                avgGold        = e.avgGold,
+                avgVisionScore = e.avgVisionScore,
+                topChampion    = e.topChampion,
             )
         }
 

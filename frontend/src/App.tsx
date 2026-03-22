@@ -15,7 +15,9 @@ import { MatchDetailPage } from './pages/MatchDetailPage';
 import { LcuPage } from './pages/LcuPage';
 import { SyncPage } from './pages/SyncPage';
 import { AdminPage } from './pages/AdminPage';
+import { TeamBuilderPage } from './pages/TeamBuilderPage';
 import { ErrorModal } from './components/common/ErrorModal';
+import { MobileHomePage } from './pages/mobile/MobileHomePage';
 import { MobileStatsPage } from './pages/mobile/MobileStatsPage';
 import { MobileMatchesPage } from './pages/mobile/MobileMatchesPage';
 import { MobilePlayerListPage } from './pages/mobile/MobilePlayerListPage';
@@ -63,11 +65,13 @@ function App() {
           <Route path="lcu" element={<LcuPage />} />
           <Route path="sync" element={<SyncPage />} />
           <Route path="admin" element={<AdminPage />} />
+          <Route path="team-builder" element={<TeamBuilderPage />} />
         </Route>
 
         {/* Mobile routes */}
         <Route path="m" element={<MobileLayout />}>
-          <Route index element={<MobileStatsPage />} />
+          <Route index element={<MobileHomePage />} />
+          <Route path="stats" element={<MobileStatsPage />} />
           <Route path="matches" element={<MobileMatchesPage />} />
           <Route path="players" element={<MobilePlayerListPage />} />
           <Route path="player/:riotId" element={<MobilePlayerDetailPage />} />

@@ -15,6 +15,8 @@ export interface PlayerStats {
   kda: number;
   avgDamage: number;
   avgCs: number;
+  avgGold: number;
+  avgVisionScore: number;
   topChampions: ChampionCount[];
 }
 
@@ -175,6 +177,12 @@ export interface ChampionPickStat {
   picks: number;
   wins: number;
   winRate: number;
+  kda: number;
+  avgKills: number;
+  avgDeaths: number;
+  avgAssists: number;
+  avgDamage: number;
+  avgCs: number;
 }
 
 export interface PlayerLeaderStat {

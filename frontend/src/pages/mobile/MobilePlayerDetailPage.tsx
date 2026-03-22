@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { PlayerDetailStats, EloHistoryEntry, PlayerEloHistoryResult } from '../../lib/types/stats';
-import { useDragon } from '../../context/DragonContext';
-import { LoadingCenter } from '../../components/common/Spinner';
+import { usePlayerDetail } from '@/hooks/usePlayerDetail';
+import { usePlayerEloHistory } from '@/hooks/usePlayerEloHistory';
+import { useDragon } from '@/context/DragonContext';
+import { Skeleton } from '@/components/common/Skeleton';
+import { InlineError } from '@/components/common/InlineError';
 
 function eloTier(elo: number) {
   if (elo >= 1300) return { label: 'Challenger', color: '#FFD700' };
@@ -25,37 +26,78 @@ const CHAMP_SORTS: { key: ChampSort; label: string }[] = [
 export function MobilePlayerDetailPage() {
   const { riotId } = useParams<{ riotId: string }>();
   const { champions } = useDragon();
-  const [data, setData] = useState<PlayerDetailStats | null>(null);
-  const [eloHistory, setEloHistory] = useState<PlayerEloHistoryResult | null>(null);
-  const [loading, setLoading] = useState(true);
   const [champSort, setChampSort] = useState<ChampSort>('games');
 
-  const decoded = riotId ? decodeURIComponent(riotId) : '';
+  // P1: useParams already decodes — no additional decodeURIComponent
+  const decoded = riotId ?? '';
 
-  useEffect(() => {
-    if (!decoded) return;
-    setLoading(true);
-    Promise.all([
-      api.get<PlayerDetailStats>(`/stats/player/${encodeURIComponent(decoded)}?mode=all`),
-      api.get<PlayerEloHistoryResult>(`/stats/player/${encodeURIComponent(decoded)}/elo-history?limit=20`),
-    ])
-      .then(([d, e]) => { setData(d); setEloHistory(e); })
-      .finally(() => setLoading(false));
-  }, [decoded]);
+  const { data, isLoading: statsLoading, error: statsError, refetch } = usePlayerDetail(decoded);
+  const { data: eloHistory, isLoading: eloLoading, error: eloError } = usePlayerEloHistory(decoded);
 
-  if (loading) return <LoadingCenter />;
-  if (!data) return <div className="m-empty">플레이어 데이터를 찾을 수 없습니다</div>;
+  // P2: check error before isLoading so statsError is never hidden by eloLoading
+  if (statsError || (!statsLoading && !data)) {
+    return <InlineError message="플레이어 정보를 불러오지 못했습니다." onRetry={() => void refetch()} />;
+  }
 
-  const tier = eloTier(data.elo);
-  const [name, tag] = decoded.split('#');
+  if (statsLoading || eloLoading) {
+    return (
+      <div>
+        {/* Header skeleton */}
+        <div className="m-card" style={{ marginBottom: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <Skeleton style={{ height: 24, width: 120, borderRadius: 4, marginBottom: 6 }} />
+              <Skeleton style={{ height: 14, width: 60, borderRadius: 4 }} />
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <Skeleton style={{ height: 16, width: 64, borderRadius: 4, marginBottom: 6 }} />
+              <Skeleton style={{ height: 24, width: 48, borderRadius: 4 }} />
+            </div>
+          </div>
+        </div>
+        {/* Overview grid skeleton */}
+        <div className="m-overview-grid" style={{ marginBottom: 12 }}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="m-overview-stat">
+              <Skeleton style={{ height: 22, width: 48, borderRadius: 4, marginBottom: 4 }} />
+              <Skeleton style={{ height: 12, width: 32, borderRadius: 4 }} />
+            </div>
+          ))}
+        </div>
+        {/* Elo card skeleton */}
+        <div className="m-elo-card" style={{ marginBottom: 12 }}>
+          <Skeleton style={{ height: 32, width: 80, borderRadius: 4 }} />
+          <Skeleton style={{ height: 28, width: 120, borderRadius: 4 }} />
+        </div>
+      </div>
+    );
+  }
 
-  const sortedChamps = data.championStats.slice().sort((a, b) => {
-    if (champSort === 'kda') return b.kda - a.kda;
-    return (b[champSort] as number) - (a[champSort] as number);
+  // data is guaranteed non-null here
+  const tier = eloTier(data!.elo);
+
+  // P5: safe split for riotIds that may contain multiple '#'
+  const hashIdx = decoded.indexOf('#');
+  const name = hashIdx >= 0 ? decoded.slice(0, hashIdx) : decoded;
+  const tag  = hashIdx >= 0 ? decoded.slice(hashIdx + 1) : '';
+
+  // P3: NaN-safe sort
+  const sortedChamps = data!.championStats.slice().sort((a, b) => {
+    if (champSort === 'kda') {
+      const av = a.kda ?? 0;
+      const bv = b.kda ?? 0;
+      return bv - av;
+    }
+    const av = (a[champSort] as number) ?? 0;
+    const bv = (b[champSort] as number) ?? 0;
+    return bv - av;
   });
 
   const recent5 = eloHistory?.history.slice(0, 5) ?? [];
   const eloSum5 = recent5.reduce((s, h) => s + h.delta, 0);
+
+  // P4: use data.elo as single source of truth for tier display
+  const displayElo = data!.elo;
 
   return (
     <div>
@@ -68,8 +110,8 @@ export function MobilePlayerDetailPage() {
           </div>
           <div style={{ textAlign: 'right' }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: tier.color }}>{tier.label}</div>
-            <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-primary)' }}>{data.elo}</div>
-            {data.eloRank && <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>#{data.eloRank}</div>}
+            <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-primary)' }}>{displayElo}</div>
+            {data!.eloRank && <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>#{data!.eloRank}</div>}
           </div>
         </div>
       </div>
@@ -77,12 +119,12 @@ export function MobilePlayerDetailPage() {
       {/* Summary grid */}
       <div className="m-overview-grid" style={{ marginBottom: 12 }}>
         {[
-          { label: '판수', value: data.games },
-          { label: '승률', value: `${data.winRate.toFixed(1)}%` },
-          { label: 'KDA', value: data.kda.toFixed(2) },
-          { label: '평균딜', value: Math.round(data.avgDamage).toLocaleString() },
-          { label: 'CS', value: data.avgCs.toFixed(1) },
-          { label: '시야', value: data.avgVisionScore.toFixed(1) },
+          { label: '판수', value: data!.games },
+          { label: '승률', value: `${data!.winRate.toFixed(1)}%` },
+          { label: 'KDA', value: data!.kda.toFixed(2) },
+          { label: '평균딜', value: Math.round(data!.avgDamage).toLocaleString() },
+          { label: 'CS', value: data!.avgCs.toFixed(1) },
+          { label: '시야', value: data!.avgVisionScore.toFixed(1) },
         ].map(({ label, value }) => (
           <div key={label} className="m-overview-stat">
             <div className="m-overview-stat-value" style={{ fontSize: typeof value === 'string' && value.length > 5 ? 16 : 22 }}>{value}</div>
@@ -91,12 +133,17 @@ export function MobilePlayerDetailPage() {
         ))}
       </div>
 
-      {/* Elo card */}
-      {eloHistory && (
+      {/* Elo card — P7: show error fallback if elo history failed */}
+      {eloError ? (
+        <div className="m-card" style={{ marginBottom: 12, fontSize: 12, color: 'var(--color-text-secondary)' }}>
+          Elo 이력을 불러오지 못했습니다.
+        </div>
+      ) : eloHistory && (
         <div className="m-elo-card" style={{ marginBottom: 12 }}>
           <div>
             <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 2 }}>현재 Elo</div>
-            <div style={{ fontSize: 24, fontWeight: 800, color: tier.color }}>{eloHistory.currentElo}</div>
+            {/* P4: single source — use displayElo (data.elo) */}
+            <div style={{ fontSize: 24, fontWeight: 800, color: tier.color }}>{displayElo}</div>
             <div style={{ fontSize: 12, color: tier.color }}>{tier.label}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
@@ -113,7 +160,8 @@ export function MobilePlayerDetailPage() {
                 </div>
               ))}
             </div>
-            <div style={{ fontSize: 11, marginTop: 4, color: eloSum5 >= 0 ? 'var(--color-win)' : 'var(--color-loss)' }}>
+            {/* P6: 0 is neutral, not win */}
+            <div style={{ fontSize: 11, marginTop: 4, color: eloSum5 > 0 ? 'var(--color-win)' : eloSum5 < 0 ? 'var(--color-loss)' : 'var(--color-text-secondary)' }}>
               합계 {eloSum5 > 0 ? `+${eloSum5}` : eloSum5}
             </div>
           </div>
@@ -156,7 +204,7 @@ export function MobilePlayerDetailPage() {
 
       {/* Recent matches */}
       <p className="m-section-title" style={{ marginTop: 8 }}>최근 경기</p>
-      {data.recentMatches.slice(0, 15).map(rm => {
+      {data!.recentMatches.slice(0, 15).map(rm => {
         const champInfo = Array.from(champions.values()).find(c => c.championKey === rm.champion || c.nameKo === rm.champion);
         return (
           <div key={rm.matchId} className="m-player-card" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

@@ -35,13 +35,23 @@ class GetOverviewStatsHandler(
 
         // ── 챔피언 픽 통계 ────────────────────────────────────
         val champStats = allP.groupBy { it.champion }.map { (champ, ps) ->
-            val wins = ps.count { it.win }
+            val wins    = ps.count { it.win }
+            val n       = ps.size
+            val totalK  = ps.sumOf { it.kills }
+            val totalD  = ps.sumOf { it.deaths }
+            val totalA  = ps.sumOf { it.assists }
             ChampionPickStat(
                 champion   = champ,
                 championId = ps.first().championId,
-                picks      = ps.size,
+                picks      = n,
                 wins       = wins,
-                winRate    = wins * 100 / ps.size,
+                winRate    = wins * 100 / n,
+                kda        = if (totalD > 0) r2((totalK + totalA).toDouble() / totalD) else (totalK + totalA).toDouble(),
+                avgKills   = r1(totalK.toDouble() / n),
+                avgDeaths  = r1(totalD.toDouble() / n),
+                avgAssists = r1(totalA.toDouble() / n),
+                avgDamage  = ps.sumOf { it.damage } / n,
+                avgCs      = r1(ps.sumOf { it.cs }.toDouble() / n),
             )
         }
         val topPicked   = champStats.sortedByDescending { it.picks }.take(20)

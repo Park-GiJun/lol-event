@@ -30,18 +30,20 @@ class GetStatsHandler(
                     .thenByDescending { it.games })
                 .map { c ->
                     PlayerStatsResult(
-                        riotId       = c.riotId,
-                        games        = c.games,
-                        wins         = c.wins,
-                        losses       = c.losses,
-                        winRate      = c.winRate,
-                        avgKills     = c.avgKills,
-                        avgDeaths    = c.avgDeaths,
-                        avgAssists   = c.avgAssists,
-                        kda          = c.kda,
-                        avgDamage    = c.avgDamage,
-                        avgCs        = c.avgCs,
-                        topChampions = listOfNotNull(c.topChampion?.let { ChampionCount(it, 0) }),
+                        riotId         = c.riotId,
+                        games          = c.games,
+                        wins           = c.wins,
+                        losses         = c.losses,
+                        winRate        = c.winRate,
+                        avgKills       = c.avgKills,
+                        avgDeaths      = c.avgDeaths,
+                        avgAssists     = c.avgAssists,
+                        kda            = c.kda,
+                        avgDamage      = c.avgDamage,
+                        avgCs          = c.avgCs,
+                        avgGold        = c.avgGold,
+                        avgVisionScore = c.avgVisionScore,
+                        topChampions   = listOfNotNull(c.topChampion?.let { ChampionCount(it, 0) }),
                     )
                 }
             return StatsResult(stats, matchCount)
@@ -55,7 +57,7 @@ class GetStatsHandler(
             val riotId: String,
             var wins: Int = 0, var losses: Int = 0,
             var kills: Int = 0, var deaths: Int = 0, var assists: Int = 0,
-            var damage: Int = 0, var cs: Int = 0,
+            var damage: Int = 0, var cs: Int = 0, var gold: Int = 0, var visionScore: Int = 0,
             var games: Int = 0,
             val champions: MutableMap<String, Int> = mutableMapOf()
         )
@@ -69,7 +71,7 @@ class GetStatsHandler(
                 s.games++
                 if (p.win) s.wins++ else s.losses++
                 s.kills += p.kills; s.deaths += p.deaths; s.assists += p.assists
-                s.damage += p.damage; s.cs += p.cs
+                s.damage += p.damage; s.cs += p.cs; s.gold += p.gold; s.visionScore += p.visionScore
                 s.champions[p.champion] = (s.champions[p.champion] ?: 0) + 1
             }
         }
@@ -88,8 +90,10 @@ class GetStatsHandler(
                     avgAssists = (s.assists.toDouble() / s.games * 10).toInt() / 10.0,
                     kda = if (s.deaths > 0) ((s.kills + s.assists).toDouble() / s.deaths * 100).toInt() / 100.0
                           else (s.kills + s.assists).toDouble(),
-                    avgDamage = s.damage / s.games,
-                    avgCs = (s.cs.toDouble() / s.games * 10).toInt() / 10.0,
+                    avgDamage      = s.damage / s.games,
+                    avgCs          = (s.cs.toDouble() / s.games * 10).toInt() / 10.0,
+                    avgGold        = s.gold / s.games,
+                    avgVisionScore = (s.visionScore.toDouble() / s.games * 10).toInt() / 10.0,
                     topChampions = s.champions.entries
                         .sortedByDescending { it.value }
                         .take(3)
