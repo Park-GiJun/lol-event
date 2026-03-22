@@ -19,10 +19,6 @@ function fmt(secs: number) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-function kdaStr(p: Participant) {
-  return p.deaths === 0 ? 'Perfect' : ((p.kills + p.assists) / p.deaths).toFixed(2);
-}
-
 // 오후 5시~다음날 오후 4시 59분을 하나의 세션으로 묶음
 function getSessionKey(ts: number): string {
   const d = new Date(ts);

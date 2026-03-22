@@ -12,7 +12,6 @@ const MODES = [
   { value: 'aram', label: '칼바람' },
 ];
 
-const POSITIONS = ['ALL', 'TOP', 'JUNGLE', 'MID', 'BOTTOM', 'SUPPORT'] as const;
 const POS_LABELS: Record<string, string> = {
   ALL: '전체', TOP: 'TOP', JUNGLE: 'JGL', MID: 'MID', BOTTOM: 'BOT', SUPPORT: 'SUP',
 };

@@ -9,7 +9,7 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
-import type { ChartOptions, ScriptableLineSegment } from 'chart.js';
+import type { ChartOptions, ScriptableLineSegmentContext } from 'chart.js';
 import { Line, Bar } from 'react-chartjs-2';
 import { useDragon } from '@/context/DragonContext';
 import type { PlayerEloHistoryResult, ChampionStat } from '@/lib/types/stats';
@@ -66,7 +66,7 @@ export function PlayerChartsSection({ eloHistory, championStats }: Props) {
       pointRadius: 3,
       fill: false,
       segment: {
-        borderColor: (ctx: ScriptableLineSegment) =>
+        borderColor: (ctx: ScriptableLineSegmentContext) =>
           (ctx.p1.parsed.y ?? 0) >= (ctx.p0.parsed.y ?? 0) ? '#10B981' : '#EF4444',
       },
       pointBackgroundColor: eloValues.map((v, i) =>

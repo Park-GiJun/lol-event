@@ -3,7 +3,6 @@ import { useChampions } from '@/hooks/useChampions';
 import { useSortTable } from '@/hooks/useSortTable';
 import { SortableTh } from '@/components/common/SortableTh';
 import { InlineError } from '@/components/common/InlineError';
-import { Skeleton } from '@/components/common/Skeleton';
 import { ChampionLink } from '@/components/common/ChampionLink';
 import { useDragon } from '@/context/DragonContext';
 import type { ChampionPickStat } from '@/lib/types/stats';

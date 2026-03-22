@@ -210,7 +210,7 @@ export function ChampionStatsPage() {
       <BreadcrumbNav items={[
         { label: '홈', path: '/' },
         { label: '챔피언', path: '/champions' },
-        { label: (data?.championId && champions.get(data.championId)?.nameKo) || champion ?? '' },
+        { label: (data?.championId && champions.get(data.championId)?.nameKo) || (champion ?? '') },
       ]} />
       {/* 헤더 */}
       <div className="page-header flex items-center justify-between">
