@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { api } from '../../lib/api/api';
-import type { Match, Participant } from '../../lib/types/match';
+import type { Match } from '../../lib/types/match';
 import { useDragon } from '../../context/DragonContext';
 import { LoadingCenter } from '../../components/common/Spinner';
 

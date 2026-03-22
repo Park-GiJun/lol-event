@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api/api';
 import type {
   OverviewStats,
@@ -78,17 +79,12 @@ export function MobileStatsPage() {
 function OverviewTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
   const { champions } = useDragon();
-  const [data, setData] = useState<OverviewStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery({
+    queryKey: ['mobile-overview', mode],
+    queryFn: () => api.get<OverviewStats>(`/stats/overview?mode=${mode}`),
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    api.get<OverviewStats>(`/stats/overview?mode=${mode}`)
-      .then(setData)
-      .finally(() => setLoading(false));
-  }, [mode]);
-
-  if (loading) return <LoadingCenter />;
+  if (isLoading) return <LoadingCenter />;
   if (!data) return <div className="m-empty">데이터 없음</div>;
 
   const leaders = [
@@ -180,17 +176,12 @@ function OverviewTab({ mode }: { mode: string }) {
 /* ── Elo ──────────────────────────────────────────────────────────────── */
 function EloTab() {
   const navigate = useNavigate();
-  const [data, setData] = useState<EloLeaderboardResult | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery({
+    queryKey: ['mobile-elo'],
+    queryFn: () => api.get<EloLeaderboardResult>('/stats/elo'),
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    api.get<EloLeaderboardResult>('/stats/elo')
-      .then(setData)
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <LoadingCenter />;
+  if (isLoading) return <LoadingCenter />;
   if (!data) return <div className="m-empty">데이터 없음</div>;
 
   return (
@@ -224,17 +215,12 @@ function EloTab() {
 /* ── MVP ──────────────────────────────────────────────────────────────── */
 function MvpTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
-  const [data, setData] = useState<MvpStatsResult | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery({
+    queryKey: ['mobile-mvp', mode],
+    queryFn: () => api.get<MvpStatsResult>(`/stats/mvp?mode=${mode}`),
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    api.get<MvpStatsResult>(`/stats/mvp?mode=${mode}`)
-      .then(setData)
-      .finally(() => setLoading(false));
-  }, [mode]);
-
-  if (loading) return <LoadingCenter />;
+  if (isLoading) return <LoadingCenter />;
   if (!data) return <div className="m-empty">데이터 없음</div>;
 
   return (
@@ -268,17 +254,12 @@ function MvpTab({ mode }: { mode: string }) {
 /* ── Synergy ──────────────────────────────────────────────────────────── */
 function SynergyTab({ mode }: { mode: string }) {
   const { champions } = useDragon();
-  const [data, setData] = useState<ChampionSynergyResult | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery({
+    queryKey: ['mobile-synergy', mode],
+    queryFn: () => api.get<ChampionSynergyResult>(`/stats/synergy?mode=${mode}&minGames=3`),
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    api.get<ChampionSynergyResult>(`/stats/synergy?mode=${mode}&minGames=3`)
-      .then(setData)
-      .finally(() => setLoading(false));
-  }, [mode]);
-
-  if (loading) return <LoadingCenter />;
+  if (isLoading) return <LoadingCenter />;
   if (!data) return <div className="m-empty">데이터 없음</div>;
 
   return (
@@ -327,17 +308,12 @@ function SynergyTab({ mode }: { mode: string }) {
 /* ── Duo ──────────────────────────────────────────────────────────────── */
 function DuoTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
-  const [data, setData] = useState<DuoStatsResult | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery({
+    queryKey: ['mobile-duo', mode],
+    queryFn: () => api.get<DuoStatsResult>(`/stats/duo?mode=${mode}&minGames=2`),
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    api.get<DuoStatsResult>(`/stats/duo?mode=${mode}&minGames=2`)
-      .then(setData)
-      .finally(() => setLoading(false));
-  }, [mode]);
-
-  if (loading) return <LoadingCenter />;
+  if (isLoading) return <LoadingCenter />;
   if (!data) return <div className="m-empty">데이터 없음</div>;
 
   return (
@@ -383,15 +359,10 @@ function DuoTab({ mode }: { mode: string }) {
 function LaneTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
   const [lane, setLane] = useState('TOP');
-  const [data, setData] = useState<LaneLeaderboardResult | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    api.get<LaneLeaderboardResult>(`/stats/lane?lane=${lane}&mode=${mode}`)
-      .then(setData)
-      .finally(() => setLoading(false));
-  }, [lane, mode]);
+  const { data, isLoading } = useQuery({
+    queryKey: ['mobile-lane', lane, mode],
+    queryFn: () => api.get<LaneLeaderboardResult>(`/stats/lane?lane=${lane}&mode=${mode}`),
+  });
 
   return (
     <div>
@@ -404,7 +375,7 @@ function LaneTab({ mode }: { mode: string }) {
         ))}
       </div>
 
-      {loading ? <LoadingCenter /> : (
+      {isLoading ? <LoadingCenter /> : (
         <>
           {(!data || data.players.length === 0) && <div className="m-empty">데이터가 없습니다</div>}
           {data?.players.map((p, i) => {
