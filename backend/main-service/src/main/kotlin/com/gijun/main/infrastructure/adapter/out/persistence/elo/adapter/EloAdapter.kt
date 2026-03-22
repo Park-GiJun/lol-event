@@ -22,8 +22,15 @@ class EloAdapter(private val repo: PlayerEloRepository) : EloPort {
         val entities = elos.map { domain ->
             val prev = existing[domain.riotId]
             if (prev != null) PlayerEloEntity(
-                id = prev.id, riotId = domain.riotId,
-                elo = domain.elo, games = domain.games, updatedAt = domain.updatedAt,
+                id          = prev.id,
+                riotId      = domain.riotId,
+                elo         = domain.elo,
+                games       = domain.games,
+                wins        = domain.wins,
+                losses      = domain.losses,
+                winStreak   = domain.winStreak,
+                lossStreak  = domain.lossStreak,
+                updatedAt   = domain.updatedAt,
             ) else PlayerEloEntity.from(domain)
         }
         repo.saveAll(entities)

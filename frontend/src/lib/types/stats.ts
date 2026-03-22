@@ -118,6 +118,11 @@ export interface EloRankEntry {
   riotId: string;
   elo: number;
   games: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  winStreak: number;
+  lossStreak: number;
 }
 
 export interface EloLeaderboardResult {

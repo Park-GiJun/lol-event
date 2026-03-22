@@ -200,8 +200,18 @@ function EloTab() {
                 <div style={{ fontSize: 11, color: tier.color, marginTop: 1 }}>{tier.label}</div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 18, fontWeight: 800, color: tier.color }}>{p.elo}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{p.games}게임</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: tier.color }}>{p.elo.toFixed(1)}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>
+                  {p.games > 0 ? `${p.winRate.toFixed(1)}% · ${p.wins}승 ${p.losses}패` : `${p.games}게임`}
+                </div>
+                {(p.winStreak >= 3 || p.lossStreak >= 3) && (
+                  <div style={{ fontSize: 10, marginTop: 2 }}>
+                    {p.winStreak >= 3
+                      ? <span style={{ color: '#FF6B2B' }}>🔥 {p.winStreak}연승</span>
+                      : <span style={{ color: '#6BAAFF' }}>🧊 {p.lossStreak}연패</span>
+                    }
+                  </div>
+                )}
               </div>
             </div>
           </div>

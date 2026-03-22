@@ -80,7 +80,7 @@ development_status:
   # ─── Epic 5: 모바일 웹 — 이동 중 리그 확인 ───
   epic-5: in-progress
   5-1-mobile-layout-and-bottom-nav: done
-  5-2-mobile-home-leaderboard: backlog
-  5-3-mobile-champion-tier: backlog
-  5-4-mobile-player-stats: backlog
+  5-2-mobile-home-leaderboard: done
+  5-3-mobile-champion-tier: done
+  5-4-mobile-player-stats: done
   epic-5-retrospective: optional

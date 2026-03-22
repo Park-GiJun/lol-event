@@ -1,5 +1,4 @@
 import { useLeaderboard } from '@/hooks/useLeaderboard';
-import { usePlayers } from '@/hooks/usePlayers';
 import { useSortTable } from '@/hooks/useSortTable';
 import { SortableTh } from '@/components/common/SortableTh';
 import { InlineError } from '@/components/common/InlineError';
@@ -45,7 +44,35 @@ function RankBadge({ rank }: { rank: number }) {
   );
 }
 
-type SortCol = 'elo' | 'winRate' | 'kda' | 'games';
+function StreakBadge({ winStreak, lossStreak }: { winStreak: number; lossStreak: number }) {
+  if (winStreak >= 3) {
+    return (
+      <span style={{
+        fontSize: 10, fontWeight: 700, color: '#FF6B2B',
+        background: 'rgba(255,107,43,0.15)', borderRadius: 4,
+        padding: '1px 5px', border: '1px solid rgba(255,107,43,0.3)',
+        whiteSpace: 'nowrap',
+      }}>
+        🔥 {winStreak}연승
+      </span>
+    );
+  }
+  if (lossStreak >= 3) {
+    return (
+      <span style={{
+        fontSize: 10, fontWeight: 700, color: '#6BAAFF',
+        background: 'rgba(107,170,255,0.15)', borderRadius: 4,
+        padding: '1px 5px', border: '1px solid rgba(107,170,255,0.3)',
+        whiteSpace: 'nowrap',
+      }}>
+        🧊 {lossStreak}연패
+      </span>
+    );
+  }
+  return <span style={{ color: 'var(--color-text-disabled)', fontSize: 12 }}>—</span>;
+}
+
+type SortCol = 'elo' | 'winRate' | 'games';
 
 function ColGroup() {
   return (
@@ -53,9 +80,10 @@ function ColGroup() {
       <col style={{ width: 48 }} />
       <col />
       <col style={{ width: 88 }} />
+      <col style={{ width: 80 }} />
+      <col style={{ width: 80 }} />
       <col style={{ width: 72 }} />
-      <col style={{ width: 72 }} />
-      <col style={{ width: 64 }} />
+      <col style={{ width: 80 }} />
       <col style={{ width: 52 }} />
     </colgroup>
   );
@@ -71,17 +99,11 @@ export interface EloLeaderboardProps {
 
 export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
   const { data, isLoading, error, refetch } = useLeaderboard();
-  const { data: statsData } = usePlayers('all');
   const { sortKey, sortDir, handleSort, sorted } = useSortTable<SortCol>('elo');
 
-  const statsMap = new Map((statsData?.stats ?? []).map(s => [s.riotId, s]));
-
-  type Row = EloRankEntry & { winRate: number; kda: number };
-
-  const getValue = (key: SortCol, row: Row): number => {
+  const getValue = (key: SortCol, row: EloRankEntry): number => {
     if (key === 'elo')     return row.elo;
     if (key === 'winRate') return row.winRate;
-    if (key === 'kda')     return row.kda;
     if (key === 'games')   return row.games;
     return 0;
   };
@@ -95,8 +117,9 @@ export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
             <tr>
               <th>순위</th><th>플레이어</th><th>티어</th>
               <th className="table-number">Elo</th>
+              <th className="table-number">승/패</th>
               <th className="table-number">승률</th>
-              <th className="table-number">KDA</th>
+              <th>연속</th>
               <th className="table-number">게임</th>
             </tr>
           </thead>
@@ -107,8 +130,9 @@ export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
                 <td><Skeleton className="h-4 w-28" /></td>
                 <td><Skeleton className="h-4 w-16" /></td>
                 <td className="table-number"><Skeleton className="h-4 w-12 ml-auto" /></td>
+                <td className="table-number"><Skeleton className="h-4 w-12 ml-auto" /></td>
                 <td className="table-number"><Skeleton className="h-4 w-10 ml-auto" /></td>
-                <td className="table-number"><Skeleton className="h-4 w-10 ml-auto" /></td>
+                <td><Skeleton className="h-4 w-14" /></td>
                 <td className="table-number"><Skeleton className="h-4 w-8 ml-auto" /></td>
               </tr>
             ))}
@@ -130,12 +154,7 @@ export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
     );
   }
 
-  const rows: Row[] = data.players.map(entry => {
-    const s = statsMap.get(entry.riotId);
-    return { ...entry, winRate: s?.winRate ?? 0, kda: s?.kda ?? 0 };
-  });
-
-  const displayed = sorted(rows, getValue);
+  const displayed = sorted(data.players, getValue);
 
   return (
     <div className="table-wrapper">
@@ -147,8 +166,9 @@ export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
             <th>플레이어</th>
             <th>티어</th>
             <SortableTh label="Elo"  col="elo"     sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
+            <th className="table-number">승/패</th>
             <SortableTh label="승률" col="winRate"  sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
-            <SortableTh label="KDA"  col="kda"      sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
+            <th>연속</th>
             <SortableTh label="게임" col="games"    sortKey={sortKey} sortDir={sortDir} onSort={handleSort} right />
           </tr>
         </thead>
@@ -158,7 +178,6 @@ export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
             const isCurrentUser = currentRiotId !== undefined && entry.riotId === currentRiotId;
             const [name, tag = ''] = entry.riotId.split('#');
             const wrColor = entry.winRate >= 60 ? 'var(--color-win)' : entry.winRate >= 50 ? 'var(--color-primary)' : entry.winRate > 0 ? 'var(--color-loss)' : 'var(--color-text-disabled)';
-            const kdaColor = entry.kda >= 5 ? 'var(--color-win)' : entry.kda >= 3 ? 'var(--color-primary)' : 'var(--color-text-primary)';
             return (
               <tr
                 key={entry.riotId}
@@ -188,11 +207,16 @@ export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
                 <td className="table-number" style={{ fontWeight: 700, color: tier.color }}>
                   {entry.elo.toFixed(1)}
                 </td>
-                <td className="table-number" style={{ fontWeight: 600, color: wrColor }}>
-                  {entry.winRate > 0 ? `${entry.winRate}%` : '—'}
+                <td className="table-number" style={{ fontSize: 12 }}>
+                  <span style={{ color: 'var(--color-win)', fontWeight: 600 }}>{entry.wins}승</span>
+                  {' '}
+                  <span style={{ color: 'var(--color-loss)', fontWeight: 600 }}>{entry.losses}패</span>
                 </td>
-                <td className="table-number" style={{ fontWeight: 600, color: kdaColor }}>
-                  {entry.kda > 0 ? entry.kda.toFixed(2) : '—'}
+                <td className="table-number" style={{ fontWeight: 600, color: wrColor }}>
+                  {entry.games > 0 ? `${entry.winRate.toFixed(1)}%` : '—'}
+                </td>
+                <td>
+                  <StreakBadge winStreak={entry.winStreak} lossStreak={entry.lossStreak} />
                 </td>
                 <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>
                   {entry.games}
