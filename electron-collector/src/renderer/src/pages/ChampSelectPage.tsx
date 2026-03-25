@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { RefreshCw, Shield, Swords } from 'lucide-react';
+import { RefreshCw, Shield, Swords, Star } from 'lucide-react';
 import { PlayerCard, PlayerData } from '../components/lobby/PlayerCard';
 import { BanRecommendBadge } from '../components/lobby/BanRecommendBadge';
 
@@ -55,7 +55,7 @@ function ChampIcon({ id, size = 28 }: { id: number; size?: number }) {
   );
 }
 
-// 상대 챔피언별 카운터픽 분석
+// 상대 챔피언별 카운터픽 분석 (같은 라인 기준)
 function CounterSection({ enemies }: { enemies: ChampSlot[] }) {
   const [results, setResults] = useState<Record<string, ChampionMatchupResult>>({});
   const [loading, setLoading] = useState(false);
@@ -81,10 +81,20 @@ function CounterSection({ enemies }: { enemies: ChampSlot[] }) {
           const champName = idToName[e.championId];
           if (!champName) continue;
           try {
-            const res = await fetch(`${API}/stats/matchup?vsChampion=${encodeURIComponent(champName)}&mode=normal`);
+            const res = await fetch(`${API}/stats/matchup?vsChampion=${encodeURIComponent(champName)}&mode=normal&samePosition=true`);
             if (!res.ok) continue;
             const json = await res.json() as { data: ChampionMatchupResult };
-            entries.push([String(e.championId), json.data]);
+            // 같은 라인 데이터 없으면 전체 기준 fallback
+            const data = json.data;
+            if (!data.matchups || data.matchups.length === 0) {
+              const fallback = await fetch(`${API}/stats/matchup?vsChampion=${encodeURIComponent(champName)}&mode=normal`);
+              if (fallback.ok) {
+                const fJson = await fallback.json() as { data: ChampionMatchupResult };
+                entries.push([String(e.championId), fJson.data]);
+              }
+            } else {
+              entries.push([String(e.championId), data]);
+            }
           } catch { /* ignore */ }
         }
         setResults(Object.fromEntries(entries));
@@ -99,7 +109,9 @@ function CounterSection({ enemies }: { enemies: ChampSlot[] }) {
     <div className="card" style={{ marginBottom: 'var(--spacing-md)' }}>
       <div className="card-header">
         <span className="card-title"><Swords size={14} style={{ marginRight: 6 }} />카운터픽 추천</span>
-        {loading && <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>분석 중...</span>}
+        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+          {loading ? '분석 중...' : '같은 라인 기준'}
+        </span>
       </div>
       {!hasData && (
         <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
@@ -134,7 +146,7 @@ function CounterSection({ enemies }: { enemies: ChampSlot[] }) {
                     <ChampIcon id={m.opponentId} size={22} />
                     <div>
                       <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-primary)' }}>{m.opponent}</div>
-                      <div style={{ fontSize: 10, color: winRateColor(m.winRate) }}>{m.winRate}% ({m.games}판)</div>
+                      <div style={{ fontSize: 10, color: winRateColor(m.winRate) }}>{m.winRate}% <span style={{ color: 'var(--color-text-secondary)' }}>({m.games}판)</span></div>
                     </div>
                   </div>
                 ))}
@@ -203,6 +215,83 @@ function BanRecommendSection({ enemies, playerDetails }: { enemies: ChampSlot[];
   );
 }
 
+// 나의 픽 추천
+function MyPickSection({ myTeam, bans, playerDetails }: {
+  myTeam: ChampSlot[];
+  bans: BannedChamp[];
+  playerDetails: Record<string, PlayerData>;
+}) {
+  const mySlot = myTeam.find(s => s.isMe);
+  const myRiotId = mySlot?.riotId;
+  const myPosition = mySlot?.assignedPosition?.toLowerCase() ?? '';
+  const myData = myRiotId ? playerDetails[myRiotId] : null;
+  const bannedIds = new Set(bans.map(b => b.championId));
+
+  const topChamps = (myData?.championStats ?? [])
+    .filter(c => c.games >= 2)
+    .sort((a, b) => b.winRate - a.winRate)
+    .slice(0, 12);
+
+  return (
+    <div className="card" style={{ marginBottom: 'var(--spacing-md)' }}>
+      <div className="card-header">
+        <span className="card-title"><Star size={14} style={{ marginRight: 6 }} />내 픽 추천</span>
+        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+          {positionLabel[myPosition] ?? '—'} · 내전 승률순 (2판↑)
+        </span>
+      </div>
+      {!myRiotId && (
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
+          소환사 정보를 불러오는 중...
+        </p>
+      )}
+      {myRiotId && topChamps.length === 0 && (
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>
+          내전 데이터 없음
+        </p>
+      )}
+      {topChamps.length > 0 && (
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          {topChamps.map(c => {
+            const isBanned = bannedIds.has(c.championId);
+            return (
+              <div key={c.champion} style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+                opacity: isBanned ? 0.3 : 1,
+                position: 'relative',
+              }}>
+                <div style={{ position: 'relative' }}>
+                  <ChampIcon id={c.championId} size={38} />
+                  {isBanned && (
+                    <div style={{
+                      position: 'absolute', inset: 0, borderRadius: 4,
+                      background: 'rgba(0,0,0,0.65)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 18,
+                    }}>🚫</div>
+                  )}
+                </div>
+                <div style={{ textAlign: 'center', lineHeight: 1.3 }}>
+                  <div style={{
+                    fontSize: 10,
+                    fontFamily: "'Consolas', 'D2Coding', monospace",
+                    color: winRateColor(c.winRate),
+                  }}>
+                    {c.winRate}%
+                  </div>
+                  <div style={{ fontSize: 9, color: 'var(--color-text-secondary)' }}>
+                    {c.games}판
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function ChampSelectPage() {
   const [state, setState] = useState<ChampSelectFull | null>(null);
   const [loading, setLoading] = useState(false);
@@ -267,7 +356,8 @@ export function ChampSelectPage() {
   }, [state?.myTeam.map(s => s.riotId).join(','), state?.theirTeam.map(s => s.riotId).join(',')]);
 
   const tabs = [
-    { key: 'ban', label: '밴 추천' },
+    { key: 'ban',     label: '밴 추천' },
+    { key: 'pick',    label: '내 픽 추천' },
     { key: 'counter', label: '카운터픽' },
   ] as const;
 
@@ -357,9 +447,10 @@ export function ChampSelectPage() {
             </div>
           </div>
 
-          {/* 분석 탭 — P-3: BanRecommendSection에 playerDetails 주입 */}
+          {/* 분석 탭 */}
+          {tab === 'ban'     && <BanRecommendSection enemies={state.theirTeam} playerDetails={playerDetails} />}
+          {tab === 'pick'    && <MyPickSection myTeam={state.myTeam} bans={state.bans} playerDetails={playerDetails} />}
           {tab === 'counter' && <CounterSection enemies={state.theirTeam} />}
-          {tab === 'ban' && <BanRecommendSection enemies={state.theirTeam} playerDetails={playerDetails} />}
 
           {/* 밴 목록 */}
           {state.bans.length > 0 && (
