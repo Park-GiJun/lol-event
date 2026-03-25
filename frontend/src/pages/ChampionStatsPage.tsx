@@ -36,6 +36,87 @@ const MODES = [
   { value: 'all',    label: '전체' },
 ];
 
+const CDN = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons';
+
+interface MatchupStat { opponent: string; opponentId: number; games: number; wins: number; winRate: number; }
+interface ChampionMatchupResult { champion: string; championId: number; matchups: MatchupStat[]; }
+
+function ChampIcon({ id, size = 28 }: { id: number; size?: number }) {
+  if (!id) return <div style={{ width: size, height: size, borderRadius: 4, background: 'var(--color-bg-hover)' }} />;
+  return (
+    <img
+      src={`${CDN}/${id}.png`}
+      alt=""
+      width={size} height={size}
+      style={{ borderRadius: 4, objectFit: 'cover', flexShrink: 0 }}
+      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+    />
+  );
+}
+
+function ChampionMatchupSection({ champion, mode }: { champion: string; mode: string }) {
+  const [data, setData] = useState<ChampionMatchupResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    api.get<ChampionMatchupResult>(
+      `/stats/matchup?champion=${encodeURIComponent(champion)}&mode=${mode}&samePosition=true`
+    )
+      .then(res => setData(res))
+      .catch(() => setData(null))
+      .finally(() => setLoading(false));
+  }, [champion, mode]);
+
+  if (loading) return (
+    <div className="card" style={{ marginBottom: 16 }}>
+      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', marginBottom: 12 }}>같은 라인 상대 챔피언 승률</div>
+      <div style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>불러오는 중...</div>
+    </div>
+  );
+
+  const matchups = data?.matchups ?? [];
+
+  return (
+    <div className="card" style={{ marginBottom: 16 }}>
+      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', marginBottom: 12 }}>
+        같은 라인 상대 챔피언 승률
+        <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-secondary)', marginLeft: 8 }}>
+          동일 포지션 기준 · 2판 이상
+        </span>
+      </div>
+      {matchups.length === 0 ? (
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>데이터 없음</p>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
+          {matchups.map(m => {
+            const color = m.winRate >= 60 ? 'var(--color-win)' : m.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
+            return (
+              <div key={m.opponent} style={{
+                display: 'flex', alignItems: 'center', gap: 8,
+                padding: '8px 10px', borderRadius: 'var(--radius-sm)',
+                background: 'var(--color-bg-hover)', border: '1px solid var(--color-border)',
+              }}>
+                <ChampIcon id={m.opponentId} size={32} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 3 }}>{m.opponent}</div>
+                  <div style={{ height: 4, background: 'var(--color-bg-card)', borderRadius: 2, overflow: 'hidden', marginBottom: 3 }}>
+                    <div style={{ width: `${m.winRate}%`, height: '100%', background: color, borderRadius: 2 }} />
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>
+                    <span style={{ fontWeight: 700, color }}>{m.winRate}%</span>
+                    <span style={{ marginLeft: 4 }}>{m.wins}승 {m.games - m.wins}패 ({m.games}판)</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const SORT_COLS: { key: keyof ChampionPlayerStat; label: string }[] = [
   { key: 'games',          label: '판수' },
   { key: 'winRate',        label: '승률' },
@@ -330,6 +411,9 @@ export function ChampionStatsPage() {
         {data && data.laneStats?.length > 0 && (
           <ChampionLaneStats laneStats={data.laneStats} />
         )}
+
+        {/* 같은 라인 상대 챔피언 승률 */}
+        {champion && <ChampionMatchupSection champion={champion} mode={mode} />}
 
         {/* 포지션별 차트 (Story 3.2: React.lazy — Chart.js 동적 로딩) */}
         {data && data.laneStats?.length > 0 && (

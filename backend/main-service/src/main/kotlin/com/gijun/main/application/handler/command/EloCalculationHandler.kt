@@ -39,6 +39,7 @@ class EloCalculationHandler(
         private const val ALPHA       = 12.0
         private const val INITIAL_ELO = 1000.0
         private const val MIN_ELO     = 100.0
+        private const val ARAM_QUEUE_ID = 3270  // 칼바람 난전 — Elo 계산 제외
 
         /**
          * 동적 K-팩터: 게임 수에 따라 변동폭 조정
@@ -82,6 +83,10 @@ class EloCalculationHandler(
     override fun calculateForMatch(matchId: String) {
         val match = matchPersistencePort.findByMatchId(matchId)
             ?: run { log.warn("Elo 계산 skip — 매치 없음: $matchId"); return }
+        if (match.queueId == ARAM_QUEUE_ID) {
+            log.info("Elo 계산 skip — 칼바람: $matchId")
+            return
+        }
         processMatch(match)
     }
 
@@ -91,7 +96,8 @@ class EloCalculationHandler(
         eloPort.deleteAll()
         eloHistoryPort.deleteAll()
         val matches = matchPersistencePort.findAllOrderedByGameCreation()
-        log.info("재집계 대상 매치: ${matches.size}개")
+            .filter { it.queueId != ARAM_QUEUE_ID }
+        log.info("재집계 대상 매치: ${matches.size}개 (칼바람 제외)")
         matches.forEach { processMatch(it) }
         log.info("Elo 재집계 완료")
     }

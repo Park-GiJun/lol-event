@@ -13,7 +13,7 @@ class GetChampionMatchupHandler(
     private val matchPersistencePort: MatchPersistencePort,
 ) : GetChampionMatchupUseCase {
 
-    override fun getMatchup(champion: String?, vsChampion: String?, mode: String): ChampionMatchupResult {
+    override fun getMatchup(champion: String?, vsChampion: String?, mode: String, samePosition: Boolean): ChampionMatchupResult {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         // (myChampion, myChampionId, opponentChampion, opponentId, myWin) 쌍 생성
@@ -28,7 +28,13 @@ class GetChampionMatchupHandler(
             byTeam.values.flatMap { myTeam ->
                 val enemies = m.participants.filter { it.teamId != myTeam.first().teamId }
                 myTeam.flatMap { me ->
-                    enemies.map { opp ->
+                    val opponents = if (samePosition) {
+                        val myPos = normalizePosition(me.lane, me.role) ?: return@flatMap emptyList()
+                        enemies.filter { normalizePosition(it.lane, it.role) == myPos }
+                    } else {
+                        enemies
+                    }
+                    opponents.map { opp ->
                         Pair(me.champion, me.championId, opp.champion, opp.championId, me.win)
                     }
                 }
@@ -74,5 +80,16 @@ class GetChampionMatchupHandler(
 
             else -> ChampionMatchupResult("", 0, emptyList())
         }
+    }
+
+    /** LCU lane/role → 정규화 포지션 (같은 라인 매칭용) */
+    private fun normalizePosition(lane: String?, role: String?): String? = when {
+        lane == "TOP"                                                         -> "TOP"
+        lane == "JUNGLE"                                                      -> "JUNGLE"
+        lane == "MIDDLE"                                                      -> "MID"
+        lane == "BOTTOM" && role in listOf("CARRY", "DUO_CARRY")             -> "BOT"
+        lane == "BOTTOM" && role in listOf("SUPPORT", "DUO_SUPPORT")         -> "SUP"
+        lane == "BOTTOM" && role == "SOLO"                                   -> "BOT"
+        else                                                                  -> null
     }
 }

@@ -1,7 +1,7 @@
 import { app, BrowserWindow, Tray, Menu, nativeImage, shell, ipcMain, dialog, Notification } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import path, { join } from 'path';
-import { getStatus, getLiveGame, getChampSelect, getChampSelectFull, getSummonerHistory, getCustomMostPicks, findLockfile, parseLockfile, lcuGet } from './lcu';
+import { getStatus, getLiveGame, getChampSelect, getChampSelectFull, getSummonerHistory, getCustomMostPicks, cacheLobbyMembers, findLockfile, parseLockfile, lcuGet } from './lcu';
 import { runCollect } from './collect';
 
 app.setAppUserModelId('net.gijun.lol-collector');
@@ -73,7 +73,7 @@ function setupAutoUpdater(): void {
   autoUpdater.on('download-progress', (p) => win?.webContents.send('update:progress', Math.round(p.percent)));
   autoUpdater.on('update-downloaded', () => {
     win?.webContents.send('update:installing');
-    setTimeout(() => autoUpdater.quitAndInstall(false, true), 1500);
+    setTimeout(() => autoUpdater.quitAndInstall(true, true), 1500); // isSilent=true → installer UI 없이 조용히 설치
   });
   autoUpdater.on('error', () => win?.webContents.send('update:not-available'));
   autoUpdater.checkForUpdates().catch(() => win?.webContents.send('update:not-available'));
@@ -90,6 +90,11 @@ async function checkAndAutoCollect() {
     const { port, password } = parseLockfile(lockfilePath);
     const raw = await lcuGet<string>(port, password, '/lol-gameflow/v1/gameflow-phase');
     const phase = String(raw).replace(/"/g, '').trim();
+
+    // Lobby 상태에서 소환사 정보 캐시 갱신 (픽창 전환 후 상대팀 닉네임 유지)
+    if (phase === 'Lobby') {
+      cacheLobbyMembers().catch(() => {});
+    }
 
     // InProgress → EndOfGame/WaitingForStats/None 전환 시 자동 수집 트리거
     if (

@@ -160,11 +160,13 @@ class StatsWebAdapter(
         @RequestParam(required = false) champion: String?,
         @RequestParam(required = false) vsChampion: String?,
         @RequestParam(defaultValue = "normal") mode: String,
+        @RequestParam(defaultValue = "false") samePosition: Boolean,
     ): CommonApiResponse<ChampionMatchupResult> =
         CommonApiResponse.success(getChampionMatchupUseCase.getMatchup(
             champion?.let { java.net.URLDecoder.decode(it, "UTF-8") },
             vsChampion?.let { java.net.URLDecoder.decode(it, "UTF-8") },
             mode,
+            samePosition,
         ))
 
     @Operation(

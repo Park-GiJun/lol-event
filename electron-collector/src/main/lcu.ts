@@ -184,18 +184,48 @@ export interface CustomTeamsResult {
   redTeam: TeamMemberInfo[];
 }
 
+// 로비에서 수집한 summonerId → 소환사 정보 캐시
+// 픽창 전환 시 상대팀 닉네임을 유지하기 위해 사용
+const summonerInfoCache = new Map<number, { summonerName: string; riotId: string }>();
+
 async function summonerIdToInfo(port: string, password: string, summonerId: number): Promise<{ summonerName: string; riotId: string } | null> {
+  // 캐시에 있으면 먼저 반환 시도 (LCU 호출 전)
+  const cached = summonerInfoCache.get(summonerId);
   try {
     const summoner = await lcuGet<Record<string, unknown>>(port, password, `/lol-summoner/v1/summoners/${summonerId}`);
     const gameName = (summoner['gameName'] as string) ?? '';
     const tagLine = (summoner['tagLine'] as string) ?? '';
     const displayName = (summoner['displayName'] as string) ?? gameName;
-    return {
+    const info = {
       riotId: gameName ? `${gameName}#${tagLine}` : displayName,
       summonerName: displayName || gameName,
     };
+    if (info.riotId) summonerInfoCache.set(summonerId, info);
+    return info;
   } catch {
-    return null;
+    // LCU 조회 실패 시 캐시 fallback (픽창에서 상대팀 닉네임 유지)
+    return cached ?? null;
+  }
+}
+
+/** 로비 멤버 정보를 미리 캐시에 저장 (픽창 전환 대비) */
+export async function cacheLobbyMembers(): Promise<void> {
+  const creds = getCredentials();
+  if (!creds) return;
+  const { port, password } = creds;
+  try {
+    const lobby = await lcuGet<Record<string, unknown>>(port, password, '/lol-lobby/v2/lobby');
+    const gameConfig = lobby['gameConfig'] as Record<string, unknown> | undefined;
+    const team100 = (gameConfig?.['customTeam100'] as unknown[]) ?? [];
+    const team200 = (gameConfig?.['customTeam200'] as unknown[]) ?? [];
+    const allMembers = [...team100, ...team200];
+    await Promise.all(allMembers.map(async (m) => {
+      const member = m as Record<string, unknown>;
+      const sid = member['summonerId'] as number | undefined;
+      if (sid) await summonerIdToInfo(port, password, sid);
+    }));
+  } catch {
+    // 로비 미진입 상태 등 — 무시
   }
 }
 

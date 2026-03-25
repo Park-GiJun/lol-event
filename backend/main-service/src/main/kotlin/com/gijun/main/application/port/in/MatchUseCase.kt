@@ -65,8 +65,9 @@ interface GetLaneLeaderboardUseCase {
 }
 
 interface GetChampionMatchupUseCase {
-    /** champion: X의 전적(X가 플레이될 때 각 상대 챔피언 vs) / vsChampion: X를 상대한 챔피언 전적(카운터픽) */
-    fun getMatchup(champion: String?, vsChampion: String?, mode: String): ChampionMatchupResult
+    /** champion: X의 전적(X가 플레이될 때 각 상대 챔피언 vs) / vsChampion: X를 상대한 챔피언 전적(카운터픽)
+     *  samePosition=true: 같은 라인 상대에 대해서만 계산 */
+    fun getMatchup(champion: String?, vsChampion: String?, mode: String, samePosition: Boolean = false): ChampionMatchupResult
 }
 
 interface GetObjectiveCorrelationUseCase {
