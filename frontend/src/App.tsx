@@ -16,6 +16,7 @@ import { LcuPage } from './pages/LcuPage';
 import { SyncPage } from './pages/SyncPage';
 import { AdminPage } from './pages/AdminPage';
 import { TeamBuilderPage } from './pages/TeamBuilderPage';
+import { StatsPage } from './pages/StatsPage';
 import { ErrorModal } from './components/common/ErrorModal';
 import { MobileHomePage } from './pages/mobile/MobileHomePage';
 import { MobileStatsPage } from './pages/mobile/MobileStatsPage';
@@ -67,6 +68,7 @@ function App() {
           <Route path="sync" element={<SyncPage />} />
           <Route path="admin" element={<AdminPage />} />
           <Route path="team-builder" element={<TeamBuilderPage />} />
+          <Route path="reports" element={<StatsPage />} />
         </Route>
 
         {/* Mobile routes */}

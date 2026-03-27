@@ -1,16 +1,17 @@
 import { NavLink } from 'react-router-dom';
-import { Swords, Users, BarChart2, List, Radio, RefreshCw, Shield, UserRound, X, Trophy, Shuffle } from 'lucide-react';
+import { Swords, Users, BarChart2, List, Radio, RefreshCw, Shield, UserRound, X, Trophy, Shuffle, FileBarChart } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { to: '/',              icon: BarChart2,  label: '전체 통계' },
-  { to: '/player-stats',  icon: UserRound,  label: '멤버 통계' },
-  { to: '/champions',     icon: Trophy,     label: '챔피언 목록' },
-  { to: '/team-builder',  icon: Shuffle,    label: '팀 빌더' },
-  { to: '/members',       icon: Users,      label: '멤버 관리' },
-  { to: '/matches',       icon: List,       label: '경기 목록' },
-  { to: '/lcu',           icon: Radio,      label: 'LCU 수집' },
-  { to: '/sync',          icon: RefreshCw,  label: '동기화' },
-  { to: '/admin',         icon: Shield,     label: '어드민' },
+  { to: '/',              icon: BarChart2,     label: '전체 통계' },
+  { to: '/player-stats',  icon: UserRound,     label: '멤버 통계' },
+  { to: '/reports',       icon: FileBarChart,  label: '리포트' },
+  { to: '/champions',     icon: Trophy,        label: '챔피언 목록' },
+  { to: '/team-builder',  icon: Shuffle,       label: '팀 빌더' },
+  { to: '/members',       icon: Users,         label: '멤버 관리' },
+  { to: '/matches',       icon: List,          label: '경기 목록' },
+  { to: '/lcu',           icon: Radio,         label: 'LCU 수집' },
+  { to: '/sync',          icon: RefreshCw,     label: '동기화' },
+  { to: '/admin',         icon: Shield,        label: '어드민' },
 ];
 
 interface SidebarProps {
