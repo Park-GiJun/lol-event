@@ -62,6 +62,10 @@ import com.gijun.main.application.dto.stats.result.GameLengthTendencyResult
 import com.gijun.main.application.dto.stats.result.EarlyGameDominanceResult
 import com.gijun.main.application.dto.stats.result.ComebackIndexResult
 import com.gijun.main.application.dto.stats.result.GoldEfficiencyResult
+import com.gijun.main.application.dto.stats.result.BanAnalysisResult
+import com.gijun.main.application.dto.stats.result.TimePatternResult
+import com.gijun.main.application.dto.stats.result.KillParticipationResult
+import com.gijun.main.application.dto.stats.result.PositionChampionPoolResult
 import com.gijun.main.application.port.`in`.GetPlayerComparisonUseCase
 import com.gijun.main.application.port.`in`.GetSessionReportUseCase
 import com.gijun.main.application.port.`in`.GetChampionTierUseCase
@@ -69,6 +73,10 @@ import com.gijun.main.application.port.`in`.GetGameLengthTendencyUseCase
 import com.gijun.main.application.port.`in`.GetEarlyGameDominanceUseCase
 import com.gijun.main.application.port.`in`.GetComebackIndexUseCase
 import com.gijun.main.application.port.`in`.GetGoldEfficiencyUseCase
+import com.gijun.main.application.port.`in`.GetBanAnalysisUseCase
+import com.gijun.main.application.port.`in`.GetTimePatternUseCase
+import com.gijun.main.application.port.`in`.GetKillParticipationUseCase
+import com.gijun.main.application.port.`in`.GetPositionChampionPoolUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -112,6 +120,10 @@ class StatsWebAdapter(
     private val getEarlyGameDominanceUseCase: GetEarlyGameDominanceUseCase,
     private val getComebackIndexUseCase: GetComebackIndexUseCase,
     private val getGoldEfficiencyUseCase: GetGoldEfficiencyUseCase,
+    private val getBanAnalysisUseCase: GetBanAnalysisUseCase,
+    private val getTimePatternUseCase: GetTimePatternUseCase,
+    private val getKillParticipationUseCase: GetKillParticipationUseCase,
+    private val getPositionChampionPoolUseCase: GetPositionChampionPoolUseCase,
 ) {
     @Operation(summary = "전체 내전 통계 개요", description = "챔피언 픽 통계, 명예의 전당, 오브젝트 집계 등 전반적인 통계를 반환합니다")
     @GetMapping("/overview")
@@ -401,4 +413,28 @@ class StatsWebAdapter(
         @RequestParam(defaultValue = "normal") mode: String,
     ): CommonApiResponse<GoldEfficiencyResult> =
         CommonApiResponse.success(getGoldEfficiencyUseCase.getGoldEfficiency(mode))
+
+    @GetMapping("/ban-analysis")
+    fun getBanAnalysis(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<BanAnalysisResult> =
+        CommonApiResponse.success(getBanAnalysisUseCase.getBanAnalysis(mode))
+
+    @GetMapping("/time-pattern")
+    fun getTimePattern(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<TimePatternResult> =
+        CommonApiResponse.success(getTimePatternUseCase.getTimePattern(mode))
+
+    @GetMapping("/kill-participation")
+    fun getKillParticipation(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<KillParticipationResult> =
+        CommonApiResponse.success(getKillParticipationUseCase.getKillParticipation(mode))
+
+    @GetMapping("/position-champion-pool")
+    fun getPositionChampionPool(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<PositionChampionPoolResult> =
+        CommonApiResponse.success(getPositionChampionPoolUseCase.getPositionChampionPool(mode))
 }

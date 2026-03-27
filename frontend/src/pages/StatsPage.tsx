@@ -28,6 +28,10 @@ import type {
   EarlyGameDominanceResult, EarlyGameDominanceEntry,
   ComebackIndexResult, ComebackIndexEntry,
   GoldEfficiencyResult, GoldEfficiencyEntry,
+  BanAnalysisResult, BanEntry,
+  TimePatternResult, DayPatternEntry, HourPatternEntry,
+  KillParticipationResult, KillParticipationEntry,
+  PositionChampionPoolResult, PlayerPositionEntry, PositionChampEntry,
 } from '../lib/types/stats';
 import { LoadingCenter } from '../components/common/Spinner';
 import { Button } from '../components/common/Button';
@@ -69,6 +73,10 @@ const TABS = [
   { key: 'earlygame',  label: '🌅 초반 지배' },
   { key: 'comeback',   label: '🔄 컴백' },
   { key: 'goldeff',    label: '💰 골드 효율' },
+  { key: 'ban',        label: '🚫 밴 분석' },
+  { key: 'timepattern', label: '📅 시간패턴' },
+  { key: 'kp',         label: '⚡ KP 랭킹' },
+  { key: 'pospool',    label: '📍 포지션 풀' },
 ];
 
 // ── 공통 컴포넌트 ─────────────────────────────────────
@@ -2323,6 +2331,252 @@ export function StatsPage() {
       {tab === 'earlygame'  && <div className="card" style={{ marginTop: 4 }}><EarlyGameTab   mode={mode} /></div>}
       {tab === 'comeback'   && <div className="card" style={{ marginTop: 4 }}><ComebackTab    mode={mode} /></div>}
       {tab === 'goldeff'    && <div className="card" style={{ marginTop: 4 }}><GoldEffTab     mode={mode} /></div>}
+      {tab === 'ban'         && <div className="card" style={{ marginTop: 4 }}><BanAnalysisTab mode={mode} /></div>}
+      {tab === 'timepattern' && <div className="card" style={{ marginTop: 4 }}><TimePatternTab mode={mode} /></div>}
+      {tab === 'kp'          && <div className="card" style={{ marginTop: 4 }}><KillParticipationTab mode={mode} /></div>}
+      {tab === 'pospool'     && <div className="card" style={{ marginTop: 4 }}><PositionPoolTab mode={mode} /></div>}
+    </div>
+  );
+}
+
+/* ── 밴 분석 ─── */
+function BanAnalysisTab({ mode }: { mode: string }) {
+  const { champions } = useDragon();
+  const { data, isLoading } = useQuery({
+    queryKey: ['ban-analysis', mode],
+    queryFn: () => api.get<BanAnalysisResult>(`/stats/ban-analysis?mode=${mode}`),
+  });
+  if (isLoading) return <LoadingCenter />;
+  if (!data || data.topBanned.length === 0) return <div style={{ padding: 24, color: 'var(--color-text-secondary)' }}>밴 데이터가 없습니다</div>;
+
+  return (
+    <div>
+      <div style={{ marginBottom: 8, fontSize: 12, color: 'var(--color-text-secondary)' }}>
+        총 {data.totalGamesAnalyzed}게임 분석 · 가장 많이 밴된 챔피언: {data.mostBannedChampion ?? '-'}
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-secondary)', fontSize: 11 }}>
+            <th style={{ textAlign: 'left', padding: '6px 8px' }}>#</th>
+            <th style={{ textAlign: 'left', padding: '6px 8px' }}>챔피언</th>
+            <th style={{ textAlign: 'right', padding: '6px 8px' }}>밴 횟수</th>
+            <th style={{ textAlign: 'right', padding: '6px 8px' }}>밴율</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.topBanned.map((e: BanEntry, i: number) => {
+            const c = champions.get(e.championId);
+            return (
+              <tr key={e.champion} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <td style={{ padding: '8px', color: 'var(--color-text-secondary)', fontSize: 11 }}>{i + 1}</td>
+                <td style={{ padding: '8px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {c?.imageUrl && <img src={c.imageUrl} alt={c.nameKo} width={28} height={28} style={{ borderRadius: 4 }} />}
+                  <ChampionLink champion={e.champion}>{c?.nameKo ?? e.champion}</ChampionLink>
+                </td>
+                <td style={{ padding: '8px', textAlign: 'right', fontWeight: 600 }}>{e.banCount}회</td>
+                <td style={{ padding: '8px', textAlign: 'right', color: e.banRate >= 50 ? '#FF4757' : e.banRate >= 30 ? '#FF6B2B' : 'inherit' }}>
+                  {e.banRate.toFixed(1)}%
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ── 시간 패턴 ─── */
+function TimePatternTab({ mode }: { mode: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['time-pattern', mode],
+    queryFn: () => api.get<TimePatternResult>(`/stats/time-pattern?mode=${mode}`),
+  });
+  if (isLoading) return <LoadingCenter />;
+  if (!data) return <div style={{ padding: 24, color: 'var(--color-text-secondary)' }}>데이터 없음</div>;
+
+  const maxDayGames = Math.max(...data.byDay.map((d: DayPatternEntry) => d.games), 1);
+  const maxHourGames = Math.max(...data.byHour.map((h: HourPatternEntry) => h.games), 1);
+
+  return (
+    <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
+      <div style={{ flex: 1, minWidth: 200 }}>
+        <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 14 }}>요일별 내전 횟수</div>
+        {data.busiestDay && <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>가장 활발한 요일: <strong>{data.busiestDay}요일</strong></div>}
+        {data.byDay.map((d: DayPatternEntry) => (
+          <div key={d.dayOfWeek} style={{ marginBottom: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
+              <span>{d.dayName}요일</span>
+              <span style={{ color: 'var(--color-text-secondary)' }}>{d.games}게임 ({d.sessions}세션)</span>
+            </div>
+            <div style={{ height: 8, borderRadius: 4, background: 'var(--color-bg-hover)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', borderRadius: 4, background: 'var(--color-primary)', width: `${d.games / maxDayGames * 100}%`, transition: 'width 0.3s' }} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ flex: 1, minWidth: 200 }}>
+        <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 14 }}>시간대별 내전 횟수</div>
+        {data.busiestHour !== null && <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>가장 활발한 시간: <strong>{data.busiestHour}시</strong></div>}
+        {data.byHour.map((h: HourPatternEntry) => (
+          <div key={h.hour} style={{ marginBottom: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 2 }}>
+              <span>{h.hour}시</span>
+              <span style={{ color: 'var(--color-text-secondary)' }}>{h.games}게임</span>
+            </div>
+            <div style={{ height: 6, borderRadius: 3, background: 'var(--color-bg-hover)', overflow: 'hidden' }}>
+              <div style={{ height: '100%', borderRadius: 3, background: 'var(--color-primary)', width: `${h.games / maxHourGames * 100}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── KP 랭킹 ─── */
+function KillParticipationTab({ mode }: { mode: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['kp-ranking', mode],
+    queryFn: () => api.get<KillParticipationResult>(`/stats/kill-participation?mode=${mode}`),
+  });
+  if (isLoading) return <LoadingCenter />;
+  if (!data || data.rankings.length === 0) return <div style={{ padding: 24, color: 'var(--color-text-secondary)' }}>데이터 없음</div>;
+
+  return (
+    <div>
+      {data.kpKing && (
+        <div style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--color-bg-hover)', marginBottom: 12, fontSize: 13 }}>
+          ⚡ KP왕: <strong><PlayerLink riotId={data.kpKing}>{data.kpKing.split('#')[0]}</PlayerLink></strong>
+        </div>
+      )}
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <thead>
+          <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-secondary)', fontSize: 11 }}>
+            <th style={{ textAlign: 'left', padding: '6px 8px' }}>#</th>
+            <th style={{ textAlign: 'left', padding: '6px 8px' }}>플레이어</th>
+            <th style={{ textAlign: 'right', padding: '6px 8px' }}>게임</th>
+            <th style={{ textAlign: 'right', padding: '6px 8px' }}>평균 KP</th>
+            <th style={{ textAlign: 'right', padding: '6px 8px' }}>승리 KP</th>
+            <th style={{ textAlign: 'right', padding: '6px 8px' }}>패배 KP</th>
+            <th style={{ textAlign: 'right', padding: '6px 8px' }}>킬/어시</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.rankings.map((p: KillParticipationEntry, i: number) => (
+            <tr key={p.riotId} style={{ borderBottom: '1px solid var(--color-border)' }}>
+              <td style={{ padding: '8px', color: i < 3 ? 'var(--color-primary)' : 'var(--color-text-secondary)', fontWeight: i < 3 ? 700 : 400 }}>{i + 1}</td>
+              <td style={{ padding: '8px' }}><PlayerLink riotId={p.riotId}>{p.riotId.split('#')[0]}</PlayerLink></td>
+              <td style={{ padding: '8px', textAlign: 'right', color: 'var(--color-text-secondary)' }}>{p.games}</td>
+              <td style={{ padding: '8px', textAlign: 'right', fontWeight: 700, color: p.avgKp >= 70 ? '#4CAF50' : 'inherit' }}>{p.avgKp.toFixed(1)}%</td>
+              <td style={{ padding: '8px', textAlign: 'right', color: 'var(--color-win)' }}>{p.avgKpWin.toFixed(1)}%</td>
+              <td style={{ padding: '8px', textAlign: 'right', color: 'var(--color-loss)' }}>{p.avgKpLoss.toFixed(1)}%</td>
+              <td style={{ padding: '8px', textAlign: 'right', color: 'var(--color-text-secondary)' }}>{p.avgKills.toFixed(1)} / {p.avgAssists.toFixed(1)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ── 포지션 챔피언 풀 ─── */
+function PositionPoolTab({ mode }: { mode: string }) {
+  const { champions } = useDragon();
+  const [selectedPos, setSelectedPos] = useState('TOP');
+  const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
+  const { data, isLoading } = useQuery({
+    queryKey: ['pos-pool', mode],
+    queryFn: () => api.get<PositionChampionPoolResult>(`/stats/position-champion-pool?mode=${mode}`),
+  });
+  if (isLoading) return <LoadingCenter />;
+  if (!data) return <div style={{ padding: 24, color: 'var(--color-text-secondary)' }}>데이터 없음</div>;
+
+  const POSITIONS = ['TOP', 'JUNGLE', 'MID', 'BOTTOM', 'SUPPORT'];
+  const POS_LABEL: Record<string, string> = { TOP: '탑', JUNGLE: '정글', MID: '미드', BOTTOM: '원딜', SUPPORT: '서폿' };
+
+  const posPlayers = data.allPlayers.filter((p: PlayerPositionEntry) => p.position === selectedPos).sort((a: PlayerPositionEntry, b: PlayerPositionEntry) => b.games - a.games);
+  const allRiotIds = [...new Set(data.allPlayers.map((p: PlayerPositionEntry) => p.riotId))].sort();
+
+  const playerEntries = selectedPlayer
+    ? data.allPlayers.filter((p: PlayerPositionEntry) => p.riotId === selectedPlayer).sort((a: PlayerPositionEntry, b: PlayerPositionEntry) => b.games - a.games)
+    : [];
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {POSITIONS.map(pos => (
+          <button key={pos} onClick={() => { setSelectedPos(pos); setSelectedPlayer(null); }}
+            style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid var(--color-border)', background: selectedPos === pos && !selectedPlayer ? 'var(--color-primary)' : 'var(--color-bg-hover)', color: selectedPos === pos && !selectedPlayer ? '#fff' : 'var(--color-text-primary)', cursor: 'pointer', fontWeight: selectedPos === pos ? 600 : 400, fontSize: 12 }}>
+            {POS_LABEL[pos]}
+          </button>
+        ))}
+        <select onChange={e => setSelectedPlayer(e.target.value || null)} value={selectedPlayer ?? ''}
+          style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-bg-hover)', color: 'var(--color-text-primary)', cursor: 'pointer', fontSize: 12 }}>
+          <option value="">플레이어 선택</option>
+          {(allRiotIds as string[]).map(id => <option key={id} value={id}>{id.split('#')[0]}</option>)}
+        </select>
+      </div>
+
+      {!selectedPlayer ? (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-secondary)', fontSize: 11 }}>
+              <th style={{ textAlign: 'left', padding: '6px 8px' }}>플레이어</th>
+              <th style={{ textAlign: 'center', padding: '6px 8px' }}>주챔피언</th>
+              <th style={{ textAlign: 'right', padding: '6px 8px' }}>게임</th>
+              <th style={{ textAlign: 'right', padding: '6px 8px' }}>승률</th>
+            </tr>
+          </thead>
+          <tbody>
+            {posPlayers.map((p: PlayerPositionEntry) => {
+              const c = p.topChampionId ? champions.get(p.topChampionId) : null;
+              return (
+                <tr key={p.riotId} style={{ borderBottom: '1px solid var(--color-border)', cursor: 'pointer' }}
+                  onClick={() => setSelectedPlayer(p.riotId)}>
+                  <td style={{ padding: '8px' }}><PlayerLink riotId={p.riotId}>{p.riotId.split('#')[0]}</PlayerLink></td>
+                  <td style={{ padding: '8px', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                      {c?.imageUrl && <img src={c.imageUrl} alt={c.nameKo} width={24} height={24} style={{ borderRadius: 4 }} />}
+                      <span>{c?.nameKo ?? p.topChampion ?? '-'}</span>
+                    </div>
+                  </td>
+                  <td style={{ padding: '8px', textAlign: 'right' }}>{p.games}</td>
+                  <td style={{ padding: '8px', textAlign: 'right', color: p.winRate >= 60 ? 'var(--color-win)' : p.winRate < 45 ? 'var(--color-loss)' : 'inherit' }}>{p.winRate.toFixed(1)}%</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      ) : (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <button onClick={() => setSelectedPlayer(null)} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'none', color: 'var(--color-text-primary)', cursor: 'pointer', fontSize: 12 }}>← 뒤로</button>
+            <strong><PlayerLink riotId={selectedPlayer}>{selectedPlayer.split('#')[0]}</PlayerLink></strong> 포지션별 챔피언 풀
+          </div>
+          {playerEntries.map((pe: PlayerPositionEntry) => (
+            <div key={pe.position} style={{ marginBottom: 20 }}>
+              <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8 }}>{POS_LABEL[pe.position] ?? pe.position} ({pe.games}게임 · {pe.winRate.toFixed(1)}%)</div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {pe.champions.slice(0, 8).map((ce: PositionChampEntry) => {
+                  const c = champions.get(ce.championId);
+                  return (
+                    <div key={ce.champion} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: 56 }}>
+                      {c?.imageUrl ? (
+                        <img src={c.imageUrl} alt={c.nameKo} width={44} height={44} style={{ borderRadius: 8, border: '1px solid var(--color-border)' }} />
+                      ) : (
+                        <div style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>{ce.champion.slice(0, 2)}</div>
+                      )}
+                      <span style={{ fontSize: 9, color: 'var(--color-text-secondary)', textAlign: 'center' }}>{c?.nameKo ?? ce.champion}</span>
+                      <span style={{ fontSize: 9, color: ce.winRate >= 60 ? 'var(--color-win)' : 'inherit' }}>{ce.winRate.toFixed(0)}% ({ce.games})</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

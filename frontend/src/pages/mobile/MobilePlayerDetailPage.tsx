@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { usePlayerDetail } from '@/hooks/usePlayerDetail';
 import { usePlayerEloHistory } from '@/hooks/usePlayerEloHistory';
 import { useDragon } from '@/context/DragonContext';
 import { Skeleton } from '@/components/common/Skeleton';
 import { InlineError } from '@/components/common/InlineError';
+import { api } from '@/lib/api/api';
+import type { GrowthCurveResult, PlaystyleDnaResult } from '@/lib/types/stats';
 
 function eloTier(elo: number) {
   if (elo >= 1300) return { label: 'Challenger', color: '#FFD700' };
@@ -33,6 +36,16 @@ export function MobilePlayerDetailPage() {
 
   const { data, isLoading: statsLoading, error: statsError, refetch } = usePlayerDetail(decoded);
   const { data: eloHistory, isLoading: eloLoading, error: eloError } = usePlayerEloHistory(decoded);
+
+  const { data: growthData } = useQuery({
+    queryKey: ['m-growth', decoded],
+    queryFn: () => api.get<GrowthCurveResult>(`/stats/player/${encodeURIComponent(decoded)}/growth-curve?mode=all`),
+  });
+
+  const { data: dnaData } = useQuery({
+    queryKey: ['m-dna-player', decoded],
+    queryFn: () => api.get<PlaystyleDnaResult>(`/stats/playstyle-dna?mode=all`),
+  });
 
   // P2: check error before isLoading so statsError is never hidden by eloLoading
   if (statsError || (!statsLoading && !data)) {
@@ -230,6 +243,64 @@ export function MobilePlayerDetailPage() {
           </div>
         );
       })}
+
+      {/* 성장 트렌드 */}
+      {growthData && (
+        <>
+          <p className="m-section-title" style={{ marginTop: 8 }}>성장 트렌드</p>
+          <div className="m-card" style={{ marginBottom: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>전체 KDA</div>
+                <div style={{ fontSize: 20, fontWeight: 700 }}>{growthData.overallAvgKda.toFixed(2)}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>최근 KDA</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: growthData.recentAvgKda > growthData.overallAvgKda ? 'var(--color-win)' : 'var(--color-loss)' }}>
+                  {growthData.recentAvgKda.toFixed(2)}
+                </div>
+              </div>
+              <div style={{ padding: '4px 10px', borderRadius: 12, fontSize: 12, fontWeight: 700, background: growthData.trend === 'IMPROVING' ? 'rgba(76,175,80,0.15)' : growthData.trend === 'DECLINING' ? 'rgba(255,71,87,0.15)' : 'var(--color-bg-hover)', color: growthData.trend === 'IMPROVING' ? '#4CAF50' : growthData.trend === 'DECLINING' ? '#FF4757' : 'var(--color-text-secondary)' }}>
+                {growthData.trend === 'IMPROVING' ? '↑ 상승 중' : growthData.trend === 'DECLINING' ? '↓ 하락 중' : '→ 안정적'}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 플레이스타일 DNA */}
+      {dnaData && (() => {
+        const myDna = dnaData.players.find(p => p.riotId === decoded);
+        if (!myDna) return null;
+        return (
+          <>
+            <p className="m-section-title" style={{ marginTop: 8 }}>플레이스타일 DNA</p>
+            <div className="m-card">
+              <div style={{ marginBottom: 4 }}>
+                <span className="m-stat-chip">{myDna.styleTag}</span>
+              </div>
+              {[
+                { label: '공격성', value: myDna.aggression, color: '#FF6B2B' },
+                { label: '생존력', value: myDna.durability, color: '#2196F3' },
+                { label: '팀플레이', value: myDna.teamPlay, color: '#4CAF50' },
+                { label: '오브젝트', value: myDna.objectiveFocus, color: '#FFD700' },
+                { label: '골드효율', value: myDna.economy, color: '#E91E8A' },
+                { label: '시야장악', value: myDna.visionControl, color: '#9C27B0' },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ marginBottom: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 2 }}>
+                    <span style={{ color: 'var(--color-text-secondary)' }}>{label}</span>
+                    <span style={{ color }}>{value.toFixed(0)}</span>
+                  </div>
+                  <div style={{ height: 4, borderRadius: 2, background: 'var(--color-bg-hover)' }}>
+                    <div style={{ height: '100%', borderRadius: 2, background: color, width: `${Math.min(value, 100)}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }

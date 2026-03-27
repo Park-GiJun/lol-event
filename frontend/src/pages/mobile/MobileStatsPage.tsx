@@ -32,6 +32,11 @@ import type {
   ComebackIndexResult,
   GoldEfficiencyResult,
   GrowthCurveResult,
+  BanAnalysisResult,
+  TimePatternResult,
+  KillParticipationResult,
+  PositionChampionPoolResult,
+  PlayerPositionEntry,
 } from '../../lib/types/stats';
 import { useDragon } from '../../context/DragonContext';
 import { LoadingCenter } from '../../components/common/Spinner';
@@ -452,8 +457,8 @@ function LaneTab({ mode }: { mode: string }) {
 /* ══════════════════════════════════════════════════════════════════════ */
 /* ── 어워즈 그룹 ─────────────────────────────────────────────────────── */
 /* ══════════════════════════════════════════════════════════════════════ */
-type AwardsSubTab = '주간어워즈' | '떡락지수' | '멀티킬' | '혼돈경기' | '초반지배' | '컴백지수';
-const AWARDS_SUB_TABS: AwardsSubTab[] = ['주간어워즈', '떡락지수', '멀티킬', '혼돈경기', '초반지배', '컴백지수'];
+type AwardsSubTab = '주간어워즈' | '떡락지수' | '멀티킬' | '혼돈경기' | '초반지배' | '컴백지수' | '밴분석' | '시간패턴';
+const AWARDS_SUB_TABS: AwardsSubTab[] = ['주간어워즈', '떡락지수', '멀티킬', '혼돈경기', '초반지배', '컴백지수', '밴분석', '시간패턴'];
 
 function AwardsGroup() {
   const [sub, setSub] = useState<AwardsSubTab>('주간어워즈');
@@ -481,6 +486,8 @@ function AwardsGroup() {
       {sub === '혼돈경기'   && <ChaosMatchTab mode={mode} />}
       {sub === '초반지배'   && <EarlyGameTab mode={mode} />}
       {sub === '컴백지수'   && <ComebackTab mode={mode} />}
+      {sub === '밴분석'     && <MobileBanTab mode={mode} />}
+      {sub === '시간패턴'   && <MobileTimeTab mode={mode} />}
     </div>
   );
 }
@@ -1383,8 +1390,8 @@ function MetaShiftTab({ mode }: { mode: string }) {
 /* ══════════════════════════════════════════════════════════════════════ */
 /* ── 개인분석 그룹 ────────────────────────────────────────────────────── */
 /* ══════════════════════════════════════════════════════════════════════ */
-type PersonalSubTab = '생존지수' | '정글점령' | '서폿기여' | 'DNA' | '게임성향' | '골드효율' | '성장곡선';
-const PERSONAL_SUB_TABS: PersonalSubTab[] = ['생존지수', '정글점령', '서폿기여', 'DNA', '게임성향', '골드효율', '성장곡선'];
+type PersonalSubTab = '생존지수' | '정글점령' | '서폿기여' | 'DNA' | '게임성향' | '골드효율' | '성장곡선' | 'KP랭킹' | '포지션풀';
+const PERSONAL_SUB_TABS: PersonalSubTab[] = ['생존지수', '정글점령', '서폿기여', 'DNA', '게임성향', '골드효율', '성장곡선', 'KP랭킹', '포지션풀'];
 
 function PersonalAnalysisGroup() {
   const [sub, setSub] = useState<PersonalSubTab>('생존지수');
@@ -1413,6 +1420,8 @@ function PersonalAnalysisGroup() {
       {sub === '게임성향'  && <GameLengthTab mode={mode} />}
       {sub === '골드효율'  && <GoldEffTab mode={mode} />}
       {sub === '성장곡선'  && <GrowthTab mode={mode} />}
+      {sub === 'KP랭킹'   && <MobileKpTab mode={mode} />}
+      {sub === '포지션풀'  && <MobilePosPoolTab mode={mode} />}
     </div>
   );
 }
@@ -1796,6 +1805,206 @@ function GrowthTab({ mode }: { mode: string }) {
         </div>
       )}
       {!data && !isLoading && query && <div className="m-empty">데이터가 없습니다</div>}
+    </div>
+  );
+}
+
+/* ── 모바일: 밴 분석 ─── */
+function MobileBanTab({ mode }: { mode: string }) {
+  const { champions } = useDragon();
+  const { data, isLoading } = useQuery({
+    queryKey: ['m-ban', mode],
+    queryFn: () => api.get<BanAnalysisResult>(`/stats/ban-analysis?mode=${mode}`),
+  });
+  if (isLoading) return <LoadingCenter />;
+  if (!data || data.topBanned.length === 0) return <div className="m-empty">밴 데이터가 없습니다</div>;
+
+  return (
+    <div>
+      <p className="m-section-title">총 {data.totalGamesAnalyzed}게임 밴 분석</p>
+      {data.topBanned.map((e, i) => {
+        const c = champions.get(e.championId);
+        return (
+          <div key={e.champion} className="m-synergy-card">
+            {c?.imageUrl ? (
+              <img src={c.imageUrl} alt={c.nameKo} width={40} height={40} style={{ borderRadius: 8, flexShrink: 0 }} />
+            ) : (
+              <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0 }}>
+                {e.champion.slice(0, 2)}
+              </div>
+            )}
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
+                <span style={{ fontWeight: 600, fontSize: 13 }}>{c?.nameKo ?? e.champion}</span>
+                <span style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>#{i + 1}</span>
+              </div>
+              <div className="m-stat-chips">
+                <span className="m-stat-chip">{e.banCount}회 밴</span>
+                <span className="m-stat-chip" style={{ color: e.banRate >= 50 ? '#FF4757' : e.banRate >= 30 ? '#FF6B2B' : 'inherit' }}>
+                  밴율 {e.banRate.toFixed(1)}%
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── 모바일: 시간 패턴 ─── */
+function MobileTimeTab({ mode }: { mode: string }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['m-time', mode],
+    queryFn: () => api.get<TimePatternResult>(`/stats/time-pattern?mode=${mode}`),
+  });
+  if (isLoading) return <LoadingCenter />;
+  if (!data) return <div className="m-empty">데이터 없음</div>;
+
+  const maxDay = Math.max(...data.byDay.map(d => d.games), 1);
+  const maxHour = Math.max(...data.byHour.map(h => h.games), 1);
+
+  return (
+    <div>
+      {data.busiestDay && (
+        <div className="m-card" style={{ marginBottom: 12 }}>
+          <div style={{ textAlign: 'center', fontSize: 13 }}>
+            가장 활발한 요일 <strong style={{ color: 'var(--color-primary)' }}>{data.busiestDay}요일</strong>
+            {data.busiestHour !== null && <> · <strong style={{ color: 'var(--color-primary)' }}>{data.busiestHour}시</strong></>}
+          </div>
+        </div>
+      )}
+      <p className="m-section-title">요일별</p>
+      {data.byDay.map(d => (
+        <div key={d.dayOfWeek} style={{ marginBottom: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 3 }}>
+            <span style={{ fontWeight: 600 }}>{d.dayName}요일</span>
+            <span style={{ color: 'var(--color-text-secondary)' }}>{d.games}게임 · {d.sessions}세션</span>
+          </div>
+          <div style={{ height: 8, borderRadius: 4, background: 'var(--color-bg-hover)' }}>
+            <div style={{ height: '100%', borderRadius: 4, background: 'var(--color-primary)', width: `${d.games / maxDay * 100}%` }} />
+          </div>
+        </div>
+      ))}
+      <p className="m-section-title" style={{ marginTop: 12 }}>시간대별</p>
+      {data.byHour.map(h => (
+        <div key={h.hour} style={{ marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 11, color: 'var(--color-text-secondary)', width: 28, flexShrink: 0 }}>{h.hour}시</span>
+          <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--color-bg-hover)' }}>
+            <div style={{ height: '100%', borderRadius: 3, background: 'var(--color-primary)', width: `${h.games / maxHour * 100}%` }} />
+          </div>
+          <span style={{ fontSize: 11, color: 'var(--color-text-secondary)', width: 30, textAlign: 'right', flexShrink: 0 }}>{h.games}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── 모바일: KP 랭킹 ─── */
+function MobileKpTab({ mode }: { mode: string }) {
+  const navigate = useNavigate();
+  const { data, isLoading } = useQuery({
+    queryKey: ['m-kp', mode],
+    queryFn: () => api.get<KillParticipationResult>(`/stats/kill-participation?mode=${mode}`),
+  });
+  if (isLoading) return <LoadingCenter />;
+  if (!data) return <div className="m-empty">데이터 없음</div>;
+
+  return (
+    <div>
+      {data.kpKing && (
+        <div className="m-card" style={{ marginBottom: 12 }}>
+          <div className="m-leader-row" onClick={() => navigate(`/m/player/${encodeURIComponent(data.kpKing!)}`)}>
+            <span style={{ fontSize: 16, width: 28 }}>⚡</span>
+            <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', width: 50 }}>KP왕</span>
+            <span style={{ fontWeight: 700 }}>{data.kpKing.split('#')[0]}</span>
+          </div>
+        </div>
+      )}
+      <p className="m-section-title">킬 가담률 순위</p>
+      {data.rankings.map((p, i) => {
+        const [name, tag] = p.riotId.split('#');
+        return (
+          <div key={p.riotId} className="m-player-card"
+            onClick={() => navigate(`/m/player/${encodeURIComponent(p.riotId)}`)}>
+            <div className="m-player-card-header">
+              <div className={`m-player-rank${i < 3 ? ` rank-${i + 1}` : ''}`}>{i + 1}</div>
+              <div style={{ flex: 1 }}>
+                <span className="m-player-name">{name}</span>
+                {tag && <span className="m-player-tag"> #{tag}</span>}
+              </div>
+              <span style={{ fontSize: 16, fontWeight: 800, color: p.avgKp >= 70 ? '#4CAF50' : 'var(--color-primary)' }}>{p.avgKp.toFixed(1)}%</span>
+            </div>
+            <div className="m-stat-chips">
+              <span className="m-stat-chip">{p.games}게임</span>
+              <span className="m-stat-chip" style={{ color: 'var(--color-win)' }}>승 {p.avgKpWin.toFixed(0)}%</span>
+              <span className="m-stat-chip" style={{ color: 'var(--color-loss)' }}>패 {p.avgKpLoss.toFixed(0)}%</span>
+              <span className="m-stat-chip">{p.avgKills.toFixed(1)}킬 {p.avgAssists.toFixed(1)}어시</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── 모바일: 포지션 챔피언 풀 ─── */
+function MobilePosPoolTab({ mode }: { mode: string }) {
+  const navigate = useNavigate();
+  const { champions } = useDragon();
+  const [selectedPos, setSelectedPos] = useState('TOP');
+  const { data, isLoading } = useQuery({
+    queryKey: ['m-pospool', mode],
+    queryFn: () => api.get<PositionChampionPoolResult>(`/stats/position-champion-pool?mode=${mode}`),
+  });
+  if (isLoading) return <LoadingCenter />;
+  if (!data) return <div className="m-empty">데이터 없음</div>;
+
+  const POSITIONS = ['TOP', 'JUNGLE', 'MID', 'BOTTOM', 'SUPPORT'];
+  const POS_LABEL: Record<string, string> = { TOP: '탑', JUNGLE: 'JGL', MID: '미드', BOTTOM: '원딜', SUPPORT: '서폿' };
+  const posPlayers = data.allPlayers.filter((p: PlayerPositionEntry) => p.position === selectedPos).sort((a: PlayerPositionEntry, b: PlayerPositionEntry) => b.games - a.games);
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+        {POSITIONS.map(pos => (
+          <button key={pos} className={`m-lane-tab${selectedPos === pos ? ' active' : ''}`} onClick={() => setSelectedPos(pos)}>
+            {POS_LABEL[pos]}
+          </button>
+        ))}
+      </div>
+      {posPlayers.map((p: PlayerPositionEntry, i: number) => {
+        const [name, tag] = p.riotId.split('#');
+        return (
+          <div key={p.riotId} className="m-player-card"
+            onClick={() => navigate(`/m/player/${encodeURIComponent(p.riotId)}`)}>
+            <div className="m-player-card-header">
+              <div className={`m-player-rank${i < 3 ? ` rank-${i + 1}` : ''}`}>{i + 1}</div>
+              <div style={{ flex: 1 }}>
+                <span className="m-player-name">{name}</span>
+                {tag && <span className="m-player-tag"> #{tag}</span>}
+              </div>
+              <span className="m-player-games">{p.games}게임</span>
+            </div>
+            <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+              {p.champions.slice(0, 6).map(ce => {
+                const c = champions.get(ce.championId);
+                return (
+                  <div key={ce.champion} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                    {c?.imageUrl ? (
+                      <img src={c.imageUrl} alt={c.nameKo} width={32} height={32} style={{ borderRadius: 6 }} />
+                    ) : (
+                      <div style={{ width: 32, height: 32, borderRadius: 6, background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>{ce.champion.slice(0, 2)}</div>
+                    )}
+                    <span style={{ fontSize: 9, color: ce.winRate >= 60 ? 'var(--color-win)' : 'inherit' }}>{ce.winRate.toFixed(0)}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+      {posPlayers.length === 0 && <div className="m-empty">데이터가 없습니다</div>}
     </div>
   );
 }

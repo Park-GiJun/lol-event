@@ -1,6 +1,6 @@
-import { Outlet, useLocation, NavLink } from 'react-router-dom';
+import { Outlet, useLocation, NavLink, useNavigate } from 'react-router-dom';
 import { useState, useCallback, useEffect } from 'react';
-import { Swords, Menu, X, BarChart2, UserRound, List, Users } from 'lucide-react';
+import { Swords, Menu, X, BarChart2, UserRound, List, Users, Search } from 'lucide-react';
 import { Sidebar } from './Sidebar';
 
 const BOTTOM_NAV = [
@@ -14,6 +14,8 @@ export function Layout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const close = useCallback(() => setDrawerOpen(false), []);
   const location = useLocation();
+  const navigate = useNavigate();
+  const [search, setSearch] = useState('');
 
   // 페이지 이동 시 드로어 닫기
   useEffect(() => { close(); }, [location.pathname, close]);
@@ -33,6 +35,18 @@ export function Layout() {
           <div className="mobile-header-logo">
             <Swords size={20} color="var(--color-primary)" />
             <span className="mobile-header-title">LoL 내전</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, margin: '0 12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', background: 'var(--color-bg-hover)', borderRadius: 8, padding: '4px 8px', gap: 4, flex: 1, maxWidth: 220 }}>
+              <Search size={12} color="var(--color-text-secondary)" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && search.trim()) { navigate(`/player-stats/${encodeURIComponent(search.trim())}`); setSearch(''); } }}
+                placeholder="닉네임#태그"
+                style={{ border: 'none', background: 'none', outline: 'none', fontSize: 11, color: 'var(--color-text-primary)', width: '100%', minWidth: 0 }}
+              />
+            </div>
           </div>
           <button
             className="mobile-hamburger"

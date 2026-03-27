@@ -35,6 +35,10 @@ import com.gijun.main.application.dto.stats.result.GameLengthTendencyResult
 import com.gijun.main.application.dto.stats.result.EarlyGameDominanceResult
 import com.gijun.main.application.dto.stats.result.ComebackIndexResult
 import com.gijun.main.application.dto.stats.result.GoldEfficiencyResult
+import com.gijun.main.application.dto.stats.result.BanAnalysisResult
+import com.gijun.main.application.dto.stats.result.TimePatternResult
+import com.gijun.main.application.dto.stats.result.KillParticipationResult
+import com.gijun.main.application.dto.stats.result.PositionChampionPoolResult
 
 interface SaveMatchesUseCase {
     fun save(command: SaveMatchesCommand): SaveMatchesResult
@@ -177,4 +181,20 @@ interface GetComebackIndexUseCase {
 
 interface GetGoldEfficiencyUseCase {
     fun getGoldEfficiency(mode: String): GoldEfficiencyResult
+}
+
+interface GetBanAnalysisUseCase {
+    fun getBanAnalysis(mode: String): BanAnalysisResult
+}
+
+interface GetTimePatternUseCase {
+    fun getTimePattern(mode: String): TimePatternResult
+}
+
+interface GetKillParticipationUseCase {
+    fun getKillParticipation(mode: String): KillParticipationResult
+}
+
+interface GetPositionChampionPoolUseCase {
+    fun getPositionChampionPool(mode: String): PositionChampionPoolResult
 }

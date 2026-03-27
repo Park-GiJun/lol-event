@@ -724,3 +724,75 @@ export interface GoldEfficiencyResult {
   csEfficiencyKing: string | null;
   objEfficiencyKing: string | null;
 }
+
+// ── 신규 추가 4종 ──────────────────────────────────────────────
+
+// 밴 분석
+export interface BanEntry {
+  champion: string;
+  championId: number;
+  banCount: number;
+  banRate: number;
+}
+export interface BanAnalysisResult {
+  topBanned: BanEntry[];
+  totalGamesAnalyzed: number;
+  mostBannedChampion: string | null;
+}
+
+// 요일/시간대 분석
+export interface DayPatternEntry {
+  dayOfWeek: number;
+  dayName: string;
+  sessions: number;
+  games: number;
+  winRate: number;
+}
+export interface HourPatternEntry {
+  hour: number;
+  games: number;
+  winRate: number;
+}
+export interface TimePatternResult {
+  byDay: DayPatternEntry[];
+  byHour: HourPatternEntry[];
+  busiestDay: string | null;
+  busiestHour: number | null;
+  totalGames: number;
+}
+
+// 킬 가담률
+export interface KillParticipationEntry {
+  riotId: string;
+  games: number;
+  avgKp: number;
+  avgKpWin: number;
+  avgKpLoss: number;
+  avgKills: number;
+  avgAssists: number;
+}
+export interface KillParticipationResult {
+  rankings: KillParticipationEntry[];
+  kpKing: string | null;
+}
+
+// 포지션별 챔피언 풀
+export interface PositionChampEntry {
+  champion: string;
+  championId: number;
+  games: number;
+  winRate: number;
+  kda: number;
+}
+export interface PlayerPositionEntry {
+  riotId: string;
+  position: string;
+  games: number;
+  winRate: number;
+  topChampion: string | null;
+  topChampionId: number | null;
+  champions: PositionChampEntry[];
+}
+export interface PositionChampionPoolResult {
+  allPlayers: PlayerPositionEntry[];
+}
