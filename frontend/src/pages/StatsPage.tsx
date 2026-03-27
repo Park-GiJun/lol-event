@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../lib/api/api';
 import type {
@@ -2371,7 +2372,7 @@ function BanAnalysisTab({ mode }: { mode: string }) {
                 <td style={{ padding: '8px', color: 'var(--color-text-secondary)', fontSize: 11 }}>{i + 1}</td>
                 <td style={{ padding: '8px', display: 'flex', alignItems: 'center', gap: 8 }}>
                   {c?.imageUrl && <img src={c.imageUrl} alt={c.nameKo} width={28} height={28} style={{ borderRadius: 4 }} />}
-                  <ChampionLink champion={e.champion}>{c?.nameKo ?? e.champion}</ChampionLink>
+                  <ChampionLink champion={e.champion} championId={e.championId}>{c?.nameKo ?? e.champion}</ChampionLink>
                 </td>
                 <td style={{ padding: '8px', textAlign: 'right', fontWeight: 600 }}>{e.banCount}회</td>
                 <td style={{ padding: '8px', textAlign: 'right', color: e.banRate >= 50 ? '#FF4757' : e.banRate >= 30 ? '#FF6B2B' : 'inherit' }}>
