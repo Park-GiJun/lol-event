@@ -55,6 +55,20 @@ import com.gijun.main.application.port.`in`.GetPositionBadgeUseCase
 import com.gijun.main.application.port.`in`.GetChampionCertificateUseCase
 import com.gijun.main.application.port.`in`.GetPlaystyleDnaUseCase
 import com.gijun.main.application.port.`in`.GetMetaShiftUseCase
+import com.gijun.main.application.dto.stats.result.PlayerComparisonResult
+import com.gijun.main.application.dto.stats.result.SessionReportResult
+import com.gijun.main.application.dto.stats.result.ChampionTierResult
+import com.gijun.main.application.dto.stats.result.GameLengthTendencyResult
+import com.gijun.main.application.dto.stats.result.EarlyGameDominanceResult
+import com.gijun.main.application.dto.stats.result.ComebackIndexResult
+import com.gijun.main.application.dto.stats.result.GoldEfficiencyResult
+import com.gijun.main.application.port.`in`.GetPlayerComparisonUseCase
+import com.gijun.main.application.port.`in`.GetSessionReportUseCase
+import com.gijun.main.application.port.`in`.GetChampionTierUseCase
+import com.gijun.main.application.port.`in`.GetGameLengthTendencyUseCase
+import com.gijun.main.application.port.`in`.GetEarlyGameDominanceUseCase
+import com.gijun.main.application.port.`in`.GetComebackIndexUseCase
+import com.gijun.main.application.port.`in`.GetGoldEfficiencyUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -91,6 +105,13 @@ class StatsWebAdapter(
     private val getChampionCertificateUseCase: GetChampionCertificateUseCase,
     private val getPlaystyleDnaUseCase: GetPlaystyleDnaUseCase,
     private val getMetaShiftUseCase: GetMetaShiftUseCase,
+    private val getPlayerComparisonUseCase: GetPlayerComparisonUseCase,
+    private val getSessionReportUseCase: GetSessionReportUseCase,
+    private val getChampionTierUseCase: GetChampionTierUseCase,
+    private val getGameLengthTendencyUseCase: GetGameLengthTendencyUseCase,
+    private val getEarlyGameDominanceUseCase: GetEarlyGameDominanceUseCase,
+    private val getComebackIndexUseCase: GetComebackIndexUseCase,
+    private val getGoldEfficiencyUseCase: GetGoldEfficiencyUseCase,
 ) {
     @Operation(summary = "전체 내전 통계 개요", description = "챔피언 픽 통계, 명예의 전당, 오브젝트 집계 등 전반적인 통계를 반환합니다")
     @GetMapping("/overview")
@@ -331,4 +352,53 @@ class StatsWebAdapter(
         @RequestParam(defaultValue = "normal") mode: String,
     ): CommonApiResponse<MetaShiftResult> =
         CommonApiResponse.success(getMetaShiftUseCase.getMetaShift(mode))
+
+    @GetMapping("/compare")
+    fun getPlayerComparison(
+        @RequestParam player1: String,
+        @RequestParam player2: String,
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<PlayerComparisonResult> =
+        CommonApiResponse.success(getPlayerComparisonUseCase.getPlayerComparison(
+            java.net.URLDecoder.decode(player1, "UTF-8"),
+            java.net.URLDecoder.decode(player2, "UTF-8"),
+            mode,
+        ))
+
+    @GetMapping("/sessions")
+    fun getSessionReport(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<SessionReportResult> =
+        CommonApiResponse.success(getSessionReportUseCase.getSessionReport(mode))
+
+    @GetMapping("/champion-tier")
+    fun getChampionTier(
+        @RequestParam(defaultValue = "normal") mode: String,
+        @RequestParam(defaultValue = "3") minGames: Int,
+    ): CommonApiResponse<ChampionTierResult> =
+        CommonApiResponse.success(getChampionTierUseCase.getChampionTier(mode, minGames))
+
+    @GetMapping("/game-length-tendency")
+    fun getGameLengthTendency(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<GameLengthTendencyResult> =
+        CommonApiResponse.success(getGameLengthTendencyUseCase.getGameLengthTendency(mode))
+
+    @GetMapping("/early-game")
+    fun getEarlyGameDominance(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<EarlyGameDominanceResult> =
+        CommonApiResponse.success(getEarlyGameDominanceUseCase.getEarlyGameDominance(mode))
+
+    @GetMapping("/comeback")
+    fun getComebackIndex(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<ComebackIndexResult> =
+        CommonApiResponse.success(getComebackIndexUseCase.getComebackIndex(mode))
+
+    @GetMapping("/gold-efficiency")
+    fun getGoldEfficiency(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<GoldEfficiencyResult> =
+        CommonApiResponse.success(getGoldEfficiencyUseCase.getGoldEfficiency(mode))
 }

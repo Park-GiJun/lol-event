@@ -21,6 +21,13 @@ import type {
   ChampionCertificateResult, ChampionCertEntry,
   PlaystyleDnaResult, PlaystyleDnaEntry,
   MetaShiftResult, MetaShiftChampion,
+  PlayerComparisonResult, PlayerStatSnapshot,
+  SessionReportResult, SessionEntry,
+  ChampionTierResult, ChampionTierEntry,
+  GameLengthTendencyResult, GameLengthTendencyEntry,
+  EarlyGameDominanceResult, EarlyGameDominanceEntry,
+  ComebackIndexResult, ComebackIndexEntry,
+  GoldEfficiencyResult, GoldEfficiencyEntry,
 } from '../lib/types/stats';
 import { LoadingCenter } from '../components/common/Spinner';
 import { Button } from '../components/common/Button';
@@ -55,6 +62,13 @@ const TABS = [
   { key: 'certificate', label: '🎖️ 장인 인증' },
   { key: 'dna',         label: '🧬 플레이스타일' },
   { key: 'meta',        label: '📈 메타 추적' },
+  { key: 'compare',    label: '⚔️ 비교' },
+  { key: 'sessions',   label: '📅 세션' },
+  { key: 'tier',       label: '🏅 티어리스트' },
+  { key: 'gamelength', label: '⏱️ 게임 길이' },
+  { key: 'earlygame',  label: '🌅 초반 지배' },
+  { key: 'comeback',   label: '🔄 컴백' },
+  { key: 'goldeff',    label: '💰 골드 효율' },
 ];
 
 // ── 공통 컴포넌트 ─────────────────────────────────────
@@ -1647,6 +1661,611 @@ function MetaTab({ mode }: { mode: string }) {
   );
 }
 
+// ── 플레이어 비교 탭 ────────────────────────────────────
+function CompareTab({ mode }: { mode: string }) {
+  const [p1Input, setP1Input] = useState('');
+  const [p2Input, setP2Input] = useState('');
+  const [data, setData] = useState<PlayerComparisonResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = async () => {
+    if (!p1Input.trim() || !p2Input.trim()) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await api.get<PlayerComparisonResult>(
+        `/stats/compare?player1=${encodeURIComponent(p1Input.trim())}&player2=${encodeURIComponent(p2Input.trim())}&mode=${mode}`
+      );
+      setData(result);
+    } catch {
+      setError('데이터를 불러오지 못했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const StatRow = ({ label, v1, v2, higher }: { label: string; v1: string | number; v2: string | number; higher?: 'p1' | 'p2' | 'none' }) => (
+    <tr>
+      <td style={{ fontWeight: higher === 'p1' ? 700 : 400, color: higher === 'p1' ? 'var(--color-win)' : undefined, textAlign: 'center', padding: '5px 8px', fontSize: 12 }}>{v1}</td>
+      <td style={{ textAlign: 'center', padding: '5px 8px', fontSize: 11, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>{label}</td>
+      <td style={{ fontWeight: higher === 'p2' ? 700 : 400, color: higher === 'p2' ? 'var(--color-win)' : undefined, textAlign: 'center', padding: '5px 8px', fontSize: 12 }}>{v2}</td>
+    </tr>
+  );
+
+  const compareSnap = (s1: PlayerStatSnapshot | null, s2: PlayerStatSnapshot | null, title: string) => {
+    if (!s1 && !s2) return null;
+    const safe = (v: number | undefined) => v?.toFixed(2) ?? '-';
+    const hi = (a: number | undefined, b: number | undefined): 'p1' | 'p2' | 'none' =>
+      a == null || b == null ? 'none' : a > b ? 'p1' : a < b ? 'p2' : 'none';
+    return (
+      <div style={{ marginBottom: 20 }}>
+        <h4 style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>{title}</h4>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'center', padding: '4px 8px', fontSize: 12, color: 'var(--color-primary)' }}>{data?.player1.split('#')[0]}</th>
+              <th style={{ textAlign: 'center', padding: '4px 8px', fontSize: 11, color: 'var(--color-text-disabled)' }}>지표</th>
+              <th style={{ textAlign: 'center', padding: '4px 8px', fontSize: 12, color: 'var(--color-primary)' }}>{data?.player2.split('#')[0]}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <StatRow label="경기수" v1={s1?.games ?? '-'} v2={s2?.games ?? '-'} higher={hi(s1?.games, s2?.games)} />
+            <StatRow label="승률%" v1={s1 ? s1.winRate.toFixed(1) : '-'} v2={s2 ? s2.winRate.toFixed(1) : '-'} higher={hi(s1?.winRate, s2?.winRate)} />
+            <StatRow label="KDA" v1={s1 ? safe(s1.kda) : '-'} v2={s2 ? safe(s2.kda) : '-'} higher={hi(s1?.kda, s2?.kda)} />
+            <StatRow label="평균킬" v1={s1 ? safe(s1.avgKills) : '-'} v2={s2 ? safe(s2.avgKills) : '-'} higher={hi(s1?.avgKills, s2?.avgKills)} />
+            <StatRow label="평균데스" v1={s1 ? safe(s1.avgDeaths) : '-'} v2={s2 ? safe(s2.avgDeaths) : '-'} higher={hi(s2?.avgDeaths, s1?.avgDeaths)} />
+            <StatRow label="평균딜" v1={s1 ? Math.round(s1.avgDamage).toLocaleString() : '-'} v2={s2 ? Math.round(s2.avgDamage).toLocaleString() : '-'} higher={hi(s1?.avgDamage, s2?.avgDamage)} />
+            <StatRow label="평균CS" v1={s1 ? safe(s1.avgCs) : '-'} v2={s2 ? safe(s2.avgCs) : '-'} higher={hi(s1?.avgCs, s2?.avgCs)} />
+            <StatRow label="시야" v1={s1 ? safe(s1.avgVisionScore) : '-'} v2={s2 ? safe(s2.avgVisionScore) : '-'} higher={hi(s1?.avgVisionScore, s2?.avgVisionScore)} />
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        <input
+          value={p1Input} onChange={e => setP1Input(e.target.value)}
+          placeholder="플레이어1 (RiotID#태그)"
+          style={{ flex: 1, minWidth: 140, padding: '7px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', fontSize: 13 }}
+        />
+        <input
+          value={p2Input} onChange={e => setP2Input(e.target.value)}
+          placeholder="플레이어2 (RiotID#태그)"
+          style={{ flex: 1, minWidth: 140, padding: '7px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', fontSize: 13 }}
+        />
+        <Button variant="primary" size="sm" onClick={load} disabled={loading}>
+          {loading ? '로딩...' : '비교'}
+        </Button>
+      </div>
+
+      {error && <p style={{ color: 'var(--color-loss)', fontSize: 13 }}>{error}</p>}
+      {loading && <LoadingCenter />}
+
+      {data && !loading && (
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+            <div className="card" style={{ padding: 12, textAlign: 'center' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-primary)' }}>{data.player1.split('#')[0]}</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>{data.player1}</div>
+            </div>
+            <div className="card" style={{ padding: 12, textAlign: 'center' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-primary)' }}>{data.player2.split('#')[0]}</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>{data.player2}</div>
+            </div>
+          </div>
+
+          {data.togetherGames > 0 && (
+            <div className="card" style={{ padding: 12, marginBottom: 12 }}>
+              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>
+                함께한 경기: <strong>{data.togetherGames}판</strong> | 승률: <strong style={{ color: data.togetherWinRate >= 50 ? 'var(--color-win)' : 'var(--color-loss)' }}>{data.togetherWinRate.toFixed(1)}%</strong>
+              </div>
+              {compareSnap(data.p1TogetherStats, data.p2TogetherStats, '🤝 함께 플레이')}
+            </div>
+          )}
+
+          {data.versusGames > 0 && (
+            <div className="card" style={{ padding: 12, marginBottom: 12 }}>
+              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>
+                맞대결: <strong>{data.versusGames}판</strong> | {data.player1.split('#')[0]} 승률: <strong style={{ color: data.player1VsWinRate >= 50 ? 'var(--color-win)' : 'var(--color-loss)' }}>{data.player1VsWinRate.toFixed(1)}%</strong>
+              </div>
+              {compareSnap(data.p1VersusStats, data.p2VersusStats, '⚔️ 맞대결')}
+            </div>
+          )}
+
+          <div className="card" style={{ padding: 12 }}>
+            {compareSnap(data.overallP1Stats, data.overallP2Stats, '📊 전체 통계')}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── 세션 분석 탭 ──────────────────────────────────────
+function SessionsTab({ mode }: { mode: string }) {
+  const [data, setData] = useState<SessionReportResult | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const load = useCallback(async () => {
+    if (data) return;
+    setLoading(true);
+    try { setData(await api.get<SessionReportResult>(`/stats/sessions?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode, data]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  return (
+    <div>
+      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 12 }}>
+        총 {data.totalSessions}개 세션
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {data.sessions.map((s: SessionEntry) => (
+          <div key={s.date} className="card" style={{ padding: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 6 }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>{s.date}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>
+                  {s.games}경기 · 약 {s.totalDurationMin}분
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>팀100</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-win)' }}>{s.team100Wins}</div>
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--color-text-disabled)' }}>vs</div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>팀200</div>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-loss)' }}>{s.team200Wins}</div>
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 12, marginTop: 8, flexWrap: 'wrap' }}>
+              {s.sessionMvp && (
+                <div style={{ fontSize: 12 }}>
+                  <span style={{ color: 'var(--color-text-disabled)' }}>MVP: </span>
+                  <span style={{ fontWeight: 700, color: '#FFD700' }}>{s.sessionMvp.split('#')[0]}</span>
+                  <span style={{ color: 'var(--color-text-disabled)', fontSize: 11 }}> (KDA {s.sessionMvpKda.toFixed(2)})</span>
+                </div>
+              )}
+              {s.pentaKills > 0 && (
+                <div style={{ fontSize: 12 }}>
+                  <span style={{ color: 'var(--color-text-disabled)' }}>펜타킬: </span>
+                  <span style={{ fontWeight: 700, color: '#f472b6' }}>{s.pentaKills}회</span>
+                </div>
+              )}
+              <div style={{ fontSize: 12 }}>
+                <span style={{ color: 'var(--color-text-disabled)' }}>총킬: </span>
+                <span style={{ fontWeight: 600 }}>{s.totalKills}</span>
+              </div>
+            </div>
+            {s.participants.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
+                {s.participants.map(p => (
+                  <span key={p} style={{ fontSize: 10, padding: '2px 6px', borderRadius: 10, background: 'var(--color-bg-hover)', color: 'var(--color-text-secondary)' }}>
+                    {p.split('#')[0]}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── 챔피언 티어리스트 탭 ──────────────────────────────
+const TIER_COLORS: Record<string, string> = { S: '#FFD700', A: '#4ade80', B: '#60a5fa', C: '#9ca3af', D: '#f87171' };
+
+function TierTab({ mode }: { mode: string }) {
+  const [data, setData] = useState<ChampionTierResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const { champions } = useDragon();
+
+  const load = useCallback(async () => {
+    if (data) return;
+    setLoading(true);
+    try { setData(await api.get<ChampionTierResult>(`/stats/champion-tier?mode=${mode}&minGames=3`)); }
+    finally { setLoading(false); }
+  }, [mode, data]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  const tiers = ['S', 'A', 'B', 'C', 'D'];
+
+  return (
+    <div>
+      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 12 }}>
+        총 {data.totalMatches}경기 기준 (최소 3게임)
+      </p>
+      {tiers.map(tier => {
+        const list: ChampionTierEntry[] = data.byTier[tier] ?? [];
+        if (!list.length) return null;
+        const color = TIER_COLORS[tier] ?? '#888';
+        return (
+          <div key={tier} style={{ marginBottom: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <div style={{ width: 28, height: 28, borderRadius: 6, background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: '#111' }}>{tier}</div>
+              <span style={{ fontWeight: 700, fontSize: 13, color }}>{tier} 티어</span>
+              <span style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>({list.length})</span>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {list.map((c: ChampionTierEntry) => {
+                const nameKo = champions.get(c.championId)?.nameKo ?? c.champion;
+                return (
+                  <ChampionLink key={c.champion} champion={c.champion} championId={c.championId} className="popup-trigger--card">
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '8px 10px', background: 'var(--color-bg-secondary)', borderRadius: 8, border: `1px solid ${color}44`, minWidth: 70, cursor: 'pointer' }}>
+                      <ChampImg championId={c.championId} champion={c.champion} size={36} />
+                      <div style={{ fontSize: 11, fontWeight: 600, textAlign: 'center', lineHeight: 1.2 }}>{nameKo}</div>
+                      <div style={{ fontSize: 10, color: c.winRate >= 60 ? 'var(--color-win)' : c.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)' }}>
+                        {c.winRate.toFixed(1)}%
+                      </div>
+                      <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>{c.games}픽</div>
+                    </div>
+                  </ChampionLink>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── 게임 길이별 성향 탭 ───────────────────────────────
+function GameLengthTab({ mode }: { mode: string }) {
+  const [data, setData] = useState<GameLengthTendencyResult | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const load = useCallback(async () => {
+    if (data) return;
+    setLoading(true);
+    try { setData(await api.get<GameLengthTendencyResult>(`/stats/game-length-tendency?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode, data]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  return (
+    <div>
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>플레이어별 게임 길이 성향</h3>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+          <thead>
+            <tr style={{ background: 'var(--color-bg-hover)' }}>
+              <th style={{ padding: '7px 10px', textAlign: 'left' }}>플레이어</th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>성향</th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>단기전<br/><span style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-disabled)' }}>(~20분)</span></th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>중기전<br/><span style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-disabled)' }}>(20~35분)</span></th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>장기전<br/><span style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-disabled)' }}>(35분+)</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.players.map((p: GameLengthTendencyEntry) => {
+              const wrStyle = (wr: number) => ({
+                color: wr >= 60 ? 'var(--color-win)' : wr >= 50 ? 'var(--color-primary)' : 'var(--color-loss)',
+                fontWeight: 600 as const,
+              });
+              return (
+                <tr key={p.riotId} style={{ borderTop: '1px solid var(--color-border)' }}>
+                  <td style={{ padding: '7px 10px' }}>
+                    <PlayerLink riotId={p.riotId} mode={mode}>
+                      <span style={{ fontWeight: 600 }}>{p.riotId.split('#')[0]}</span>
+                    </PlayerLink>
+                    <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>{p.totalGames}게임</div>
+                  </td>
+                  <td style={{ padding: '7px 10px', textAlign: 'center' }}>
+                    <span style={{ fontSize: 11, padding: '2px 6px', borderRadius: 10, background: 'var(--color-primary)22', color: 'var(--color-primary)' }}>{p.tendency}</span>
+                  </td>
+                  <td style={{ padding: '7px 10px', textAlign: 'center' }}>
+                    {p.shortGame.games > 0 ? <span style={wrStyle(p.shortGame.winRate)}>{p.shortGame.winRate.toFixed(1)}%</span> : <span style={{ color: 'var(--color-text-disabled)' }}>-</span>}
+                    {p.shortGame.games > 0 && <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>{p.shortGame.games}게임</div>}
+                  </td>
+                  <td style={{ padding: '7px 10px', textAlign: 'center' }}>
+                    {p.midGame.games > 0 ? <span style={wrStyle(p.midGame.winRate)}>{p.midGame.winRate.toFixed(1)}%</span> : <span style={{ color: 'var(--color-text-disabled)' }}>-</span>}
+                    {p.midGame.games > 0 && <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>{p.midGame.games}게임</div>}
+                  </td>
+                  <td style={{ padding: '7px 10px', textAlign: 'center' }}>
+                    {p.longGame.games > 0 ? <span style={wrStyle(p.longGame.winRate)}>{p.longGame.winRate.toFixed(1)}%</span> : <span style={{ color: 'var(--color-text-disabled)' }}>-</span>}
+                    {p.longGame.games > 0 && <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>{p.longGame.games}게임</div>}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── 초반 지배력 탭 ────────────────────────────────────
+function EarlyGameTab({ mode }: { mode: string }) {
+  const [data, setData] = useState<EarlyGameDominanceResult | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const load = useCallback(async () => {
+    if (data) return;
+    setLoading(true);
+    try { setData(await api.get<EarlyGameDominanceResult>(`/stats/early-game?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode, data]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  return (
+    <div>
+      {/* 하이라이트 카드 */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+        <div className="card" style={{ padding: 14, textAlign: 'center' }}>
+          <div style={{ fontSize: 24, marginBottom: 4 }}>🗡️</div>
+          <div style={{ fontSize: 11, color: 'var(--color-text-disabled)', marginBottom: 4 }}>퍼블킹</div>
+          <div style={{ fontWeight: 700, fontSize: 15, color: '#FFD700' }}>{data.firstBloodKing?.split('#')[0] ?? '-'}</div>
+          <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+            전체 퍼블 승률: {data.overallFirstBloodWinRate.toFixed(1)}%
+          </div>
+        </div>
+        <div className="card" style={{ padding: 14, textAlign: 'center' }}>
+          <div style={{ fontSize: 24, marginBottom: 4 }}>🏯</div>
+          <div style={{ fontSize: 11, color: 'var(--color-text-disabled)', marginBottom: 4 }}>포탑 파괴자</div>
+          <div style={{ fontWeight: 700, fontSize: 15, color: '#60a5fa' }}>{data.towerDestroyer?.split('#')[0] ?? '-'}</div>
+          <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+            전체 퍼타 승률: {data.overallFirstTowerWinRate.toFixed(1)}%
+          </div>
+        </div>
+      </div>
+
+      {/* 플레이어 랭킹 */}
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>초반 지배력 랭킹</h3>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+          <thead>
+            <tr style={{ background: 'var(--color-bg-hover)' }}>
+              <th style={{ padding: '7px 10px', textAlign: 'left' }}>플레이어</th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>초반점수</th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>퍼블%</th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>퍼타%</th>
+              <th style={{ padding: '7px 10px', textAlign: 'left' }}>뱃지</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.rankings.map((e: EarlyGameDominanceEntry, i: number) => (
+              <tr key={e.riotId} style={{ borderTop: '1px solid var(--color-border)' }}>
+                <td style={{ padding: '7px 10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <RankBadge rank={i + 1} />
+                    <PlayerLink riotId={e.riotId} mode={mode}>
+                      <span style={{ fontWeight: 600 }}>{e.riotId.split('#')[0]}</span>
+                    </PlayerLink>
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', paddingLeft: 32 }}>{e.games}게임</div>
+                </td>
+                <td style={{ padding: '7px 10px', textAlign: 'center', fontWeight: 700, color: 'var(--color-primary)' }}>
+                  {e.earlyGameScore.toFixed(1)}
+                </td>
+                <td style={{ padding: '7px 10px', textAlign: 'center', color: e.firstBloodRate >= 0.3 ? 'var(--color-win)' : undefined }}>
+                  {(e.firstBloodRate * 100).toFixed(1)}%
+                </td>
+                <td style={{ padding: '7px 10px', textAlign: 'center', color: e.firstTowerRate >= 0.3 ? 'var(--color-win)' : undefined }}>
+                  {(e.firstTowerRate * 100).toFixed(1)}%
+                </td>
+                <td style={{ padding: '7px 10px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                    {e.badges.map((b: string) => (
+                      <span key={b} style={{ fontSize: 10, padding: '1px 5px', borderRadius: 8, background: 'var(--color-primary)22', color: 'var(--color-primary)' }}>{b}</span>
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── 컴백 지수 탭 ──────────────────────────────────────
+function ComebackTab({ mode }: { mode: string }) {
+  const [data, setData] = useState<ComebackIndexResult | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const load = useCallback(async () => {
+    if (data) return;
+    setLoading(true);
+    try { setData(await api.get<ComebackIndexResult>(`/stats/comeback?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode, data]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  const kings = data.rankings.filter((e: ComebackIndexEntry) => e.isKing);
+
+  return (
+    <div>
+      {/* 컴백킹 하이라이트 */}
+      {(data.comebackKing || kings.length > 0) && (
+        <div style={{ marginBottom: 20 }}>
+          <div className="card" style={{ padding: 14, textAlign: 'center', background: 'linear-gradient(135deg, var(--color-bg-secondary), var(--color-bg-hover))' }}>
+            <div style={{ fontSize: 24, marginBottom: 4 }}>🔄</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-disabled)', marginBottom: 4 }}>컴백킹</div>
+            <div style={{ fontWeight: 700, fontSize: 16, color: '#FFD700' }}>
+              {data.comebackKing ? data.comebackKing.split('#')[0] : kings[0]?.riotId.split('#')[0] ?? '-'}
+            </div>
+            {kings[0] && (
+              <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 6 }}>
+                접전 승률 {kings[0].contestWinRate.toFixed(1)}% | 접전 {kings[0].contestGames}게임
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 비교 테이블 */}
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>접전 vs 압도 경기 승률</h3>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+          <thead>
+            <tr style={{ background: 'var(--color-bg-hover)' }}>
+              <th style={{ padding: '7px 10px', textAlign: 'left' }}>플레이어</th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>전체 승률</th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>접전 승률<br/><span style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-disabled)' }}>(항복경기 제외)</span></th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>압도 승률<br/><span style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-disabled)' }}>(항복경기)</span></th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>컴백보너스</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.rankings.map((e: ComebackIndexEntry, i: number) => (
+              <tr key={e.riotId} style={{ borderTop: '1px solid var(--color-border)', background: e.isKing ? 'var(--color-win)11' : undefined }}>
+                <td style={{ padding: '7px 10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <RankBadge rank={i + 1} />
+                    <PlayerLink riotId={e.riotId} mode={mode}>
+                      <span style={{ fontWeight: 600 }}>{e.riotId.split('#')[0]}</span>
+                    </PlayerLink>
+                    {e.isKing && <span style={{ fontSize: 10, color: '#FFD700' }}>👑</span>}
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', paddingLeft: 32 }}>{e.totalGames}게임</div>
+                </td>
+                <td style={{ padding: '7px 10px', textAlign: 'center', color: e.totalWinRate >= 50 ? 'var(--color-win)' : 'var(--color-loss)', fontWeight: 600 }}>
+                  {e.totalWinRate.toFixed(1)}%
+                </td>
+                <td style={{ padding: '7px 10px', textAlign: 'center' }}>
+                  {e.contestGames > 0 ? (
+                    <>
+                      <span style={{ fontWeight: 600, color: e.contestWinRate >= 50 ? 'var(--color-win)' : 'var(--color-loss)' }}>{e.contestWinRate.toFixed(1)}%</span>
+                      <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>{e.contestGames}게임</div>
+                    </>
+                  ) : <span style={{ color: 'var(--color-text-disabled)' }}>-</span>}
+                </td>
+                <td style={{ padding: '7px 10px', textAlign: 'center' }}>
+                  {e.surrenderGames > 0 ? (
+                    <>
+                      <span style={{ fontWeight: 600, color: e.surrenderWinRate >= 50 ? 'var(--color-win)' : 'var(--color-loss)' }}>{e.surrenderWinRate.toFixed(1)}%</span>
+                      <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>{e.surrenderGames}게임</div>
+                    </>
+                  ) : <span style={{ color: 'var(--color-text-disabled)' }}>-</span>}
+                </td>
+                <td style={{ padding: '7px 10px', textAlign: 'center', fontWeight: 700, color: e.comebackBonus > 0 ? 'var(--color-win)' : e.comebackBonus < 0 ? 'var(--color-loss)' : undefined }}>
+                  {e.comebackBonus > 0 ? '+' : ''}{e.comebackBonus.toFixed(1)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── 골드 효율 탭 ──────────────────────────────────────
+function GoldEffTab({ mode }: { mode: string }) {
+  const [data, setData] = useState<GoldEfficiencyResult | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const load = useCallback(async () => {
+    if (data) return;
+    setLoading(true);
+    try { setData(await api.get<GoldEfficiencyResult>(`/stats/gold-efficiency?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode, data]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  const kings = [
+    { emoji: '💥', label: '딜 효율왕', name: data.dmgEfficiencyKing },
+    { emoji: '👁️', label: '시야 효율왕', name: data.visionEfficiencyKing },
+    { emoji: '🌾', label: 'CS 효율왕', name: data.csEfficiencyKing },
+    { emoji: '🏰', label: '오브젝트 효율왕', name: data.objEfficiencyKing },
+  ];
+
+  return (
+    <div>
+      {/* 4개 효율왕 뱃지 */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 20 }}>
+        {kings.map(k => (
+          <div key={k.label} className="card" style={{ padding: 12, textAlign: 'center' }}>
+            <div style={{ fontSize: 22, marginBottom: 4 }}>{k.emoji}</div>
+            <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', marginBottom: 3 }}>{k.label}</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#FFD700' }}>{k.name?.split('#')[0] ?? '-'}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* 플레이어 랭킹 테이블 */}
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>골드 효율 랭킹</h3>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+          <thead>
+            <tr style={{ background: 'var(--color-bg-hover)' }}>
+              <th style={{ padding: '7px 10px', textAlign: 'left' }}>플레이어</th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>효율점수</th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>딜/골드</th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>시야/골드</th>
+              <th style={{ padding: '7px 10px', textAlign: 'center' }}>CS/골드</th>
+              <th style={{ padding: '7px 10px', textAlign: 'left' }}>태그</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.rankings.map((e: GoldEfficiencyEntry, i: number) => (
+              <tr key={e.riotId} style={{ borderTop: '1px solid var(--color-border)' }}>
+                <td style={{ padding: '7px 10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <RankBadge rank={i + 1} />
+                    <PlayerLink riotId={e.riotId} mode={mode}>
+                      <span style={{ fontWeight: 600 }}>{e.riotId.split('#')[0]}</span>
+                    </PlayerLink>
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', paddingLeft: 32 }}>{e.games}게임</div>
+                </td>
+                <td style={{ padding: '7px 10px', textAlign: 'center', fontWeight: 700, color: 'var(--color-primary)' }}>
+                  {e.goldEfficiencyScore.toFixed(2)}
+                </td>
+                <td style={{ padding: '7px 10px', textAlign: 'center' }}>{e.avgDmgPerGold.toFixed(3)}</td>
+                <td style={{ padding: '7px 10px', textAlign: 'center' }}>{e.avgVisionPerGold.toFixed(4)}</td>
+                <td style={{ padding: '7px 10px', textAlign: 'center' }}>{e.avgCsPerGold.toFixed(4)}</td>
+                <td style={{ padding: '7px 10px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                    {e.tags.map((t: string) => (
+                      <span key={t} style={{ fontSize: 10, padding: '1px 5px', borderRadius: 8, background: 'var(--color-primary)22', color: 'var(--color-primary)' }}>{t}</span>
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 // ── 메인 페이지 ───────────────────────────────────────
 export function StatsPage() {
   const [mode, setMode] = useState('normal');
@@ -1697,6 +2316,13 @@ export function StatsPage() {
       {tab === 'certificate' && <div className="card" style={{ marginTop: 4 }}><CertificateTab mode={mode} /></div>}
       {tab === 'dna'         && <div className="card" style={{ marginTop: 4 }}><DnaTab         mode={mode} /></div>}
       {tab === 'meta'        && <div className="card" style={{ marginTop: 4 }}><MetaTab        mode={mode} /></div>}
+      {tab === 'compare'    && <div className="card" style={{ marginTop: 4 }}><CompareTab     mode={mode} /></div>}
+      {tab === 'sessions'   && <div className="card" style={{ marginTop: 4 }}><SessionsTab    mode={mode} /></div>}
+      {tab === 'tier'       && <div className="card" style={{ marginTop: 4 }}><TierTab        mode={mode} /></div>}
+      {tab === 'gamelength' && <div className="card" style={{ marginTop: 4 }}><GameLengthTab  mode={mode} /></div>}
+      {tab === 'earlygame'  && <div className="card" style={{ marginTop: 4 }}><EarlyGameTab   mode={mode} /></div>}
+      {tab === 'comeback'   && <div className="card" style={{ marginTop: 4 }}><ComebackTab    mode={mode} /></div>}
+      {tab === 'goldeff'    && <div className="card" style={{ marginTop: 4 }}><GoldEffTab     mode={mode} /></div>}
     </div>
   );
 }

@@ -28,6 +28,13 @@ import com.gijun.main.application.dto.stats.result.PositionBadgeResult
 import com.gijun.main.application.dto.stats.result.ChampionCertificateResult
 import com.gijun.main.application.dto.stats.result.PlaystyleDnaResult
 import com.gijun.main.application.dto.stats.result.MetaShiftResult
+import com.gijun.main.application.dto.stats.result.PlayerComparisonResult
+import com.gijun.main.application.dto.stats.result.SessionReportResult
+import com.gijun.main.application.dto.stats.result.ChampionTierResult
+import com.gijun.main.application.dto.stats.result.GameLengthTendencyResult
+import com.gijun.main.application.dto.stats.result.EarlyGameDominanceResult
+import com.gijun.main.application.dto.stats.result.ComebackIndexResult
+import com.gijun.main.application.dto.stats.result.GoldEfficiencyResult
 
 interface SaveMatchesUseCase {
     fun save(command: SaveMatchesCommand): SaveMatchesResult
@@ -142,4 +149,32 @@ interface GetPlaystyleDnaUseCase {
 
 interface GetMetaShiftUseCase {
     fun getMetaShift(mode: String): MetaShiftResult
+}
+
+interface GetPlayerComparisonUseCase {
+    fun getPlayerComparison(player1: String, player2: String, mode: String): PlayerComparisonResult
+}
+
+interface GetSessionReportUseCase {
+    fun getSessionReport(mode: String): SessionReportResult
+}
+
+interface GetChampionTierUseCase {
+    fun getChampionTier(mode: String, minGames: Int = 3): ChampionTierResult
+}
+
+interface GetGameLengthTendencyUseCase {
+    fun getGameLengthTendency(mode: String): GameLengthTendencyResult
+}
+
+interface GetEarlyGameDominanceUseCase {
+    fun getEarlyGameDominance(mode: String): EarlyGameDominanceResult
+}
+
+interface GetComebackIndexUseCase {
+    fun getComebackIndex(mode: String): ComebackIndexResult
+}
+
+interface GetGoldEfficiencyUseCase {
+    fun getGoldEfficiency(mode: String): GoldEfficiencyResult
 }

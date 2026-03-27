@@ -563,3 +563,164 @@ export interface MetaShiftResult {
   stableTopChampions: MetaShiftChampion[];
   totalMatchesAnalyzed: number;
 }
+
+// ── 2차 신규 리포트 타입 ──────────────────────────────────
+
+// 플레이어 비교
+export interface PlayerStatSnapshot {
+  riotId: string;
+  games: number;
+  wins: number;
+  winRate: number;
+  avgKills: number;
+  avgDeaths: number;
+  avgAssists: number;
+  kda: number;
+  avgDamage: number;
+  avgCs: number;
+  avgGold: number;
+  avgVisionScore: number;
+}
+export interface PlayerComparisonResult {
+  player1: string;
+  player2: string;
+  togetherGames: number;
+  togetherWinRate: number;
+  p1TogetherStats: PlayerStatSnapshot | null;
+  p2TogetherStats: PlayerStatSnapshot | null;
+  versusGames: number;
+  player1VsWinRate: number;
+  p1VersusStats: PlayerStatSnapshot | null;
+  p2VersusStats: PlayerStatSnapshot | null;
+  overallP1Stats: PlayerStatSnapshot;
+  overallP2Stats: PlayerStatSnapshot;
+}
+
+// 세션 분석
+export interface SessionEntry {
+  date: string;
+  games: number;
+  totalDurationMin: number;
+  sessionMvp: string | null;
+  sessionMvpKda: number;
+  team100Wins: number;
+  team200Wins: number;
+  totalKills: number;
+  pentaKills: number;
+  participants: string[];
+}
+export interface SessionReportResult {
+  sessions: SessionEntry[];
+  totalSessions: number;
+}
+
+// 챔피언 티어리스트
+export interface ChampionTierEntry {
+  champion: string;
+  championId: number;
+  tier: string;
+  tierScore: number;
+  games: number;
+  winRate: number;
+  kda: number;
+  pickRate: number;
+  avgDamage: number;
+}
+export interface ChampionTierResult {
+  tierList: ChampionTierEntry[];
+  byTier: Record<string, ChampionTierEntry[]>;
+  totalMatches: number;
+}
+
+// 게임 길이별 성향
+export interface GameLengthBucket {
+  games: number;
+  wins: number;
+  winRate: number;
+  avgKills: number;
+  avgDeaths: number;
+  avgDamage: number;
+  avgCsPerMin: number;
+}
+export interface GameLengthTendencyEntry {
+  riotId: string;
+  totalGames: number;
+  shortGame: GameLengthBucket;
+  midGame: GameLengthBucket;
+  longGame: GameLengthBucket;
+  tendency: string;
+}
+export interface ChampionLengthTendency {
+  champion: string;
+  championId: number;
+  shortWinRate: number;
+  midWinRate: number;
+  longWinRate: number;
+  bestLength: string;
+}
+export interface GameLengthTendencyResult {
+  players: GameLengthTendencyEntry[];
+  championTendencies: ChampionLengthTendency[];
+}
+
+// 초반 지배력
+export interface EarlyGameDominanceEntry {
+  riotId: string;
+  games: number;
+  firstBloodRate: number;
+  firstTowerRate: number;
+  earlyGameScore: number;
+  firstBloodWinRate: number;
+  noFirstBloodWinRate: number;
+  badges: string[];
+}
+export interface EarlyGameDominanceResult {
+  rankings: EarlyGameDominanceEntry[];
+  firstBloodKing: string | null;
+  towerDestroyer: string | null;
+  overallFirstBloodWinRate: number;
+  overallFirstTowerWinRate: number;
+}
+
+// 컴백 지수
+export interface ComebackIndexEntry {
+  riotId: string;
+  totalGames: number;
+  totalWinRate: number;
+  contestGames: number;
+  contestWinRate: number;
+  surrenderGames: number;
+  surrenderWinRate: number;
+  comebackBonus: number;
+  isKing: boolean;
+}
+export interface ComebackMatchEntry {
+  matchId: string;
+  gameCreation: number;
+  gameDurationMin: number;
+  winnerParticipants: string[];
+}
+export interface ComebackIndexResult {
+  rankings: ComebackIndexEntry[];
+  comebackKing: string | null;
+  topComebackMatches: ComebackMatchEntry[];
+}
+
+// 골드 효율
+export interface GoldEfficiencyEntry {
+  riotId: string;
+  games: number;
+  avgDmgPerGold: number;
+  avgVisionPerGold: number;
+  avgObjPerGold: number;
+  avgCsPerGold: number;
+  goldEfficiencyScore: number;
+  tags: string[];
+}
+export interface GoldEfficiencyResult {
+  rankings: GoldEfficiencyEntry[];
+  dmgEfficiencyKing: string | null;
+  visionEfficiencyKing: string | null;
+  csEfficiencyKing: string | null;
+  objEfficiencyKing: string | null;
+}
