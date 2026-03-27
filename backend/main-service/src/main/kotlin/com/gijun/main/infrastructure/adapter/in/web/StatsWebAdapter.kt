@@ -27,6 +27,34 @@ import com.gijun.main.application.port.`in`.GetOverviewStatsUseCase
 import com.gijun.main.application.port.`in`.GetPlayerStatsUseCase
 import com.gijun.main.application.port.`in`.GetPlayerStreakUseCase
 import com.gijun.main.application.port.`in`.GetStatsUseCase
+import com.gijun.main.application.dto.stats.result.WeeklyAwardsResult
+import com.gijun.main.application.dto.stats.result.DefeatContributionResult
+import com.gijun.main.application.dto.stats.result.MultiKillHighlightsResult
+import com.gijun.main.application.dto.stats.result.ChaosMatchResult
+import com.gijun.main.application.dto.stats.result.GrowthCurveResult
+import com.gijun.main.application.dto.stats.result.SurvivalIndexResult
+import com.gijun.main.application.dto.stats.result.JungleDominanceResult
+import com.gijun.main.application.dto.stats.result.SupportImpactResult
+import com.gijun.main.application.dto.stats.result.RivalMatchupResult
+import com.gijun.main.application.dto.stats.result.TeamChemistryResult
+import com.gijun.main.application.dto.stats.result.PositionBadgeResult
+import com.gijun.main.application.dto.stats.result.ChampionCertificateResult
+import com.gijun.main.application.dto.stats.result.PlaystyleDnaResult
+import com.gijun.main.application.dto.stats.result.MetaShiftResult
+import com.gijun.main.application.port.`in`.GetWeeklyAwardsUseCase
+import com.gijun.main.application.port.`in`.GetDefeatContributionUseCase
+import com.gijun.main.application.port.`in`.GetMultiKillHighlightsUseCase
+import com.gijun.main.application.port.`in`.GetChaosMatchUseCase
+import com.gijun.main.application.port.`in`.GetGrowthCurveUseCase
+import com.gijun.main.application.port.`in`.GetSurvivalIndexUseCase
+import com.gijun.main.application.port.`in`.GetJungleDominanceUseCase
+import com.gijun.main.application.port.`in`.GetSupportImpactUseCase
+import com.gijun.main.application.port.`in`.GetRivalMatchupUseCase
+import com.gijun.main.application.port.`in`.GetTeamChemistryUseCase
+import com.gijun.main.application.port.`in`.GetPositionBadgeUseCase
+import com.gijun.main.application.port.`in`.GetChampionCertificateUseCase
+import com.gijun.main.application.port.`in`.GetPlaystyleDnaUseCase
+import com.gijun.main.application.port.`in`.GetMetaShiftUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -49,6 +77,20 @@ class StatsWebAdapter(
     private val getObjectiveCorrelationUseCase: GetObjectiveCorrelationUseCase,
     private val getEloLeaderboardUseCase: GetEloLeaderboardUseCase,
     private val getEloHistoryUseCase: GetEloHistoryUseCase,
+    private val getWeeklyAwardsUseCase: GetWeeklyAwardsUseCase,
+    private val getDefeatContributionUseCase: GetDefeatContributionUseCase,
+    private val getMultiKillHighlightsUseCase: GetMultiKillHighlightsUseCase,
+    private val getChaosMatchUseCase: GetChaosMatchUseCase,
+    private val getGrowthCurveUseCase: GetGrowthCurveUseCase,
+    private val getSurvivalIndexUseCase: GetSurvivalIndexUseCase,
+    private val getJungleDominanceUseCase: GetJungleDominanceUseCase,
+    private val getSupportImpactUseCase: GetSupportImpactUseCase,
+    private val getRivalMatchupUseCase: GetRivalMatchupUseCase,
+    private val getTeamChemistryUseCase: GetTeamChemistryUseCase,
+    private val getPositionBadgeUseCase: GetPositionBadgeUseCase,
+    private val getChampionCertificateUseCase: GetChampionCertificateUseCase,
+    private val getPlaystyleDnaUseCase: GetPlaystyleDnaUseCase,
+    private val getMetaShiftUseCase: GetMetaShiftUseCase,
 ) {
     @Operation(summary = "전체 내전 통계 개요", description = "챔피언 픽 통계, 명예의 전당, 오브젝트 집계 등 전반적인 통계를 반환합니다")
     @GetMapping("/overview")
@@ -199,4 +241,94 @@ class StatsWebAdapter(
         @RequestParam(defaultValue = "normal") mode: String,
     ): CommonApiResponse<LaneLeaderboardResult> =
         CommonApiResponse.success(getLaneLeaderboardUseCase.getLaneLeaderboard(lane, mode))
+
+    @GetMapping("/awards")
+    fun getWeeklyAwards(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<WeeklyAwardsResult> =
+        CommonApiResponse.success(getWeeklyAwardsUseCase.getWeeklyAwards(mode))
+
+    @GetMapping("/defeat-contribution")
+    fun getDefeatContribution(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<DefeatContributionResult> =
+        CommonApiResponse.success(getDefeatContributionUseCase.getDefeatContribution(mode))
+
+    @GetMapping("/multikill-highlights")
+    fun getMultiKillHighlights(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<MultiKillHighlightsResult> =
+        CommonApiResponse.success(getMultiKillHighlightsUseCase.getMultiKillHighlights(mode))
+
+    @GetMapping("/chaos-match")
+    fun getChaosMatch(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<ChaosMatchResult> =
+        CommonApiResponse.success(getChaosMatchUseCase.getChaosMatch(mode))
+
+    @GetMapping("/player/{riotId}/growth-curve")
+    fun getGrowthCurve(
+        @PathVariable riotId: String,
+        @RequestParam(defaultValue = "all") mode: String,
+    ): CommonApiResponse<GrowthCurveResult> =
+        CommonApiResponse.success(getGrowthCurveUseCase.getGrowthCurve(
+            java.net.URLDecoder.decode(riotId, "UTF-8"), mode
+        ))
+
+    @GetMapping("/survival-index")
+    fun getSurvivalIndex(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<SurvivalIndexResult> =
+        CommonApiResponse.success(getSurvivalIndexUseCase.getSurvivalIndex(mode))
+
+    @GetMapping("/jungle-dominance")
+    fun getJungleDominance(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<JungleDominanceResult> =
+        CommonApiResponse.success(getJungleDominanceUseCase.getJungleDominance(mode))
+
+    @GetMapping("/support-impact")
+    fun getSupportImpact(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<SupportImpactResult> =
+        CommonApiResponse.success(getSupportImpactUseCase.getSupportImpact(mode))
+
+    @GetMapping("/rival-matchup")
+    fun getRivalMatchup(
+        @RequestParam(defaultValue = "normal") mode: String,
+        @RequestParam(defaultValue = "3") minGames: Int,
+    ): CommonApiResponse<RivalMatchupResult> =
+        CommonApiResponse.success(getRivalMatchupUseCase.getRivalMatchups(mode, minGames))
+
+    @GetMapping("/team-chemistry")
+    fun getTeamChemistry(
+        @RequestParam(defaultValue = "normal") mode: String,
+        @RequestParam(defaultValue = "3") minGames: Int,
+    ): CommonApiResponse<TeamChemistryResult> =
+        CommonApiResponse.success(getTeamChemistryUseCase.getTeamChemistry(mode, minGames))
+
+    @GetMapping("/position-badge")
+    fun getPositionBadge(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<PositionBadgeResult> =
+        CommonApiResponse.success(getPositionBadgeUseCase.getPositionBadge(mode))
+
+    @GetMapping("/champion-certificate")
+    fun getChampionCertificate(
+        @RequestParam(defaultValue = "normal") mode: String,
+        @RequestParam(defaultValue = "5") minGames: Int,
+    ): CommonApiResponse<ChampionCertificateResult> =
+        CommonApiResponse.success(getChampionCertificateUseCase.getChampionCertificates(mode, minGames))
+
+    @GetMapping("/playstyle-dna")
+    fun getPlaystyleDna(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<PlaystyleDnaResult> =
+        CommonApiResponse.success(getPlaystyleDnaUseCase.getPlaystyleDna(mode))
+
+    @GetMapping("/meta-shift")
+    fun getMetaShift(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<MetaShiftResult> =
+        CommonApiResponse.success(getMetaShiftUseCase.getMetaShift(mode))
 }

@@ -14,6 +14,20 @@ import com.gijun.main.application.dto.stats.result.OverviewStats
 import com.gijun.main.application.dto.stats.result.PlayerDetailStatsResult
 import com.gijun.main.application.dto.stats.result.StatsResult
 import com.gijun.main.application.dto.stats.result.StreakResult
+import com.gijun.main.application.dto.stats.result.WeeklyAwardsResult
+import com.gijun.main.application.dto.stats.result.DefeatContributionResult
+import com.gijun.main.application.dto.stats.result.MultiKillHighlightsResult
+import com.gijun.main.application.dto.stats.result.ChaosMatchResult
+import com.gijun.main.application.dto.stats.result.GrowthCurveResult
+import com.gijun.main.application.dto.stats.result.SurvivalIndexResult
+import com.gijun.main.application.dto.stats.result.JungleDominanceResult
+import com.gijun.main.application.dto.stats.result.SupportImpactResult
+import com.gijun.main.application.dto.stats.result.RivalMatchupResult
+import com.gijun.main.application.dto.stats.result.TeamChemistryResult
+import com.gijun.main.application.dto.stats.result.PositionBadgeResult
+import com.gijun.main.application.dto.stats.result.ChampionCertificateResult
+import com.gijun.main.application.dto.stats.result.PlaystyleDnaResult
+import com.gijun.main.application.dto.stats.result.MetaShiftResult
 
 interface SaveMatchesUseCase {
     fun save(command: SaveMatchesCommand): SaveMatchesResult
@@ -72,4 +86,60 @@ interface GetChampionMatchupUseCase {
 
 interface GetObjectiveCorrelationUseCase {
     fun getObjectiveCorrelation(mode: String): ObjectiveCorrelationResult
+}
+
+interface GetWeeklyAwardsUseCase {
+    fun getWeeklyAwards(mode: String): WeeklyAwardsResult
+}
+
+interface GetDefeatContributionUseCase {
+    fun getDefeatContribution(mode: String): DefeatContributionResult
+}
+
+interface GetMultiKillHighlightsUseCase {
+    fun getMultiKillHighlights(mode: String): MultiKillHighlightsResult
+}
+
+interface GetChaosMatchUseCase {
+    fun getChaosMatch(mode: String): ChaosMatchResult
+}
+
+interface GetGrowthCurveUseCase {
+    fun getGrowthCurve(riotId: String, mode: String): GrowthCurveResult
+}
+
+interface GetSurvivalIndexUseCase {
+    fun getSurvivalIndex(mode: String): SurvivalIndexResult
+}
+
+interface GetJungleDominanceUseCase {
+    fun getJungleDominance(mode: String): JungleDominanceResult
+}
+
+interface GetSupportImpactUseCase {
+    fun getSupportImpact(mode: String): SupportImpactResult
+}
+
+interface GetRivalMatchupUseCase {
+    fun getRivalMatchups(mode: String, minGames: Int = 3): RivalMatchupResult
+}
+
+interface GetTeamChemistryUseCase {
+    fun getTeamChemistry(mode: String, minGames: Int = 3): TeamChemistryResult
+}
+
+interface GetPositionBadgeUseCase {
+    fun getPositionBadge(mode: String): PositionBadgeResult
+}
+
+interface GetChampionCertificateUseCase {
+    fun getChampionCertificates(mode: String, minGames: Int = 5): ChampionCertificateResult
+}
+
+interface GetPlaystyleDnaUseCase {
+    fun getPlaystyleDna(mode: String): PlaystyleDnaResult
+}
+
+interface GetMetaShiftUseCase {
+    fun getMetaShift(mode: String): MetaShiftResult
 }

@@ -29,6 +29,7 @@ import { MobileMembersPage } from './pages/mobile/MobileMembersPage';
 import { MobileAdminPage } from './pages/mobile/MobileAdminPage';
 import { MobileSyncPage } from './pages/mobile/MobileSyncPage';
 import { MobileLcuPage } from './pages/mobile/MobileLcuPage';
+import { MobileMatchDetailPage } from './pages/mobile/MobileMatchDetailPage';
 import { useIsMobile } from './hooks/useMobile';
 
 function MobileRedirect() {
@@ -73,6 +74,7 @@ function App() {
           <Route index element={<MobileHomePage />} />
           <Route path="stats" element={<MobileStatsPage />} />
           <Route path="matches" element={<MobileMatchesPage />} />
+          <Route path="match/:matchId" element={<MobileMatchDetailPage />} />
           <Route path="players" element={<MobilePlayerListPage />} />
           <Route path="player/:riotId" element={<MobilePlayerDetailPage />} />
           <Route path="champions" element={<MobileChampionListPage />} />

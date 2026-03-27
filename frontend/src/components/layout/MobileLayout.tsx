@@ -26,10 +26,11 @@ const TITLES: Record<string, string> = {
 function getTitle(pathname: string): string {
   if (pathname.startsWith('/m/player/')) return '플레이어 통계';
   if (pathname.startsWith('/m/champion/')) return '챔피언 통계';
+  if (pathname.startsWith('/m/match/')) return '경기 상세';
   return TITLES[pathname] ?? 'LoL 내전';
 }
 
-const SHOW_BACK = ['/m/player/', '/m/champion/'];
+const SHOW_BACK = ['/m/player/', '/m/champion/', '/m/match/'];
 
 export function MobileLayout() {
   const location = useLocation();

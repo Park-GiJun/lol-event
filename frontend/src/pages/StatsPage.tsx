@@ -8,6 +8,19 @@ import type {
   DuoStatsResult, DuoStat,
   LaneLeaderboardResult, PlayerLaneStat,
   EloLeaderboardResult, EloRankEntry,
+  WeeklyAwardsResult,
+  DefeatContributionResult, DefeatContributionEntry,
+  MultiKillHighlightsResult, MultiKillEvent, PlayerMultiKillStat,
+  ChaosMatchResult, ChaosMatchEntry,
+  SurvivalIndexResult, SurvivalIndexEntry,
+  JungleDominanceResult, JungleDominanceEntry,
+  SupportImpactResult, SupportImpactEntry,
+  RivalMatchupResult, RivalMatchupEntry,
+  TeamChemistryResult, TeamChemistryEntry,
+  PositionBadgeResult, PositionBadgeEntry,
+  ChampionCertificateResult, ChampionCertEntry,
+  PlaystyleDnaResult, PlaystyleDnaEntry,
+  MetaShiftResult, MetaShiftChampion,
 } from '../lib/types/stats';
 import { LoadingCenter } from '../components/common/Spinner';
 import { Button } from '../components/common/Button';
@@ -23,12 +36,25 @@ const MODES = [
 ];
 
 const TABS = [
-  { key: 'overview',  label: '📊 개요' },
-  { key: 'elo',       label: '🏅 Elo 랭킹' },
-  { key: 'mvp',       label: '🏆 MVP 랭킹' },
-  { key: 'lane',      label: '🗺️ 라인별' },
-  { key: 'synergy',   label: '⚡ 챔피언 시너지' },
-  { key: 'duo',       label: '🤝 듀오 시너지' },
+  { key: 'overview',    label: '📊 개요' },
+  { key: 'elo',         label: '🏅 Elo 랭킹' },
+  { key: 'mvp',         label: '🏆 MVP 랭킹' },
+  { key: 'lane',        label: '🗺️ 라인별' },
+  { key: 'synergy',     label: '⚡ 챔피언 시너지' },
+  { key: 'duo',         label: '🤝 듀오 시너지' },
+  { key: 'awards',      label: '🏆 어워즈' },
+  { key: 'chaos',       label: '💥 혼돈 지수' },
+  { key: 'multikill',   label: '⚡ 멀티킬' },
+  { key: 'defeat',      label: '😵 떡락 지수' },
+  { key: 'rival',       label: '⚔️ 라이벌' },
+  { key: 'chemistry',   label: '🤝 팀 케미' },
+  { key: 'survival',    label: '🛡️ 생존력' },
+  { key: 'jungle',      label: '🌲 정글' },
+  { key: 'support',     label: '💚 서폿 기여' },
+  { key: 'position',    label: '📍 포지션 배지' },
+  { key: 'certificate', label: '🎖️ 장인 인증' },
+  { key: 'dna',         label: '🧬 플레이스타일' },
+  { key: 'meta',        label: '📈 메타 추적' },
 ];
 
 // ── 공통 컴포넌트 ─────────────────────────────────────
@@ -763,6 +789,864 @@ function DuoTab({ mode }: { mode: string }) {
   );
 }
 
+// ── 어워즈 탭 ─────────────────────────────────────────
+const AWARD_LABELS: Record<string, string> = {
+  mostDeaths:        '💀 단일 경기 최다 사망',
+  worstKda:          '😢 평균 KDA 최하위',
+  highGoldLowDamage: '💰 먹튀 골드왕',
+  mostSurrenders:    '🏳️ 항복 유발자',
+  pentaKillHero:     '⚔️ 펜타킬 영웅',
+  loneHero:          '🦸 그래도 난 했다',
+  highestWinRate:    '🏆 승률 1위',
+  mostGamesChampion: '🎮 챔피언 장인',
+};
+
+function AwardsTab({ mode }: { mode: string }) {
+  const navigate = useNavigate();
+  const [data, setData]       = useState<WeeklyAwardsResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setData(await api.get<WeeklyAwardsResult>(`/stats/awards?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  const entries = Object.entries(AWARD_LABELS) as [keyof WeeklyAwardsResult, string][];
+
+  return (
+    <div>
+      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+        내전 어워즈 — 명예(?)의 전당
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
+        {entries.map(([key, label]) => {
+          const entry = data[key];
+          return (
+            <div key={key} className="card" style={{ padding: '14px 16px' }}>
+              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>{label}</div>
+              {entry ? (
+                <div style={{ cursor: 'pointer' }} onClick={() => navigate(`/player-stats/${encodeURIComponent(entry.riotId)}`)}>
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>{entry.riotId.split('#')[0]}</div>
+                  <div style={{ fontSize: 13, color: 'var(--color-primary)', marginTop: 2 }}>{entry.displayValue}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-disabled)', marginTop: 2 }}>{entry.games}판</div>
+                </div>
+              ) : (
+                <div style={{ color: 'var(--color-text-disabled)', fontSize: 12 }}>데이터 없음</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── 혼돈 지수 탭 ──────────────────────────────────────
+const CHAOS_TAG_COLORS: Record<string, string> = {
+  '혈전':   '#e74c3c',
+  '학살':   '#e67e22',
+  '운영 접전': '#4a9eff',
+};
+
+function chaosTagColor(tag: string): string {
+  return CHAOS_TAG_COLORS[tag] ?? '#888';
+}
+
+function formatDuration(min: number): string {
+  const m = Math.floor(min);
+  const s = Math.round((min - m) * 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function ChaosTab({ mode }: { mode: string }) {
+  const [data, setData]       = useState<ChaosMatchResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setData(await api.get<ChaosMatchResult>(`/stats/chaos-match?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  const renderCard = (entry: ChaosMatchEntry) => {
+    const tagColor = chaosTagColor(entry.gameTypeTag);
+    return (
+      <div key={entry.matchId} className="card" style={{ padding: '12px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <span style={{ fontWeight: 800, fontSize: 20, color: 'var(--color-primary)' }}>
+            {entry.chaosIndex.toFixed(1)}
+          </span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: tagColor,
+            background: tagColor + '22', border: `1px solid ${tagColor}44`,
+            borderRadius: 4, padding: '2px 8px' }}>
+            {entry.gameTypeTag}
+          </span>
+        </div>
+        <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>
+          킬 {entry.totalKills} · {formatDuration(entry.gameDurationMin)}
+        </div>
+        <div style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>
+          {entry.participants.slice(0, 5).map(p => p.split('#')[0]).join(', ')}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+        평균 혼돈 지수: {data.avgChaosIndex.toFixed(1)}
+      </p>
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>🔥 최고 혼돈 경기 TOP 10</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10, marginBottom: 20 }}>
+        {data.topChaosMatches.map(renderCard)}
+      </div>
+    </div>
+  );
+}
+
+// ── 멀티킬 탭 ─────────────────────────────────────────
+function MultikillTab({ mode }: { mode: string }) {
+  const { champions } = useDragon();
+  const [data, setData]       = useState<MultiKillHighlightsResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setData(await api.get<MultiKillHighlightsResult>(`/stats/multikill-highlights?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  const MULTIKILL_COLORS: Record<string, string> = {
+    PENTA: '#FFD700',
+    QUADRA: '#AA47BC',
+    TRIPLE: '#4a9eff',
+    DOUBLE: '#888',
+  };
+
+  return (
+    <div>
+      {data.pentaKillEvents.length > 0 && (
+        <section style={{ marginBottom: 24 }}>
+          <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>⭐ 펜타킬 명예의 전당</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+            {data.pentaKillEvents.map((ev: MultiKillEvent) => {
+              const nameKo = ev.championId ? (champions.get(ev.championId)?.nameKo ?? ev.champion) : ev.champion;
+              return (
+                <div key={`${ev.matchId}-${ev.riotId}`} className="card" style={{ padding: '12px 14px', borderLeft: '3px solid #FFD700' }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: '#FFD700', marginBottom: 4 }}>펜타킬!</div>
+                  <div style={{ fontWeight: 600, fontSize: 13 }}>{ev.riotId.split('#')[0]}</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 2 }}>
+                    <ChampImg championId={ev.championId} champion={ev.champion} size={18} />
+                    <span style={{ marginLeft: 4 }}>{nameKo}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>📊 플레이어 멀티킬 랭킹</h3>
+      <div className="table-wrapper">
+        <table className="table member-stats-table">
+          <thead>
+            <tr>
+              <th style={{ width: 36 }}>#</th>
+              <th>플레이어</th>
+              <th className="table-number" style={{ color: '#FFD700' }}>펜타</th>
+              <th className="table-number" style={{ color: '#AA47BC' }}>쿼드라</th>
+              <th className="table-number" style={{ color: '#4a9eff' }}>트리플</th>
+              <th className="table-number">더블</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.playerRankings.map((p: PlayerMultiKillStat, i) => (
+              <tr key={p.riotId} className="member-stats-row">
+                <td><RankBadge rank={i + 1} /></td>
+                <td>
+                  <div style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</div>
+                </td>
+                <td className="table-number" style={{ fontWeight: 700, color: MULTIKILL_COLORS.PENTA }}>{p.pentaKills}</td>
+                <td className="table-number" style={{ fontWeight: 700, color: MULTIKILL_COLORS.QUADRA }}>{p.quadraKills}</td>
+                <td className="table-number" style={{ fontWeight: 700, color: MULTIKILL_COLORS.TRIPLE }}>{p.tripleKills}</td>
+                <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>{p.doubleKills}</td>
+              </tr>
+            ))}
+            {!data.playerRankings.length && (
+              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── 떡락 지수 탭 ──────────────────────────────────────
+function DefeatTab({ mode }: { mode: string }) {
+  const navigate = useNavigate();
+  const [data, setData]       = useState<DefeatContributionResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setData(await api.get<DefeatContributionResult>(`/stats/defeat-contribution?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  return (
+    <div>
+      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+        패배 기여도 — 높을수록 팀을 더 힘들게 합니다
+      </p>
+      <div className="table-wrapper">
+        <table className="table member-stats-table">
+          <thead>
+            <tr>
+              <th style={{ width: 36 }}>#</th>
+              <th>플레이어</th>
+              <th className="table-number">판수</th>
+              <th className="table-number">패배수</th>
+              <th className="table-number">평균 Defeat Score</th>
+              <th className="table-number">평균 사망</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.rankings.map((p: DefeatContributionEntry, i) => (
+              <tr key={p.riotId} className="member-stats-row"
+                onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
+                <td><RankBadge rank={i + 1} /></td>
+                <td>
+                  <div style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</div>
+                </td>
+                <td className="table-number">{p.games}</td>
+                <td className="table-number" style={{ color: 'var(--color-loss)', fontWeight: 700 }}>{p.losses}</td>
+                <td className="table-number" style={{ fontWeight: 700, color: 'var(--color-error)' }}>
+                  {p.avgDefeatScore.toFixed(1)}
+                </td>
+                <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>{p.avgDeaths.toFixed(1)}</td>
+              </tr>
+            ))}
+            {!data.rankings.length && (
+              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── 라이벌 탭 ─────────────────────────────────────────
+function RivalTab({ mode }: { mode: string }) {
+  const navigate = useNavigate();
+  const [data, setData]       = useState<RivalMatchupResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setData(await api.get<RivalMatchupResult>(`/stats/rival-matchup?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  return (
+    <div>
+      {data.topRivalry && (
+        <div className="card" style={{ marginBottom: 20, padding: '14px 18px', borderLeft: '3px solid var(--color-primary)' }}>
+          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>🔥 최대 라이벌</div>
+          <div style={{ fontWeight: 700, fontSize: 15 }}>
+            {data.topRivalry.player1.split('#')[0]} vs {data.topRivalry.player2.split('#')[0]}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+            {data.topRivalry.games}회 맞대결
+          </div>
+        </div>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {data.rivalries.map((r: RivalMatchupEntry) => {
+          const p2WinRate = Math.round(100 - r.player1WinRate);
+          return (
+            <div key={`${r.player1}-${r.player2}`} className="card" style={{ padding: '12px 16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ flex: 1, textAlign: 'right' }}>
+                  <div style={{ fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+                    onClick={() => navigate(`/player-stats/${encodeURIComponent(r.player1)}`)}>
+                    {r.player1.split('#')[0]}
+                  </div>
+                  <div style={{ fontSize: 12, color: r.player1WinRate >= 50 ? 'var(--color-win)' : 'var(--color-loss)', fontWeight: 600 }}>
+                    {r.player1WinRate}% ({r.player1Wins}승)
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center', minWidth: 60 }}>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>{r.games}회</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-text-secondary)' }}>VS</div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: 13, cursor: 'pointer' }}
+                    onClick={() => navigate(`/player-stats/${encodeURIComponent(r.player2)}`)}>
+                    {r.player2.split('#')[0]}
+                  </div>
+                  <div style={{ fontSize: 12, color: p2WinRate >= 50 ? 'var(--color-win)' : 'var(--color-loss)', fontWeight: 600 }}>
+                    {p2WinRate}% ({r.player2Wins}승)
+                  </div>
+                </div>
+              </div>
+              <div style={{ marginTop: 8, height: 6, background: 'var(--color-bg-hover)', borderRadius: 3, overflow: 'hidden', display: 'flex' }}>
+                <div style={{ width: `${r.player1WinRate}%`, background: 'var(--color-primary)', transition: 'width 0.3s' }} />
+                <div style={{ flex: 1, background: 'var(--color-loss)' }} />
+              </div>
+            </div>
+          );
+        })}
+        {!data.rivalries.length && (
+          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', padding: '24px 0' }}>데이터 없음</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── 팀 케미스트리 탭 ──────────────────────────────────
+function ChemistryTab({ mode }: { mode: string }) {
+  const navigate = useNavigate();
+  const [data, setData]       = useState<TeamChemistryResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setData(await api.get<TeamChemistryResult>(`/stats/team-chemistry?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  const renderSection = (title: string, items: TeamChemistryEntry[]) => (
+    <section style={{ marginBottom: 24 }}>
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>{title}</h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {items.slice(0, 5).map((entry, i) => (
+          <div key={entry.players.join('-')} className="card" style={{ padding: '10px 14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <RankBadge rank={i + 1} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 13 }}>
+                  {entry.players.map(p => (
+                    <span key={p} style={{ cursor: 'pointer', marginRight: 6 }}
+                      onClick={() => navigate(`/player-stats/${encodeURIComponent(p)}`)}>
+                      {p.split('#')[0]}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{entry.games}판</div>
+                <WinRateBar winRate={entry.winRate} wins={entry.wins} losses={entry.games - entry.wins} />
+              </div>
+            </div>
+          </div>
+        ))}
+        {!items.length && <p style={{ fontSize: 12, color: 'var(--color-text-disabled)' }}>데이터 없음</p>}
+      </div>
+    </section>
+  );
+
+  return (
+    <div>
+      {renderSection('👥 최강 2인조', data.bestDuos)}
+      {renderSection('👥 최강 3인조', data.bestTrios)}
+      {renderSection('👥 최강 5인팀', data.bestFullTeams)}
+    </div>
+  );
+}
+
+// ── 생존력 탭 ─────────────────────────────────────────
+function SurvivalTab({ mode }: { mode: string }) {
+  const navigate = useNavigate();
+  const [data, setData]       = useState<SurvivalIndexResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setData(await api.get<SurvivalIndexResult>(`/stats/survival-index?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  return (
+    <div>
+      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+        생존력 & 탱킹 지수 — 높을수록 팀의 방패
+      </p>
+      <div className="table-wrapper">
+        <table className="table member-stats-table">
+          <thead>
+            <tr>
+              <th style={{ width: 36 }}>#</th>
+              <th>플레이어</th>
+              <th className="table-number">판수</th>
+              <th className="table-number">탱킹 기여(%)</th>
+              <th className="table-number">피해 감소율(%)</th>
+              <th className="table-number">생존 지수</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.rankings.map((p: SurvivalIndexEntry, i) => (
+              <tr key={p.riotId} className="member-stats-row"
+                onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
+                <td><RankBadge rank={i + 1} /></td>
+                <td>
+                  <div style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</div>
+                </td>
+                <td className="table-number">{p.games}</td>
+                <td className="table-number">{(p.avgTankShare * 100).toFixed(1)}%</td>
+                <td className="table-number">{(p.avgMitigationRatio * 100).toFixed(1)}%</td>
+                <td className="table-number" style={{ fontWeight: 700, color: 'var(--color-primary)' }}>
+                  {p.survivalIndex.toFixed(1)}
+                </td>
+              </tr>
+            ))}
+            {!data.rankings.length && (
+              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── 정글 탭 ───────────────────────────────────────────
+function JungleTab({ mode }: { mode: string }) {
+  const navigate = useNavigate();
+  const { champions } = useDragon();
+  const [data, setData]       = useState<JungleDominanceResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setData(await api.get<JungleDominanceResult>(`/stats/jungle-dominance?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  return (
+    <div>
+      <div className="table-wrapper">
+        <table className="table member-stats-table">
+          <thead>
+            <tr>
+              <th style={{ width: 36 }}>#</th>
+              <th>플레이어</th>
+              <th>스타일</th>
+              <th className="table-number">판수</th>
+              <th className="table-number">침입률</th>
+              <th className="table-number">오브젝트 기여</th>
+              <th className="table-number">킬 관여</th>
+              <th className="table-number">지배 지수</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.rankings.map((p: JungleDominanceEntry, i) => (
+              <tr key={p.riotId} className="member-stats-row"
+                onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
+                <td><RankBadge rank={i + 1} /></td>
+                <td>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <span style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</span>
+                    {p.topChampion && p.topChampionId && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <ChampImg championId={p.topChampionId} champion={p.topChampion} size={16} />
+                        <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>
+                          {champions.get(p.topChampionId)?.nameKo ?? p.topChampion}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td>
+                  <span style={{ fontSize: 11, background: 'var(--color-bg-hover)', borderRadius: 4, padding: '2px 6px' }}>
+                    {p.playStyleTag}
+                  </span>
+                </td>
+                <td className="table-number">{p.games}</td>
+                <td className="table-number">{(p.avgInvadeRatio * 100).toFixed(1)}%</td>
+                <td className="table-number">{(p.avgObjShare * 100).toFixed(1)}%</td>
+                <td className="table-number">{(p.avgKp * 100).toFixed(1)}%</td>
+                <td className="table-number" style={{ fontWeight: 700, color: 'var(--color-primary)' }}>
+                  {p.avgJungleDominance.toFixed(1)}
+                </td>
+              </tr>
+            ))}
+            {!data.rankings.length && (
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── 서폿 기여 탭 ──────────────────────────────────────
+function SupportTab({ mode }: { mode: string }) {
+  const navigate = useNavigate();
+  const { champions } = useDragon();
+  const [data, setData]       = useState<SupportImpactResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setData(await api.get<SupportImpactResult>(`/stats/support-impact?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  return (
+    <div>
+      <div className="table-wrapper">
+        <table className="table member-stats-table">
+          <thead>
+            <tr>
+              <th style={{ width: 36 }}>#</th>
+              <th>플레이어</th>
+              <th>역할</th>
+              <th className="table-number">판수</th>
+              <th className="table-number">힐 기여</th>
+              <th className="table-number">CC 기여</th>
+              <th className="table-number">시야 기여</th>
+              <th className="table-number">서폿 지수</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.rankings.map((p: SupportImpactEntry, i) => (
+              <tr key={p.riotId} className="member-stats-row"
+                onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
+                <td><RankBadge rank={i + 1} /></td>
+                <td>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <span style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</span>
+                    {p.topChampion && p.topChampionId && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <ChampImg championId={p.topChampionId} champion={p.topChampion} size={16} />
+                        <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>
+                          {champions.get(p.topChampionId)?.nameKo ?? p.topChampion}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </td>
+                <td>
+                  <span style={{ fontSize: 11, background: 'var(--color-bg-hover)', borderRadius: 4, padding: '2px 6px' }}>
+                    {p.roleTag}
+                  </span>
+                </td>
+                <td className="table-number">{p.games}</td>
+                <td className="table-number">{(p.avgHealShare * 100).toFixed(1)}%</td>
+                <td className="table-number">{(p.avgCcShare * 100).toFixed(1)}%</td>
+                <td className="table-number">{(p.avgVisionShare * 100).toFixed(1)}%</td>
+                <td className="table-number" style={{ fontWeight: 700, color: '#4CAF50' }}>
+                  {p.supportImpact.toFixed(1)}
+                </td>
+              </tr>
+            ))}
+            {!data.rankings.length && (
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ── 포지션 배지 탭 ────────────────────────────────────
+const POSITION_META: Record<string, { label: string; emoji: string }> = {
+  TOP:     { label: '탑',   emoji: '🛡️' },
+  JUNGLE:  { label: '정글', emoji: '🌲' },
+  MID:     { label: '미드', emoji: '⚡' },
+  BOTTOM:  { label: '원딜', emoji: '🏹' },
+  SUPPORT: { label: '서폿', emoji: '💫' },
+};
+
+function PositionTab({ mode }: { mode: string }) {
+  const navigate = useNavigate();
+  const { champions } = useDragon();
+  const [data, setData]       = useState<PositionBadgeResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setData(await api.get<PositionBadgeResult>(`/stats/position-badge?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  return (
+    <div>
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12 }}>🥇 포지션별 1위</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, marginBottom: 28 }}>
+        {data.topPositions.map((entry: PositionBadgeEntry) => {
+          const meta = POSITION_META[entry.position] ?? { label: entry.position, emoji: '📍' };
+          const nameKo = entry.topChampionId ? (champions.get(entry.topChampionId)?.nameKo ?? entry.topChampion) : entry.topChampion;
+          return (
+            <div key={entry.position} className="card" style={{ padding: '14px', textAlign: 'center', cursor: 'pointer' }}
+              onClick={() => navigate(`/player-stats/${encodeURIComponent(entry.riotId)}`)}>
+              <div style={{ fontSize: 28, marginBottom: 4 }}>{meta.emoji}</div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 4 }}>{meta.label}</div>
+              <div style={{ fontWeight: 700, fontSize: 14 }}>{entry.riotId.split('#')[0]}</div>
+              <div style={{ fontSize: 12, color: 'var(--color-primary)', marginTop: 2 }}>
+                {entry.positionScore.toFixed(1)}점
+              </div>
+              {nameKo && (
+                <div style={{ fontSize: 11, color: 'var(--color-text-disabled)', marginTop: 4 }}>
+                  {entry.topChampionId && <ChampImg championId={entry.topChampionId} champion={entry.topChampion ?? ''} size={16} />}
+                  <span style={{ marginLeft: 4 }}>{nameKo}</span>
+                </div>
+              )}
+              <div style={{ fontSize: 11, color: 'var(--color-text-disabled)', marginTop: 2 }}>{entry.games}판</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── 챔피언 장인 인증 탭 ───────────────────────────────
+function CertificateTab({ mode }: { mode: string }) {
+  const navigate = useNavigate();
+  const { champions } = useDragon();
+  const [data, setData]       = useState<ChampionCertificateResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setData(await api.get<ChampionCertificateResult>(`/stats/champion-certificate?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  return (
+    <div>
+      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+        일정 판수 이상 + 높은 KDA + 승률 조건 충족 시 장인 인증
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 12 }}>
+        {data.certifiedMasters.map((cert: ChampionCertEntry) => {
+          const nameKo = champions.get(cert.championId)?.nameKo ?? cert.champion;
+          return (
+            <div key={`${cert.riotId}-${cert.champion}`} className="card"
+              style={{ padding: '14px', borderLeft: '3px solid #FFD700', cursor: 'pointer' }}
+              onClick={() => navigate(`/player-stats/${encodeURIComponent(cert.riotId)}`)}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <ChampImg championId={cert.championId} champion={cert.champion} size={36} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13 }}>{cert.riotId.split('#')[0]}</div>
+                  <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{nameKo}</div>
+                </div>
+                <span style={{ marginLeft: 'auto', fontSize: 16 }}>🎖️</span>
+              </div>
+              <div style={{ display: 'flex', gap: 12, fontSize: 12 }}>
+                <span>{cert.games}판</span>
+                <span style={{ color: cert.winRate >= 60 ? 'var(--color-win)' : 'var(--color-primary)' }}>
+                  {cert.winRate}%
+                </span>
+                <span style={{ color: 'var(--color-text-secondary)' }}>KDA {cert.kda.toFixed(2)}</span>
+              </div>
+            </div>
+          );
+        })}
+        {!data.certifiedMasters.length && (
+          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', gridColumn: '1/-1' }}>
+            인증된 장인이 없습니다
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── 플레이스타일 DNA 탭 ───────────────────────────────
+const DNA_LABELS: { key: keyof PlaystyleDnaEntry; label: string; color: string }[] = [
+  { key: 'aggression',     label: '공격성',    color: '#e74c3c' },
+  { key: 'durability',     label: '생존력',    color: '#3498db' },
+  { key: 'teamPlay',       label: '팀 플레이', color: '#2ecc71' },
+  { key: 'objectiveFocus', label: '오브젝트',  color: '#f39c12' },
+  { key: 'economy',        label: '경제력',    color: '#9b59b6' },
+  { key: 'visionControl',  label: '시야',      color: '#1abc9c' },
+];
+
+function DnaTab({ mode }: { mode: string }) {
+  const navigate = useNavigate();
+  const [data, setData]       = useState<PlaystyleDnaResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setData(await api.get<PlaystyleDnaResult>(`/stats/playstyle-dna?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  return (
+    <div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {data.players.map((p: PlaystyleDnaEntry) => (
+          <div key={p.riotId} className="card" style={{ padding: '12px 16px', cursor: 'pointer' }}
+            onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+              <span style={{ fontWeight: 700, fontSize: 14 }}>{p.riotId.split('#')[0]}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, background: 'var(--color-primary)22',
+                color: 'var(--color-primary)', borderRadius: 4, padding: '2px 8px',
+                border: '1px solid var(--color-primary)44' }}>
+                {p.styleTag}
+              </span>
+              <span style={{ fontSize: 11, color: 'var(--color-text-disabled)', marginLeft: 'auto' }}>
+                {p.games}판
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {DNA_LABELS.map(({ key, label, color }) => {
+                const val = p[key] as number;
+                return (
+                  <div key={key} style={{ minWidth: 80 }}>
+                    <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginBottom: 2 }}>{label}</div>
+                    <div style={{ height: 4, background: 'var(--color-bg-hover)', borderRadius: 2, overflow: 'hidden', marginBottom: 2 }}>
+                      <div style={{ width: `${Math.min(val * 100, 100)}%`, height: '100%', background: color, borderRadius: 2 }} />
+                    </div>
+                    <div style={{ fontSize: 10, color, fontWeight: 600 }}>{(val * 100).toFixed(0)}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+        {!data.players.length && (
+          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>데이터 없음</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── 메타 추적 탭 ──────────────────────────────────────
+function MetaTab({ mode }: { mode: string }) {
+  const { champions } = useDragon();
+  const [data, setData]       = useState<MetaShiftResult | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setData(await api.get<MetaShiftResult>(`/stats/meta-shift?mode=${mode}`)); }
+    finally { setLoading(false); }
+  }, [mode]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) return <LoadingCenter />;
+  if (!data) return null;
+
+  const renderChampList = (title: string, list: MetaShiftChampion[], trendColor: string) => (
+    <section style={{ marginBottom: 24 }}>
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>{title}</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
+        {list.map((c: MetaShiftChampion) => {
+          const nameKo = champions.get(c.championId)?.nameKo ?? c.champion;
+          const trendSign = c.trend >= 0 ? '+' : '';
+          return (
+            <div key={c.champion} className="card" style={{ padding: '10px 12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <ChampImg championId={c.championId} champion={c.champion} size={28} />
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 13 }}>{nameKo}</div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>{c.metaTag}</div>
+                </div>
+              </div>
+              <div style={{ fontSize: 12, display: 'flex', gap: 8 }}>
+                <span style={{ color: 'var(--color-text-secondary)' }}>픽률 {(c.pickRate * 100).toFixed(1)}%</span>
+                <span style={{ fontWeight: 700, color: trendColor }}>
+                  {trendSign}{(c.trend * 100).toFixed(1)}%
+                </span>
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>
+                승률 {c.winRate.toFixed(1)}%
+              </div>
+            </div>
+          );
+        })}
+        {!list.length && <p style={{ fontSize: 12, color: 'var(--color-text-disabled)' }}>데이터 없음</p>}
+      </div>
+    </section>
+  );
+
+  return (
+    <div>
+      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+        총 {data.totalMatchesAnalyzed}경기 분석 — 최근 vs 이전 기간 픽률 변화
+      </p>
+      {renderChampList('📈 급상승 챔피언', data.risingChampions, 'var(--color-win)')}
+      {renderChampList('📉 급하락 챔피언', data.fallingChampions, 'var(--color-loss)')}
+      {renderChampList('📊 안정 메타 챔피언', data.stableTopChampions, 'var(--color-text-secondary)')}
+    </div>
+  );
+}
+
 // ── 메인 페이지 ───────────────────────────────────────
 export function StatsPage() {
   const [mode, setMode] = useState('normal');
@@ -784,22 +1668,35 @@ export function StatsPage() {
       </div>
 
       {/* 탭 */}
-      <div className="stats-tab-bar">
+      <div className="stats-tab-bar" style={{ overflowX: 'auto', display: 'flex', flexWrap: 'nowrap' }}>
         {TABS.map(t => (
           <button key={t.key} className={`stats-tab-btn ${tab === t.key ? 'active' : ''}`}
-            onClick={() => setTab(t.key)}>
+            onClick={() => setTab(t.key)} style={{ flexShrink: 0 }}>
             {t.label}
           </button>
         ))}
       </div>
 
       {/* 탭 컨텐츠 */}
-      {tab === 'overview'  && <OverviewTab mode={mode} />}
-      {tab === 'elo'       && <div className="card" style={{ marginTop: 4 }}><EloTab /></div>}
-      {tab === 'mvp'       && <div className="card" style={{ marginTop: 4 }}><MvpTab     mode={mode} /></div>}
-      {tab === 'lane'      && <div className="card" style={{ marginTop: 4 }}><LaneTab    mode={mode} /></div>}
-      {tab === 'synergy'   && <div className="card" style={{ marginTop: 4 }}><SynergyTab mode={mode} /></div>}
-      {tab === 'duo'       && <div className="card" style={{ marginTop: 4 }}><DuoTab     mode={mode} /></div>}
+      {tab === 'overview'    && <OverviewTab mode={mode} />}
+      {tab === 'elo'         && <div className="card" style={{ marginTop: 4 }}><EloTab /></div>}
+      {tab === 'mvp'         && <div className="card" style={{ marginTop: 4 }}><MvpTab         mode={mode} /></div>}
+      {tab === 'lane'        && <div className="card" style={{ marginTop: 4 }}><LaneTab        mode={mode} /></div>}
+      {tab === 'synergy'     && <div className="card" style={{ marginTop: 4 }}><SynergyTab     mode={mode} /></div>}
+      {tab === 'duo'         && <div className="card" style={{ marginTop: 4 }}><DuoTab         mode={mode} /></div>}
+      {tab === 'awards'      && <div className="card" style={{ marginTop: 4 }}><AwardsTab      mode={mode} /></div>}
+      {tab === 'chaos'       && <div className="card" style={{ marginTop: 4 }}><ChaosTab       mode={mode} /></div>}
+      {tab === 'multikill'   && <div className="card" style={{ marginTop: 4 }}><MultikillTab   mode={mode} /></div>}
+      {tab === 'defeat'      && <div className="card" style={{ marginTop: 4 }}><DefeatTab      mode={mode} /></div>}
+      {tab === 'rival'       && <div className="card" style={{ marginTop: 4 }}><RivalTab       mode={mode} /></div>}
+      {tab === 'chemistry'   && <div className="card" style={{ marginTop: 4 }}><ChemistryTab   mode={mode} /></div>}
+      {tab === 'survival'    && <div className="card" style={{ marginTop: 4 }}><SurvivalTab    mode={mode} /></div>}
+      {tab === 'jungle'      && <div className="card" style={{ marginTop: 4 }}><JungleTab      mode={mode} /></div>}
+      {tab === 'support'     && <div className="card" style={{ marginTop: 4 }}><SupportTab     mode={mode} /></div>}
+      {tab === 'position'    && <div className="card" style={{ marginTop: 4 }}><PositionTab    mode={mode} /></div>}
+      {tab === 'certificate' && <div className="card" style={{ marginTop: 4 }}><CertificateTab mode={mode} /></div>}
+      {tab === 'dna'         && <div className="card" style={{ marginTop: 4 }}><DnaTab         mode={mode} /></div>}
+      {tab === 'meta'        && <div className="card" style={{ marginTop: 4 }}><MetaTab        mode={mode} /></div>}
     </div>
   );
 }
