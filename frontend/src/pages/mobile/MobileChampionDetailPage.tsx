@@ -36,6 +36,7 @@ export function MobileChampionDetailPage() {
 
   useEffect(() => {
     if (!champion) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     api.get<ChampionDetailStats>(`/stats/champion/${champion}?mode=${mode}`)
       .then(setData)

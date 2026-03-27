@@ -25,7 +25,7 @@ interface ChampionRowProps {
   onNavigate: () => void;
 }
 
-function ChampionRow({ entry, displayName, imgUrl, championKey: _championKey, onNavigate }: ChampionRowProps) {
+function ChampionRow({ entry, displayName, imgUrl, onNavigate }: ChampionRowProps) {
   const [imgError, setImgError] = useState(false);
   const wrColor = entry.winRate >= 50 ? '#10B981' : '#EF4444';
   const wrLabel = entry.winRate >= 50 ? '승' : '패';

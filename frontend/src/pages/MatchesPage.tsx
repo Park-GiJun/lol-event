@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, Clock, Calendar, ChevronRight, ChevronDown, Trophy } from 'lucide-react';

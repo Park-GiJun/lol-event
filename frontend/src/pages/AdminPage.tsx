@@ -111,6 +111,7 @@ export function AdminPage() {
   useEffect(() => {
     if (!authed) { inputRef.current?.focus(); return; }
     loadAll();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authed]);
 
   // allStats 로드 완료 시 pool 초기화

@@ -54,7 +54,7 @@ export function MobileHomePage() {
   return (
     <div>
       <p className="m-section-title">Elo 리더보드</p>
-      {data.players.map((p, _i) => {
+      {data.players.map((p) => {
         const tier = eloTier(p.elo);
         const [name, tag] = p.riotId.split('#');
         const isSelf = currentRiotId !== undefined && p.riotId === currentRiotId;

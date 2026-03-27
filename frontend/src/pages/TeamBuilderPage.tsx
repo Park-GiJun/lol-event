@@ -142,14 +142,6 @@ export function TeamBuilderPage() {
   const [teams, setTeams]       = useState<TeamMap>({ pool: [], team1: [], team2: [], team3: [], team4: [] });
   const [dragOver, setDragOver] = useState<TeamKey | null>(null);
 
-  useEffect(() => { loadAll(); }, []);
-
-  useEffect(() => {
-    if (allStats.length) {
-      setTeams(prev => ({ ...prev, pool: allStats.map(s => s.riotId) }));
-    }
-  }, [allStats]);
-
   async function loadAll() {
     setLoading(true);
     const [sr, mr, dr, er] = await Promise.allSettled([
@@ -168,6 +160,16 @@ export function TeamBuilderPage() {
     }
     setLoading(false);
   }
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { loadAll(); }, []);
+
+  useEffect(() => {
+    if (allStats.length) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTeams(prev => ({ ...prev, pool: allStats.map(s => s.riotId) }));
+    }
+  }, [allStats]);
 
   function onDrop(to: TeamKey, riotId: string, from: TeamKey) {
     setDragOver(null);

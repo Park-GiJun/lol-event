@@ -59,6 +59,7 @@ function ChampionMatchupSection({ champion, mode }: { champion: string; mode: st
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     api.get<ChampionMatchupResult>(
       `/stats/matchup?champion=${encodeURIComponent(champion)}&mode=${mode}&samePosition=true`

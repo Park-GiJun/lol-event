@@ -20,6 +20,7 @@ export function MatchDetailPage() {
       navigate('/matches', { replace: true });
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     api.get<Match>(`/matches/${encodeURIComponent(matchId)}`)
       .then(setData)

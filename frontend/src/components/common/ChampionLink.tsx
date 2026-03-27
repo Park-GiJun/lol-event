@@ -90,7 +90,7 @@ interface ChampionLinkProps {
   mode?: string;
 }
 
-export function ChampionLink({ champion, championId: _championId, children, className, mode = 'normal' }: ChampionLinkProps) {
+export function ChampionLink({ champion, children, className, mode = 'normal' }: ChampionLinkProps) {
   const [visible, setVisible] = useState(false);
   const [pos, setPos]         = useState({ x: 0, y: 0 });
   const [data, setData]       = useState<ChampionDetailStats | null>(null);

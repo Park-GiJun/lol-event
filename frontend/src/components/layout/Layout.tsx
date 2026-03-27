@@ -18,6 +18,7 @@ export function Layout() {
   const [search, setSearch] = useState('');
 
   // 페이지 이동 시 드로어 닫기
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { close(); }, [location.pathname, close]);
 
   return (
