@@ -18,10 +18,12 @@ import type {
   SupportImpactResult,
   RivalMatchupResult,
   TeamChemistryResult,
+  TeamChemistryEntry,
   PositionBadgeResult,
   ChampionCertificateResult,
   PlaystyleDnaResult,
   MetaShiftResult,
+  MetaShiftChampion,
   PlayerComparisonResult,
   SessionReportResult,
   ChampionTierResult,
@@ -912,8 +914,32 @@ function RivalTab({ mode }: { mode: string }) {
 }
 
 /* ── 팀 케미스트리 ────────────────────────────────────────────────────── */
+function ChemCard({ entries, title }: { entries: TeamChemistryEntry[]; title: string }) {
+  if (entries.length === 0) return null;
+  return (
+    <>
+      <p className="m-section-title">{title}</p>
+      {entries.slice(0, 5).map((e, i) => (
+        <div key={i} className="m-synergy-card">
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
+              {e.players.map(p => p.split('#')[0]).join(' + ')}
+            </div>
+            <div className="m-stat-chips">
+              <span className="m-stat-chip">{e.games}게임</span>
+              <span className="m-stat-chip" style={{ color: e.winRate >= 60 ? 'var(--color-win)' : 'inherit' }}>
+                {e.winRate.toFixed(1)}%
+              </span>
+              <span className="m-stat-chip">{e.wins}승 {e.games - e.wins}패</span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 function TeamChemTab({ mode }: { mode: string }) {
-  const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ['mobile-teamchem', mode],
     queryFn: () => api.get<TeamChemistryResult>(`/stats/team-chemistry?mode=${mode}&minGames=3`),
@@ -921,31 +947,6 @@ function TeamChemTab({ mode }: { mode: string }) {
 
   if (isLoading) return <LoadingCenter />;
   if (!data) return <div className="m-empty">데이터 없음</div>;
-
-  function ChemCard({ entries, title }: { entries: typeof data.bestDuos; title: string }) {
-    if (entries.length === 0) return null;
-    return (
-      <>
-        <p className="m-section-title">{title}</p>
-        {entries.slice(0, 5).map((e, i) => (
-          <div key={i} className="m-synergy-card">
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 4 }}>
-                {e.players.map(p => p.split('#')[0]).join(' + ')}
-              </div>
-              <div className="m-stat-chips">
-                <span className="m-stat-chip">{e.games}게임</span>
-                <span className="m-stat-chip" style={{ color: e.winRate >= 60 ? 'var(--color-win)' : 'inherit' }}>
-                  {e.winRate.toFixed(1)}%
-                </span>
-                <span className="m-stat-chip">{e.wins}승 {e.games - e.wins}패</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </>
-    );
-  }
 
   return (
     <div>
@@ -1019,6 +1020,22 @@ function SessionTab({ mode }: { mode: string }) {
 }
 
 /* ── 플레이어 비교 ────────────────────────────────────────────────────── */
+function StatRow({ label, v1, v2, higherIsBetter = true }: { label: string; v1: number; v2: number; higherIsBetter?: boolean }) {
+  const p1Better = higherIsBetter ? v1 > v2 : v1 < v2;
+  const p2Better = higherIsBetter ? v2 > v1 : v2 < v1;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--color-border)' }}>
+      <span style={{ flex: 1, textAlign: 'right', fontWeight: p1Better ? 700 : 400, color: p1Better ? 'var(--color-win)' : 'inherit' }}>
+        {v1 % 1 !== 0 ? v1.toFixed(2) : v1}
+      </span>
+      <span style={{ width: 80, textAlign: 'center', fontSize: 11, color: 'var(--color-text-secondary)' }}>{label}</span>
+      <span style={{ flex: 1, textAlign: 'left', fontWeight: p2Better ? 700 : 400, color: p2Better ? 'var(--color-win)' : 'inherit' }}>
+        {v2 % 1 !== 0 ? v2.toFixed(2) : v2}
+      </span>
+    </div>
+  );
+}
+
 function CompareTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
   const [p1, setP1] = useState('');
@@ -1030,22 +1047,6 @@ function CompareTab({ mode }: { mode: string }) {
     queryFn: () => query ? api.get<PlayerComparisonResult>(`/stats/compare?player1=${encodeURIComponent(query.p1)}&player2=${encodeURIComponent(query.p2)}&mode=${mode}`) : null,
     enabled: !!query,
   });
-
-  function StatRow({ label, v1, v2, higherIsBetter = true }: { label: string; v1: number; v2: number; higherIsBetter?: boolean }) {
-    const p1Better = higherIsBetter ? v1 > v2 : v1 < v2;
-    const p2Better = higherIsBetter ? v2 > v1 : v2 < v1;
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--color-border)' }}>
-        <span style={{ flex: 1, textAlign: 'right', fontWeight: p1Better ? 700 : 400, color: p1Better ? 'var(--color-win)' : 'inherit' }}>
-          {typeof v1 === 'number' && v1 % 1 !== 0 ? v1.toFixed(2) : v1}
-        </span>
-        <span style={{ width: 80, textAlign: 'center', fontSize: 11, color: 'var(--color-text-secondary)' }}>{label}</span>
-        <span style={{ flex: 1, textAlign: 'left', fontWeight: p2Better ? 700 : 400, color: p2Better ? 'var(--color-win)' : 'inherit' }}>
-          {typeof v2 === 'number' && v2 % 1 !== 0 ? v2.toFixed(2) : v2}
-        </span>
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -1313,6 +1314,35 @@ function ChampTierTab({ mode }: { mode: string }) {
 }
 
 /* ── 메타 변화 추적기 ──────────────────────────────────────────────────── */
+function MetaChampRow({ e, arrow, color, champMap }: {
+  e: MetaShiftChampion;
+  arrow: string;
+  color: string;
+  champMap: ReturnType<typeof useDragon>['champions'];
+}) {
+  const c = champMap.get(e.championId);
+  return (
+    <div className="m-synergy-card">
+      {c?.imageUrl ? (
+        <img src={c.imageUrl} alt={c.nameKo} width={36} height={36} style={{ borderRadius: 6, flexShrink: 0 }} />
+      ) : (
+        <div style={{ width: 36, height: 36, borderRadius: 6, background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, flexShrink: 0 }}>
+          {e.champion.slice(0, 2)}
+        </div>
+      )}
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{c?.nameKo ?? e.champion}</div>
+        <div className="m-stat-chips">
+          <span className="m-stat-chip" style={{ color }}>{arrow} {(e.trend * 100).toFixed(1)}%p</span>
+          <span className="m-stat-chip">{e.totalGames}게임</span>
+          <span className="m-stat-chip">승률 {e.winRate.toFixed(1)}%</span>
+          <span className="m-stat-chip" style={{ fontSize: 10 }}>{e.metaTag}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MetaShiftTab({ mode }: { mode: string }) {
   const { champions } = useDragon();
   const { data, isLoading } = useQuery({
@@ -1323,30 +1353,6 @@ function MetaShiftTab({ mode }: { mode: string }) {
   if (isLoading) return <LoadingCenter />;
   if (!data) return <div className="m-empty">데이터 없음</div>;
 
-  function ChampRow({ e, arrow, color }: { e: typeof data.risingChampions[0]; arrow: string; color: string }) {
-    const c = champions.get(e.championId);
-    return (
-      <div className="m-synergy-card">
-        {c?.imageUrl ? (
-          <img src={c.imageUrl} alt={c.nameKo} width={36} height={36} style={{ borderRadius: 6, flexShrink: 0 }} />
-        ) : (
-          <div style={{ width: 36, height: 36, borderRadius: 6, background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, flexShrink: 0 }}>
-            {e.champion.slice(0, 2)}
-          </div>
-        )}
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{c?.nameKo ?? e.champion}</div>
-          <div className="m-stat-chips">
-            <span className="m-stat-chip" style={{ color }}>{arrow} {(e.trend * 100).toFixed(1)}%p</span>
-            <span className="m-stat-chip">{e.totalGames}게임</span>
-            <span className="m-stat-chip">승률 {e.winRate.toFixed(1)}%</span>
-            <span className="m-stat-chip" style={{ fontSize: 10 }}>{e.metaTag}</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div>
       <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 8 }}>
@@ -1355,19 +1361,19 @@ function MetaShiftTab({ mode }: { mode: string }) {
       {data.risingChampions.length > 0 && (
         <>
           <p className="m-section-title" style={{ color: '#4CAF50' }}>상승세</p>
-          {data.risingChampions.map((e, i) => <ChampRow key={i} e={e} arrow="↑" color="#4CAF50" />)}
+          {data.risingChampions.map((e, i) => <MetaChampRow key={i} e={e} arrow="↑" color="#4CAF50" champMap={champions} />)}
         </>
       )}
       {data.fallingChampions.length > 0 && (
         <>
           <p className="m-section-title" style={{ color: '#FF4757' }}>하락세</p>
-          {data.fallingChampions.map((e, i) => <ChampRow key={i} e={e} arrow="↓" color="#FF4757" />)}
+          {data.fallingChampions.map((e, i) => <MetaChampRow key={i} e={e} arrow="↓" color="#FF4757" champMap={champions} />)}
         </>
       )}
       {data.stableTopChampions.length > 0 && (
         <>
           <p className="m-section-title">꾸준히 강세</p>
-          {data.stableTopChampions.map((e, i) => <ChampRow key={i} e={e} arrow="→" color="var(--color-text-secondary)" />)}
+          {data.stableTopChampions.map((e, i) => <MetaChampRow key={i} e={e} arrow="→" color="var(--color-text-secondary)" champMap={champions} />)}
         </>
       )}
     </div>
@@ -1547,6 +1553,20 @@ function SupportTab({ mode }: { mode: string }) {
 }
 
 /* ── 플레이스타일 DNA ──────────────────────────────────────────────────── */
+function DnaBar({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div style={{ marginBottom: 4 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, marginBottom: 2 }}>
+        <span style={{ color: 'var(--color-text-secondary)' }}>{label}</span>
+        <span style={{ color }}>{value.toFixed(0)}</span>
+      </div>
+      <div style={{ height: 4, borderRadius: 2, background: 'var(--color-bg-hover)' }}>
+        <div style={{ height: '100%', borderRadius: 2, background: color, width: `${Math.min(value, 100)}%` }} />
+      </div>
+    </div>
+  );
+}
+
 function DnaTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
   const { data, isLoading } = useQuery({
@@ -1556,20 +1576,6 @@ function DnaTab({ mode }: { mode: string }) {
 
   if (isLoading) return <LoadingCenter />;
   if (!data) return <div className="m-empty">데이터 없음</div>;
-
-  function DnaBar({ label, value, color }: { label: string; value: number; color: string }) {
-    return (
-      <div style={{ marginBottom: 4 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, marginBottom: 2 }}>
-          <span style={{ color: 'var(--color-text-secondary)' }}>{label}</span>
-          <span style={{ color }}>{value.toFixed(0)}</span>
-        </div>
-        <div style={{ height: 4, borderRadius: 2, background: 'var(--color-bg-hover)' }}>
-          <div style={{ height: '100%', borderRadius: 2, background: color, width: `${Math.min(value, 100)}%` }} />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div>
