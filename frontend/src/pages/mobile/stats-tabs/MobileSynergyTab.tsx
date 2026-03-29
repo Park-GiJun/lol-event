@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../../lib/api/api';
 import type { ChampionSynergyResult } from '../../../lib/types/stats';
-import { useDragonChampions } from '../../../context/DragonContext';
+import { useDragon } from '../../../context/DragonContext';
 import { LoadingCenter } from '../../../components/common/Spinner';
 
 export default function MobileSynergyTab({ mode }: { mode: string }) {
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const { data, isLoading } = useQuery({
     queryKey: ['mobile-synergy', mode],
     queryFn: () => api.get<ChampionSynergyResult>(`/stats/synergy?mode=${mode}&minGames=3`),

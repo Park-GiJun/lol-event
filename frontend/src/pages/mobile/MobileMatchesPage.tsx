@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { api } from '../../lib/api/api';
 import type { Match, Participant } from '../../lib/types/match';
-import { useDragonChampions } from '../../context/DragonContext';
+import { useDragon } from '../../context/DragonContext';
 import { LoadingCenter } from '../../components/common/Spinner';
 
 const MODES = [
@@ -49,7 +49,7 @@ function calcMvp(match: Match): { aceId: string; blueMvpId: string; redMvpId: st
 }
 
 function ChampIcon({ championId, champion, size = 26 }: { championId: number; champion: string; size?: number }) {
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const data = champions.get(championId);
   if (data?.imageUrl) {
     return (
@@ -73,7 +73,7 @@ function ChampIcon({ championId, champion, size = 26 }: { championId: number; ch
 
 function MatchCard({ match }: { match: Match }) {
   const navigate = useNavigate();
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const [expanded, setExpanded] = useState(false);
 
   const blue = match.participants.filter(p => p.team === 'blue');

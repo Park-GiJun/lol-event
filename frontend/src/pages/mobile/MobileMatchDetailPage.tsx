@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
 import type { Match, Participant } from '../../lib/types/match';
-import { useDragonChampions, useDragonItems } from '../../context/DragonContext';
+import { useDragon } from '../../context/DragonContext';
 import { LoadingCenter } from '../../components/common/Spinner';
 
 const QUEUE_LABEL: Record<number, string> = { 0: '커스텀', 3130: '5v5 내전', 3270: '칼바람' };
@@ -27,7 +27,7 @@ function calcMvp(match: Match): { aceId: string; blueMvpId: string; redMvpId: st
 
 // ── 공통 이미지 컴포넌트 ──
 function ChampIcon({ p, size = 40 }: { p: Participant; size?: number }) {
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const data = champions.get(p.championId);
   if (data?.imageUrl) {
     return <img src={data.imageUrl} alt={p.champion} style={{ width: size, height: size, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
@@ -37,7 +37,7 @@ function ChampIcon({ p, size = 40 }: { p: Participant; size?: number }) {
 }
 
 function ItemIcon({ itemId }: { itemId: number }) {
-  const items = useDragonItems();
+  const { items } = useDragon();
   if (!itemId) return <div style={{ width: 20, height: 20, borderRadius: 3, background: 'var(--color-bg-hover)' }} />;
   const data = items.get(itemId);
   if (data?.imageUrl) {
@@ -49,7 +49,7 @@ function ItemIcon({ itemId }: { itemId: number }) {
 
 // ── 요약 탭: 플레이어 카드 ──
 function PlayerCard({ p, aceId, mvpId, maxDmg }: { p: Participant; aceId: string; mvpId: string; maxDmg: number }) {
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const nameKo = champions.get(p.championId)?.nameKo ?? p.champion;
   const isAce = p.riotId === aceId;
   const isMvp = !isAce && p.riotId === mvpId;
@@ -121,7 +121,7 @@ function PlayerCard({ p, aceId, mvpId, maxDmg }: { p: Participant; aceId: string
 function DamageTab({ team }: { team: Participant[] }) {
   const maxDmg  = Math.max(...team.map(p => p.totalDamageDealtToChampions), 1);
   const maxTaken = Math.max(...team.map(p => p.totalDamageTaken), 1);
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   return (
     <>
       {team.map((p, i) => {
@@ -147,7 +147,7 @@ function DamageTab({ team }: { team: Participant[] }) {
 // ── 경제 탭 ──
 function EconomyTab({ team }: { team: Participant[] }) {
   const maxGold = Math.max(...team.map(p => p.gold), 1);
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   return (
     <>
       {team.map((p, i) => {

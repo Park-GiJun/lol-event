@@ -14,7 +14,7 @@ import type {
   PositionChampionPoolResult,
   PlayerPositionEntry,
 } from '../../../lib/types/stats';
-import { useDragonChampions } from '../../../context/DragonContext';
+import { useDragon } from '../../../context/DragonContext';
 import { LoadingCenter } from '../../../components/common/Spinner';
 
 const MODES = [
@@ -68,7 +68,7 @@ function SurvivalTab({ mode }: { mode: string }) {
 
 function JungleTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const { data, isLoading } = useQuery({
     queryKey: ['mobile-jungle', mode],
     queryFn: () => api.get<JungleDominanceResult>(`/stats/jungle-dominance?mode=${mode}`),
@@ -114,7 +114,7 @@ function JungleTab({ mode }: { mode: string }) {
 
 function SupportTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const { data, isLoading } = useQuery({
     queryKey: ['mobile-support', mode],
     queryFn: () => api.get<SupportImpactResult>(`/stats/support-impact?mode=${mode}`),
@@ -451,7 +451,7 @@ function MobileKpTab({ mode }: { mode: string }) {
 
 function MobilePosPoolTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const [selectedPos, setSelectedPos] = useState('TOP');
   const { data, isLoading } = useQuery({
     queryKey: ['m-pospool', mode],

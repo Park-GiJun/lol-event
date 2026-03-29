@@ -3,14 +3,13 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
 import type { ChampionDetailStats } from '../../lib/types/stats';
-import { useDragonChampions, useDragonItems } from '../../context/DragonContext';
+import { useDragon } from '../../context/DragonContext';
 
 // 모듈 레벨 캐시
 const cache = new Map<string, ChampionDetailStats>();
 
 function ChampionPopupContent({ champion, data }: { champion: string; data: ChampionDetailStats }) {
-  const champions = useDragonChampions();
-  const items = useDragonItems();
+  const { champions, items } = useDragon();
   const navigate = useNavigate();
   const img    = champions.get(data.championId)?.imageUrl;
   const nameKo = champions.get(data.championId)?.nameKo || champion;

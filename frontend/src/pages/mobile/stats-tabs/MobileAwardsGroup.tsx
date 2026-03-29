@@ -12,7 +12,7 @@ import type {
   BanAnalysisResult,
   TimePatternResult,
 } from '../../../lib/types/stats';
-import { useDragonChampions } from '../../../context/DragonContext';
+import { useDragon } from '../../../context/DragonContext';
 import { LoadingCenter } from '../../../components/common/Spinner';
 
 const MODES = [
@@ -104,7 +104,7 @@ function DefeatContribTab({ mode }: { mode: string }) {
 
 function MultiKillTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const { data, isLoading } = useQuery({
     queryKey: ['mobile-multikill', mode],
     queryFn: () => api.get<MultiKillHighlightsResult>(`/stats/multikill-highlights?mode=${mode}`),
@@ -348,7 +348,7 @@ function ComebackTab({ mode }: { mode: string }) {
 }
 
 function MobileBanTab({ mode }: { mode: string }) {
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const { data, isLoading } = useQuery({
     queryKey: ['m-ban', mode],
     queryFn: () => api.get<BanAnalysisResult>(`/stats/ban-analysis?mode=${mode}`),

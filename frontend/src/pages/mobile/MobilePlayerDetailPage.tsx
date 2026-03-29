@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { usePlayerDetail } from '@/hooks/usePlayerDetail';
 import { usePlayerEloHistory } from '@/hooks/usePlayerEloHistory';
-import { useDragonChampions } from '@/context/DragonContext';
+import { useDragon } from '@/context/DragonContext';
 import { Skeleton } from '@/components/common/Skeleton';
 import { InlineError } from '@/components/common/InlineError';
 import { api } from '@/lib/api/api';
@@ -28,7 +28,7 @@ const CHAMP_SORTS: { key: ChampSort; label: string }[] = [
 
 export function MobilePlayerDetailPage() {
   const { riotId } = useParams<{ riotId: string }>();
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const [champSort, setChampSort] = useState<ChampSort>('games');
 
   // P1: useParams already decodes — no additional decodeURIComponent

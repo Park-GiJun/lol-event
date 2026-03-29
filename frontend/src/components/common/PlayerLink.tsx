@@ -3,13 +3,13 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
 import type { PlayerDetailStats } from '../../lib/types/stats';
-import { useDragonChampions } from '../../context/DragonContext';
+import { useDragon } from '../../context/DragonContext';
 
 // 모듈 레벨 캐시 — 리렌더링 시에도 재요청 없음
 const cache = new Map<string, PlayerDetailStats>();
 
 function PlayerPopupContent({ riotId, data }: { riotId: string; data: PlayerDetailStats }) {
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const navigate = useNavigate();
   const wr = data.winRate;
   const wrColor = wr >= 60 ? 'var(--color-win)' : wr >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';

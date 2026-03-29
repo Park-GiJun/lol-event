@@ -2,12 +2,12 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../../lib/api/api';
 import type { OverviewStats } from '../../../lib/types/stats';
-import { useDragonChampions } from '../../../context/DragonContext';
+import { useDragon } from '../../../context/DragonContext';
 import { LoadingCenter } from '../../../components/common/Spinner';
 
 export default function MobileOverviewTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const { data, isLoading } = useQuery({
     queryKey: ['mobile-overview', mode],
     queryFn: () => api.get<OverviewStats>(`/stats/overview?mode=${mode}`),

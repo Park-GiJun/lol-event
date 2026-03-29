@@ -9,7 +9,7 @@ import type {
   MetaShiftResult,
   MetaShiftChampion,
 } from '../../../lib/types/stats';
-import { useDragonChampions } from '../../../context/DragonContext';
+import { useDragon } from '../../../context/DragonContext';
 import { LoadingCenter } from '../../../components/common/Spinner';
 
 const MODES = [
@@ -80,7 +80,7 @@ function PositionBadgeTab({ mode }: { mode: string }) {
 
 function ChampCertTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const { data, isLoading } = useQuery({
     queryKey: ['mobile-champ-cert', mode],
     queryFn: () => api.get<ChampionCertificateResult>(`/stats/champion-certificate?mode=${mode}&minGames=5`),
@@ -128,7 +128,7 @@ function ChampCertTab({ mode }: { mode: string }) {
 }
 
 function ChampTierTab({ mode }: { mode: string }) {
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const { data, isLoading } = useQuery({
     queryKey: ['mobile-champ-tier', mode],
     queryFn: () => api.get<ChampionTierResult>(`/stats/champion-tier?mode=${mode}&minGames=3`),
@@ -212,7 +212,7 @@ function MetaChampRow({ e, arrow, color, champMap }: {
 }
 
 function MetaShiftTab({ mode }: { mode: string }) {
-  const champions = useDragonChampions();
+  const { champions } = useDragon();
   const { data, isLoading } = useQuery({
     queryKey: ['mobile-meta', mode],
     queryFn: () => api.get<MetaShiftResult>(`/stats/meta-shift?mode=${mode}`),

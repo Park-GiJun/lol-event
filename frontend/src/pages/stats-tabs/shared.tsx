@@ -4,6 +4,7 @@ import type { ChampionPickStat, PlayerLeaderStat } from '../../lib/types/stats';
 import { useNavigate } from 'react-router-dom';
 import { PlayerLink } from '../../components/common/PlayerLink';
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function champImgUrl(championId: number, champions: ReturnType<typeof useDragon>['champions']): string | null {
   return champions.get(championId)?.imageUrl ?? null;
 }
@@ -37,6 +38,7 @@ export function ChampImg({ championId, champion, size }: { championId: number; c
   return <div style={{ width: size, height: size, background: 'var(--color-bg-hover)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: 'var(--color-text-secondary)' }}>{champion.slice(0, 2)}</div>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const RANK_COLORS: Record<number, string> = { 1: '#FFD700', 2: '#C0C0C0', 3: '#CD7F32' };
 export function RankBadge({ rank }: { rank: number }) {
   const color = RANK_COLORS[rank];

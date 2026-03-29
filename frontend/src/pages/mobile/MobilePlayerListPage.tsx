@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayers } from '@/hooks/usePlayers';
-import { useDragonChampions } from '@/context/DragonContext';
+import { useDragon } from '@/context/DragonContext';
 import { Skeleton } from '@/components/common/Skeleton';
 import { InlineError } from '@/components/common/InlineError';
 import type { PlayerStats } from '@/lib/types/stats';
@@ -29,7 +29,7 @@ interface Props {
 
 export function MobilePlayerListPage({ mode: externalMode, onModeChange }: Props = {}) {
   const navigate = useNavigate();
-  const dragonChampions = useDragonChampions();
+  const { champions: dragonChampions } = useDragon();
   const [internalMode, setInternalMode] = useState('normal');
   const mode = externalMode ?? internalMode;
   const setMode = onModeChange ?? setInternalMode;
