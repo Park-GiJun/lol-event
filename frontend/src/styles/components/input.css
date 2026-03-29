@@ -11,7 +11,7 @@
   transition: border-color 0.15s;
   outline: none;
 }
-.input:focus { border-color: var(--color-primary); }
+.input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.15); }
 .input::placeholder { color: var(--color-text-disabled); }
 .input-error { border-color: var(--color-error) !important; }
 .input-error-msg { font-size: var(--font-size-xs); color: var(--color-error); }

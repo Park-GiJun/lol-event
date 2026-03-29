@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
 import type { ChampionDetailStats, ChampionPlayerStat } from '../../lib/types/stats';
-import { useDragon } from '../../context/DragonContext';
+import { useDragonChampions, useDragonItems } from '../../context/DragonContext';
 import { LoadingCenter } from '../../components/common/Spinner';
 
 const MODES = [
@@ -27,7 +27,8 @@ const SORT_OPTS: { key: SortKey; label: string }[] = [
 export function MobileChampionDetailPage() {
   const { champion } = useParams<{ champion: string }>();
   const navigate = useNavigate();
-  const { champions, items } = useDragon();
+  const champions = useDragonChampions();
+  const items = useDragonItems();
   const [mode, setMode] = useState('all');
   const [pos, setPos] = useState('ALL');
   const [sort, setSort] = useState<SortKey>('games');

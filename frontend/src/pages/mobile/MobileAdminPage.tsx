@@ -78,7 +78,7 @@ function AdminContent() {
   const loadStatus = async () => {
     setBatchStatusLoading(true);
     try {
-      const s = await api.get<BatchStatus>('/admin/batch/status');
+      const s = await api.get<BatchStatus>('/batch/status');
       setBatchStatus(s);
     } finally {
       setBatchStatusLoading(false);
@@ -92,7 +92,7 @@ function AdminContent() {
     setBatchRunning(true);
     setBatchMsg('');
     try {
-      await api.post('/admin/batch/run', {});
+      await api.post('/batch/trigger', {});
       setBatchMsg('배치가 완료되었습니다');
       await loadStatus();
     } catch {

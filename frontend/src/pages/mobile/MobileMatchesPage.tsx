@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { api } from '../../lib/api/api';
 import type { Match, Participant } from '../../lib/types/match';
-import { useDragon } from '../../context/DragonContext';
+import { useDragonChampions } from '../../context/DragonContext';
 import { LoadingCenter } from '../../components/common/Spinner';
 
 const MODES = [
@@ -49,12 +49,13 @@ function calcMvp(match: Match): { aceId: string; blueMvpId: string; redMvpId: st
 }
 
 function ChampIcon({ championId, champion, size = 26 }: { championId: number; champion: string; size?: number }) {
-  const { champions } = useDragon();
+  const champions = useDragonChampions();
   const data = champions.get(championId);
   if (data?.imageUrl) {
     return (
       <img src={data.imageUrl} alt={champion}
         style={{ width: size, height: size, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }}
+        loading="lazy"
         onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
       />
     );
@@ -72,7 +73,7 @@ function ChampIcon({ championId, champion, size = 26 }: { championId: number; ch
 
 function MatchCard({ match }: { match: Match }) {
   const navigate = useNavigate();
-  const { champions } = useDragon();
+  const champions = useDragonChampions();
   const [expanded, setExpanded] = useState(false);
 
   const blue = match.participants.filter(p => p.team === 'blue');
@@ -310,15 +311,17 @@ export function MobileMatchesPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const groupMap = new Map<string, Match[]>();
-  for (const m of matches) {
-    const key = getSessionKey(m.gameCreation);
-    if (!groupMap.has(key)) groupMap.set(key, []);
-    groupMap.get(key)!.push(m);
-  }
-  const groups = Array.from(groupMap.entries())
-    .map(([key, ms]) => ({ key, matches: ms }))
-    .sort((a, b) => b.key.localeCompare(a.key));
+  const groups = useMemo(() => {
+    const groupMap = new Map<string, Match[]>();
+    for (const m of matches) {
+      const key = getSessionKey(m.gameCreation);
+      if (!groupMap.has(key)) groupMap.set(key, []);
+      groupMap.get(key)!.push(m);
+    }
+    return Array.from(groupMap.entries())
+      .map(([key, ms]) => ({ key, matches: ms }))
+      .sort((a, b) => b.key.localeCompare(a.key));
+  }, [matches]);
 
   return (
     <div>

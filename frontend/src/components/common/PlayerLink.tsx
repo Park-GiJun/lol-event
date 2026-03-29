@@ -1,15 +1,15 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
 import type { PlayerDetailStats } from '../../lib/types/stats';
-import { useDragon } from '../../context/DragonContext';
+import { useDragonChampions } from '../../context/DragonContext';
 
 // 모듈 레벨 캐시 — 리렌더링 시에도 재요청 없음
 const cache = new Map<string, PlayerDetailStats>();
 
 function PlayerPopupContent({ riotId, data }: { riotId: string; data: PlayerDetailStats }) {
-  const { champions } = useDragon();
+  const champions = useDragonChampions();
   const navigate = useNavigate();
   const wr = data.winRate;
   const wrColor = wr >= 60 ? 'var(--color-win)' : wr >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
@@ -102,20 +102,34 @@ export function PlayerLink({ riotId, children, className, mode = 'normal' }: Pla
   const [visible, setVisible] = useState(false);
   const [pos, setPos] = useState({ x: 0, y: 0, flipY: false });
   const [data, setData] = useState<PlayerDetailStats | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(false);
   const triggerRef = useRef<HTMLSpanElement>(null);
   const showTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+  // 언마운트 시 타이머 클린업
+  useEffect(() => {
+    return () => {
+      clearTimeout(showTimer.current);
+      clearTimeout(hideTimer.current);
+    };
+  }, []);
+
   const fetchData = useCallback(async () => {
     const key = `${riotId}:${mode}`;
     if (cache.has(key)) { setData(cache.get(key)!); return; }
     setLoading(true);
+    setLoadError(false);
     try {
       const result = await api.get<PlayerDetailStats>(`/stats/player/${encodeURIComponent(riotId)}?mode=${mode}`);
       cache.set(key, result);
       setData(result);
-    } catch { /* ignore */ } finally { setLoading(false); }
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   }, [riotId, mode]);
 
   function handleMouseEnter() {
@@ -150,9 +164,13 @@ export function PlayerLink({ riotId, children, className, mode = 'normal' }: Pla
           style={{ left: pos.x, top: pos.y, width: 280 }}
           onMouseEnter={() => clearTimeout(hideTimer.current)}
           onMouseLeave={handleMouseLeave}>
-          {loading || !data
-            ? <div className="popup-loading"><span className="popup-loading-dot" />{riotId.split('#')[0]} 로딩 중…</div>
-            : <PlayerPopupContent riotId={riotId} data={data} />
+          {loadError
+            ? <div className="popup-loading" style={{ color: 'var(--color-error)' }}>
+                데이터를 불러올 수 없습니다.
+              </div>
+            : loading || !data
+              ? <div className="popup-loading"><span className="popup-loading-dot" />{riotId.split('#')[0]} 로딩 중…</div>
+              : <PlayerPopupContent riotId={riotId} data={data} />
           }
         </div>,
         document.body

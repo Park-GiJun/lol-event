@@ -1,3 +1,5 @@
+import { memo, useId } from 'react';
+
 interface InputProps {
   label?: string;
   value: string;
@@ -9,22 +11,45 @@ interface InputProps {
   className?: string;
 }
 
-export function Input({ label, value, onChange, placeholder, error, type = 'text', disabled, className = '' }: InputProps) {
+export const Input = memo(function Input({
+  label,
+  value,
+  onChange,
+  placeholder,
+  error,
+  type = 'text',
+  disabled,
+  className = '',
+}: InputProps) {
+  const inputId = useId();
+  const errorId = useId();
+
   return (
     <div className={`input-wrapper ${className}`}>
-      {label && <label className="input-label">{label}</label>}
+      {label && (
+        <label htmlFor={inputId} className="input-label">
+          {label}
+        </label>
+      )}
       <input
+        id={inputId}
         type={type}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         disabled={disabled}
+        aria-describedby={error ? errorId : undefined}
+        aria-invalid={error ? true : undefined}
         className={`input ${error ? 'input-error' : ''}`}
       />
-      {error && <span className="input-error-msg">{error}</span>}
+      {error && (
+        <span id={errorId} className="input-error-msg" role="alert">
+          {error}
+        </span>
+      )}
     </div>
   );
-}
+});
 
 interface TextareaProps {
   label?: string;
@@ -34,11 +59,24 @@ interface TextareaProps {
   rows?: number;
 }
 
-export function Textarea({ label, value, onChange, placeholder, rows = 4 }: TextareaProps) {
+export const Textarea = memo(function Textarea({
+  label,
+  value,
+  onChange,
+  placeholder,
+  rows = 4,
+}: TextareaProps) {
+  const textareaId = useId();
+
   return (
     <div className="input-wrapper">
-      {label && <label className="input-label">{label}</label>}
+      {label && (
+        <label htmlFor={textareaId} className="input-label">
+          {label}
+        </label>
+      )}
       <textarea
+        id={textareaId}
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
@@ -47,4 +85,4 @@ export function Textarea({ label, value, onChange, placeholder, rows = 4 }: Text
       />
     </div>
   );
-}
+});

@@ -1,12 +1,14 @@
+import { memo } from 'react';
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-export function Skeleton({ className, style, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export const Skeleton = memo(function Skeleton({ className, style, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('animate-pulse rounded-md', className)}
-      style={{ background: 'var(--color-bg-hover)', ...style }}
+      className={cn('skeleton rounded-md', className)}
+      style={style}
+      aria-hidden="true"
       {...props}
     />
   );
-}
+});

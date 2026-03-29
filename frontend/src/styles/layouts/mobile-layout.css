@@ -35,6 +35,11 @@
   color: var(--color-text-primary);
   border-radius: 50%;
   flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.m-header-back:hover {
+  color: var(--color-primary);
 }
 
 .m-header-back:active {
@@ -608,6 +613,8 @@
 
 .m-search:focus {
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.15);
+  outline: none;
 }
 
 /* Admin */
@@ -726,6 +733,8 @@
 
 .m-pw-input:focus {
   border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.15);
+  outline: none;
 }
 
 /* Lane tabs */

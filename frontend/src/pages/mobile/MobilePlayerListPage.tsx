@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePlayers } from '@/hooks/usePlayers';
-import { useDragon } from '@/context/DragonContext';
+import { useDragonChampions } from '@/context/DragonContext';
 import { Skeleton } from '@/components/common/Skeleton';
 import { InlineError } from '@/components/common/InlineError';
 import type { PlayerStats } from '@/lib/types/stats';
@@ -29,7 +29,7 @@ interface Props {
 
 export function MobilePlayerListPage({ mode: externalMode, onModeChange }: Props = {}) {
   const navigate = useNavigate();
-  const { champions } = useDragon();
+  const dragonChampions = useDragonChampions();
   const [internalMode, setInternalMode] = useState('normal');
   const mode = externalMode ?? internalMode;
   const setMode = onModeChange ?? setInternalMode;
@@ -38,6 +38,16 @@ export function MobilePlayerListPage({ mode: externalMode, onModeChange }: Props
   const [sortAsc, setSortAsc] = useState(false);
 
   const { data, isLoading, error, refetch } = usePlayers(mode);
+
+  // Build key-lookup map once per dragon champions reference — avoids O(n) scan per player row
+  const champKeyMap = useMemo(() => {
+    const m = new Map<string, { imageUrl: string | null; nameKo: string }>();
+    for (const d of dragonChampions.values()) {
+      if (d.championKey) m.set(d.championKey, d);
+      m.set(d.nameKo, d);
+    }
+    return m;
+  }, [dragonChampions]);
 
   const handleSortClick = (key: SortKey) => {
     if (sort === key) setSortAsc(a => !a);
@@ -161,9 +171,10 @@ export function MobilePlayerListPage({ mode: externalMode, onModeChange }: Props
             {p.topChampions.length > 0 && (
               <div className="m-champ-icons">
                 {p.topChampions.slice(0, 3).map(tc => {
-                  const champInfo = Array.from(champions.values()).find(c => c.championKey === tc.champ || c.nameKo === tc.champ);
+                  const champInfo = champKeyMap.get(tc.champ);
                   return champInfo?.imageUrl ? (
                     <img key={tc.champ} src={champInfo.imageUrl} alt={champInfo.nameKo} className="m-champ-icon-sm"
+                      loading="lazy"
                       title={`${champInfo.nameKo} (${tc.count}게임)`}
                       onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
                     />

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useChampions } from '@/hooks/useChampions';
-import { useDragon } from '@/context/DragonContext';
+import { useDragonChampions } from '@/context/DragonContext';
 import { Skeleton } from '@/components/common/Skeleton';
 import { InlineError } from '@/components/common/InlineError';
 import { TIER_COLORS } from '@/lib/constants/theme';
@@ -79,7 +79,7 @@ function ChampionRow({ entry, displayName, imgUrl, onNavigate }: ChampionRowProp
 export function MobileChampionListPage() {
   const navigate = useNavigate();
   const { data, isLoading, error, refetch } = useChampions();
-  const { champions: dragonChampions } = useDragon();
+  const dragonChampions = useDragonChampions();
   const [expanded, setExpanded] = useState<Record<TierKey, boolean>>(
     { S: true, A: true, B: true, C: true }
   );

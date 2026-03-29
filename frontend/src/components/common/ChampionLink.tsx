@@ -1,15 +1,16 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
 import type { ChampionDetailStats } from '../../lib/types/stats';
-import { useDragon } from '../../context/DragonContext';
+import { useDragonChampions, useDragonItems } from '../../context/DragonContext';
 
 // 모듈 레벨 캐시
 const cache = new Map<string, ChampionDetailStats>();
 
 function ChampionPopupContent({ champion, data }: { champion: string; data: ChampionDetailStats }) {
-  const { champions, items } = useDragon();
+  const champions = useDragonChampions();
+  const items = useDragonItems();
   const navigate = useNavigate();
   const img    = champions.get(data.championId)?.imageUrl;
   const nameKo = champions.get(data.championId)?.nameKo || champion;
@@ -94,22 +95,36 @@ export function ChampionLink({ champion, children, className, mode = 'normal' }:
   const [visible, setVisible] = useState(false);
   const [pos, setPos]         = useState({ x: 0, y: 0 });
   const [data, setData]       = useState<ChampionDetailStats | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [loading, setLoading] = useState(false);
   const triggerRef = useRef<HTMLSpanElement>(null);
   const showTimer  = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const hideTimer  = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+  // 언마운트 시 타이머 클린업
+  useEffect(() => {
+    return () => {
+      clearTimeout(showTimer.current);
+      clearTimeout(hideTimer.current);
+    };
+  }, []);
+
   const fetchData = useCallback(async () => {
     const key = `${champion}:${mode}`;
     if (cache.has(key)) { setData(cache.get(key)!); return; }
     setLoading(true);
+    setLoadError(false);
     try {
       const result = await api.get<ChampionDetailStats>(
         `/stats/champion/${encodeURIComponent(champion)}?mode=${mode}`
       );
       cache.set(key, result);
       setData(result);
-    } catch { /* ignore */ } finally { setLoading(false); }
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   }, [champion, mode]);
 
   function handleMouseEnter() {
@@ -144,12 +159,16 @@ export function ChampionLink({ champion, children, className, mode = 'normal' }:
           style={{ left: pos.x, top: pos.y, width: 260 }}
           onMouseEnter={() => clearTimeout(hideTimer.current)}
           onMouseLeave={handleMouseLeave}>
-          {loading || !data
-            ? <div className="popup-loading">
-                <span className="popup-loading-dot" />
-                {champion} 로딩 중…
+          {loadError
+            ? <div className="popup-loading" style={{ color: 'var(--color-error)' }}>
+                데이터를 불러올 수 없습니다.
               </div>
-            : <ChampionPopupContent champion={champion} data={data} />
+            : loading || !data
+              ? <div className="popup-loading">
+                  <span className="popup-loading-dot" />
+                  {champion} 로딩 중…
+                </div>
+              : <ChampionPopupContent champion={champion} data={data} />
           }
         </div>,
         document.body
