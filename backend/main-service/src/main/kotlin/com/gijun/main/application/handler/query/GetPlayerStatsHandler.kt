@@ -9,12 +9,14 @@ import com.gijun.main.application.port.out.EloPort
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetPlayerStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val eloPort: EloPort,
+    private val cache: StatsQueryCache,
 ) : GetPlayerStatsUseCase {
 
     /**
@@ -32,7 +34,7 @@ class GetPlayerStatsHandler(
         else                                                                   -> null
     }
 
-    override fun getPlayerStats(riotId: String, mode: String, lane: String?): PlayerDetailStatsResult {
+    override fun getPlayerStats(riotId: String, mode: String, lane: String?): PlayerDetailStatsResult = cache.getOrCompute("player-stats:$riotId:$mode:$lane") {
         val allElos = eloPort.findAll().sortedByDescending { it.elo }
         val playerElo = allElos.firstOrNull { it.riotId == riotId }
         val eloRank = allElos.indexOfFirst { it.riotId == riotId }.takeIf { it >= 0 }?.plus(1)
@@ -138,7 +140,7 @@ class GetPlayerStatsHandler(
             }
             .sortedBy { POSITION_ORDER.indexOf(it.position).let { i -> if (i == -1) 99 else i } }
 
-        return PlayerDetailStatsResult(
+        PlayerDetailStatsResult(
             riotId = riotId, games = games, wins = wins, losses = games - wins,
             winRate = wins * 100 / games,
             avgKills   = r1(kills.toDouble() / games),

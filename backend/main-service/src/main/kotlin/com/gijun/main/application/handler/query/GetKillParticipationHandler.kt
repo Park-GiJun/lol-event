@@ -6,12 +6,16 @@ import com.gijun.main.application.port.`in`.GetKillParticipationUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
-class GetKillParticipationHandler(private val matchPersistencePort: MatchPersistencePort) : GetKillParticipationUseCase {
+class GetKillParticipationHandler(
+    private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
+) : GetKillParticipationUseCase {
 
-    override fun getKillParticipation(mode: String): KillParticipationResult {
+    override fun getKillParticipation(mode: String): KillParticipationResult = cache.getOrCompute("kill-participation:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class PlayerAcc(
@@ -65,7 +69,7 @@ class GetKillParticipationHandler(private val matchPersistencePort: MatchPersist
             }
             .sortedByDescending { it.avgKp }
 
-        return KillParticipationResult(
+        KillParticipationResult(
             rankings = rankings,
             kpKing = rankings.firstOrNull()?.riotId,
         )

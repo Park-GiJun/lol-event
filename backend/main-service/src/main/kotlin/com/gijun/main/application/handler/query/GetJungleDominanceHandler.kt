@@ -6,16 +6,18 @@ import com.gijun.main.application.port.`in`.GetJungleDominanceUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetJungleDominanceHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetJungleDominanceUseCase {
 
     fun r2(v: Double) = (v * 100).toInt() / 100.0
 
-    override fun getJungleDominance(mode: String): JungleDominanceResult {
+    override fun getJungleDominance(mode: String): JungleDominanceResult = cache.getOrCompute("jungle-dominance:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class PlayerAcc(
@@ -100,6 +102,6 @@ class GetJungleDominanceHandler(
             }
             .sortedByDescending { it.avgJungleDominance }
 
-        return JungleDominanceResult(rankings = rankings)
+        JungleDominanceResult(rankings = rankings)
     }
 }

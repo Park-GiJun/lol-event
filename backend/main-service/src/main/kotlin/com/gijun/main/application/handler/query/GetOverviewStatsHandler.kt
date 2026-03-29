@@ -8,11 +8,13 @@ import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.domain.model.match.MatchParticipant
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetOverviewStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetOverviewStatsUseCase {
 
     private fun r1(v: Double) = (v * 10).toInt() / 10.0
@@ -23,7 +25,7 @@ class GetOverviewStatsHandler(
         val minutes: Double get() = if (durationSec > 0) durationSec / 60.0 else 1.0
     }
 
-    override fun getOverviewStats(mode: String): OverviewStats {
+    override fun getOverviewStats(mode: String): OverviewStats = cache.getOrCompute("overview-stats:$mode") {
         val matches  = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
         val allTeams = matches.flatMap { it.teams }
 
@@ -190,7 +192,7 @@ class GetOverviewStatsHandler(
         val avgGameMin       = if (matches.isNotEmpty())
             r1(totalDurationSec.toDouble() / matches.size / 60.0) else 0.0
 
-        return OverviewStats(
+        OverviewStats(
             matchCount           = matches.size,
             avgGameMinutes       = avgGameMin,
             topPickedChampions   = topPicked,

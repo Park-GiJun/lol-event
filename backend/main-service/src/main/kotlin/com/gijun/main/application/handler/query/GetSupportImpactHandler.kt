@@ -6,16 +6,18 @@ import com.gijun.main.application.port.`in`.GetSupportImpactUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetSupportImpactHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetSupportImpactUseCase {
 
     fun r2(v: Double) = (v * 100).toInt() / 100.0
 
-    override fun getSupportImpact(mode: String): SupportImpactResult {
+    override fun getSupportImpact(mode: String): SupportImpactResult = cache.getOrCompute("support-impact:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class PlayerAcc(
@@ -97,6 +99,6 @@ class GetSupportImpactHandler(
             }
             .sortedByDescending { it.supportImpact }
 
-        return SupportImpactResult(rankings = rankings)
+        SupportImpactResult(rankings = rankings)
     }
 }

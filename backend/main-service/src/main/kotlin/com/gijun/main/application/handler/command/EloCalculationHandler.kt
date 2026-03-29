@@ -98,7 +98,18 @@ class EloCalculationHandler(
         val matches = matchPersistencePort.findAllOrderedByGameCreation()
             .filter { it.queueId != ARAM_QUEUE_ID }
         log.info("재집계 대상 매치: ${matches.size}개 (칼바람 제외)")
-        matches.forEach { processMatch(it) }
+
+        // 인메모리 Elo 맵으로 DB 왕복 제거
+        val eloCache = mutableMapOf<String, PlayerElo>()
+        val allHistories = mutableListOf<PlayerEloHistory>()
+
+        for (match in matches) {
+            processMatchInMemory(match, eloCache, allHistories)
+        }
+
+        // 1회 배치 저장
+        eloPort.saveAll(eloCache.values.toList())
+        eloHistoryPort.saveAll(allHistories)
         log.info("Elo 재집계 완료")
     }
 
@@ -198,6 +209,80 @@ class EloCalculationHandler(
         }
         eloHistoryPort.saveAll(histories)
         log.debug("Elo 업데이트 완료 — matchId=${match.matchId}, 대상=${updated.size}명")
+    }
+
+    /**
+     * 인메모리 Elo 맵을 사용하는 processMatch — resetAndRecalculate 전용.
+     * DB 왕복 없이 eloCache에서 읽고 쓰며, 히스토리는 allHistories에 누적한다.
+     */
+    private fun processMatchInMemory(
+        match: Match,
+        eloCache: MutableMap<String, PlayerElo>,
+        allHistories: MutableList<PlayerEloHistory>,
+    ) {
+        val participants = match.participants
+        if (participants.size < 2) return
+
+        val currentElos = participants
+            .mapNotNull { it.riotId.takeIf { r -> r.isNotBlank() } }
+            .associateWith { riotId -> eloCache[riotId] }
+            .filterValues { it != null }
+            .mapValues { it.value!! }
+            .toMutableMap()
+
+        val changes = calcEloChanges(match, currentElos)
+
+        val now = LocalDateTime.now()
+        val updated = changes.map { (riotId, delta) ->
+            val prev        = currentElos[riotId]
+            val participant = match.participants.firstOrNull { it.riotId == riotId }
+            val won         = participant?.win ?: false
+
+            val newElo        = maxOf(MIN_ELO, (prev?.elo ?: INITIAL_ELO) + delta)
+            val newGames      = (prev?.games ?: 0) + 1
+            val newWins       = (prev?.wins ?: 0) + (if (won) 1 else 0)
+            val newLosses     = (prev?.losses ?: 0) + (if (!won) 1 else 0)
+            val newWinStreak  = if (won) (prev?.winStreak ?: 0) + 1 else 0
+            val newLossStreak = if (!won) (prev?.lossStreak ?: 0) + 1 else 0
+
+            PlayerElo(
+                id         = prev?.id ?: 0,
+                riotId     = riotId,
+                elo        = newElo,
+                games      = newGames,
+                wins       = newWins,
+                losses     = newLosses,
+                winStreak  = newWinStreak,
+                lossStreak = newLossStreak,
+                updatedAt  = now,
+            )
+        }
+
+        // 인메모리 캐시 업데이트
+        for (elo in updated) {
+            eloCache[elo.riotId] = elo
+        }
+
+        // 히스토리 누적
+        val updatedMap = updated.associateBy { it.riotId }
+        changes.forEach { (riotId, delta) ->
+            val prev      = currentElos[riotId]
+            val eloBefore = prev?.elo ?: INITIAL_ELO
+            val eloAfter  = updatedMap[riotId]?.elo ?: eloBefore
+            val won       = match.participants.firstOrNull { it.riotId == riotId }?.win ?: false
+            allHistories.add(
+                PlayerEloHistory(
+                    riotId       = riotId,
+                    matchId      = match.matchId,
+                    eloBefore    = eloBefore,
+                    eloAfter     = eloAfter,
+                    delta        = delta,
+                    win          = won,
+                    gameCreation = match.gameCreation,
+                    createdAt    = now,
+                )
+            )
+        }
     }
 
     /**

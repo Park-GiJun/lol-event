@@ -6,13 +6,15 @@ import com.gijun.main.application.port.`in`.GetWeeklyAwardsUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetWeeklyAwardsHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetWeeklyAwardsUseCase {
-    override fun getWeeklyAwards(mode: String): WeeklyAwardsResult {
+    override fun getWeeklyAwards(mode: String): WeeklyAwardsResult = cache.getOrCompute("weekly-awards:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         fun r2(v: Double) = (v * 100).toInt() / 100.0
@@ -145,7 +147,7 @@ class GetWeeklyAwardsHandler(
                 )
             }
 
-        return WeeklyAwardsResult(
+        WeeklyAwardsResult(
             mostDeaths = mostDeathsEntry,
             worstKda = worstKdaEntry,
             highGoldLowDamage = highGoldLowDamageEntry,

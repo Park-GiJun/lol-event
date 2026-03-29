@@ -6,16 +6,18 @@ import com.gijun.main.application.port.`in`.GetSurvivalIndexUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetSurvivalIndexHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetSurvivalIndexUseCase {
 
     fun r2(v: Double) = (v * 100).toInt() / 100.0
 
-    override fun getSurvivalIndex(mode: String): SurvivalIndexResult {
+    override fun getSurvivalIndex(mode: String): SurvivalIndexResult = cache.getOrCompute("survival-index:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class PlayerAcc(
@@ -81,6 +83,6 @@ class GetSurvivalIndexHandler(
             }
             .sortedByDescending { it.survivalIndex }
 
-        return SurvivalIndexResult(rankings = rankings)
+        SurvivalIndexResult(rankings = rankings)
     }
 }

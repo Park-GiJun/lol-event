@@ -9,12 +9,16 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.time.ZoneId
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
-class GetTimePatternHandler(private val matchPersistencePort: MatchPersistencePort) : GetTimePatternUseCase {
+class GetTimePatternHandler(
+    private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
+) : GetTimePatternUseCase {
 
-    override fun getTimePattern(mode: String): TimePatternResult {
+    override fun getTimePattern(mode: String): TimePatternResult = cache.getOrCompute("time-pattern:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
         if (matches.isEmpty()) return TimePatternResult(emptyList(), emptyList(), null, null, 0)
 
@@ -64,7 +68,7 @@ class GetTimePatternHandler(private val matchPersistencePort: MatchPersistencePo
         val busiestDay = byDay.maxByOrNull { it.games }?.dayName
         val busiestHour = byHour.maxByOrNull { it.games }?.hour
 
-        return TimePatternResult(
+        TimePatternResult(
             byDay = byDay,
             byHour = byHour,
             busiestDay = busiestDay,

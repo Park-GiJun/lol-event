@@ -7,12 +7,16 @@ import com.gijun.main.application.port.`in`.GetPositionChampionPoolUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
-class GetPositionChampionPoolHandler(private val matchPersistencePort: MatchPersistencePort) : GetPositionChampionPoolUseCase {
+class GetPositionChampionPoolHandler(
+    private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
+) : GetPositionChampionPoolUseCase {
 
-    override fun getPositionChampionPool(mode: String): PositionChampionPoolResult {
+    override fun getPositionChampionPool(mode: String): PositionChampionPoolResult = cache.getOrCompute("position-champion-pool:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class ChampAcc(var games: Int = 0, var wins: Int = 0, var kills: Int = 0, var deaths: Int = 0, var assists: Int = 0, var championId: Int = 0)
@@ -68,6 +72,6 @@ class GetPositionChampionPoolHandler(private val matchPersistencePort: MatchPers
             }
             .sortedWith(compareBy({ it.riotId }, { it.position }))
 
-        return PositionChampionPoolResult(allPlayers = allPlayers)
+        PositionChampionPoolResult(allPlayers = allPlayers)
     }
 }

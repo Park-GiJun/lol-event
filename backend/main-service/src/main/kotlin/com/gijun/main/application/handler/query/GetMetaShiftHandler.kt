@@ -6,20 +6,22 @@ import com.gijun.main.application.port.`in`.GetMetaShiftUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetMetaShiftHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetMetaShiftUseCase {
 
     private fun r2(v: Double) = (v * 100).toInt() / 100.0
 
-    override fun getMetaShift(mode: String): MetaShiftResult {
+    override fun getMetaShift(mode: String): MetaShiftResult = cache.getOrCompute("meta-shift:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         if (matches.isEmpty()) {
-            return MetaShiftResult(
+            return@getOrCompute MetaShiftResult(
                 risingChampions = emptyList(),
                 fallingChampions = emptyList(),
                 stableTopChampions = emptyList(),
@@ -109,7 +111,7 @@ class GetMetaShiftHandler(
             .sortedByDescending { it.pickRate }
             .take(10)
 
-        return MetaShiftResult(
+        MetaShiftResult(
             risingChampions = risingChampions,
             fallingChampions = fallingChampions,
             stableTopChampions = stableTopChampions,

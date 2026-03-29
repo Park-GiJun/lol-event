@@ -5,14 +5,16 @@ import com.gijun.main.application.port.`in`.GetPlayerStreakUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetPlayerStreakHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetPlayerStreakUseCase {
 
-    override fun getPlayerStreak(riotId: String, mode: String): StreakResult {
+    override fun getPlayerStreak(riotId: String, mode: String): StreakResult = cache.getOrCompute("player-streak:$riotId:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         // 해당 플레이어의 경기 결과를 최신순으로 수집
@@ -47,7 +49,7 @@ class GetPlayerStreakHandler(
 
         val recentForm = results.take(10).map { if (it.first) "W" else "L" }
 
-        return StreakResult(
+        StreakResult(
             riotId            = riotId,
             currentStreak     = if (isWinStreak) currentStreak else -currentStreak,
             currentStreakType  = if (isWinStreak) "WIN" else "LOSS",

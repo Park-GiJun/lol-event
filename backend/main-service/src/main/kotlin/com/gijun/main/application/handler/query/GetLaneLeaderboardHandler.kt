@@ -6,11 +6,13 @@ import com.gijun.main.application.port.`in`.GetLaneLeaderboardUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetLaneLeaderboardHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetLaneLeaderboardUseCase {
 
     private fun resolvePosition(lane: String?, role: String?, neutralMinionsKilled: Int): String? = when {
@@ -26,7 +28,7 @@ class GetLaneLeaderboardHandler(
     private fun r2(v: Double) = (v * 100).toInt() / 100.0
     private fun kda(k: Int, d: Int, a: Int) = if (d > 0) r2((k + a).toDouble() / d) else (k + a).toDouble()
 
-    override fun getLaneLeaderboard(lane: String, mode: String): LaneLeaderboardResult {
+    override fun getLaneLeaderboard(lane: String, mode: String): LaneLeaderboardResult = cache.getOrCompute("lane-leaderboard:$lane:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class Entry(
@@ -77,6 +79,6 @@ class GetLaneLeaderboardHandler(
             )
         }.sortedByDescending { it.games }
 
-        return LaneLeaderboardResult(lane = lane, players = players)
+        LaneLeaderboardResult(lane = lane, players = players)
     }
 }

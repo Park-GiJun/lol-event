@@ -6,12 +6,16 @@ import com.gijun.main.application.port.`in`.GetChampionTierUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
-class GetChampionTierHandler(private val matchPersistencePort: MatchPersistencePort) : GetChampionTierUseCase {
+class GetChampionTierHandler(
+    private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
+) : GetChampionTierUseCase {
 
-    override fun getChampionTier(mode: String, minGames: Int): ChampionTierResult {
+    override fun getChampionTier(mode: String, minGames: Int): ChampionTierResult = cache.getOrCompute("champion-tier:$mode:$minGames") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         fun r2(v: Double) = (v * 100).toInt() / 100.0
@@ -115,7 +119,7 @@ class GetChampionTierHandler(private val matchPersistencePort: MatchPersistenceP
 
         val byTier = tierList.groupBy { it.tier }
 
-        return ChampionTierResult(
+        ChampionTierResult(
             tierList = tierList,
             byTier = byTier,
             totalMatches = totalMatches,

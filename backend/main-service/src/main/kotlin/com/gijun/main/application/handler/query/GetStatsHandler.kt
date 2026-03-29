@@ -9,6 +9,7 @@ import com.gijun.main.application.port.out.MemberPersistencePort
 import com.gijun.main.application.port.out.StatsCachePersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
@@ -16,9 +17,10 @@ class GetStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val memberPersistencePort: MemberPersistencePort,
     private val statsCachePersistencePort: StatsCachePersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetStatsUseCase {
 
-    override fun getStats(mode: String): StatsResult {
+    override fun getStats(mode: String): StatsResult = cache.getOrCompute("stats:$mode") {
         val queueIds = modeToQueueIds(mode)
         val matchCount = matchPersistencePort.countByQueueIds(queueIds)
 
@@ -46,7 +48,7 @@ class GetStatsHandler(
                         topChampions   = listOfNotNull(c.topChampion?.let { ChampionCount(it, 0) }),
                     )
                 }
-            return StatsResult(stats, matchCount)
+            return@getOrCompute StatsResult(stats, matchCount)
         }
 
         // 캐시 없음 → 원본 계산 (배치 미실행 초기 상태)
@@ -102,6 +104,6 @@ class GetStatsHandler(
             }
             .sortedWith(compareByDescending<PlayerStatsResult> { it.winRate }.thenByDescending { it.games })
 
-        return StatsResult(stats, matchCount)
+        StatsResult(stats, matchCount)
     }
 }

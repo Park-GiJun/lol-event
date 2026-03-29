@@ -6,11 +6,13 @@ import com.gijun.main.application.port.`in`.GetTeamChemistryUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetTeamChemistryHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetTeamChemistryUseCase {
 
     private fun <T> List<T>.combinations(n: Int): List<List<T>> {
@@ -23,7 +25,7 @@ class GetTeamChemistryHandler(
         return withHead + withoutHead
     }
 
-    override fun getTeamChemistry(mode: String, minGames: Int): TeamChemistryResult {
+    override fun getTeamChemistry(mode: String, minGames: Int): TeamChemistryResult = cache.getOrCompute("team-chemistry:$mode:$minGames") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class ChemRecord(var games: Int = 0, var wins: Int = 0)
@@ -81,7 +83,7 @@ class GetTeamChemistryHandler(
         val trioEntries = trioMap.toEntries(3).sortedByDescending { it.winRate }
         val fullTeamEntries = fullTeamMap.toEntries(5).sortedByDescending { it.winRate }
 
-        return TeamChemistryResult(
+        TeamChemistryResult(
             bestDuos = duoEntries.take(10),
             bestTrios = trioEntries.take(10),
             bestFullTeams = fullTeamEntries.take(5),

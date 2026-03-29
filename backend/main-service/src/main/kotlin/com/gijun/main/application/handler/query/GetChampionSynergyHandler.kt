@@ -6,14 +6,16 @@ import com.gijun.main.application.port.`in`.GetChampionSynergyUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetChampionSynergyHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetChampionSynergyUseCase {
 
-    override fun getChampionSynergy(mode: String, minGames: Int): ChampionSynergyResult {
+    override fun getChampionSynergy(mode: String, minGames: Int): ChampionSynergyResult = cache.getOrCompute("champion-synergy:$mode:$minGames") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class Acc(
@@ -54,6 +56,6 @@ class GetChampionSynergyHandler(
             }
             .sortedWith(compareByDescending<ChampionSynergy> { it.winRate }.thenByDescending { it.games })
 
-        return ChampionSynergyResult(synergies, matches.size)
+        ChampionSynergyResult(synergies, matches.size)
     }
 }

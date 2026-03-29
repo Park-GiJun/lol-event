@@ -6,11 +6,13 @@ import com.gijun.main.application.port.`in`.GetGrowthCurveUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetGrowthCurveHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetGrowthCurveUseCase {
 
     fun r2(v: Double) = (v * 100).toInt() / 100.0
@@ -21,7 +23,7 @@ class GetGrowthCurveHandler(
         return if (slice.isEmpty()) 0.0 else slice.average()
     }
 
-    override fun getGrowthCurve(riotId: String, mode: String): GrowthCurveResult {
+    override fun getGrowthCurve(riotId: String, mode: String): GrowthCurveResult = cache.getOrCompute("growth-curve:$riotId:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class RawEntry(
@@ -92,7 +94,7 @@ class GetGrowthCurveHandler(
             else -> "STABLE"
         }
 
-        return GrowthCurveResult(
+        GrowthCurveResult(
             riotId = riotId,
             entries = entries,
             totalGames = entries.size,

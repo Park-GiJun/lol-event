@@ -6,13 +6,15 @@ import com.gijun.main.application.port.`in`.GetRivalMatchupUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetRivalMatchupHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetRivalMatchupUseCase {
-    override fun getRivalMatchups(mode: String, minGames: Int): RivalMatchupResult {
+    override fun getRivalMatchups(mode: String, minGames: Int): RivalMatchupResult = cache.getOrCompute("rival-matchup:$mode:$minGames") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class RivalRecord(var games: Int = 0, var firstWins: Int = 0, var secondWins: Int = 0)
@@ -59,7 +61,7 @@ class GetRivalMatchupHandler(
             }
             .sortedByDescending { it.games }
 
-        return RivalMatchupResult(
+        RivalMatchupResult(
             rivalries = rivalries,
             topRivalry = rivalries.firstOrNull(),
         )

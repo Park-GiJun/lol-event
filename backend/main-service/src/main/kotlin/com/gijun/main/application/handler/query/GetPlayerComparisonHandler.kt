@@ -7,12 +7,16 @@ import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.domain.model.match.MatchParticipant
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
-class GetPlayerComparisonHandler(private val matchPersistencePort: MatchPersistencePort) : GetPlayerComparisonUseCase {
+class GetPlayerComparisonHandler(
+    private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
+) : GetPlayerComparisonUseCase {
 
-    override fun getPlayerComparison(player1: String, player2: String, mode: String): PlayerComparisonResult {
+    override fun getPlayerComparison(player1: String, player2: String, mode: String): PlayerComparisonResult = cache.getOrCompute("player-comparison:$player1:$player2:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         fun r1(v: Double) = (v * 10).toInt() / 10.0
@@ -105,7 +109,7 @@ class GetPlayerComparisonHandler(private val matchPersistencePort: MatchPersiste
             m.participants.find { it.riotId == player2 }?.let { accumulate(p2Overall, it) }
         }
 
-        return PlayerComparisonResult(
+        PlayerComparisonResult(
             player1 = player1,
             player2 = player2,
             togetherGames = togetherGames,

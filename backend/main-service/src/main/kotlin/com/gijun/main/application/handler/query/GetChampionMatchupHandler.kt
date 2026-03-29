@@ -6,14 +6,16 @@ import com.gijun.main.application.port.`in`.GetChampionMatchupUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetChampionMatchupHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetChampionMatchupUseCase {
 
-    override fun getMatchup(champion: String?, vsChampion: String?, mode: String, samePosition: Boolean): ChampionMatchupResult {
+    override fun getMatchup(champion: String?, vsChampion: String?, mode: String, samePosition: Boolean): ChampionMatchupResult = cache.getOrCompute("champion-matchup:$champion:$vsChampion:$mode:$samePosition") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         // (myChampion, myChampionId, opponentChampion, opponentId, myWin) 쌍 생성
@@ -41,7 +43,7 @@ class GetChampionMatchupHandler(
             }
         }
 
-        return when {
+        when {
             champion != null -> {
                 // X 의 관점: X vs 각 상대 챔피언 승률
                 val filtered = pairs.filter { it.myChamp.equals(champion, ignoreCase = true) }

@@ -7,13 +7,15 @@ import com.gijun.main.application.port.`in`.GetMultiKillHighlightsUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetMultiKillHighlightsHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetMultiKillHighlightsUseCase {
-    override fun getMultiKillHighlights(mode: String): MultiKillHighlightsResult {
+    override fun getMultiKillHighlights(mode: String): MultiKillHighlightsResult = cache.getOrCompute("multi-kill-highlights:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         val allEvents = mutableListOf<MultiKillEvent>()
@@ -123,7 +125,7 @@ class GetMultiKillHighlightsHandler(
                     .thenByDescending { it.tripleKills }
             )
 
-        return MultiKillHighlightsResult(
+        MultiKillHighlightsResult(
             pentaKillEvents  = pentaKillEvents,
             recentHighlights = recentHighlights,
             playerRankings   = playerRankings,

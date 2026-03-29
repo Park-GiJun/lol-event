@@ -4,16 +4,20 @@ import com.gijun.main.application.dto.stats.result.BanEntry
 import com.gijun.main.application.dto.stats.result.BanAnalysisResult
 import com.gijun.main.application.port.`in`.GetBanAnalysisUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional(readOnly = true)
-class GetBanAnalysisHandler(private val matchPersistencePort: MatchPersistencePort) : GetBanAnalysisUseCase {
+class GetBanAnalysisHandler(
+    private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
+) : GetBanAnalysisUseCase {
 
-    override fun getBanAnalysis(mode: String): BanAnalysisResult {
+    override fun getBanAnalysis(mode: String): BanAnalysisResult = cache.getOrCompute("ban-analysis:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
-        if (matches.isEmpty()) return BanAnalysisResult(emptyList(), 0, null)
+        if (matches.isEmpty()) return@getOrCompute BanAnalysisResult(emptyList(), 0, null)
 
         val totalGames = matches.size
         val banCountMap = mutableMapOf<Int, Pair<String, Int>>() // championId -> (name, count)
@@ -40,7 +44,7 @@ class GetBanAnalysisHandler(private val matchPersistencePort: MatchPersistencePo
             .sortedByDescending { it.banCount }
             .take(20)
 
-        return BanAnalysisResult(
+        BanAnalysisResult(
             topBanned = topBanned,
             totalGamesAnalyzed = totalGames,
             mostBannedChampion = topBanned.firstOrNull()?.champion,

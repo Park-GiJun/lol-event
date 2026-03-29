@@ -4,6 +4,7 @@ import com.gijun.main.application.dto.stats.result.ChampionCertEntry
 import com.gijun.main.application.dto.stats.result.ChampionCertificateResult
 import com.gijun.main.application.port.`in`.GetChampionCertificateUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -11,12 +12,13 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class GetChampionCertificateHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetChampionCertificateUseCase {
 
     private fun r1(v: Double) = (v * 10).toInt() / 10.0
     private fun r2(v: Double) = (v * 100).toInt() / 100.0
 
-    override fun getChampionCertificates(mode: String, minGames: Int): ChampionCertificateResult {
+    override fun getChampionCertificates(mode: String, minGames: Int): ChampionCertificateResult = cache.getOrCompute("champion-cert:$mode:$minGames") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class PlayRecord(
@@ -71,7 +73,7 @@ class GetChampionCertificateHandler(
             .groupBy { it.champion }
             .mapValues { (_, entries) -> entries.maxByOrNull { it.winRate }!! }
 
-        return ChampionCertificateResult(
+        ChampionCertificateResult(
             certifiedMasters = certifiedMasters,
             topChampionMasters = topChampionMasters,
         )

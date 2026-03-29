@@ -6,16 +6,18 @@ import com.gijun.main.application.port.`in`.GetPlaystyleDnaUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetPlaystyleDnaHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetPlaystyleDnaUseCase {
 
     private fun r2(v: Double) = (v * 100).toInt() / 100.0
 
-    override fun getPlaystyleDna(mode: String): PlaystyleDnaResult {
+    override fun getPlaystyleDna(mode: String): PlaystyleDnaResult = cache.getOrCompute("playstyle-dna:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class PlayerRaw(
@@ -166,6 +168,6 @@ class GetPlaystyleDnaHandler(
             )
         }.sortedBy { it.riotId }
 
-        return PlaystyleDnaResult(players = players)
+        PlaystyleDnaResult(players = players)
     }
 }

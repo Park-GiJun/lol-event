@@ -6,12 +6,16 @@ import com.gijun.main.application.port.`in`.GetSessionReportUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
-class GetSessionReportHandler(private val matchPersistencePort: MatchPersistencePort) : GetSessionReportUseCase {
+class GetSessionReportHandler(
+    private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
+) : GetSessionReportUseCase {
 
-    override fun getSessionReport(mode: String): SessionReportResult {
+    override fun getSessionReport(mode: String): SessionReportResult = cache.getOrCompute("session-report:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         fun r2(v: Double) = (v * 100).toInt() / 100.0
@@ -78,7 +82,7 @@ class GetSessionReportHandler(private val matchPersistencePort: MatchPersistence
                 )
             }
 
-        return SessionReportResult(
+        SessionReportResult(
             sessions = sessions,
             totalSessions = sessions.size,
         )

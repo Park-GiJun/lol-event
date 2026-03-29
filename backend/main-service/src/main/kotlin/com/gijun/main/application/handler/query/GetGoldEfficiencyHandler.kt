@@ -6,15 +6,19 @@ import com.gijun.main.application.port.`in`.GetGoldEfficiencyUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
-class GetGoldEfficiencyHandler(private val matchPersistencePort: MatchPersistencePort) : GetGoldEfficiencyUseCase {
+class GetGoldEfficiencyHandler(
+    private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
+) : GetGoldEfficiencyUseCase {
 
     fun r1(v: Double) = (v * 10).toInt() / 10.0
     fun r2(v: Double) = (v * 100).toInt() / 100.0
 
-    override fun getGoldEfficiency(mode: String): GoldEfficiencyResult {
+    override fun getGoldEfficiency(mode: String): GoldEfficiencyResult = cache.getOrCompute("gold-efficiency:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class PlayerAcc(
@@ -65,7 +69,7 @@ class GetGoldEfficiencyHandler(private val matchPersistencePort: MatchPersistenc
             }
 
         if (rawEntries.isEmpty()) {
-            return GoldEfficiencyResult(
+            return@getOrCompute GoldEfficiencyResult(
                 rankings = emptyList(),
                 dmgEfficiencyKing = null,
                 visionEfficiencyKing = null,
@@ -118,7 +122,7 @@ class GetGoldEfficiencyHandler(private val matchPersistencePort: MatchPersistenc
             )
         }.sortedByDescending { it.goldEfficiencyScore }
 
-        return GoldEfficiencyResult(
+        GoldEfficiencyResult(
             rankings = rankings,
             dmgEfficiencyKing = dmgEfficiencyKing,
             visionEfficiencyKing = visionEfficiencyKing,

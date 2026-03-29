@@ -8,10 +8,14 @@ import com.gijun.main.application.port.`in`.GetGameLengthTendencyUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
-class GetGameLengthTendencyHandler(private val matchPersistencePort: MatchPersistencePort) : GetGameLengthTendencyUseCase {
+class GetGameLengthTendencyHandler(
+    private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
+) : GetGameLengthTendencyUseCase {
 
     private enum class LengthBand { SHORT, MID, LONG }
 
@@ -21,7 +25,7 @@ class GetGameLengthTendencyHandler(private val matchPersistencePort: MatchPersis
         else                 -> LengthBand.LONG
     }
 
-    override fun getGameLengthTendency(mode: String): GameLengthTendencyResult {
+    override fun getGameLengthTendency(mode: String): GameLengthTendencyResult = cache.getOrCompute("game-length-tendency:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         fun r1(v: Double) = (v * 10).toInt() / 10.0
@@ -145,7 +149,7 @@ class GetGameLengthTendencyHandler(private val matchPersistencePort: MatchPersis
             )
         }.sortedByDescending { acc -> acc.shortWinRate + acc.midWinRate + acc.longWinRate }
 
-        return GameLengthTendencyResult(
+        GameLengthTendencyResult(
             players = players,
             championTendencies = championTendencies,
         )

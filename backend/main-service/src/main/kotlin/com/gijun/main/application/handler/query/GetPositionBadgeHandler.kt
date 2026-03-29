@@ -6,11 +6,13 @@ import com.gijun.main.application.port.`in`.GetPositionBadgeUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetPositionBadgeHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetPositionBadgeUseCase {
 
     private fun resolvePosition(lane: String?, role: String?, neutralMinionsKilled: Int): String? = when {
@@ -24,7 +26,7 @@ class GetPositionBadgeHandler(
 
     private fun r2(v: Double) = (v * 100).toInt() / 100.0
 
-    override fun getPositionBadge(mode: String): PositionBadgeResult {
+    override fun getPositionBadge(mode: String): PositionBadgeResult = cache.getOrCompute("position-badge:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class ParticipantRecord(
@@ -109,7 +111,7 @@ class GetPositionBadgeHandler(
             allPositionRankings[pos]?.firstOrNull()
         }
 
-        return PositionBadgeResult(
+        PositionBadgeResult(
             topPositions = topPositions,
             allPositionRankings = allPositionRankings,
         )

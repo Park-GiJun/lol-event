@@ -6,14 +6,16 @@ import com.gijun.main.application.port.`in`.GetObjectiveCorrelationUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetObjectiveCorrelationHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetObjectiveCorrelationUseCase {
 
-    override fun getObjectiveCorrelation(mode: String): ObjectiveCorrelationResult {
+    override fun getObjectiveCorrelation(mode: String): ObjectiveCorrelationResult = cache.getOrCompute("objective-correlation:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
         val totalGames = matches.size
 
@@ -66,6 +68,6 @@ class GetObjectiveCorrelationHandler(
             )
         }
 
-        return ObjectiveCorrelationResult(totalGames, stats)
+        ObjectiveCorrelationResult(totalGames, stats)
     }
 }

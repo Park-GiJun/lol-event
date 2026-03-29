@@ -45,12 +45,17 @@ class MatchEventConsumer(
     }
 
     private fun autoRegisterMembers(input: MatchInput) {
-        for (p in input.participants) {
-            val puuid = p.puuid ?: continue   // puuid 없으면 스킵
-            if (!memberPersistencePort.existsByPuuid(puuid)) {
-                memberPersistencePort.save(Member(riotId = p.riotId, puuid = puuid))
-                log.info("멤버 자동 등록: ${p.riotId} ($puuid)")
-            }
+        val participantsWithPuuid = input.participants.filter { it.puuid != null }
+        if (participantsWithPuuid.isEmpty()) return
+
+        val puuids = participantsWithPuuid.map { it.puuid!! }
+        val existingPuuids = memberPersistencePort.findAllPuuidsByPuuidIn(puuids).toSet()
+        val newParticipants = participantsWithPuuid.filter { it.puuid!! !in existingPuuids }
+
+        if (newParticipants.isNotEmpty()) {
+            val newMembers = newParticipants.map { p -> Member(riotId = p.riotId, puuid = p.puuid!!) }
+            memberPersistencePort.saveAll(newMembers)
+            newParticipants.forEach { p -> log.info("멤버 자동 등록: ${p.riotId} (${p.puuid})") }
         }
     }
 }

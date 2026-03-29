@@ -6,15 +6,19 @@ import com.gijun.main.application.port.`in`.GetEarlyGameDominanceUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
-class GetEarlyGameDominanceHandler(private val matchPersistencePort: MatchPersistencePort) : GetEarlyGameDominanceUseCase {
+class GetEarlyGameDominanceHandler(
+    private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
+) : GetEarlyGameDominanceUseCase {
 
     fun r1(v: Double) = (v * 10).toInt() / 10.0
     fun r2(v: Double) = (v * 100).toInt() / 100.0
 
-    override fun getEarlyGameDominance(mode: String): EarlyGameDominanceResult {
+    override fun getEarlyGameDominance(mode: String): EarlyGameDominanceResult = cache.getOrCompute("early-game-dominance:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class PlayerAcc(
@@ -119,7 +123,7 @@ class GetEarlyGameDominanceHandler(private val matchPersistencePort: MatchPersis
         val overallFirstTowerWinRate = if (overallFirstTowerTotal > 0)
             r2(overallFirstTowerWins.toDouble() / overallFirstTowerTotal) else 0.0
 
-        return EarlyGameDominanceResult(
+        EarlyGameDominanceResult(
             rankings = rankings,
             firstBloodKing = firstBloodKing,
             towerDestroyer = towerDestroyer,

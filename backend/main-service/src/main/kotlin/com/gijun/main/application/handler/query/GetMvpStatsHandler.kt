@@ -7,11 +7,13 @@ import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.domain.model.match.MatchParticipant
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetMvpStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetMvpStatsUseCase {
 
     /**
@@ -31,7 +33,7 @@ class GetMvpStatsHandler(
         return kdaPart + damagePart + visionPart + csPart + winBonus
     }
 
-    override fun getMvpStats(mode: String): MvpStatsResult {
+    override fun getMvpStats(mode: String): MvpStatsResult = cache.getOrCompute("mvp-stats:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class PlayerAcc(
@@ -97,6 +99,6 @@ class GetMvpStatsHandler(
             }
             .sortedWith(compareByDescending<MvpPlayerStat> { it.mvpCount }.thenByDescending { it.aceCount })
 
-        return MvpStatsResult(rankings, matches.size)
+        MvpStatsResult(rankings, matches.size)
     }
 }

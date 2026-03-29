@@ -6,14 +6,16 @@ import com.gijun.main.application.port.`in`.GetDuoStatsUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetDuoStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetDuoStatsUseCase {
 
-    override fun getDuoStats(mode: String, minGames: Int): DuoStatsResult {
+    override fun getDuoStats(mode: String, minGames: Int): DuoStatsResult = cache.getOrCompute("duo-stats:$mode:$minGames") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class Acc(
@@ -62,6 +64,6 @@ class GetDuoStatsHandler(
             }
             .sortedWith(compareByDescending<DuoStat> { it.winRate }.thenByDescending { it.games })
 
-        return DuoStatsResult(duos)
+        DuoStatsResult(duos)
     }
 }

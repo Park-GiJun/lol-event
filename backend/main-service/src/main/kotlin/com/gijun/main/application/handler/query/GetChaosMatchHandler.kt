@@ -6,19 +6,21 @@ import com.gijun.main.application.port.`in`.GetChaosMatchUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetChaosMatchHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetChaosMatchUseCase {
-    override fun getChaosMatch(mode: String): ChaosMatchResult {
+    override fun getChaosMatch(mode: String): ChaosMatchResult = cache.getOrCompute("chaos-match:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         fun r2(v: Double) = (v * 100).toInt() / 100.0
 
         if (matches.isEmpty()) {
-            return ChaosMatchResult(
+            return@getOrCompute ChaosMatchResult(
                 topChaosMatches      = emptyList(),
                 topBloodBathMatches  = emptyList(),
                 topStrategicMatches  = emptyList(),
@@ -108,7 +110,7 @@ class GetChaosMatchHandler(
         val topStrategicMatches = chaosEntries.filter { it.gameTypeTag == "운영 접전" }.sortedByDescending { it.chaosIndex }.take(5)
         val avgChaosIndex       = r2(chaosEntries.map { it.chaosIndex }.average())
 
-        return ChaosMatchResult(
+        ChaosMatchResult(
             topChaosMatches      = topChaosMatches,
             topBloodBathMatches  = topBloodBathMatches,
             topStrategicMatches  = topStrategicMatches,

@@ -6,13 +6,15 @@ import com.gijun.main.application.port.`in`.GetDefeatContributionUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetDefeatContributionHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetDefeatContributionUseCase {
-    override fun getDefeatContribution(mode: String): DefeatContributionResult {
+    override fun getDefeatContribution(mode: String): DefeatContributionResult = cache.getOrCompute("defeat-contribution:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         fun r2(v: Double) = (v * 100).toInt() / 100.0
@@ -86,6 +88,6 @@ class GetDefeatContributionHandler(
             }
             .sortedByDescending { it.avgDefeatScore }
 
-        return DefeatContributionResult(rankings = rankings)
+        DefeatContributionResult(rankings = rankings)
     }
 }

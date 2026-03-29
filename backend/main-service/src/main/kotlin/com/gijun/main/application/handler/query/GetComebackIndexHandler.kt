@@ -7,15 +7,19 @@ import com.gijun.main.application.port.`in`.GetComebackIndexUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
-class GetComebackIndexHandler(private val matchPersistencePort: MatchPersistencePort) : GetComebackIndexUseCase {
+class GetComebackIndexHandler(
+    private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsQueryCache,
+) : GetComebackIndexUseCase {
 
     fun r1(v: Double) = (v * 10).toInt() / 10.0
     fun r2(v: Double) = (v * 100).toInt() / 100.0
 
-    override fun getComebackIndex(mode: String): ComebackIndexResult {
+    override fun getComebackIndex(mode: String): ComebackIndexResult = cache.getOrCompute("comeback-index:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         data class PlayerAcc(
@@ -99,7 +103,7 @@ class GetComebackIndexHandler(private val matchPersistencePort: MatchPersistence
             .maxByOrNull { it.comebackBonus }
             ?.riotId
 
-        return ComebackIndexResult(
+        ComebackIndexResult(
             rankings = entries,
             comebackKing = comebackKing,
             topComebackMatches = topComebackMatches,

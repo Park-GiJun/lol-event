@@ -9,12 +9,14 @@ import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.application.port.out.StatsCachePersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
 
 @Service
 @Transactional(readOnly = true)
 class GetChampionStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val statsCachePersistencePort: StatsCachePersistencePort,
+    private val cache: StatsQueryCache,
 ) : GetChampionStatsUseCase {
 
     private fun resolvePosition(lane: String?, role: String?, neutralMinionsKilled: Int): String? = when {
@@ -26,7 +28,7 @@ class GetChampionStatsHandler(
         else                                                                   -> null
     }
 
-    override fun getChampionStats(champion: String, mode: String): ChampionDetailStats {
+    override fun getChampionStats(champion: String, mode: String): ChampionDetailStats = cache.getOrCompute("champion-stats:$champion:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         // champion 이름과 일치하는 참가자 수집 (대소문자 무시)
@@ -36,7 +38,7 @@ class GetChampionStatsHandler(
                 .map { it to m }
         }
 
-        if (pairs.isEmpty()) return ChampionDetailStats(
+        if (pairs.isEmpty()) return@getOrCompute ChampionDetailStats(
             champion = champion, championId = 0,
             totalGames = 0, totalWins = 0, winRate = 0,
             players = emptyList(),
@@ -130,7 +132,7 @@ class GetChampionStatsHandler(
             }
             .sortedBy { POSITION_ORDER.indexOf(it.position).let { i -> if (i == -1) 99 else i } }
 
-        return ChampionDetailStats(
+        ChampionDetailStats(
             champion   = championName,
             championId = championId,
             totalGames = totalGames,

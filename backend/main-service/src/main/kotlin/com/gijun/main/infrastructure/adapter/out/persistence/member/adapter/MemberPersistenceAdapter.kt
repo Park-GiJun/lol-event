@@ -13,7 +13,11 @@ class MemberPersistenceAdapter(private val repo: MemberJpaRepository) : MemberPe
     override fun findAll(): List<Member> = repo.findAll().map { it.toDomain() }
     override fun findByPuuid(puuid: String): Member? = repo.findByPuuid(puuid)?.toDomain()
     override fun existsByPuuid(puuid: String): Boolean = repo.existsByPuuid(puuid)
+    override fun findAllPuuidsByPuuidIn(puuids: Collection<String>): List<String> =
+        repo.findAllPuuidsByPuuidIn(puuids)
     override fun save(member: Member): Member = repo.save(MemberEntity.from(member)).toDomain()
+    override fun saveAll(members: List<Member>): List<Member> =
+        repo.saveAll(members.map { MemberEntity.from(it) }).map { it.toDomain() }
 
     @Transactional
     override fun deleteByPuuid(puuid: String) = repo.deleteByPuuid(puuid)
