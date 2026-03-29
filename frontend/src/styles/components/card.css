@@ -3,7 +3,21 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+.card:hover {
+  border-color: var(--color-border-light);
+}
+.card.clickable {
+  cursor: pointer;
+}
+.card.clickable:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
+}
+.card.clickable:active {
+  transform: translateY(0);
 }
 .card-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -16,7 +30,11 @@
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   display: flex; flex-direction: column; gap: var(--spacing-xs);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+.stat-card:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-light);
 }
 .stat-card-label { font-size: var(--font-size-xs); color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
-.stat-card-value { font-size: var(--font-size-2xl); font-weight: 700; color: var(--color-primary); font-variant-numeric: tabular-nums; }
+.stat-card-value { font-size: var(--font-size-2xl); font-weight: 700; color: var(--color-primary); font-variant-numeric: tabular-nums; line-height: 1.2; }

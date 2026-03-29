@@ -105,28 +105,47 @@
 .m-card {
   background: var(--color-bg-card);
   border-radius: 12px;
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--color-border);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.m-card.clickable {
+  cursor: pointer;
+}
+.m-card.clickable:active {
+  background: var(--color-bg-hover);
+  border-color: var(--color-primary);
 }
 
 /* Section Title */
 .m-section-title {
   font-size: 13px;
   font-weight: 700;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.m-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+  opacity: 0.5;
 }
 
 /* Sort Chips */
 .m-sort-chips {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   overflow-x: auto;
   padding-bottom: 4px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
@@ -136,23 +155,29 @@
 }
 
 .m-sort-chip {
-  padding: 6px 14px;
+  padding: 8px 16px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   background: var(--color-bg-hover);
   border: 1px solid var(--color-border);
   cursor: pointer;
   white-space: nowrap;
   color: var(--color-text-secondary);
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
   flex-shrink: 0;
+  min-height: 36px; /* Touch target */
+}
+
+.m-sort-chip:active {
+  transform: scale(0.96);
 }
 
 .m-sort-chip.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: #0A1428;
+  font-weight: 700;
 }
 
 /* Mode Chips */
@@ -174,18 +199,26 @@
 .m-player-card {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 12px;
+  border-radius: 12px;
+  padding: 14px 16px;
   cursor: pointer;
-  transition: background 0.15s;
-  margin-bottom: 8px;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+  margin-bottom: 10px;
   text-decoration: none;
   display: block;
   color: inherit;
+  min-height: 48px; /* Touch target minimum */
 }
 
 .m-player-card:active {
   background: var(--color-bg-hover);
+  border-color: var(--color-primary);
+  transform: scale(0.99);
+}
+
+.m-player-card.highlight {
+  border-color: var(--color-primary);
+  background: rgba(var(--color-primary-rgb), 0.05);
 }
 
 .m-player-card-header {
@@ -296,16 +329,26 @@
 .m-match-card {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 12px;
-  margin-bottom: 8px;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 10px;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.m-match-card.win {
+  border-left: 3px solid var(--color-win);
+}
+
+.m-match-card.loss {
+  border-left: 3px solid var(--color-loss);
 }
 
 .m-match-header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
+  min-height: 44px; /* Touch target */
 }
 
 .m-win-badge {
@@ -387,40 +430,47 @@
 .m-overview-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
 .m-overview-stat {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 12px;
+  border-radius: 12px;
+  padding: 14px 12px;
   text-align: center;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.m-overview-stat:active {
+  background: var(--color-bg-hover);
 }
 
 .m-overview-stat-value {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
   color: var(--color-primary);
   line-height: 1.2;
+  font-variant-numeric: tabular-nums;
 }
 
 .m-overview-stat-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-secondary);
-  margin-top: 2px;
+  margin-top: 4px;
+  font-weight: 500;
 }
 
 /* Tab Bar */
 .m-tab-bar {
   display: flex;
   overflow-x: auto;
-  gap: 4px;
+  gap: 6px;
   margin-bottom: 16px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  padding-bottom: 2px;
+  padding: 4px 0 6px;
 }
 
 .m-tab-bar::-webkit-scrollbar {
@@ -428,22 +478,28 @@
 }
 
 .m-tab {
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 10px 18px;
+  border-radius: 22px;
+  font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
   border: none;
   cursor: pointer;
-  background: transparent;
+  background: var(--color-bg-hover);
   color: var(--color-text-secondary);
-  transition: background 0.15s, color 0.15s;
+  transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
   flex-shrink: 0;
+  min-height: 40px; /* Touch target */
+}
+
+.m-tab:active {
+  transform: scale(0.96);
 }
 
 .m-tab.active {
   background: var(--color-primary);
   color: #0A1428;
+  font-weight: 700;
 }
 
 /* Leader Row */
@@ -451,9 +507,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 0;
+  padding: 12px 4px;
   border-bottom: 1px solid var(--color-border);
-  font-size: 13px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  margin: 0 -4px;
+  border-radius: 6px;
+}
+
+.m-leader-row:active {
+  background: var(--color-bg-hover);
 }
 
 .m-leader-row:last-child {
@@ -761,12 +825,18 @@
 .m-synergy-card {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 10px 12px;
+  border-radius: 12px;
+  padding: 12px 14px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 10px;
+  margin-bottom: 8px;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.m-synergy-card:active {
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-light);
 }
 
 /* Status indicator */

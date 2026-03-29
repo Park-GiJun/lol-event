@@ -1,7 +1,22 @@
-.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 100px; font-size: var(--font-size-xs); font-weight: 600; }
-.badge-win { background: rgba(11,196,180,0.15); color: var(--color-win); }
-.badge-loss { background: rgba(232,64,64,0.15); color: var(--color-loss); }
-.badge-blue { background: rgba(59,158,255,0.15); color: var(--color-blue); }
-.badge-red { background: rgba(232,64,64,0.15); color: var(--color-red); }
-.badge-gold { background: rgba(200,155,60,0.15); color: var(--color-tier-s); }
-.badge-normal { background: rgba(91,90,86,0.3); color: var(--color-text-secondary); }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+  transition: transform var(--transition-fast);
+}
+.badge:hover { transform: scale(1.02); }
+.badge-sm { padding: 2px 6px; font-size: 10px; }
+.badge-lg { padding: 6px 14px; font-size: var(--font-size-sm); }
+.badge-win { background: rgba(16, 185, 129, 0.15); color: var(--color-win); border: 1px solid rgba(16, 185, 129, 0.25); }
+.badge-loss { background: rgba(239, 68, 68, 0.15); color: var(--color-loss); border: 1px solid rgba(239, 68, 68, 0.25); }
+.badge-blue { background: rgba(59, 158, 255, 0.15); color: var(--color-blue); border: 1px solid rgba(59, 158, 255, 0.25); }
+.badge-red { background: rgba(239, 68, 68, 0.15); color: var(--color-red); border: 1px solid rgba(239, 68, 68, 0.25); }
+.badge-gold { background: rgba(255, 215, 0, 0.12); color: var(--color-tier-s); border: 1px solid rgba(255, 215, 0, 0.25); }
+.badge-primary { background: rgba(var(--color-primary-rgb), 0.15); color: var(--color-primary); border: 1px solid rgba(var(--color-primary-rgb), 0.25); }
+.badge-normal { background: rgba(91, 90, 86, 0.2); color: var(--color-text-secondary); border: 1px solid rgba(91, 90, 86, 0.3); }

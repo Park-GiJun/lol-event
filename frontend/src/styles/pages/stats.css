@@ -30,15 +30,22 @@
 .champ-pick-card {
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 10px 8px 8px;
+  border-radius: var(--radius-lg);
+  padding: 12px 10px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
-  transition: border-color 0.15s;
+  gap: 6px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
-.champ-pick-card:hover { border-color: var(--color-primary); }
+.champ-pick-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+.champ-pick-card:active {
+  transform: translateY(0);
+}
 
 .champ-pick-img-wrap {
   width: 48px;
@@ -104,18 +111,23 @@
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 14px 10px;
+  padding: 16px 12px;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast), background var(--transition-fast);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   text-align: center;
 }
 .hall-card:hover:not(.hall-card--empty) {
   border-color: var(--color-primary);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+  background: var(--color-bg-hover);
+}
+.hall-card:active:not(.hall-card--empty) {
+  transform: translateY(0);
 }
 .hall-card--empty {
   cursor: default;
@@ -201,16 +213,21 @@
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 14px 12px;
+  padding: 16px 14px;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast), background var(--transition-fast);
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 .highlight-card:hover {
   border-color: var(--color-primary);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+  background: var(--color-bg-hover);
+}
+.highlight-card:active {
+  transform: translateY(0);
 }
 
 .highlight-label {
@@ -251,18 +268,23 @@
   background: none;
   border: 1px solid transparent;
   border-radius: var(--radius-md);
-  padding: 4px 12px;
-  font-size: 12px;
+  padding: 6px 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--transition-fast);
 }
-.member-sort-tab:hover { color: var(--color-text-primary); border-color: var(--color-border); }
+.member-sort-tab:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+  background: var(--color-bg-hover);
+}
 .member-sort-tab.active {
   background: var(--color-primary);
   color: #fff;
   border-color: var(--color-primary);
+  font-weight: 700;
 }
 
 .member-stats-table tbody tr.member-stats-row {
@@ -361,19 +383,24 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   background: var(--color-bg-tertiary);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 8px 16px;
+  border-radius: var(--radius-lg);
+  padding: 10px 18px;
   cursor: pointer;
-  transition: all 0.15s;
-  min-width: 72px;
+  transition: all var(--transition-fast);
+  min-width: 76px;
 }
-.lane-tab:hover { border-color: var(--color-primary); }
+.lane-tab:hover {
+  border-color: var(--color-primary);
+  background: var(--color-bg-hover);
+  transform: translateY(-1px);
+}
 .lane-tab.active {
   background: var(--color-primary);
   border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.3);
 }
 .lane-tab-emoji { font-size: 18px; line-height: 1; }
 .lane-tab-label {
@@ -636,20 +663,25 @@
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 16px 14px;
+  padding: 18px 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   text-align: center;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast), background var(--transition-fast);
 }
 .overview-spotlight-card.clickable {
   cursor: pointer;
 }
 .overview-spotlight-card.clickable:hover {
   border-color: var(--color-primary);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+  background: var(--color-bg-hover);
+}
+.overview-spotlight-card.clickable:active {
+  transform: translateY(0);
 }
 .overview-spotlight-emoji { font-size: 24px; line-height: 1; margin-bottom: 2px; }
 .overview-spotlight-label {
@@ -762,18 +794,23 @@
   border: none;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-  padding: 8px 16px;
-  font-size: 13px;
+  padding: 10px 18px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
   white-space: nowrap;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
-.stats-tab-btn:hover { color: var(--color-text-primary); }
+.stats-tab-btn:hover {
+  color: var(--color-text-primary);
+  background: rgba(var(--color-primary-rgb), 0.05);
+}
 .stats-tab-btn.active {
   color: var(--color-primary);
   border-bottom-color: var(--color-primary);
+  font-weight: 700;
 }
 
 /* ── Breadcrumb Navigation ─────────────────────────────────────── */
