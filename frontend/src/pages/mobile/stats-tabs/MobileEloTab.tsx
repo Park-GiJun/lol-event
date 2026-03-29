@@ -3,16 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../../../lib/api/api';
 import type { EloLeaderboardResult } from '../../../lib/types/stats';
 import { LoadingCenter } from '../../../components/common/Spinner';
-
-function eloTier(elo: number) {
-  if (elo >= 1300) return { label: 'Challenger', color: '#FFD700' };
-  if (elo >= 1200) return { label: 'Master',     color: '#AA47BC' };
-  if (elo >= 1100) return { label: 'Diamond',    color: '#0BC4B4' };
-  if (elo >= 1000) return { label: 'Platinum',   color: '#4A9EFF' };
-  if (elo >= 900)  return { label: 'Gold',       color: '#C89B3C' };
-  if (elo >= 800)  return { label: 'Silver',     color: '#A8A8A8' };
-  return              { label: 'Bronze',     color: '#CD7F32' };
-}
+import { eloTier } from '../../../lib/lol';
+import { MobilePlayerCard } from '../../../components/mobile/MobilePlayerCard';
 
 export default function MobileEloTab() {
   const navigate = useNavigate();
@@ -26,19 +18,15 @@ export default function MobileEloTab() {
 
   return (
     <div>
-      {data.players.map((p, i) => {
+      {data.players.map((p) => {
         const tier = eloTier(p.elo);
-        const [name, tag] = p.riotId.split('#');
         return (
-          <div key={p.riotId} className="m-player-card"
-            onClick={() => navigate(`/m/player/${encodeURIComponent(p.riotId)}`)}>
-            <div className="m-player-card-header">
-              <div className={`m-player-rank${i < 3 ? ` rank-${i + 1}` : ''}`}>{p.rank}</div>
-              <div style={{ flex: 1 }}>
-                <span className="m-player-name">{name}</span>
-                {tag && <span className="m-player-tag"> #{tag}</span>}
-                <div style={{ fontSize: 11, color: tier.color, marginTop: 1 }}>{tier.label}</div>
-              </div>
+          <MobilePlayerCard
+            key={p.riotId}
+            riotId={p.riotId}
+            rank={p.rank}
+            subText={<span style={{ fontSize: 11, color: tier.color }}>{tier.label}</span>}
+            rightSlot={
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 18, fontWeight: 800, color: tier.color }}>{p.elo.toFixed(1)}</div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>
@@ -53,8 +41,9 @@ export default function MobileEloTab() {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
+            }
+            onClick={() => navigate(`/m/player/${encodeURIComponent(p.riotId)}`)}
+          />
         );
       })}
       {data.players.length === 0 && <div className="m-empty">Elo 데이터가 없습니다</div>}

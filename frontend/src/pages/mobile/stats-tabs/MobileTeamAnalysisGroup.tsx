@@ -10,12 +10,7 @@ import type {
   PlayerComparisonResult,
 } from '../../../lib/types/stats';
 import { LoadingCenter } from '../../../components/common/Spinner';
-
-const MODES = [
-  { value: 'normal', label: '5v5' },
-  { value: 'aram', label: '칼바람' },
-  { value: 'all', label: '전체' },
-];
+import { MobileSubTabShell } from './MobileSubTabShell';
 
 type TeamSubTab = '라이벌' | '팀케미' | '세션' | '비교';
 const TEAM_SUB_TABS: TeamSubTab[] = ['라이벌', '팀케미', '세션', '비교'];
@@ -283,30 +278,19 @@ function CompareTab({ mode }: { mode: string }) {
   );
 }
 
-export default function MobileTeamAnalysisGroup() {
-  const [sub, setSub] = useState<TeamSubTab>('라이벌');
-  const [mode, setMode] = useState('normal');
+const RENDER_MAP: Record<TeamSubTab, (mode: string) => React.ReactNode> = {
+  '라이벌': mode => <RivalTab mode={mode} />,
+  '팀케미': mode => <TeamChemTab mode={mode} />,
+  '세션':   mode => <SessionTab mode={mode} />,
+  '비교':   mode => <CompareTab mode={mode} />,
+};
 
+export default function MobileTeamAnalysisGroup() {
   return (
-    <div>
-      <div className="m-sort-chips" style={{ marginBottom: 0 }}>
-        {MODES.map(m => (
-          <button key={m.value} className={`m-sort-chip${mode === m.value ? ' active' : ''}`} onClick={() => setMode(m.value)}>
-            {m.label}
-          </button>
-        ))}
-      </div>
-      <div className="m-tab-bar" style={{ overflowX: 'auto', scrollbarWidth: 'none', flexWrap: 'nowrap' }}>
-        {TEAM_SUB_TABS.map(t => (
-          <button key={t} className={`m-tab${sub === t ? ' active' : ''}`} onClick={() => setSub(t)} style={{ flexShrink: 0, fontSize: 12 }}>
-            {t}
-          </button>
-        ))}
-      </div>
-      {sub === '라이벌' && <RivalTab mode={mode} />}
-      {sub === '팀케미'  && <TeamChemTab mode={mode} />}
-      {sub === '세션'    && <SessionTab mode={mode} />}
-      {sub === '비교'    && <CompareTab mode={mode} />}
-    </div>
+    <MobileSubTabShell
+      tabs={TEAM_SUB_TABS}
+      defaultTab="라이벌"
+      renderTab={(sub, mode) => RENDER_MAP[sub](mode)}
+    />
   );
 }

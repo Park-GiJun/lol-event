@@ -3,6 +3,7 @@ import { api } from '../../../lib/api/api';
 import type { ChampionSynergyResult } from '../../../lib/types/stats';
 import { useDragon } from '../../../context/DragonContext';
 import { LoadingCenter } from '../../../components/common/Spinner';
+import { ChampImg } from '../../stats-tabs/shared';
 
 export default function MobileSynergyTab({ mode }: { mode: string }) {
   const { champions } = useDragon();
@@ -22,21 +23,9 @@ export default function MobileSynergyTab({ mode }: { mode: string }) {
         return (
           <div key={i} className="m-synergy-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-              {c1?.imageUrl ? (
-                <img src={c1.imageUrl} alt={c1.nameKo} width={36} height={36} style={{ borderRadius: 6 }} />
-              ) : (
-                <div style={{ width: 36, height: 36, borderRadius: 6, background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>
-                  {s.champion1.slice(0, 2)}
-                </div>
-              )}
+              <ChampImg championId={s.champion1Id} champion={s.champion1} size={36} style={{ borderRadius: 6, border: 'none' }} />
               <span style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>+</span>
-              {c2?.imageUrl ? (
-                <img src={c2.imageUrl} alt={c2.nameKo} width={36} height={36} style={{ borderRadius: 6 }} />
-              ) : (
-                <div style={{ width: 36, height: 36, borderRadius: 6, background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10 }}>
-                  {s.champion2.slice(0, 2)}
-                </div>
-              )}
+              <ChampImg championId={s.champion2Id} champion={s.champion2} size={36} style={{ borderRadius: 6, border: 'none' }} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 600 }}>

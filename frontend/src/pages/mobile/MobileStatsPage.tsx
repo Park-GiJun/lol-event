@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from 'react';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { MobilePlayerListPage } from './MobilePlayerListPage';
+import { MODES } from '../../lib/lol';
 
 const MobileOverviewTab        = lazy(() => import('./stats-tabs/MobileOverviewTab'));
 const MobileEloTab             = lazy(() => import('./stats-tabs/MobileEloTab'));
@@ -16,11 +17,6 @@ const MobilePersonalAnalysisGroup = lazy(() => import('./stats-tabs/MobilePerson
 type MainTab = '개요' | '랭킹' | 'Elo' | 'MVP' | '시너지' | '듀오' | '라인' | '어워즈' | '팀분석' | '장인' | '개인분석';
 const MAIN_TABS: MainTab[] = ['개요', '랭킹', 'Elo', 'MVP', '시너지', '듀오', '라인', '어워즈', '팀분석', '장인', '개인분석'];
 
-const MODES = [
-  { value: 'normal', label: '5v5' },
-  { value: 'aram',   label: '칼바람' },
-  { value: 'all',    label: '전체' },
-];
 
 const noModeTabGroups: MainTab[] = ['랭킹', 'Elo', '어워즈', '팀분석', '장인', '개인분석'];
 

@@ -2,22 +2,13 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { api } from '../../lib/api/api';
-import type { Match, Participant } from '../../lib/types/match';
+import type { Match } from '../../lib/types/match';
 import { useDragon } from '../../context/DragonContext';
 import { LoadingCenter } from '../../components/common/Spinner';
-
-const MODES = [
-  { value: 'normal', label: '5v5' },
-  { value: 'aram',   label: '칼바람' },
-  { value: 'all',    label: '전체' },
-];
+import { fmt, calcMvp, MODES } from '../../lib/lol';
 
 const QUEUE_LABEL: Record<number, string> = { 0: '커스텀', 3130: '5v5 내전', 3270: '칼바람' };
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
-
-function fmt(secs: number) {
-  return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
-}
 
 function getSessionKey(ts: number): string {
   const d = new Date(ts);
@@ -29,23 +20,6 @@ function formatSessionLabel(key: string): string {
   const [y, m, d] = key.split('-').map(Number);
   const date = new Date(y, m - 1, d);
   return `${m}월 ${d}일 (${DAY_NAMES[date.getDay()]})`;
-}
-
-function calcMvp(match: Match): { aceId: string; blueMvpId: string; redMvpId: string } {
-  const dur = Math.max(match.gameDuration / 60, 1);
-  const score = (p: Participant) => {
-    const teamDmg = match.participants.filter(x => x.team === p.team).reduce((s, x) => s + x.damage, 0) || 1;
-    return (p.kills + p.assists) / Math.max(p.deaths, 1) * 10
-      + (p.damage / teamDmg) * 40
-      + p.visionScore / dur
-      + p.cs / dur
-      + (p.win ? 20 : 0);
-  };
-  const scored = match.participants.map(p => ({ p, s: score(p) }));
-  const aceId = scored.reduce((a, b) => a.s >= b.s ? a : b).p.riotId;
-  const blueMvpId = scored.filter(x => x.p.team === 'blue').reduce((a, b) => a.s >= b.s ? a : b).p.riotId;
-  const redMvpId  = scored.filter(x => x.p.team === 'red').reduce((a, b) => a.s >= b.s ? a : b).p.riotId;
-  return { aceId, blueMvpId, redMvpId };
 }
 
 function ChampIcon({ championId, champion, size = 26 }: { championId: number; champion: string; size?: number }) {

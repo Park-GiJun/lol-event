@@ -8,58 +8,15 @@ import type {
 } from '../lib/types/stats';
 import { LoadingCenter } from '../components/common/Spinner';
 import { Button } from '../components/common/Button';
-import { useDragon } from '../context/DragonContext';
+import { WinRateBar, ChampImg, RankBadge } from './stats-tabs/shared';
+import { MODES } from '../lib/lol';
 import '../styles/pages/stats.css';
-
-const MODES = [
-  { value: 'normal', label: '5v5 내전' },
-  { value: 'aram',   label: '칼바람' },
-  { value: 'all',    label: '전체' },
-];
 
 const TABS = [
   { key: 'mvp',      label: '🏆 MVP 랭킹' },
   { key: 'synergy',  label: '⚡ 챔피언 시너지' },
   { key: 'duo',      label: '🤝 듀오 시너지' },
 ];
-
-function WinRateBar({ winRate, wins, losses }: { winRate: number; wins: number; losses: number }) {
-  const color = winRate >= 60 ? 'var(--color-win)' : winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 90 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-        <span style={{ fontWeight: 700, fontSize: 13, color, minWidth: 36 }}>{winRate}%</span>
-        <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>
-          <span style={{ color: 'var(--color-win)' }}>{wins}W</span>
-          {' '}<span style={{ color: 'var(--color-loss)' }}>{losses}L</span>
-        </span>
-      </div>
-      <div style={{ height: 4, background: 'var(--color-bg-hover)', borderRadius: 2, overflow: 'hidden' }}>
-        <div style={{ width: `${winRate}%`, height: '100%', background: color, borderRadius: 2, transition: 'width 0.3s' }} />
-      </div>
-    </div>
-  );
-}
-
-function ChampImg({ championId, champion, size }: { championId: number; champion: string; size: number }) {
-  const { champions } = useDragon();
-  const data = champions.get(championId);
-  if (data?.imageUrl) return (
-    <img src={data.imageUrl} alt={champion} width={size} height={size}
-      style={{ borderRadius: 4, border: '1px solid var(--color-border)', objectFit: 'cover' }}
-      onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-  );
-  return <div style={{ width: size, height: size, background: 'var(--color-bg-hover)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: 'var(--color-text-secondary)' }}>{champion.slice(0, 2)}</div>;
-}
-
-const RANK_COLORS: Record<number, string> = { 1: '#FFD700', 2: '#C0C0C0', 3: '#CD7F32' };
-function RankBadge({ rank }: { rank: number }) {
-  const color = RANK_COLORS[rank];
-  if (color) return (
-    <div style={{ width: 26, height: 26, borderRadius: '50%', background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#111', flexShrink: 0 }}>{rank}</div>
-  );
-  return <span style={{ color: 'var(--color-text-disabled)', fontSize: 12, width: 26, textAlign: 'center', display: 'inline-block' }}>{rank}</span>;
-}
 
 // ── MVP 탭 ────────────────────────────────────────────
 function MvpTab({ mode }: { mode: string }) {

@@ -10,15 +10,10 @@ import { Modal } from '../components/common/Modal';
 import { Skeleton } from '../components/common/Skeleton';
 import { PlayerLink } from '../components/common/PlayerLink';
 import { ChampionLink } from '../components/common/ChampionLink';
+import { fmt as fmtUtil, calcMvp as calcMvpUtil, MODES } from '../lib/lol';
 import '../styles/pages/matches.css';
 
 // ── Constants ──────────────────────────────────────────────────────────────
-const MODES = [
-  { value: 'normal', label: '5v5 내전' },
-  { value: 'aram',   label: '칼바람' },
-  { value: 'all',    label: '전체' },
-];
-
 export const QUEUE_LABEL: Record<number, string> = { 0: '커스텀', 3130: '5v5 내전', 3270: '칼바람' };
 
 export const TABS = ['요약', '딜/피해', '경제', '시야/오브젝트', '멀티킬', '팀 정보'] as const;
@@ -27,11 +22,9 @@ export type Tab = typeof TABS[number];
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-export function fmt(secs: number) {
-  const m = Math.floor(secs / 60);
-  const s = secs % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
+// re-export for MatchDetailPage backward-compat
+export const fmt = fmtUtil;
+const calcMvp = calcMvpUtil;
 
 function kda(p: Participant): string {
   return p.deaths === 0 ? 'Perfect' : ((p.kills + p.assists) / p.deaths).toFixed(2);
@@ -57,38 +50,6 @@ function formatSessionLabel(key: string): string {
   const [y, m, d] = key.split('-').map(Number);
   const date = new Date(y, m - 1, d);
   return `${m}월 ${d}일 (${DAY_NAMES[date.getDay()]})`;
-}
-
-// ── MVP 계산 ───────────────────────────────────────────────────────────────
-interface MvpInfo {
-  mvpRiotId: string;  // 경기 전체 1위 (ACE)
-  teamMvp: Record<'blue' | 'red', string>;  // 팀별 1위
-}
-
-function calcMvp(match: Match): MvpInfo {
-  const dur = Math.max(match.gameDuration / 60, 1);
-
-  const score = (p: Participant): number => {
-    const teamDmg = match.participants
-      .filter(x => x.team === p.team)
-      .reduce((s, x) => s + x.damage, 0) || 1;
-    const kdaScore = (p.kills + p.assists) / Math.max(p.deaths, 1) * 10;
-    const dmgShare = (p.damage / teamDmg) * 40;
-    const vision   = p.visionScore / dur;
-    const cs       = p.cs / dur;
-    const winBonus = p.win ? 20 : 0;
-    return kdaScore + dmgShare + vision + cs + winBonus;
-  };
-
-  const scored = match.participants.map(p => ({ p, s: score(p) }));
-  const mvpRiotId = scored.reduce((a, b) => a.s >= b.s ? a : b).p.riotId;
-
-  const teamMvp = {
-    blue: scored.filter(x => x.p.team === 'blue').reduce((a, b) => a.s >= b.s ? a : b).p.riotId,
-    red:  scored.filter(x => x.p.team === 'red').reduce((a, b) => a.s >= b.s ? a : b).p.riotId,
-  };
-
-  return { mvpRiotId, teamMvp };
 }
 
 // ── Dragon Image Helpers ───────────────────────────────────────────────────
@@ -175,9 +136,9 @@ function MatchCard({ match, onOpen, onDelete }: {
 
       {/* Teams */}
       <div className="match-teams">
-        <TeamColumn participants={blue} side="blue" win={blueWin} mvpRiotId={mvp.mvpRiotId} teamMvpRiotId={mvp.teamMvp.blue} />
+        <TeamColumn participants={blue} side="blue" win={blueWin} mvpRiotId={mvp.aceId} teamMvpRiotId={mvp.blueMvpId} />
         <div className="match-vs">VS</div>
-        <TeamColumn participants={red} side="red" win={!blueWin} mvpRiotId={mvp.mvpRiotId} teamMvpRiotId={mvp.teamMvp.red} />
+        <TeamColumn participants={red} side="red" win={!blueWin} mvpRiotId={mvp.aceId} teamMvpRiotId={mvp.redMvpId} />
       </div>
     </div>
   );
@@ -316,8 +277,8 @@ export function Scoreboard({ match }: { match: Match }) {
               </thead>
               <tbody>
                 {team.map((p, i) => {
-                  const isAce     = p.riotId === mvp.mvpRiotId;
-                  const isTeamMvp = !isAce && p.riotId === mvp.teamMvp[side];
+                  const isAce     = p.riotId === mvp.aceId;
+                  const isTeamMvp = !isAce && p.riotId === (side === 'blue' ? mvp.blueMvpId : mvp.redMvpId);
                   const dmgPct    = (p.damage / maxDmg) * 100;
                   const nameKo    = champions.get(p.championId)?.nameKo || p.champion;
                   return (

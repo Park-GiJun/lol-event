@@ -27,15 +27,17 @@ export function WinRateBar({ winRate, wins, losses }: { winRate: number; wins: n
   );
 }
 
-export function ChampImg({ championId, champion, size }: { championId: number; champion: string; size: number }) {
+export function ChampImg({ championId, champion, size, style }: { championId: number; champion: string; size: number; style?: React.CSSProperties }) {
   const { champions } = useDragon();
   const data = champions.get(championId);
+  const baseImgStyle: React.CSSProperties = { borderRadius: 4, border: '1px solid var(--color-border)', objectFit: 'cover', ...style };
+  const baseFallbackStyle: React.CSSProperties = { width: size, height: size, background: 'var(--color-bg-hover)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: 'var(--color-text-secondary)', ...style };
   if (data?.imageUrl) return (
     <img src={data.imageUrl} alt={champion} width={size} height={size}
-      style={{ borderRadius: 4, border: '1px solid var(--color-border)', objectFit: 'cover' }}
+      style={baseImgStyle}
       onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
   );
-  return <div style={{ width: size, height: size, background: 'var(--color-bg-hover)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: 'var(--color-text-secondary)' }}>{champion.slice(0, 2)}</div>;
+  return <div style={baseFallbackStyle}>{champion.slice(0, 2)}</div>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

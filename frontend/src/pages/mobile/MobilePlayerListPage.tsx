@@ -4,13 +4,9 @@ import { usePlayers } from '@/hooks/usePlayers';
 import { useDragon } from '@/context/DragonContext';
 import { Skeleton } from '@/components/common/Skeleton';
 import { InlineError } from '@/components/common/InlineError';
+import { MODES } from '@/lib/lol';
+import { MobilePlayerCard } from '@/components/mobile/MobilePlayerCard';
 import type { PlayerStats } from '@/lib/types/stats';
-
-const MODES = [
-  { value: 'normal', label: '5v5' },
-  { value: 'aram', label: '칼바람' },
-  { value: 'all', label: '전체' },
-];
 
 type SortKey = 'winRate' | 'kda' | 'avgKills' | 'avgDamage' | 'avgCs' | 'games';
 const SORT_OPTS: { key: SortKey; label: string }[] = [
@@ -122,53 +118,16 @@ export function MobilePlayerListPage({ mode: externalMode, onModeChange }: Props
       {sorted.length === 0 && <div className="m-empty">데이터가 없습니다</div>}
 
       {sorted.map((p: PlayerStats, i: number) => {
-        // P5: safe split for riotIds with multiple '#'
-        const hashIdx = p.riotId.indexOf('#');
-        const name = hashIdx >= 0 ? p.riotId.slice(0, hashIdx) : p.riotId;
-        const tag  = hashIdx >= 0 ? p.riotId.slice(hashIdx + 1) : '';
         const kdaVal = p.avgDeaths === 0 ? 'Perfect' : ((p.avgKills + p.avgAssists) / p.avgDeaths).toFixed(2);
         const dest = `/m/player/${encodeURIComponent(p.riotId)}`;
         return (
-          <div
+          <MobilePlayerCard
             key={p.riotId}
-            role="button"
-            tabIndex={0}
-            className="m-player-card"
-            style={{ minHeight: 44 }}
-            onClick={() => navigate(dest)}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') navigate(dest); }}
-          >
-            <div className="m-player-card-header">
-              <div className={`m-player-rank${i < 3 ? ` rank-${i + 1}` : ''}`}>{i + 1}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-                  <span className="m-player-name">{name}</span>
-                  {tag && <span className="m-player-tag">#{tag}</span>}
-                </div>
-              </div>
-              <span className="m-player-games">{p.games}판</span>
-            </div>
-
-            {/* Win bar */}
-            <div className="m-win-bar-wrap">
-              <div className="m-win-bar-label">
-                <span>{p.winRate.toFixed(1)}%</span>
-                <span>{p.wins}승 {p.losses}패</span>
-              </div>
-              <div className="m-win-bar">
-                <div className="m-win-bar-fill" style={{ width: `${p.winRate}%` }} />
-              </div>
-            </div>
-
-            {/* Stat chips */}
-            <div className="m-stat-chips">
-              <span className="m-stat-chip">KDA {kdaVal}</span>
-              <span className="m-stat-chip">딜 {Math.round(p.avgDamage).toLocaleString()}</span>
-              <span className="m-stat-chip">CS {p.avgCs.toFixed(1)}</span>
-            </div>
-
-            {/* Top champion icons */}
-            {p.topChampions.length > 0 && (
+            riotId={p.riotId}
+            rank={i + 1}
+            rightSlot={<span className="m-player-games">{p.games}판</span>}
+            winBar={{ winRate: p.winRate, wins: p.wins, losses: p.losses }}
+            footer={p.topChampions.length > 0 ? (
               <div className="m-champ-icons">
                 {p.topChampions.slice(0, 3).map(tc => {
                   const champInfo = champKeyMap.get(tc.champ);
@@ -183,8 +142,13 @@ export function MobilePlayerListPage({ mode: externalMode, onModeChange }: Props
                   );
                 })}
               </div>
-            )}
-          </div>
+            ) : undefined}
+            onClick={() => navigate(dest)}
+          >
+            <span className="m-stat-chip">KDA {kdaVal}</span>
+            <span className="m-stat-chip">딜 {Math.round(p.avgDamage).toLocaleString()}</span>
+            <span className="m-stat-chip">CS {p.avgCs.toFixed(1)}</span>
+          </MobilePlayerCard>
         );
       })}
     </div>

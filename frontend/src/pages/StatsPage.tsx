@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from 'react';
 import { Button } from '../components/common/Button';
 import { LoadingCenter } from '../components/common/Spinner';
+import { MODES } from '../lib/lol';
 import '../styles/pages/stats.css';
 
 const OverviewTab = lazy(() => import('./stats-tabs/OverviewTab'));
@@ -33,12 +34,6 @@ const BanAnalysisTab = lazy(() => import('./stats-tabs/BanAnalysisTab'));
 const TimePatternTab = lazy(() => import('./stats-tabs/TimePatternTab'));
 const KillParticipationTab = lazy(() => import('./stats-tabs/KillParticipationTab'));
 const PositionPoolTab = lazy(() => import('./stats-tabs/PositionPoolTab'));
-
-const MODES = [
-  { value: 'normal', label: '5v5 내전' },
-  { value: 'aram',   label: '칼바람' },
-  { value: 'all',    label: '전체' },
-];
 
 const TABS = [
   { key: 'overview',    label: '📊 개요' },

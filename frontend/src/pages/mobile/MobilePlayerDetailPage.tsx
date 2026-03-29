@@ -7,17 +7,8 @@ import { useDragon } from '@/context/DragonContext';
 import { Skeleton } from '@/components/common/Skeleton';
 import { InlineError } from '@/components/common/InlineError';
 import { api } from '@/lib/api/api';
+import { eloTier } from '@/lib/lol';
 import type { GrowthCurveResult, PlaystyleDnaResult } from '@/lib/types/stats';
-
-function eloTier(elo: number) {
-  if (elo >= 1300) return { label: 'Challenger', color: '#FFD700' };
-  if (elo >= 1200) return { label: 'Master',     color: '#AA47BC' };
-  if (elo >= 1100) return { label: 'Diamond',    color: '#0BC4B4' };
-  if (elo >= 1000) return { label: 'Platinum',   color: '#4A9EFF' };
-  if (elo >= 900)  return { label: 'Gold',       color: '#C89B3C' };
-  if (elo >= 800)  return { label: 'Silver',     color: '#A8A8A8' };
-  return              { label: 'Bronze',     color: '#CD7F32' };
-}
 
 type ChampSort = 'games' | 'winRate' | 'kda';
 const CHAMP_SORTS: { key: ChampSort; label: string }[] = [

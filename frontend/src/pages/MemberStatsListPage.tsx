@@ -8,29 +8,9 @@ import { SortableTh } from '../components/common/SortableTh';
 import { useSortTable } from '../hooks/useSortTable';
 import { useDragon } from '../context/DragonContext';
 import { PlayerLink } from '../components/common/PlayerLink';
+import { RankBadge } from './stats-tabs/shared';
+import { MODES } from '../lib/lol';
 import '../styles/pages/stats.css';
-
-const MODES = [
-  { value: 'normal', label: '5v5 내전' },
-  { value: 'aram',   label: '칼바람' },
-  { value: 'all',    label: '전체' },
-];
-
-const RANK_COLORS: Record<number, string> = { 1: '#FFD700', 2: '#C0C0C0', 3: '#CD7F32' };
-
-function RankBadge({ rank }: { rank: number }) {
-  const color = RANK_COLORS[rank];
-  if (color) {
-    return (
-      <div style={{
-        width: 24, height: 24, borderRadius: '50%',
-        background: color, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 11, fontWeight: 800, color: '#111', flexShrink: 0,
-      }}>{rank}</div>
-    );
-  }
-  return <span style={{ color: 'var(--color-text-disabled)', fontSize: 12, width: 24, textAlign: 'center' }}>{rank}</span>;
-}
 
 function WinRatePill({ winRate, wins, losses }: { winRate: number; wins: number; losses: number }) {
   const color = winRate >= 60 ? 'var(--color-win)' : winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';

@@ -1,5 +1,4 @@
-import { useEffect, useState, useCallback, lazy, Suspense, Component } from 'react';
-import type { ReactNode } from 'react';
+import { useEffect, useState, useCallback, lazy, Suspense } from 'react';
 import { useParams } from 'react-router-dom';
 import { Shield, Sword, Eye, Coins, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { api } from '../lib/api/api';
@@ -12,6 +11,9 @@ import { ChartSkeleton } from '../components/common/ChartSkeleton';
 import { ChampionLink } from '../components/common/ChampionLink';
 import { MatchDetailModal } from './MatchesPage';
 import { BreadcrumbNav } from '../components/common/BreadcrumbNav';
+import { ChampImg } from './stats-tabs/shared';
+import { ChartErrorBoundary } from '../components/common/ErrorBoundary';
+import { MODES_2 as MODES, fmt } from '../lib/lol';
 import '../styles/pages/stats.css';
 
 const PlayerChartsSection = lazy(
@@ -19,31 +21,7 @@ const PlayerChartsSection = lazy(
     .then(m => ({ default: m.PlayerChartsSection }))
 );
 
-class ChartErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
-  constructor(props: { children: ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError() { return { hasError: true }; }
-  componentDidCatch(error: Error) { console.error('ChartErrorBoundary:', error); }
-  render() {
-    if (this.state.hasError) return null;
-    return this.props.children;
-  }
-}
-
-const MODES = [
-  { value: 'normal', label: '5v5 내전' },
-  { value: 'aram',   label: '칼바람' },
-];
-
 const QUEUE_LABEL: Record<number, string> = { 0: '커스텀', 3130: '5v5 내전', 3270: '칼바람' };
-
-function fmt(secs: number) {
-  const m = Math.floor(secs / 60);
-  const s = secs % 60;
-  return `${m}:${String(s).padStart(2, '0')}`;
-}
 
 function WinRateBar({ winRate }: { winRate: number }) {
   const color = winRate >= 60 ? 'var(--color-win)' : winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
@@ -55,17 +33,6 @@ function WinRateBar({ winRate }: { winRate: number }) {
       <span style={{ fontSize: 11, fontWeight: 700, color, minWidth: 32 }}>{winRate}%</span>
     </div>
   );
-}
-
-function ChampImg({ championId, champion, size }: { championId: number; champion: string; size: number }) {
-  const { champions } = useDragon();
-  const data = champions.get(championId);
-  if (data?.imageUrl) return (
-    <img src={data.imageUrl} alt={champion} width={size} height={size}
-      style={{ borderRadius: 4, border: '1px solid var(--color-border)', objectFit: 'cover' }}
-      onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-  );
-  return <div style={{ width: size, height: size, background: 'var(--color-bg-hover)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'var(--color-text-secondary)' }}>{champion.slice(0, 2)}</div>;
 }
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {

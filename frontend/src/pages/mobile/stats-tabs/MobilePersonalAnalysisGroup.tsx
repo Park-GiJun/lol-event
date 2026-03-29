@@ -16,12 +16,8 @@ import type {
 } from '../../../lib/types/stats';
 import { useDragon } from '../../../context/DragonContext';
 import { LoadingCenter } from '../../../components/common/Spinner';
-
-const MODES = [
-  { value: 'normal', label: '5v5' },
-  { value: 'aram', label: '칼바람' },
-  { value: 'all', label: '전체' },
-];
+import { MobileSubTabShell } from './MobileSubTabShell';
+import { ChampImg } from '../../stats-tabs/shared';
 
 type PersonalSubTab = '생존지수' | '정글점령' | '서폿기여' | 'DNA' | '게임성향' | '골드효율' | '성장곡선' | 'KP랭킹' | '포지션풀';
 const PERSONAL_SUB_TABS: PersonalSubTab[] = ['생존지수', '정글점령', '서폿기여', 'DNA', '게임성향', '골드효율', '성장곡선', 'KP랭킹', '포지션풀'];
@@ -451,7 +447,6 @@ function MobileKpTab({ mode }: { mode: string }) {
 
 function MobilePosPoolTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
-  const { champions } = useDragon();
   const [selectedPos, setSelectedPos] = useState('TOP');
   const { data, isLoading } = useQuery({
     queryKey: ['m-pospool', mode],
@@ -487,19 +482,12 @@ function MobilePosPoolTab({ mode }: { mode: string }) {
               <span className="m-player-games">{p.games}게임</span>
             </div>
             <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
-              {p.champions.slice(0, 6).map(ce => {
-                const c = champions.get(ce.championId);
-                return (
-                  <div key={ce.champion} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
-                    {c?.imageUrl ? (
-                      <img src={c.imageUrl} alt={c.nameKo} width={32} height={32} style={{ borderRadius: 6 }} />
-                    ) : (
-                      <div style={{ width: 32, height: 32, borderRadius: 6, background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>{ce.champion.slice(0, 2)}</div>
-                    )}
-                    <span style={{ fontSize: 9, color: ce.winRate >= 60 ? 'var(--color-win)' : 'inherit' }}>{ce.winRate.toFixed(0)}%</span>
-                  </div>
-                );
-              })}
+              {p.champions.slice(0, 6).map(ce => (
+                <div key={ce.champion} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                  <ChampImg championId={ce.championId} champion={ce.champion} size={32} style={{ borderRadius: 6, border: 'none' }} />
+                  <span style={{ fontSize: 9, color: ce.winRate >= 60 ? 'var(--color-win)' : 'inherit' }}>{ce.winRate.toFixed(0)}%</span>
+                </div>
+              ))}
             </div>
           </div>
         );
@@ -509,35 +497,24 @@ function MobilePosPoolTab({ mode }: { mode: string }) {
   );
 }
 
-export default function MobilePersonalAnalysisGroup() {
-  const [sub, setSub] = useState<PersonalSubTab>('생존지수');
-  const [mode, setMode] = useState('normal');
+const RENDER_MAP: Record<PersonalSubTab, (mode: string) => React.ReactNode> = {
+  '생존지수': mode => <SurvivalTab mode={mode} />,
+  '정글점령': mode => <JungleTab mode={mode} />,
+  '서폿기여': mode => <SupportTab mode={mode} />,
+  'DNA':      mode => <DnaTab mode={mode} />,
+  '게임성향': mode => <GameLengthTab mode={mode} />,
+  '골드효율': mode => <GoldEffTab mode={mode} />,
+  '성장곡선': mode => <GrowthTab mode={mode} />,
+  'KP랭킹':  mode => <MobileKpTab mode={mode} />,
+  '포지션풀': mode => <MobilePosPoolTab mode={mode} />,
+};
 
+export default function MobilePersonalAnalysisGroup() {
   return (
-    <div>
-      <div className="m-sort-chips" style={{ marginBottom: 0 }}>
-        {MODES.map(m => (
-          <button key={m.value} className={`m-sort-chip${mode === m.value ? ' active' : ''}`} onClick={() => setMode(m.value)}>
-            {m.label}
-          </button>
-        ))}
-      </div>
-      <div className="m-tab-bar" style={{ overflowX: 'auto', scrollbarWidth: 'none', flexWrap: 'nowrap' }}>
-        {PERSONAL_SUB_TABS.map(t => (
-          <button key={t} className={`m-tab${sub === t ? ' active' : ''}`} onClick={() => setSub(t)} style={{ flexShrink: 0, fontSize: 12 }}>
-            {t}
-          </button>
-        ))}
-      </div>
-      {sub === '생존지수'  && <SurvivalTab mode={mode} />}
-      {sub === '정글점령'  && <JungleTab mode={mode} />}
-      {sub === '서폿기여'  && <SupportTab mode={mode} />}
-      {sub === 'DNA'       && <DnaTab mode={mode} />}
-      {sub === '게임성향'  && <GameLengthTab mode={mode} />}
-      {sub === '골드효율'  && <GoldEffTab mode={mode} />}
-      {sub === '성장곡선'  && <GrowthTab mode={mode} />}
-      {sub === 'KP랭킹'   && <MobileKpTab mode={mode} />}
-      {sub === '포지션풀'  && <MobilePosPoolTab mode={mode} />}
-    </div>
+    <MobileSubTabShell
+      tabs={PERSONAL_SUB_TABS}
+      defaultTab="생존지수"
+      renderTab={(sub, mode) => RENDER_MAP[sub](mode)}
+    />
   );
 }

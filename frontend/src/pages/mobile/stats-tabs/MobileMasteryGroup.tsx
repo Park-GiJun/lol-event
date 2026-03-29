@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../../lib/api/api';
@@ -11,12 +10,8 @@ import type {
 } from '../../../lib/types/stats';
 import { useDragon } from '../../../context/DragonContext';
 import { LoadingCenter } from '../../../components/common/Spinner';
-
-const MODES = [
-  { value: 'normal', label: '5v5' },
-  { value: 'aram', label: '칼바람' },
-  { value: 'all', label: '전체' },
-];
+import { MobileSubTabShell } from './MobileSubTabShell';
+import { ChampImg } from '../../stats-tabs/shared';
 
 type MasterySubTab = '포지션장인' | '챔피언장인' | '챔피언티어' | '메타변화';
 const MASTERY_SUB_TABS: MasterySubTab[] = ['포지션장인', '챔피언장인', '챔피언티어', '메타변화'];
@@ -97,13 +92,7 @@ function ChampCertTab({ mode }: { mode: string }) {
         const [name, tag] = e.riotId.split('#');
         return (
           <div key={i} className="m-synergy-card">
-            {c?.imageUrl ? (
-              <img src={c.imageUrl} alt={c.nameKo} width={40} height={40} style={{ borderRadius: 8, flexShrink: 0 }} />
-            ) : (
-              <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0 }}>
-                {e.champion.slice(0, 2)}
-              </div>
-            )}
+            <ChampImg championId={e.championId} champion={e.champion} size={40} style={{ borderRadius: 8, border: 'none', flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <button onClick={() => navigate(`/m/player/${encodeURIComponent(e.riotId)}`)}
@@ -158,13 +147,7 @@ function ChampTierTab({ mode }: { mode: string }) {
                 const c = champions.get(e.championId);
                 return (
                   <div key={e.champion} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: 52 }}>
-                    {c?.imageUrl ? (
-                      <img src={c.imageUrl} alt={c.nameKo} width={44} height={44} style={{ borderRadius: 8, border: `2px solid ${TIER_COLOR[tier]}` }} />
-                    ) : (
-                      <div style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--color-bg-hover)', border: `2px solid ${TIER_COLOR[tier]}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 }}>
-                        {e.champion.slice(0, 2)}
-                      </div>
-                    )}
+                    <ChampImg championId={e.championId} champion={e.champion} size={44} style={{ borderRadius: 8, border: `2px solid ${TIER_COLOR[tier]}` }} />
                     <span style={{ fontSize: 9, color: 'var(--color-text-secondary)', textAlign: 'center', lineHeight: 1.2 }}>
                       {c?.nameKo ?? e.champion}
                     </span>
@@ -191,13 +174,7 @@ function MetaChampRow({ e, arrow, color, champMap }: {
   const c = champMap.get(e.championId);
   return (
     <div className="m-synergy-card">
-      {c?.imageUrl ? (
-        <img src={c.imageUrl} alt={c.nameKo} width={36} height={36} style={{ borderRadius: 6, flexShrink: 0 }} />
-      ) : (
-        <div style={{ width: 36, height: 36, borderRadius: 6, background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, flexShrink: 0 }}>
-          {e.champion.slice(0, 2)}
-        </div>
-      )}
+      <ChampImg championId={e.championId} champion={e.champion} size={36} style={{ borderRadius: 6, border: 'none', flexShrink: 0 }} />
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{c?.nameKo ?? e.champion}</div>
         <div className="m-stat-chips">
@@ -248,30 +225,19 @@ function MetaShiftTab({ mode }: { mode: string }) {
   );
 }
 
-export default function MobileMasteryGroup() {
-  const [sub, setSub] = useState<MasterySubTab>('포지션장인');
-  const [mode, setMode] = useState('normal');
+const RENDER_MAP: Record<MasterySubTab, (mode: string) => React.ReactNode> = {
+  '포지션장인': mode => <PositionBadgeTab mode={mode} />,
+  '챔피언장인': mode => <ChampCertTab mode={mode} />,
+  '챔피언티어': mode => <ChampTierTab mode={mode} />,
+  '메타변화':   mode => <MetaShiftTab mode={mode} />,
+};
 
+export default function MobileMasteryGroup() {
   return (
-    <div>
-      <div className="m-sort-chips" style={{ marginBottom: 0 }}>
-        {MODES.map(m => (
-          <button key={m.value} className={`m-sort-chip${mode === m.value ? ' active' : ''}`} onClick={() => setMode(m.value)}>
-            {m.label}
-          </button>
-        ))}
-      </div>
-      <div className="m-tab-bar" style={{ overflowX: 'auto', scrollbarWidth: 'none', flexWrap: 'nowrap' }}>
-        {MASTERY_SUB_TABS.map(t => (
-          <button key={t} className={`m-tab${sub === t ? ' active' : ''}`} onClick={() => setSub(t)} style={{ flexShrink: 0, fontSize: 12 }}>
-            {t}
-          </button>
-        ))}
-      </div>
-      {sub === '포지션장인'  && <PositionBadgeTab mode={mode} />}
-      {sub === '챔피언장인'  && <ChampCertTab mode={mode} />}
-      {sub === '챔피언티어'  && <ChampTierTab mode={mode} />}
-      {sub === '메타변화'    && <MetaShiftTab mode={mode} />}
-    </div>
+    <MobileSubTabShell
+      tabs={MASTERY_SUB_TABS}
+      defaultTab="포지션장인"
+      renderTab={(sub, mode) => RENDER_MAP[sub](mode)}
+    />
   );
 }

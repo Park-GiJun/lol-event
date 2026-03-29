@@ -2,18 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { Skeleton } from '@/components/common/Skeleton';
 import { InlineError } from '@/components/common/InlineError';
+import { eloTier } from '@/lib/lol';
+import { MobilePlayerCard } from '@/components/mobile/MobilePlayerCard';
 
 const CURRENT_RIOT_ID_KEY = 'lol-event:currentRiotId';
-
-function eloTier(elo: number): { label: string; color: string } {
-  if (elo >= 1300) return { label: 'Challenger', color: '#FFD700' };
-  if (elo >= 1200) return { label: 'Master',     color: '#AA47BC' };
-  if (elo >= 1100) return { label: 'Diamond',    color: '#0BC4B4' };
-  if (elo >= 1000) return { label: 'Platinum',   color: '#4A9EFF' };
-  if (elo >= 900)  return { label: 'Gold',       color: '#C89B3C' };
-  if (elo >= 800)  return { label: 'Silver',     color: '#A8A8A8' };
-  return                  { label: 'Bronze',     color: '#CD7F32' };
-}
 
 export function MobileHomePage() {
   const navigate = useNavigate();
@@ -56,31 +48,22 @@ export function MobileHomePage() {
       <p className="m-section-title">Elo 리더보드</p>
       {data.players.map((p) => {
         const tier = eloTier(p.elo);
-        const [name, tag] = p.riotId.split('#');
         const isSelf = currentRiotId !== undefined && p.riotId === currentRiotId;
         return (
-          <div
+          <MobilePlayerCard
             key={p.riotId}
-            className="m-player-card"
-            style={isSelf ? {
-              background: 'rgba(11, 196, 180, 0.08)',
-              borderColor: 'var(--color-primary)',
-            } : undefined}
-            onClick={() => navigate(`/m/player/${encodeURIComponent(p.riotId)}`)}
-          >
-            <div className="m-player-card-header">
-              <div className={`m-player-rank${p.rank <= 3 ? ` rank-${p.rank}` : ''}`}>{p.rank}</div>
-              <div style={{ flex: 1 }}>
-                <span className="m-player-name">{name}</span>
-                {tag && <span className="m-player-tag"> #{tag}</span>}
-                <div style={{ fontSize: 11, color: tier.color, marginTop: 1 }}>{tier.label}</div>
-              </div>
+            riotId={p.riotId}
+            rank={p.rank}
+            subText={<span style={{ fontSize: 11, color: tier.color }}>{tier.label}</span>}
+            rightSlot={
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 18, fontWeight: 800, color: tier.color }}>{p.elo.toFixed(1)}</div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{p.games}게임</div>
               </div>
-            </div>
-          </div>
+            }
+            highlight={isSelf}
+            onClick={() => navigate(`/m/player/${encodeURIComponent(p.riotId)}`)}
+          />
         );
       })}
     </div>

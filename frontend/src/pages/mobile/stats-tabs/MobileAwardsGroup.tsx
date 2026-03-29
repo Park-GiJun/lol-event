@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../../lib/api/api';
@@ -12,14 +11,9 @@ import type {
   BanAnalysisResult,
   TimePatternResult,
 } from '../../../lib/types/stats';
-import { useDragon } from '../../../context/DragonContext';
 import { LoadingCenter } from '../../../components/common/Spinner';
-
-const MODES = [
-  { value: 'normal', label: '5v5' },
-  { value: 'aram', label: '칼바람' },
-  { value: 'all', label: '전체' },
-];
+import { MobileSubTabShell } from './MobileSubTabShell';
+import { ChampImg } from '../../stats-tabs/shared';
 
 type AwardsSubTab = '주간어워즈' | '떡락지수' | '멀티킬' | '혼돈경기' | '초반지배' | '컴백지수' | '밴분석' | '시간패턴';
 const AWARDS_SUB_TABS: AwardsSubTab[] = ['주간어워즈', '떡락지수', '멀티킬', '혼돈경기', '초반지배', '컴백지수', '밴분석', '시간패턴'];
@@ -104,7 +98,6 @@ function DefeatContribTab({ mode }: { mode: string }) {
 
 function MultiKillTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
-  const { champions } = useDragon();
   const { data, isLoading } = useQuery({
     queryKey: ['mobile-multikill', mode],
     queryFn: () => api.get<MultiKillHighlightsResult>(`/stats/multikill-highlights?mode=${mode}`),
@@ -123,17 +116,10 @@ function MultiKillTab({ mode }: { mode: string }) {
         <>
           <p className="m-section-title">펜타킬 순간들</p>
           {data.pentaKillEvents.map((e, i) => {
-            const c = champions.get(e.championId);
             const date = new Date(e.gameCreation).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' });
             return (
               <div key={i} className="m-synergy-card">
-                {c?.imageUrl ? (
-                  <img src={c.imageUrl} alt={c.nameKo} width={40} height={40} style={{ borderRadius: 8, flexShrink: 0 }} />
-                ) : (
-                  <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0 }}>
-                    {e.champion.slice(0, 2)}
-                  </div>
-                )}
+                <ChampImg championId={e.championId} champion={e.champion} size={40} style={{ borderRadius: 8, border: 'none', flexShrink: 0 }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <button onClick={() => navigate(`/m/player/${encodeURIComponent(e.riotId)}`)}
@@ -145,7 +131,7 @@ function MultiKillTab({ mode }: { mode: string }) {
                     </span>
                   </div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>
-                    {c?.nameKo ?? e.champion} · {date}
+                    {e.champion} · {date}
                   </div>
                 </div>
               </div>
@@ -348,7 +334,6 @@ function ComebackTab({ mode }: { mode: string }) {
 }
 
 function MobileBanTab({ mode }: { mode: string }) {
-  const { champions } = useDragon();
   const { data, isLoading } = useQuery({
     queryKey: ['m-ban', mode],
     queryFn: () => api.get<BanAnalysisResult>(`/stats/ban-analysis?mode=${mode}`),
@@ -360,19 +345,12 @@ function MobileBanTab({ mode }: { mode: string }) {
     <div>
       <p className="m-section-title">총 {data.totalGamesAnalyzed}게임 밴 분석</p>
       {data.topBanned.map((e, i) => {
-        const c = champions.get(e.championId);
         return (
           <div key={e.champion} className="m-synergy-card">
-            {c?.imageUrl ? (
-              <img src={c.imageUrl} alt={c.nameKo} width={40} height={40} style={{ borderRadius: 8, flexShrink: 0 }} />
-            ) : (
-              <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, flexShrink: 0 }}>
-                {e.champion.slice(0, 2)}
-              </div>
-            )}
+            <ChampImg championId={e.championId} champion={e.champion} size={40} style={{ borderRadius: 8, border: 'none', flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 }}>
-                <span style={{ fontWeight: 600, fontSize: 13 }}>{c?.nameKo ?? e.champion}</span>
+                <span style={{ fontWeight: 600, fontSize: 13 }}>{e.champion}</span>
                 <span style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>#{i + 1}</span>
               </div>
               <div className="m-stat-chips">
@@ -436,34 +414,23 @@ function MobileTimeTab({ mode }: { mode: string }) {
   );
 }
 
-export default function MobileAwardsGroup() {
-  const [sub, setSub] = useState<AwardsSubTab>('주간어워즈');
-  const [mode, setMode] = useState('normal');
+const RENDER_MAP: Record<AwardsSubTab, (mode: string) => React.ReactNode> = {
+  '주간어워즈': mode => <WeeklyAwardsTab mode={mode} />,
+  '떡락지수':   mode => <DefeatContribTab mode={mode} />,
+  '멀티킬':     mode => <MultiKillTab mode={mode} />,
+  '혼돈경기':   mode => <ChaosMatchTab mode={mode} />,
+  '초반지배':   mode => <EarlyGameTab mode={mode} />,
+  '컴백지수':   mode => <ComebackTab mode={mode} />,
+  '밴분석':     mode => <MobileBanTab mode={mode} />,
+  '시간패턴':   mode => <MobileTimeTab mode={mode} />,
+};
 
+export default function MobileAwardsGroup() {
   return (
-    <div>
-      <div className="m-sort-chips" style={{ marginBottom: 0 }}>
-        {MODES.map(m => (
-          <button key={m.value} className={`m-sort-chip${mode === m.value ? ' active' : ''}`} onClick={() => setMode(m.value)}>
-            {m.label}
-          </button>
-        ))}
-      </div>
-      <div className="m-tab-bar" style={{ overflowX: 'auto', scrollbarWidth: 'none', flexWrap: 'nowrap' }}>
-        {AWARDS_SUB_TABS.map(t => (
-          <button key={t} className={`m-tab${sub === t ? ' active' : ''}`} onClick={() => setSub(t)} style={{ flexShrink: 0, fontSize: 12 }}>
-            {t}
-          </button>
-        ))}
-      </div>
-      {sub === '주간어워즈' && <WeeklyAwardsTab mode={mode} />}
-      {sub === '떡락지수'   && <DefeatContribTab mode={mode} />}
-      {sub === '멀티킬'     && <MultiKillTab mode={mode} />}
-      {sub === '혼돈경기'   && <ChaosMatchTab mode={mode} />}
-      {sub === '초반지배'   && <EarlyGameTab mode={mode} />}
-      {sub === '컴백지수'   && <ComebackTab mode={mode} />}
-      {sub === '밴분석'     && <MobileBanTab mode={mode} />}
-      {sub === '시간패턴'   && <MobileTimeTab mode={mode} />}
-    </div>
+    <MobileSubTabShell
+      tabs={AWARDS_SUB_TABS}
+      defaultTab="주간어워즈"
+      renderTab={(sub, mode) => RENDER_MAP[sub](mode)}
+    />
   );
 }

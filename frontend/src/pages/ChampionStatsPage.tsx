@@ -1,5 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, lazy, Suspense, Component } from 'react';
-import type { ReactNode } from 'react';
+import { useEffect, useState, useCallback, useMemo, lazy, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api/api';
 import type { ChampionDetailStats, ChampionPlayerStat, ChampionLaneStat } from '../lib/types/stats';
@@ -7,34 +6,18 @@ import { LoadingCenter } from '../components/common/Spinner';
 import { Skeleton } from '../components/common/Skeleton';
 import { ChartSkeleton } from '../components/common/ChartSkeleton';
 import { useChampions } from '../hooks/useChampions';
-
-class ChartErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
-  constructor(props: { children: ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError() { return { hasError: true }; }
-  render() {
-    if (this.state.hasError) return null;
-    return this.props.children;
-  }
-}
+import { Button } from '../components/common/Button';
+import { BreadcrumbNav } from '../components/common/BreadcrumbNav';
+import { useDragon } from '../context/DragonContext';
+import { PlayerLink } from '../components/common/PlayerLink';
+import { ChartErrorBoundary } from '../components/common/ErrorBoundary';
+import { MODES } from '../lib/lol';
+import '../styles/pages/stats.css';
 
 const ChampionChartsSection = lazy(
   () => import('../components/dashboard/ChampionChartsSection')
     .then(m => ({ default: m.ChampionChartsSection }))
 );
-import { Button } from '../components/common/Button';
-import { BreadcrumbNav } from '../components/common/BreadcrumbNav';
-import { useDragon } from '../context/DragonContext';
-import { PlayerLink } from '../components/common/PlayerLink';
-import '../styles/pages/stats.css';
-
-const MODES = [
-  { value: 'normal', label: '5v5 내전' },
-  { value: 'aram',   label: '칼바람' },
-  { value: 'all',    label: '전체' },
-];
 
 const CDN = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons';
 
