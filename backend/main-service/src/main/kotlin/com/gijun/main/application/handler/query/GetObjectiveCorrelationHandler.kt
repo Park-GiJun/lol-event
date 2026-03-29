@@ -19,7 +19,7 @@ class GetObjectiveCorrelationHandler(
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
         val totalGames = matches.size
 
-        if (totalGames == 0) return ObjectiveCorrelationResult(0, emptyList())
+        if (totalGames == 0) return@getOrCompute ObjectiveCorrelationResult(0, emptyList())
 
         data class ObjConfig(
             val key: String,

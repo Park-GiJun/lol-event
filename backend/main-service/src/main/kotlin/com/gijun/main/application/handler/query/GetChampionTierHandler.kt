@@ -21,7 +21,7 @@ class GetChampionTierHandler(
         fun r2(v: Double) = (v * 100).toInt() / 100.0
 
         val totalMatches = matches.size
-        if (totalMatches == 0) return ChampionTierResult(emptyList(), emptyMap(), 0)
+        if (totalMatches == 0) return@getOrCompute ChampionTierResult(emptyList(), emptyMap(), 0)
 
         data class ChampionAcc(
             val champion: String,

@@ -73,7 +73,7 @@ class GetPlayerStatsHandler(
 
         val filteredEntries = if (lane != null) entries.filter { it.position == lane } else entries
 
-        if (filteredEntries.isEmpty()) return PlayerDetailStatsResult(
+        if (filteredEntries.isEmpty()) return@getOrCompute PlayerDetailStatsResult(
             riotId = riotId, games = 0, wins = 0, losses = 0, winRate = 0,
             avgKills = 0.0, avgDeaths = 0.0, avgAssists = 0.0, kda = 0.0,
             avgDamage = 0, avgCs = 0.0, avgGold = 0, avgVisionScore = 0.0,

@@ -119,7 +119,7 @@ class GetPlaystyleDnaHandler(
             PlayerRaw(riotId, g, aggressionRaw, durabilityRaw, teamPlayRaw, objectiveFocusRaw, economyRaw, visionControlRaw)
         }
 
-        if (rawByPlayer.isEmpty()) return PlaystyleDnaResult(players = emptyList())
+        if (rawByPlayer.isEmpty()) return@getOrCompute PlaystyleDnaResult(players = emptyList())
 
         // Min-max normalization per axis
         fun normalize(values: List<Double>): List<Double> {

@@ -22,7 +22,7 @@ class GetPlayerStreakHandler(
             .flatMap { m -> m.participants.filter { it.riotId == riotId }.map { it.win to m.gameCreation } }
             .sortedByDescending { it.second }
 
-        if (results.isEmpty()) return StreakResult(riotId, 0, "NONE", 0, 0, emptyList(), 0, 0, 0)
+        if (results.isEmpty()) return@getOrCompute StreakResult(riotId, 0, "NONE", 0, 0, emptyList(), 0, 0, 0)
 
         val wins   = results.count { it.first }
         val losses = results.size - wins

@@ -20,7 +20,7 @@ class GetTimePatternHandler(
 
     override fun getTimePattern(mode: String): TimePatternResult = cache.getOrCompute("time-pattern:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
-        if (matches.isEmpty()) return TimePatternResult(emptyList(), emptyList(), null, null, 0)
+        if (matches.isEmpty()) return@getOrCompute TimePatternResult(emptyList(), emptyList(), null, null, 0)
 
         val zone = ZoneId.of("Asia/Seoul")
         val DAY_NAMES = mapOf(1 to "월", 2 to "화", 3 to "수", 4 to "목", 5 to "금", 6 to "토", 7 to "일")
