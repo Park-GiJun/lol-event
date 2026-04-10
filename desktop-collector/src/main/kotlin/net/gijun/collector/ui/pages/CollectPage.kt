@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import net.gijun.collector.lcu.LcuStatus
 import net.gijun.collector.service.CollectService
+import net.gijun.collector.service.UpdateState
 import net.gijun.collector.ui.theme.LolColors
 
 data class LogLine(val type: String, val message: String)
@@ -28,7 +29,13 @@ private val typeColors = mapOf(
 )
 
 @Composable
-fun CollectPage(lcuStatus: LcuStatus, autoStatus: String) {
+fun CollectPage(
+    lcuStatus: LcuStatus,
+    autoStatus: String,
+    updateState: UpdateState = UpdateState.IDLE,
+    updateVersion: String = "",
+    onInstallUpdate: () -> Unit = {},
+) {
     val logs = remember { mutableStateListOf<LogLine>() }
     var collecting by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -40,6 +47,37 @@ fun CollectPage(lcuStatus: LcuStatus, autoStatus: String) {
         Spacer(Modifier.height(4.dp))
         Text("LCU에서 내전 데이터를 수집해 서버로 전송합니다", fontSize = 13.sp, color = LolColors.TextSecondary)
         Spacer(Modifier.height(24.dp))
+
+        // 업데이트 배너
+        if (updateState == UpdateState.READY || updateState == UpdateState.DOWNLOADING || updateState == UpdateState.AVAILABLE) {
+            val bannerText = when (updateState) {
+                UpdateState.READY -> "v$updateVersion 업데이트 준비 완료"
+                UpdateState.DOWNLOADING -> "v$updateVersion 다운로드 중..."
+                else -> "v$updateVersion 업데이트 발견"
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(LolColors.Win.copy(alpha = 0.08f), RoundedCornerShape(6.dp))
+                    .border(1.dp, LolColors.Win.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(bannerText, fontSize = 13.sp, color = LolColors.Win)
+                if (updateState == UpdateState.READY) {
+                    Button(
+                        onClick = onInstallUpdate,
+                        colors = ButtonDefaults.buttonColors(containerColor = LolColors.Primary, contentColor = LolColors.TextInverse),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
+                        shape = RoundedCornerShape(6.dp),
+                    ) {
+                        Text("지금 설치", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+        }
 
         // 자동 수집 상태
         if (autoStatus.isNotEmpty()) {

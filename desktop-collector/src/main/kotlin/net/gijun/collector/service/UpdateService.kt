@@ -6,6 +6,7 @@ import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -48,12 +49,12 @@ class UpdateService(
         private set
     var onStateChanged: (() -> Unit)? = null
 
-    private fun notify() { onStateChanged?.invoke() }
+    private fun notifyChange() { onStateChanged?.invoke() }
 
     fun checkForUpdates() {
         scope.launch {
             state = UpdateState.CHECKING
-            notify()
+            notifyChange()
             try {
                 val response: HttpResponse = httpClient.get(UPDATE_URL)
                 val text: String = response.body()
@@ -62,15 +63,15 @@ class UpdateService(
                 if (isNewerVersion(info.version, currentVersion)) {
                     updateInfo = info
                     state = UpdateState.AVAILABLE
-                    notify()
+                    notifyChange()
                     downloadUpdate(info)
                 } else {
                     state = UpdateState.NOT_AVAILABLE
-                    notify()
+                    notifyChange()
                 }
             } catch (_: Exception) {
                 state = UpdateState.NOT_AVAILABLE
-                notify()
+                notifyChange()
             }
         }
     }
@@ -78,14 +79,14 @@ class UpdateService(
     private suspend fun downloadUpdate(info: UpdateInfo) {
         state = UpdateState.DOWNLOADING
         downloadProgress = 0
-        notify()
+        notifyChange()
         try {
             val tempDir = Files.createTempDirectory("lol-collector-update").toFile()
             val fileName = info.url.substringAfterLast("/").ifEmpty { "lol-collector-setup.msi" }
             val targetFile = File(tempDir, fileName)
 
             httpClient.prepareGet(info.url).execute { response ->
-                val contentLength = response.contentLength() ?: -1L
+                val contentLength = response.headers[HttpHeaders.ContentLength]?.toLongOrNull() ?: -1L
                 val channel: ByteReadChannel = response.bodyAsChannel()
                 var downloaded = 0L
 
@@ -98,7 +99,7 @@ class UpdateService(
                             downloaded += bytes.size
                             if (contentLength > 0) {
                                 downloadProgress = ((downloaded * 100) / contentLength).toInt()
-                                notify()
+                                notifyChange()
                             }
                         }
                     }
@@ -108,17 +109,17 @@ class UpdateService(
             installerPath = targetFile
             downloadProgress = 100
             state = UpdateState.READY
-            notify()
+            notifyChange()
         } catch (_: Exception) {
             state = UpdateState.ERROR
-            notify()
+            notifyChange()
         }
     }
 
     fun installUpdate() {
         val path = installerPath ?: return
         state = UpdateState.INSTALLING
-        notify()
+        notifyChange()
         scope.launch {
             delay(500)
             try {
@@ -133,7 +134,7 @@ class UpdateService(
                 Runtime.getRuntime().exit(0)
             } catch (_: Exception) {
                 state = UpdateState.ERROR
-                notify()
+                notifyChange()
             }
         }
     }
