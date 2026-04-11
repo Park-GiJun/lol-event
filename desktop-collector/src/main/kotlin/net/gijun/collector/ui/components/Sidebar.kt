@@ -31,9 +31,10 @@ enum class Page(val label: String, val icon: ImageVector) {
 fun Sidebar(
     currentPage: Page,
     onPageChange: (Page) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .width(180.dp)
             .fillMaxHeight()
             .background(LolColors.BgSecondary),

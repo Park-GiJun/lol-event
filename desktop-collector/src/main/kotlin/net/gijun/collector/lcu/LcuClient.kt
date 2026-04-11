@@ -5,6 +5,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.serialization.json.*
 import java.io.File
 import java.security.SecureRandom
@@ -55,6 +56,39 @@ data class CustomTeamsResult(
     val phase: String,
     val blueTeam: List<TeamMemberInfo>,
     val redTeam: List<TeamMemberInfo>,
+)
+
+data class RunePage(
+    val id: Long,
+    val name: String,
+    val primaryStyleId: Int,
+    val subStyleId: Int,
+    val selectedPerkIds: List<Int>,
+    val current: Boolean,
+)
+
+data class LiveClientPlayer(
+    val summonerName: String,
+    val championName: String,
+    val team: String,
+    val level: Int,
+    val kills: Int,
+    val deaths: Int,
+    val assists: Int,
+    val creepScore: Int,
+)
+
+data class LiveClientEvent(
+    val eventName: String,
+    val eventTime: Double,
+    val killerName: String?,
+    val assisters: List<String>,
+)
+
+data class LiveClientData(
+    val players: List<LiveClientPlayer>,
+    val events: List<LiveClientEvent>,
+    val gameTime: Double,
 )
 
 object LcuClient {
@@ -304,6 +338,140 @@ object LcuClient {
 
                 else -> CustomTeamsResult(phase, emptyList(), emptyList())
             }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    // ── Rune API ────────────────────────────────────
+
+    suspend fun getCurrentRunePage(): RunePage? {
+        val creds = getCredentials() ?: return null
+        return try {
+            val data = lcuGet(creds.port, creds.password, "/lol-perks/v1/currentpage").jsonObject
+            parseRunePage(data)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    suspend fun getRunePages(): List<RunePage> {
+        val creds = getCredentials() ?: return emptyList()
+        return try {
+            val data = lcuGet(creds.port, creds.password, "/lol-perks/v1/pages")
+            data.jsonArray.mapNotNull { parseRunePage(it.jsonObject) }
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }
+
+    private fun parseRunePage(obj: JsonObject): RunePage? {
+        val id = obj["id"]?.jsonPrimitive?.longOrNull ?: return null
+        return RunePage(
+            id = id,
+            name = obj["name"]?.jsonPrimitive?.contentOrNull ?: "",
+            primaryStyleId = obj["primaryStyleId"]?.jsonPrimitive?.intOrNull ?: 0,
+            subStyleId = obj["subStyleId"]?.jsonPrimitive?.intOrNull ?: 0,
+            selectedPerkIds = obj["selectedPerkIds"]?.jsonArray?.mapNotNull { it.jsonPrimitive.intOrNull } ?: emptyList(),
+            current = obj["current"]?.jsonPrimitive?.booleanOrNull ?: false,
+        )
+    }
+
+    suspend fun deleteRunePage(pageId: Long): Boolean {
+        val creds = getCredentials() ?: return false
+        return try {
+            val token = Base64.getEncoder().encodeToString("riot:${creds.password}".toByteArray())
+            val response = httpClient.delete("https://127.0.0.1:${creds.port}/lol-perks/v1/pages/$pageId") {
+                header("Authorization", "Basic $token")
+            }
+            response.status.isSuccess()
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    suspend fun createRunePage(name: String, primaryStyleId: Int, subStyleId: Int, perkIds: List<Int>): Boolean {
+        val creds = getCredentials() ?: return false
+        return try {
+            val body = buildJsonObject {
+                put("name", name)
+                put("primaryStyleId", primaryStyleId)
+                put("subStyleId", subStyleId)
+                put("selectedPerkIds", JsonArray(perkIds.map { JsonPrimitive(it) }))
+            }
+            val token = Base64.getEncoder().encodeToString("riot:${creds.password}".toByteArray())
+            val response = httpClient.post("https://127.0.0.1:${creds.port}/lol-perks/v1/pages") {
+                header("Authorization", "Basic $token")
+                contentType(ContentType.Application.Json)
+                setBody(body.toString())
+            }
+            response.status.isSuccess()
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /**
+     * Apply runes by deleting the current editable page and creating a new one.
+     */
+    suspend fun applyRunePage(name: String, primaryStyleId: Int, subStyleId: Int, perkIds: List<Int>): Boolean {
+        // Find first editable (non-preset) page and delete it to make room
+        val pages = getRunePages()
+        val editable = pages.filter { !it.name.startsWith("*") && it.id > 0 }
+        if (editable.isNotEmpty()) {
+            deleteRunePage(editable.last().id)
+        }
+        return createRunePage(name, primaryStyleId, subStyleId, perkIds)
+    }
+
+    // ── Live Client Data API (port 2999) ─────────────
+
+    suspend fun getLiveClientData(): LiveClientData? {
+        return try {
+            val response = httpClient.get("https://127.0.0.1:2999/liveclientdata/allgamedata")
+            val text = response.body<String>()
+            val root = Json.parseToJsonElement(text).jsonObject
+
+            val gameTime = root["gameData"]?.jsonObject?.get("gameTime")?.jsonPrimitive?.doubleOrNull ?: 0.0
+
+            val players = root["allPlayers"]?.jsonArray?.map { p ->
+                val po = p.jsonObject
+                val scores = po["scores"]?.jsonObject
+                LiveClientPlayer(
+                    summonerName = po["riotIdGameName"]?.jsonPrimitive?.contentOrNull
+                        ?: po["summonerName"]?.jsonPrimitive?.contentOrNull ?: "???",
+                    championName = po["championName"]?.jsonPrimitive?.contentOrNull ?: "",
+                    team = po["team"]?.jsonPrimitive?.contentOrNull ?: "",
+                    level = po["level"]?.jsonPrimitive?.intOrNull ?: 0,
+                    kills = scores?.get("kills")?.jsonPrimitive?.intOrNull ?: 0,
+                    deaths = scores?.get("deaths")?.jsonPrimitive?.intOrNull ?: 0,
+                    assists = scores?.get("assists")?.jsonPrimitive?.intOrNull ?: 0,
+                    creepScore = scores?.get("creepScore")?.jsonPrimitive?.intOrNull ?: 0,
+                )
+            } ?: emptyList()
+
+            val events = root["events"]?.jsonObject?.get("Events")?.jsonArray?.map { e ->
+                val eo = e.jsonObject
+                LiveClientEvent(
+                    eventName = eo["EventName"]?.jsonPrimitive?.contentOrNull ?: "",
+                    eventTime = eo["EventTime"]?.jsonPrimitive?.doubleOrNull ?: 0.0,
+                    killerName = eo["KillerName"]?.jsonPrimitive?.contentOrNull,
+                    assisters = eo["Assisters"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull } ?: emptyList(),
+                )
+            } ?: emptyList()
+
+            LiveClientData(players, events, gameTime)
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    suspend fun getLivePlayerScores(summonerName: String): JsonObject? {
+        return try {
+            val encoded = java.net.URLEncoder.encode(summonerName, "UTF-8")
+            val response = httpClient.get("https://127.0.0.1:2999/liveclientdata/playerscores?summonerName=$encoded")
+            val text = response.body<String>()
+            Json.parseToJsonElement(text).jsonObject
         } catch (_: Exception) {
             null
         }

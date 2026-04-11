@@ -16,6 +16,8 @@ import kotlinx.coroutines.launch
 import net.gijun.collector.lcu.LcuStatus
 import net.gijun.collector.service.CollectService
 import net.gijun.collector.service.UpdateState
+import net.gijun.collector.ui.components.Grid16
+import net.gijun.collector.ui.components.colSpan
 import net.gijun.collector.ui.theme.LolColors
 
 data class LogLine(val type: String, val message: String)
@@ -35,6 +37,7 @@ fun CollectPage(
     updateState: UpdateState = UpdateState.IDLE,
     updateVersion: String = "",
     onInstallUpdate: () -> Unit = {},
+    dodgeCount: Int = 0,
 ) {
     val logs = remember { mutableStateListOf<LogLine>() }
     var collecting by remember { mutableStateOf(false) }
@@ -55,24 +58,25 @@ fun CollectPage(
                 UpdateState.DOWNLOADING -> "v$updateVersion 다운로드 중..."
                 else -> "v$updateVersion 업데이트 발견"
             }
-            Row(
+            Grid16(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(LolColors.Win.copy(alpha = 0.08f), RoundedCornerShape(6.dp))
                     .border(1.dp, LolColors.Win.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
                     .padding(horizontal = 16.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                gap = 8.dp,
             ) {
-                Text(bannerText, fontSize = 13.sp, color = LolColors.Win)
+                Text(bannerText, fontSize = 13.sp, color = LolColors.Win, modifier = Modifier.colSpan(12))
                 if (updateState == UpdateState.READY) {
-                    Button(
-                        onClick = onInstallUpdate,
-                        colors = ButtonDefaults.buttonColors(containerColor = LolColors.Primary, contentColor = LolColors.TextInverse),
-                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
-                        shape = RoundedCornerShape(6.dp),
-                    ) {
-                        Text("지금 설치", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                    Box(Modifier.colSpan(4)) {
+                        Button(
+                            onClick = onInstallUpdate,
+                            colors = ButtonDefaults.buttonColors(containerColor = LolColors.Primary, contentColor = LolColors.TextInverse),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
+                            shape = RoundedCornerShape(6.dp),
+                        ) {
+                            Text("지금 설치", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                        }
                     }
                 }
             }
@@ -89,6 +93,23 @@ fun CollectPage(
                     .padding(horizontal = 12.dp, vertical = 8.dp),
             ) {
                 Text("$autoStatus", fontSize = 13.sp, color = LolColors.Info)
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+
+        // 닷지 카운터
+        if (dodgeCount > 0) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(LolColors.Warning.copy(alpha = 0.1f), RoundedCornerShape(6.dp))
+                    .border(1.dp, LolColors.Warning.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("닷지 감지: ${dodgeCount}회", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Warning)
+                Text("이번 세션 기준", fontSize = 11.sp, color = LolColors.TextSecondary)
             }
             Spacer(Modifier.height(16.dp))
         }

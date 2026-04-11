@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import net.gijun.collector.api.*
 import net.gijun.collector.ui.components.ChampionIcon
+import net.gijun.collector.ui.components.Grid16
+import net.gijun.collector.ui.components.colSpan
 import net.gijun.collector.ui.theme.LolColors
 import net.gijun.collector.ui.theme.winRateColor
 
@@ -84,13 +86,13 @@ fun SummonerPage() {
             shape = RoundedCornerShape(10.dp),
             border = BorderStroke(1.dp, LolColors.Border),
         ) {
-            Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Grid16(modifier = Modifier.padding(16.dp), gap = 8.dp) {
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
                     placeholder = { Text("닉네임 입력 (태그 제외)", fontSize = 13.sp) },
                     singleLine = true,
-                    modifier = Modifier.weight(1f).onKeyEvent {
+                    modifier = Modifier.colSpan(12).onKeyEvent {
                         if (it.key == Key.Enter && it.type == KeyEventType.KeyUp) { scope.launch { doSearch() }; true } else false
                     },
                     colors = OutlinedTextFieldDefaults.colors(
@@ -108,6 +110,7 @@ fun SummonerPage() {
                     colors = ButtonDefaults.buttonColors(containerColor = LolColors.Primary, contentColor = LolColors.TextInverse),
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
                     shape = RoundedCornerShape(6.dp),
+                    modifier = Modifier.colSpan(4),
                 ) {
                     Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(12.dp))
                     Spacer(Modifier.width(4.dp))
@@ -173,16 +176,15 @@ fun SummonerPage() {
                     shape = RoundedCornerShape(10.dp),
                     border = BorderStroke(1.dp, LolColors.Border),
                 ) {
-                    Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Grid16(modifier = Modifier.padding(24.dp), gap = 16.dp) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.colSpan(3)) {
                             Text("${d.winRate.toInt()}%", fontSize = 24.sp, fontWeight = FontWeight.ExtraBold, color = winColor)
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text("${d.wins}W", fontSize = 10.sp, color = LolColors.Win)
                                 Text("${d.losses}L", fontSize = 10.sp, color = LolColors.Loss)
                             }
                         }
-                        Box(Modifier.width(1.dp).height(36.dp).background(LolColors.Border))
-                        Column {
+                        Column(modifier = Modifier.colSpan(5)) {
                             Text("${String.format("%.2f", d.kda)} KDA", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = LolColors.TextPrimary)
                             Row {
                                 Text(String.format("%.1f", d.avgKills), fontSize = 11.sp, color = LolColors.TextSecondary)
@@ -192,8 +194,7 @@ fun SummonerPage() {
                                 Text(String.format("%.1f", d.avgAssists), fontSize = 11.sp, color = LolColors.TextSecondary)
                             }
                         }
-                        Spacer(Modifier.weight(1f))
-                        Column(horizontalAlignment = Alignment.End) {
+                        Column(horizontalAlignment = Alignment.End, modifier = Modifier.colSpan(8)) {
                             Text(d.riotId.split("#").first(), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = LolColors.TextPrimary)
                             Text("#${d.riotId.split("#").getOrElse(1) { "" }} · ${d.games}판", fontSize = 11.sp, color = LolColors.TextDisabled)
                         }
@@ -352,9 +353,9 @@ private fun MatchExpandedView(matchId: String, searchedRiotId: String) {
                 Column {
                     Box(Modifier.fillMaxWidth().height(1.dp).background(LolColors.Border))
                     Spacer(Modifier.height(8.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Grid16(gap = 12.dp) {
                         // 블루팀
-                        Column(Modifier.weight(1f)) {
+                        Column(Modifier.colSpan(8)) {
                             Text(
                                 "블루팀 ${if (blueWin) "승" else "패"}",
                                 fontSize = 10.sp,
@@ -365,7 +366,7 @@ private fun MatchExpandedView(matchId: String, searchedRiotId: String) {
                             blue.forEach { p -> TeamRow(p, searchedRiotId) }
                         }
                         // 레드팀
-                        Column(Modifier.weight(1f)) {
+                        Column(Modifier.colSpan(8)) {
                             Text(
                                 "레드팀 ${if (!blueWin) "승" else "패"}",
                                 fontSize = 10.sp,

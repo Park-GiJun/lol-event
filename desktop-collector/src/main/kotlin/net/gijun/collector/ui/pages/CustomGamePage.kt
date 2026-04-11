@@ -23,6 +23,8 @@ import net.gijun.collector.api.ChampionStat
 import net.gijun.collector.lcu.LcuClient
 import net.gijun.collector.lcu.TeamMemberInfo
 import net.gijun.collector.ui.components.ChampionIcon
+import net.gijun.collector.ui.components.Grid16
+import net.gijun.collector.ui.components.colSpan
 import net.gijun.collector.ui.theme.LolColors
 import net.gijun.collector.ui.theme.winRateColor
 import java.awt.Desktop
@@ -137,9 +139,9 @@ fun CustomGamePage() {
         }
 
         if (hasData) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                TeamColumn("블루팀", LolColors.Blue, blueTeam, Modifier.weight(1f))
-                TeamColumn("레드팀", LolColors.Red, redTeam, Modifier.weight(1f))
+            Grid16(modifier = Modifier.fillMaxWidth(), gap = 16.dp) {
+                TeamColumn("블루팀", LolColors.Blue, blueTeam, Modifier.colSpan(8))
+                TeamColumn("레드팀", LolColors.Red, redTeam, Modifier.colSpan(8))
             }
         }
     }

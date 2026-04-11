@@ -22,9 +22,11 @@ import net.gijun.collector.lcu.LcuClient
 import net.gijun.collector.lcu.LcuStatus
 import net.gijun.collector.service.*
 import net.gijun.collector.ui.AppIcon
+import net.gijun.collector.ui.components.Grid16
 import net.gijun.collector.ui.components.Page
 import net.gijun.collector.ui.components.Sidebar
 import net.gijun.collector.ui.components.Titlebar
+import net.gijun.collector.ui.components.colSpan
 import net.gijun.collector.ui.pages.*
 import net.gijun.collector.ui.theme.LolColors
 import net.gijun.collector.ui.theme.LolTheme
@@ -154,14 +156,24 @@ private fun App(
 
     // ── 게임 페이즈 모니터 ──
     val monitorScope = rememberCoroutineScope()
-    LaunchedEffect(Unit) {
-        val monitor = GamePhaseMonitor(
+    var dodgeCount by remember { mutableStateOf(0) }
+    val monitor = remember {
+        GamePhaseMonitor(
             scope = monitorScope,
             onLog = { type, message -> autoLogs.add(LogLine(type, message)) },
             onAutoStatus = { autoStatus = it },
             onNotification = { _, body -> autoStatus = body },
         )
+    }
+    LaunchedEffect(Unit) {
         monitor.start()
+    }
+    // Sync dodge count from monitor
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            dodgeCount = monitor.dodgeCount
+            delay(3_000)
+        }
     }
 
     Box(Modifier.fillMaxSize()) {
@@ -174,9 +186,9 @@ private fun App(
             }
             HorizontalDivider(thickness = 1.dp, color = LolColors.Border)
 
-            Row(Modifier.fillMaxSize()) {
-                Sidebar(currentPage = currentPage, onPageChange = { currentPage = it })
-                Box(Modifier.fillMaxSize().background(LolColors.BgPrimary)) {
+            Grid16(Modifier.fillMaxSize(), gap = 0.dp) {
+                Sidebar(currentPage = currentPage, onPageChange = { currentPage = it }, modifier = Modifier.colSpan(3))
+                Box(Modifier.colSpan(13).fillMaxHeight().background(LolColors.BgPrimary)) {
                     when (currentPage) {
                         Page.COLLECT -> CollectPage(
                             lcuStatus = lcuStatus,
@@ -184,6 +196,7 @@ private fun App(
                             updateState = updateState,
                             updateVersion = updateVersion,
                             onInstallUpdate = { updateService.installUpdate() },
+                            dodgeCount = dodgeCount,
                         )
                         Page.CUSTOM -> CustomGamePage()
                         Page.SUMMONER -> SummonerPage()
