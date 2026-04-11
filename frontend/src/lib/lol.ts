@@ -44,17 +44,13 @@ export function calcMvp(match: Match): { aceId: string; blueMvpId: string; redMv
 // ── 게임 모드 목록 ────────────────────────────────────────────────────────
 export const MODES = [
   { value: 'normal', label: '5v5 내전' },
-  { value: 'aram',   label: '칼바람' },
-  { value: 'all',    label: '전체' },
 ] as const;
 
-// 2개 모드 (normal + aram) — 플레이어 상세 등
-export const MODES_2 = MODES.slice(0, 2);
+// 하위 호환 — 기존 코드에서 MODES_2, MODES_WITH_ALL 참조
+export const MODES_2 = MODES;
 
 export const MODES_WITH_ALL = [
-  { value: 'all',    label: '전체' },
   { value: 'normal', label: '5v5 내전' },
-  { value: 'aram',   label: '칼바람' },
 ] as const;
 
 export type ModeValue = typeof MODES[number]['value'];
