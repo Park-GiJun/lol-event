@@ -60,6 +60,8 @@ compose.desktop {
                 iconFile.set(project.file("src/main/resources/icon.ico"))
                 dirChooser = true
                 menuGroup = "LoL-Collector"
+                shortcut = true          // 바탕화면 바로가기 생성
+                upgradeUuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"  // MSI 업그레이드 UUID (고정)
             }
         }
     }

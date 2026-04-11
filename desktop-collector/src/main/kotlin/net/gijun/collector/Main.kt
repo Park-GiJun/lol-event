@@ -191,12 +191,17 @@ private fun App(
                 Box(Modifier.colSpan(13).fillMaxHeight().background(LolColors.BgPrimary)) {
                     when (currentPage) {
                         Page.DASHBOARD -> DashboardPage()
+                        Page.MATCHES -> MatchHistoryPage()
                         Page.COLLECT -> CollectPage(
                             lcuStatus = lcuStatus,
                             autoStatus = autoStatus,
                             updateState = updateState,
                             updateVersion = updateVersion,
+                            currentVersion = APP_VERSION,
+                            downloadProgress = updateProgress,
+                            updateErrorMessage = updateService.errorMessage,
                             onInstallUpdate = { updateService.installUpdate() },
+                            onRetryUpdate = { updateService.retryDownload() },
                             dodgeCount = dodgeCount,
                         )
                         Page.CUSTOM -> CustomGamePage()

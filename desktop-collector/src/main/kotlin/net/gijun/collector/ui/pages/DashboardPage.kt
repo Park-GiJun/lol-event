@@ -29,6 +29,11 @@ fun DashboardPage() {
     var awards by remember { mutableStateOf<AwardsResult?>(null) }
     var multikill by remember { mutableStateOf<MultikillHighlightsResult?>(null) }
     var mvpRanking by remember { mutableStateOf<MvpRankingResult?>(null) }
+    var banAnalysis by remember { mutableStateOf<BanAnalysisResult?>(null) }
+    var championTier by remember { mutableStateOf<ChampionTierResult?>(null) }
+    var duoSynergy by remember { mutableStateOf<DuoSynergyResult?>(null) }
+    var statsList by remember { mutableStateOf<StatsListResult?>(null) }
+    var playerStreaks by remember { mutableStateOf<Map<String, PlayerStreakResult>>(emptyMap()) }
     var loading by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
@@ -42,6 +47,23 @@ fun DashboardPage() {
             scope.launch { awards = ApiClient.fetchAwards() },
             scope.launch { multikill = ApiClient.fetchMultikillHighlights() },
             scope.launch { mvpRanking = ApiClient.fetchMvpRanking() },
+            scope.launch { banAnalysis = ApiClient.fetchBanAnalysis() },
+            scope.launch { championTier = ApiClient.fetchChampionTier() },
+            scope.launch { duoSynergy = ApiClient.fetchDuoSynergy() },
+            scope.launch {
+                val stats = ApiClient.fetchStatsList()
+                statsList = stats
+                // Fetch streaks for top players (by games)
+                val topPlayers = stats.stats.sortedByDescending { it.games }.take(10)
+                val streakMap = mutableMapOf<String, PlayerStreakResult>()
+                topPlayers.forEach { entry ->
+                    try {
+                        val s = ApiClient.fetchPlayerStreak(entry.riotId)
+                        if (s != null) streakMap[entry.riotId] = s
+                    } catch (_: Exception) {}
+                }
+                playerStreaks = streakMap
+            },
         )
         jobs.forEach { it.join() }
         loading = false
@@ -87,6 +109,28 @@ fun DashboardPage() {
                 // ── MVP Ranking (Right) ──
                 Box(Modifier.colSpan(8)) {
                     MvpSection(mvpRanking)
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+
+            // ── Ban Trends + Champion Tier ──
+            Grid16(modifier = Modifier.fillMaxWidth(), gap = 16.dp) {
+                Box(Modifier.colSpan(8)) {
+                    BanTrendSection(banAnalysis)
+                }
+                Box(Modifier.colSpan(8)) {
+                    ChampionTierSection(championTier)
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+
+            // ── Duo Synergy + Player Streaks ──
+            Grid16(modifier = Modifier.fillMaxWidth(), gap = 16.dp) {
+                Box(Modifier.colSpan(8)) {
+                    DuoSynergySection(duoSynergy)
+                }
+                Box(Modifier.colSpan(8)) {
+                    PlayerStreakSection(playerStreaks)
                 }
             }
         }
@@ -312,6 +356,272 @@ private fun MultikillRow(event: MultikillEvent, type: String) {
         Text(event.riotId.split("#").first(), fontSize = 11.sp, color = LolColors.TextPrimary, modifier = Modifier.weight(1f))
         Text(event.champion, fontSize = 10.sp, color = LolColors.TextSecondary)
         Text(date, fontSize = 10.sp, color = LolColors.TextDisabled)
+    }
+}
+
+// ── 밴 트렌드 ────────────────────────────────────
+
+@Composable
+private fun BanTrendSection(data: BanAnalysisResult?) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = LolColors.BgCard),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, LolColors.Border),
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.DoNotDisturb, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Error)
+                Text("밴 트렌드", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
+            }
+            Spacer(Modifier.height(12.dp))
+            if (data == null || data.bans.isEmpty()) {
+                Text("밴 데이터 없음", fontSize = 13.sp, color = LolColors.TextSecondary)
+            } else {
+                data.bans.take(8).forEachIndexed { index, ban ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .background(if (index % 2 == 0) LolColors.BgHover else Color.Transparent, RoundedCornerShape(4.dp))
+                            .padding(horizontal = 8.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        ChampionIcon(ban.championId, 24.dp)
+                        Text(ban.champion, fontSize = 11.sp, color = LolColors.TextPrimary, modifier = Modifier.width(60.dp))
+                        // Ban rate bar
+                        Box(Modifier.weight(1f).height(6.dp).background(LolColors.Border, RoundedCornerShape(3.dp))) {
+                            Box(
+                                Modifier.fillMaxHeight()
+                                    .fillMaxWidth((ban.banRate / 100.0).toFloat().coerceIn(0f, 1f))
+                                    .background(LolColors.Error, RoundedCornerShape(3.dp))
+                            )
+                        }
+                        Text(
+                            "${String.format("%.1f", ban.banRate)}%",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Monospace,
+                            color = LolColors.Error,
+                            modifier = Modifier.width(38.dp),
+                        )
+                        Text("${ban.banCount}회", fontSize = 9.sp, color = LolColors.TextSecondary)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ── 챔피언 티어 ──────────────────────────────────
+
+@Composable
+private fun ChampionTierSection(data: ChampionTierResult?) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = LolColors.BgCard),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, LolColors.Border),
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.Stars, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Warning)
+                Text("챔피언 티어", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
+            }
+            Spacer(Modifier.height(12.dp))
+            if (data == null || data.tiers.isEmpty()) {
+                Text("챔피언 티어 데이터 없음", fontSize = 13.sp, color = LolColors.TextSecondary)
+            } else {
+                val tierGroups = data.tiers.groupBy { it.tier }
+                listOf("S", "A", "B", "C").forEach { tier ->
+                    val champions = tierGroups[tier] ?: return@forEach
+                    val tierColor = when (tier) {
+                        "S" -> Color(0xFFFFD700)
+                        "A" -> LolColors.Win
+                        "B" -> LolColors.Info
+                        else -> LolColors.TextSecondary
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(
+                            tier,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = tierColor,
+                            modifier = Modifier.width(20.dp),
+                        )
+                        Column(Modifier.weight(1f)) {
+                            champions.take(5).forEach { c ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth()
+                                        .padding(vertical = 2.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
+                                    ChampionIcon(c.championId, 20.dp)
+                                    Text(c.champion, fontSize = 10.sp, color = LolColors.TextPrimary, modifier = Modifier.weight(1f))
+                                    Text("${c.winRate.toInt()}%", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = winRateColor(c.winRate))
+                                    Text("${c.games}판", fontSize = 9.sp, color = LolColors.TextDisabled)
+                                }
+                            }
+                        }
+                    }
+                    if (tier != "C") {
+                        Spacer(Modifier.height(4.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ── 듀오 시너지 ──────────────────────────────────
+
+@Composable
+private fun DuoSynergySection(data: DuoSynergyResult?) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = LolColors.BgCard),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, LolColors.Border),
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.People, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Info)
+                Text("듀오 시너지 Top 5", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
+            }
+            Spacer(Modifier.height(12.dp))
+            if (data == null || data.duos.isEmpty()) {
+                Text("듀오 데이터 없음", fontSize = 13.sp, color = LolColors.TextSecondary)
+            } else {
+                data.duos.take(5).forEachIndexed { index, duo ->
+                    val rankColor = when (index) {
+                        0 -> Color(0xFFFFD700)
+                        1 -> Color(0xFFC0C0C0)
+                        2 -> Color(0xFFCD7F32)
+                        else -> LolColors.TextSecondary
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .background(if (index % 2 == 0) LolColors.BgHover else Color.Transparent, RoundedCornerShape(4.dp))
+                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text("#${index + 1}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = rankColor, modifier = Modifier.width(24.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "${duo.player1.split("#").first()} + ${duo.player2.split("#").first()}",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = LolColors.TextPrimary,
+                            )
+                            Text("${duo.games}판", fontSize = 9.sp, color = LolColors.TextDisabled)
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text("${duo.winRate.toInt()}%", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = winRateColor(duo.winRate))
+                            Text("KDA ${String.format("%.1f", duo.combinedKda)}", fontSize = 9.sp, color = LolColors.TextSecondary)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ── 플레이어 스트릭 ──────────────────────────────
+
+@Composable
+private fun PlayerStreakSection(streaks: Map<String, PlayerStreakResult>) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = LolColors.BgCard),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, LolColors.Border),
+    ) {
+        Column(Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.Whatshot, contentDescription = null, modifier = Modifier.size(14.dp), tint = Color(0xFFFF6B35))
+                Text("플레이어 스트릭", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
+            }
+            Spacer(Modifier.height(12.dp))
+            if (streaks.isEmpty()) {
+                Text("스트릭 데이터 없음", fontSize = 13.sp, color = LolColors.TextSecondary)
+            } else {
+                // Hot streaks (winning)
+                val hot = streaks.filter { it.value.currentStreakType == "win" && it.value.currentStreak >= 2 }
+                    .entries.sortedByDescending { it.value.currentStreak }
+                val cold = streaks.filter { it.value.currentStreakType == "loss" && it.value.currentStreak >= 2 }
+                    .entries.sortedByDescending { it.value.currentStreak }
+
+                if (hot.isNotEmpty()) {
+                    Text("연승 중", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = LolColors.Win)
+                    Spacer(Modifier.height(4.dp))
+                    hot.take(5).forEach { (riotId, s) ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                                .background(LolColors.Win.copy(alpha = 0.06f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Text(riotId.split("#").first(), fontSize = 11.sp, color = LolColors.TextPrimary, modifier = Modifier.weight(1f))
+                            Text("${s.currentStreak}연승", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = LolColors.Win)
+                            // Recent form dots
+                            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                s.recentForm.takeLast(5).forEach { win ->
+                                    Box(
+                                        Modifier.size(10.dp)
+                                            .background(if (win) LolColors.Win else LolColors.Loss, RoundedCornerShape(2.dp)),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Text(if (win) "W" else "L", fontSize = 6.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                    }
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(3.dp))
+                    }
+                }
+
+                if (hot.isNotEmpty() && cold.isNotEmpty()) Spacer(Modifier.height(8.dp))
+
+                if (cold.isNotEmpty()) {
+                    Text("연패 중", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = LolColors.Loss)
+                    Spacer(Modifier.height(4.dp))
+                    cold.take(5).forEach { (riotId, s) ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth()
+                                .background(LolColors.Loss.copy(alpha = 0.06f), RoundedCornerShape(4.dp))
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Text(riotId.split("#").first(), fontSize = 11.sp, color = LolColors.TextPrimary, modifier = Modifier.weight(1f))
+                            Text("${s.currentStreak}연패", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = LolColors.Loss)
+                            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                s.recentForm.takeLast(5).forEach { win ->
+                                    Box(
+                                        Modifier.size(10.dp)
+                                            .background(if (win) LolColors.Win else LolColors.Loss, RoundedCornerShape(2.dp)),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Text(if (win) "W" else "L", fontSize = 6.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                    }
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(3.dp))
+                    }
+                }
+
+                if (hot.isEmpty() && cold.isEmpty()) {
+                    Text("현재 2연승/2연패 이상인 플레이어 없음", fontSize = 11.sp, color = LolColors.TextSecondary)
+                }
+            }
+        }
     }
 }
 

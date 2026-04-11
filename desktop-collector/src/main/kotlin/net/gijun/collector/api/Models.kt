@@ -305,6 +305,20 @@ data class CompareResult(
     val player2: PlayerStats? = null,
 )
 
+// ── 매치 목록 (경기 기록 페이지) ────────────────────
+
+@Serializable
+data class MatchListResult(val matches: List<MatchListEntry> = emptyList())
+
+@Serializable
+data class MatchListEntry(
+    val matchId: String = "",
+    val queueId: Int = 0,
+    val gameCreation: Long = 0,
+    val gameDuration: Int = 0,
+    val participants: List<MatchParticipant> = emptyList(),
+)
+
 // ── Riot API 프로필 ──────────────────────────────
 
 @Serializable

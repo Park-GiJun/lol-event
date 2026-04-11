@@ -47,6 +47,8 @@ class UpdateService(
         private set
     var installerPath: File? = null
         private set
+    var errorMessage: String? = null
+        private set
     var onStateChanged: (() -> Unit)? = null
 
     private fun notifyChange() { onStateChanged?.invoke() }
@@ -54,11 +56,23 @@ class UpdateService(
     fun checkForUpdates() {
         scope.launch {
             state = UpdateState.CHECKING
+            errorMessage = null
             notifyChange()
             try {
                 val response: HttpResponse = httpClient.get(UPDATE_URL)
+                if (!response.status.isSuccess()) {
+                    state = UpdateState.NOT_AVAILABLE
+                    notifyChange()
+                    return@launch
+                }
                 val text: String = response.body()
                 val info = json.decodeFromString<UpdateInfo>(text)
+
+                if (info.version.isBlank() || info.url.isBlank()) {
+                    state = UpdateState.NOT_AVAILABLE
+                    notifyChange()
+                    return@launch
+                }
 
                 if (isNewerVersion(info.version, currentVersion)) {
                     updateInfo = info
@@ -110,10 +124,16 @@ class UpdateService(
             downloadProgress = 100
             state = UpdateState.READY
             notifyChange()
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            errorMessage = "다운로드 실패: ${e.message ?: "알 수 없는 오류"}"
             state = UpdateState.ERROR
             notifyChange()
         }
+    }
+
+    fun retryDownload() {
+        val info = updateInfo ?: return
+        scope.launch { downloadUpdate(info) }
     }
 
     fun installUpdate() {
@@ -132,7 +152,8 @@ class UpdateService(
                 ProcessBuilder(command).start()
                 delay(1_500)
                 Runtime.getRuntime().exit(0)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                errorMessage = "설치 실패: ${e.message ?: "알 수 없는 오류"}"
                 state = UpdateState.ERROR
                 notifyChange()
             }

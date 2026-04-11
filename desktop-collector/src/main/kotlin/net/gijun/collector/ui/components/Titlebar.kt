@@ -2,6 +2,7 @@ package net.gijun.collector.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -15,12 +16,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.WindowScope
 import net.gijun.collector.lcu.LcuStatus
 import net.gijun.collector.ui.theme.LolColors
+import java.awt.MouseInfo
 
 @Composable
 fun WindowScope.Titlebar(
@@ -29,14 +32,35 @@ fun WindowScope.Titlebar(
     onMinimize: () -> Unit,
     onClose: () -> Unit,
 ) {
+    // 드래그 상태 추적
+    var dragStartX by remember { mutableStateOf(0) }
+    var dragStartY by remember { mutableStateOf(0) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(38.dp)
-            .background(LolColors.BgSecondary),
+            .background(LolColors.BgSecondary)
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = {
+                        val mouseLocation = MouseInfo.getPointerInfo().location
+                        dragStartX = mouseLocation.x - window.x
+                        dragStartY = mouseLocation.y - window.y
+                    },
+                    onDrag = { change, _ ->
+                        change.consume()
+                        val mouseLocation = MouseInfo.getPointerInfo().location
+                        window.setLocation(
+                            mouseLocation.x - dragStartX,
+                            mouseLocation.y - dragStartY,
+                        )
+                    },
+                )
+            },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // 드래그 가능 영역 (타이틀)
+        // 타이틀
         Row(
             modifier = Modifier.padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -46,13 +70,12 @@ fun WindowScope.Titlebar(
             Text("v$version", fontSize = 10.sp, color = LolColors.TextSecondary)
         }
 
-        // 상태
+        // LCU 상태
         Row(
             modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            // 상태 점
             Box(
                 Modifier
                     .size(6.dp)

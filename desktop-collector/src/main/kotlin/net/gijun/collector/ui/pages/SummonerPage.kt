@@ -46,6 +46,7 @@ fun SummonerPage() {
     var streak by remember { mutableStateOf<PlayerStreakResult?>(null) }
     var dnaEntry by remember { mutableStateOf<DnaEntry?>(null) }
     var positionPool by remember { mutableStateOf<PositionPoolEntry?>(null) }
+    var riotProfile by remember { mutableStateOf<RiotProfile?>(null) }
 
     suspend fun selectPlayer(riotId: String) {
         selected = riotId
@@ -55,11 +56,13 @@ fun SummonerPage() {
         streak = null
         dnaEntry = null
         positionPool = null
+        riotProfile = null
         try {
             detail = ApiClient.fetchPlayerStats(riotId) ?: run { searchError = "전적 로드 실패"; null }
             // Fetch additional data in parallel
             scope.launch { eloHistory = ApiClient.fetchEloHistory(riotId) }
             scope.launch { streak = ApiClient.fetchPlayerStreak(riotId) }
+            scope.launch { riotProfile = ApiClient.fetchRiotProfile(riotId) }
             scope.launch {
                 val dnaResult = ApiClient.fetchPlaystyleDna()
                 dnaEntry = dnaResult?.players?.find { it.riotId == riotId }
@@ -220,6 +223,10 @@ fun SummonerPage() {
                         }
                     }
                 }
+                Spacer(Modifier.height(12.dp))
+
+                // Riot API 프로필
+                RiotProfileSection(riotProfile)
                 Spacer(Modifier.height(12.dp))
 
                 // 스트릭 + 포지션 분포
@@ -444,6 +451,112 @@ private fun TeamRow(p: MatchParticipant, searchedRiotId: String) {
         Text(kda, fontSize = 10.sp, color = LolColors.TextDisabled)
         Text("${p.cs}CS", fontSize = 10.sp, color = LolColors.TextDisabled)
         Text("${String.format("%.1f", p.damage / 1000.0)}k딜", fontSize = 10.sp, color = LolColors.TextDisabled)
+    }
+}
+
+// ── Riot API 프로필 ──────────────────────────────
+
+private val TIER_COLOR = mapOf(
+    "IRON" to Color(0xFF6B5B5B),
+    "BRONZE" to Color(0xFFCD7F32),
+    "SILVER" to Color(0xFFC0C0C0),
+    "GOLD" to Color(0xFFFFD700),
+    "PLATINUM" to Color(0xFF0BC4B4),
+    "EMERALD" to Color(0xFF50C878),
+    "DIAMOND" to Color(0xFF6FA3EF),
+    "MASTER" to Color(0xFF9B59B6),
+    "GRANDMASTER" to Color(0xFFE84040),
+    "CHALLENGER" to Color(0xFFF5C542),
+)
+
+@Composable
+private fun RiotProfileSection(profile: RiotProfile?) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = LolColors.BgCard),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, LolColors.Border),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text("Riot 프로필", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = LolColors.TextPrimary)
+            Spacer(Modifier.height(8.dp))
+            if (profile == null) {
+                Text("Riot 프로필 로딩 중...", fontSize = 11.sp, color = LolColors.TextSecondary)
+            } else {
+                Grid16(modifier = Modifier.fillMaxWidth(), gap = 12.dp) {
+                    // Solo rank
+                    Column(Modifier.colSpan(8)) {
+                        Text("솔로 랭크", fontSize = 10.sp, color = LolColors.TextSecondary)
+                        Spacer(Modifier.height(4.dp))
+                        if (profile.soloRank != null) {
+                            val sr = profile.soloRank
+                            val tierColor = TIER_COLOR[sr.tier.uppercase()] ?: LolColors.TextPrimary
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(
+                                    "${sr.tier} ${sr.rank}",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = tierColor,
+                                )
+                                Text("${sr.lp} LP", fontSize = 11.sp, color = LolColors.TextSecondary)
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("${sr.wins}W ${sr.losses}L", fontSize = 10.sp, color = LolColors.TextSecondary)
+                                Text("${sr.winRate.toInt()}%", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = winRateColor(sr.winRate))
+                            }
+                        } else {
+                            Text("Unranked", fontSize = 12.sp, color = LolColors.TextDisabled)
+                        }
+                    }
+                    // Flex rank
+                    Column(Modifier.colSpan(8)) {
+                        Text("자유 랭크", fontSize = 10.sp, color = LolColors.TextSecondary)
+                        Spacer(Modifier.height(4.dp))
+                        if (profile.flexRank != null) {
+                            val fr = profile.flexRank
+                            val tierColor = TIER_COLOR[fr.tier.uppercase()] ?: LolColors.TextPrimary
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(
+                                    "${fr.tier} ${fr.rank}",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = tierColor,
+                                )
+                                Text("${fr.lp} LP", fontSize = 11.sp, color = LolColors.TextSecondary)
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("${fr.wins}W ${fr.losses}L", fontSize = 10.sp, color = LolColors.TextSecondary)
+                                Text("${fr.winRate.toInt()}%", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = winRateColor(fr.winRate))
+                            }
+                        } else {
+                            Text("Unranked", fontSize = 12.sp, color = LolColors.TextDisabled)
+                        }
+                    }
+                }
+
+                // Mastery top champions
+                if (profile.topMastery.isNotEmpty()) {
+                    Spacer(Modifier.height(10.dp))
+                    Text("숙련도 Top 챔피언", fontSize = 10.sp, color = LolColors.TextSecondary)
+                    Spacer(Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        profile.topMastery.take(5).forEach { m ->
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                ChampionIcon(m.championId, 28.dp)
+                                Text("Lv.${m.level}", fontSize = 8.sp, color = LolColors.TextSecondary)
+                                Text("${String.format("%.0f", m.points / 1000.0)}k", fontSize = 8.sp, color = LolColors.TextDisabled)
+                            }
+                        }
+                    }
+                }
+
+                // Summoner level
+                if (profile.summonerLevel != null) {
+                    Spacer(Modifier.height(6.dp))
+                    Text("레벨: ${profile.summonerLevel}", fontSize = 10.sp, color = LolColors.TextDisabled)
+                }
+            }
+        }
     }
 }
 

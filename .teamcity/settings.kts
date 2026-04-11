@@ -149,7 +149,18 @@ object Build : BuildType({
                     # Desktop Collector MSI → 프론트엔드 다운로드 경로
                     if ls desktop-collector/build/compose/binaries/main/msi/*.msi 1>/dev/null 2>&1; then
                         cp desktop-collector/build/compose/binaries/main/msi/*.msi ${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi
-                        echo "Desktop Collector MSI 배포 완료"
+
+                        # Generate desktop-latest.json for auto-updater
+                        MSI_FILE=${'$'}(ls desktop-collector/build/compose/binaries/main/msi/*.msi | head -1)
+                        MSI_VERSION=${'$'}(echo "${'$'}MSI_FILE" | grep -oP '\d+\.\d+\.\d+')
+                        cat > ${'$'}DEPLOY_DIR/frontend-dist/downloads/desktop-latest.json <<EOJSON
+{
+  "version": "${'$'}MSI_VERSION",
+  "url": "https://gijun.net/downloads/lol-collector.msi",
+  "notes": "자동 업데이트 v${'$'}MSI_VERSION"
+}
+EOJSON
+                        echo "Desktop Collector MSI 및 desktop-latest.json 배포 완료 (v${'$'}MSI_VERSION)"
                     elif [ "${'$'}DEPLOY_DESKTOP" = "true" ]; then
                         echo "WARNING: Desktop 빌드 활성화됐지만 MSI 파일 없음"
                     fi

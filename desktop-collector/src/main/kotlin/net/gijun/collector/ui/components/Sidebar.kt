@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
@@ -23,6 +24,7 @@ import net.gijun.collector.ui.theme.LolColors
 
 enum class Page(val label: String, val icon: ImageVector) {
     DASHBOARD("내전 대시보드", Icons.Default.Layers),
+    MATCHES("경기 기록", Icons.Default.History),
     COLLECT("매치 수집", Icons.Default.Layers),
     CUSTOM("내전 분석", Icons.Default.Layers),       // Swords 아이콘 대체
     SUMMONER("소환사 검색", Icons.Default.Search),

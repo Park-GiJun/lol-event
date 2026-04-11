@@ -218,6 +218,16 @@ object ApiClient {
         return saved to skipped
     }
 
+    // ── 매치 목록 (경기 기록) ──
+    suspend fun fetchRecentMatches(mode: String = "normal", limit: Int = 30): MatchListResult {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/matches?mode=$mode&limit=$limit")
+            if (!response.status.isSuccess()) return MatchListResult()
+            val wrapper = json.decodeFromString<ApiResponse<MatchListResult>>(response.body<String>())
+            wrapper.data ?: MatchListResult()
+        } catch (_: Exception) { MatchListResult() }
+    }
+
     // ── Riot API 프로필 (랭크 + 숙련도) ──
     suspend fun fetchRiotProfile(riotId: String): RiotProfile? {
         return try {
