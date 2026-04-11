@@ -42,12 +42,32 @@ fun SummonerPage() {
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
+    var eloHistory by remember { mutableStateOf<EloHistoryResult?>(null) }
+    var streak by remember { mutableStateOf<PlayerStreakResult?>(null) }
+    var dnaEntry by remember { mutableStateOf<DnaEntry?>(null) }
+    var positionPool by remember { mutableStateOf<PositionPoolEntry?>(null) }
+
     suspend fun selectPlayer(riotId: String) {
         selected = riotId
         loadingDetail = true
         detail = null
+        eloHistory = null
+        streak = null
+        dnaEntry = null
+        positionPool = null
         try {
             detail = ApiClient.fetchPlayerStats(riotId) ?: run { searchError = "전적 로드 실패"; null }
+            // Fetch additional data in parallel
+            scope.launch { eloHistory = ApiClient.fetchEloHistory(riotId) }
+            scope.launch { streak = ApiClient.fetchPlayerStreak(riotId) }
+            scope.launch {
+                val dnaResult = ApiClient.fetchPlaystyleDna()
+                dnaEntry = dnaResult?.players?.find { it.riotId == riotId }
+            }
+            scope.launch {
+                val poolResult = ApiClient.fetchPositionPool()
+                positionPool = poolResult?.players?.find { it.riotId == riotId }
+            }
         } catch (_: Exception) {
             searchError = "전적 로드 실패"
         } finally {
@@ -200,6 +220,21 @@ fun SummonerPage() {
                         }
                     }
                 }
+                Spacer(Modifier.height(12.dp))
+
+                // 스트릭 + 포지션 분포
+                Grid16(modifier = Modifier.fillMaxWidth(), gap = 12.dp) {
+                    Box(Modifier.colSpan(8)) { StreakSection(streak) }
+                    Box(Modifier.colSpan(8)) { PositionPoolSection(positionPool) }
+                }
+                Spacer(Modifier.height(12.dp))
+
+                // Elo 히스토리
+                EloHistorySection(eloHistory)
+                Spacer(Modifier.height(12.dp))
+
+                // 플레이스타일 DNA
+                PlaystyleDnaSection(dnaEntry)
                 Spacer(Modifier.height(12.dp))
 
                 // 챔피언 통계
@@ -409,5 +444,200 @@ private fun TeamRow(p: MatchParticipant, searchedRiotId: String) {
         Text(kda, fontSize = 10.sp, color = LolColors.TextDisabled)
         Text("${p.cs}CS", fontSize = 10.sp, color = LolColors.TextDisabled)
         Text("${String.format("%.1f", p.damage / 1000.0)}k딜", fontSize = 10.sp, color = LolColors.TextDisabled)
+    }
+}
+
+// ── 스트릭 표시 ──────────────────────────────────
+
+@Composable
+private fun StreakSection(data: PlayerStreakResult?) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = LolColors.BgCard),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, LolColors.Border),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text("스트릭", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = LolColors.TextPrimary)
+            Spacer(Modifier.height(8.dp))
+            if (data == null) {
+                Text("데이터 없음", fontSize = 11.sp, color = LolColors.TextSecondary)
+            } else {
+                // Current streak
+                val streakColor = if (data.currentStreakType == "win") LolColors.Win else LolColors.Loss
+                val streakLabel = if (data.currentStreakType == "win") "연승" else "연패"
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("현재", fontSize = 11.sp, color = LolColors.TextSecondary)
+                    Text("${data.currentStreak}${streakLabel}", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = streakColor)
+                }
+                Spacer(Modifier.height(6.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("최장 연승: ${data.longestWinStreak}", fontSize = 10.sp, color = LolColors.Win)
+                    Text("최장 연패: ${data.longestLossStreak}", fontSize = 10.sp, color = LolColors.Loss)
+                }
+                // Recent form dots
+                if (data.recentForm.isNotEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    Text("최근 전적", fontSize = 10.sp, color = LolColors.TextSecondary)
+                    Spacer(Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                        data.recentForm.takeLast(10).forEach { win ->
+                            Box(
+                                Modifier.size(14.dp)
+                                    .background(
+                                        if (win) LolColors.Win else LolColors.Loss,
+                                        RoundedCornerShape(2.dp),
+                                    ),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(if (win) "W" else "L", fontSize = 8.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ── 포지션 분포 ──────────────────────────────────
+
+private val POSITION_LABEL = mapOf("TOP" to "탑", "JUNGLE" to "정글", "MIDDLE" to "미드", "BOTTOM" to "원딜", "UTILITY" to "서포터")
+
+@Composable
+private fun PositionPoolSection(data: PositionPoolEntry?) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = LolColors.BgCard),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, LolColors.Border),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text("포지션 분포", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = LolColors.TextPrimary)
+            Spacer(Modifier.height(8.dp))
+            if (data == null || data.positions.isEmpty()) {
+                Text("데이터 없음", fontSize = 11.sp, color = LolColors.TextSecondary)
+            } else {
+                val total = data.positions.values.sum().coerceAtLeast(1)
+                val mainLabel = POSITION_LABEL[data.mainPosition.uppercase()] ?: data.mainPosition
+                Text("주 포지션: $mainLabel", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
+                Spacer(Modifier.height(8.dp))
+                data.positions.entries.sortedByDescending { it.value }.forEach { (pos, count) ->
+                    val label = POSITION_LABEL[pos.uppercase()] ?: pos
+                    val pct = (count.toDouble() / total * 100).toInt()
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(label, fontSize = 10.sp, color = LolColors.TextSecondary, modifier = Modifier.width(40.dp))
+                        Box(Modifier.weight(1f).height(6.dp).background(LolColors.Border, RoundedCornerShape(3.dp))) {
+                            Box(Modifier.fillMaxHeight().fillMaxWidth(pct / 100f).background(LolColors.Primary, RoundedCornerShape(3.dp)))
+                        }
+                        Text("$pct%", fontSize = 10.sp, color = LolColors.TextPrimary, modifier = Modifier.width(28.dp))
+                        Text("${count}판", fontSize = 9.sp, color = LolColors.TextDisabled, modifier = Modifier.width(28.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ── Elo 히스토리 ─────────────────────────────────
+
+@Composable
+private fun EloHistorySection(data: EloHistoryResult?) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = LolColors.BgCard),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, LolColors.Border),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text("Elo 히스토리", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = LolColors.TextPrimary)
+            Spacer(Modifier.height(8.dp))
+            if (data == null || data.history.isEmpty()) {
+                Text("Elo 기록 없음", fontSize = 11.sp, color = LolColors.TextSecondary)
+            } else {
+                data.history.take(10).forEach { entry ->
+                    val deltaColor = if (entry.delta >= 0) LolColors.Win else LolColors.Loss
+                    val arrow = if (entry.delta >= 0) "+" else ""
+                    val date = try {
+                        val instant = java.time.Instant.ofEpochMilli(entry.gameCreation)
+                        val zoned = instant.atZone(java.time.ZoneId.of("Asia/Seoul")).toLocalDate()
+                        "${zoned.monthValue}/${zoned.dayOfMonth}"
+                    } catch (_: Exception) { "" }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .background(if (entry.win) LolColors.Win.copy(alpha = 0.04f) else LolColors.Loss.copy(alpha = 0.04f), RoundedCornerShape(4.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(if (entry.win) "W" else "L", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = if (entry.win) LolColors.Win else LolColors.Loss, modifier = Modifier.width(14.dp))
+                        Text(entry.champion, fontSize = 11.sp, color = LolColors.TextPrimary, modifier = Modifier.weight(1f))
+                        Text("${entry.elo.toInt()}", fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, color = LolColors.TextPrimary)
+                        Text("$arrow${String.format("%.0f", entry.delta)}", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = deltaColor)
+                        Text(date, fontSize = 9.sp, color = LolColors.TextDisabled)
+                    }
+                    Spacer(Modifier.height(3.dp))
+                }
+            }
+        }
+    }
+}
+
+// ── 플레이스타일 DNA ──────────────────────────────
+
+@Composable
+private fun PlaystyleDnaSection(data: DnaEntry?) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = LolColors.BgCard),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, LolColors.Border),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text("플레이스타일 DNA", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = LolColors.TextPrimary)
+            Spacer(Modifier.height(8.dp))
+            if (data == null) {
+                Text("DNA 데이터 없음", fontSize = 11.sp, color = LolColors.TextSecondary)
+            } else {
+                if (data.archetype.isNotEmpty()) {
+                    Text("유형: ${data.archetype}", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
+                    Spacer(Modifier.height(8.dp))
+                }
+                val stats = listOf(
+                    "공격성" to data.aggression,
+                    "파밍" to data.farming,
+                    "시야" to data.vision,
+                    "팀파이트" to data.teamfight,
+                    "오브젝트" to data.objective,
+                )
+                stats.forEach { (label, value) ->
+                    val barColor = when {
+                        value >= 80 -> LolColors.Win
+                        value >= 50 -> LolColors.Primary
+                        else -> LolColors.TextSecondary
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(label, fontSize = 10.sp, color = LolColors.TextSecondary, modifier = Modifier.width(50.dp))
+                        Box(Modifier.weight(1f).height(8.dp).background(LolColors.Border, RoundedCornerShape(4.dp))) {
+                            Box(
+                                Modifier.fillMaxHeight()
+                                    .fillMaxWidth((value / 100.0).toFloat().coerceIn(0f, 1f))
+                                    .background(barColor, RoundedCornerShape(4.dp))
+                            )
+                        }
+                        Text("${value.toInt()}", fontSize = 10.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace, color = barColor, modifier = Modifier.width(24.dp))
+                    }
+                }
+            }
+        }
     }
 }

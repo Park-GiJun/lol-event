@@ -124,7 +124,7 @@ private fun App(
     onMinimize: () -> Unit,
     onClose: () -> Unit,
 ) {
-    var currentPage by remember { mutableStateOf(Page.COLLECT) }
+    var currentPage by remember { mutableStateOf(Page.DASHBOARD) }
     var lcuStatus by remember { mutableStateOf(LcuStatus(connected = false)) }
     var autoStatus by remember { mutableStateOf("") }
     val autoLogs = remember { mutableStateListOf<LogLine>() }
@@ -190,6 +190,7 @@ private fun App(
                 Sidebar(currentPage = currentPage, onPageChange = { currentPage = it }, modifier = Modifier.colSpan(3))
                 Box(Modifier.colSpan(13).fillMaxHeight().background(LolColors.BgPrimary)) {
                     when (currentPage) {
+                        Page.DASHBOARD -> DashboardPage()
                         Page.COLLECT -> CollectPage(
                             lcuStatus = lcuStatus,
                             autoStatus = autoStatus,

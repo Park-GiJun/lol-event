@@ -91,7 +91,20 @@ fun ChampSelectPage() {
         fetchedRiotIds = riotIds.toSet()
     }
 
-    val tabs = listOf("ban" to "밴 추천", "pick" to "내 픽 추천", "counter" to "카운터픽")
+    // 내전 데이터 fetch
+    var duoSynergy by remember { mutableStateOf<DuoSynergyResult?>(null) }
+    var rivalMatchup by remember { mutableStateOf<RivalMatchupResult?>(null) }
+    var banAnalysis by remember { mutableStateOf<BanAnalysisResult?>(null) }
+    var championTier by remember { mutableStateOf<ChampionTierResult?>(null) }
+
+    LaunchedEffect(Unit) {
+        launch { duoSynergy = ApiClient.fetchDuoSynergy() }
+        launch { rivalMatchup = ApiClient.fetchRivalMatchup() }
+        launch { banAnalysis = ApiClient.fetchBanAnalysis() }
+        launch { championTier = ApiClient.fetchChampionTier() }
+    }
+
+    val tabs = listOf("ban" to "밴 추천", "pick" to "내 픽 추천", "counter" to "카운터픽", "tier" to "챔피언 티어")
 
     Column(modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(scrollState)) {
         Text("챔피언 선택", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = LolColors.TextPrimary)
@@ -184,9 +197,43 @@ fun ChampSelectPage() {
 
             // 분석 탭
             when (tab) {
-                "ban" -> BanRecommendSection(s.theirTeam, playerDetails)
+                "ban" -> {
+                    BanRecommendSection(s.theirTeam, playerDetails)
+                    // 내전 밴 분석 강화
+                    banAnalysis?.let { ba ->
+                        if (ba.bans.isNotEmpty()) {
+                            Spacer(Modifier.height(12.dp))
+                            InternalBanAnalysisSection(ba)
+                        }
+                    }
+                }
                 "pick" -> MyPickSection(s.myTeam, s.bans.map { it.championId }.toSet(), playerDetails)
                 "counter" -> CounterSection(s.theirTeam)
+                "tier" -> ChampionTierSection(championTier)
+            }
+
+            // 듀오 시너지 (우리팀 기준)
+            duoSynergy?.let { duo ->
+                val myRiotIds = s.myTeam.mapNotNull { it.riotId.ifEmpty { null } }.toSet()
+                val relevantDuos = duo.duos.filter { it.player1 in myRiotIds && it.player2 in myRiotIds }
+                if (relevantDuos.isNotEmpty()) {
+                    Spacer(Modifier.height(16.dp))
+                    DuoSynergySection(relevantDuos)
+                }
+            }
+
+            // 라이벌 경고 (우리팀 vs 상대팀)
+            rivalMatchup?.let { rival ->
+                val myRiotIds = s.myTeam.mapNotNull { it.riotId.ifEmpty { null } }.toSet()
+                val theirRiotIds = s.theirTeam.mapNotNull { it.riotId.ifEmpty { null } }.toSet()
+                val relevantRivals = rival.rivals.filter {
+                    (it.player1 in myRiotIds && it.player2 in theirRiotIds) ||
+                    (it.player2 in myRiotIds && it.player1 in theirRiotIds)
+                }
+                if (relevantRivals.isNotEmpty()) {
+                    Spacer(Modifier.height(16.dp))
+                    RivalMatchupSection(relevantRivals)
+                }
             }
 
             // 밴 목록
@@ -777,4 +824,188 @@ private suspend fun fetchRuneDataForChampion(championId: Int): RuneDataForChamp?
         sampleSize = best.value.size,
         winRate = if (best.value.isNotEmpty()) wins.toDouble() / best.value.size * 100 else 0.0,
     )
+}
+
+// ── Duo Synergy Section ──────────────────────────
+
+@Composable
+private fun DuoSynergySection(duos: List<DuoSynergy>) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = LolColors.BgCard),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, LolColors.Border),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.Groups, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Win)
+                Text("듀오 시너지 (우리팀)", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Win)
+            }
+            Spacer(Modifier.height(8.dp))
+            Text("내전 기록에서 함께 승률이 높은 조합", fontSize = 11.sp, color = LolColors.TextSecondary)
+            Spacer(Modifier.height(10.dp))
+            duos.sortedByDescending { it.winRate }.take(5).forEach { duo ->
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .background(LolColors.BgHover, RoundedCornerShape(4.dp))
+                        .padding(horizontal = 8.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(duo.player1.split("#").first(), fontSize = 11.sp, color = LolColors.TextPrimary)
+                    Text("+", fontSize = 11.sp, color = LolColors.TextSecondary)
+                    Text(duo.player2.split("#").first(), fontSize = 11.sp, color = LolColors.TextPrimary, modifier = Modifier.weight(1f))
+                    Text("${duo.winRate.toInt()}%", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = winRateColor(duo.winRate))
+                    Text("${duo.games}판", fontSize = 10.sp, color = LolColors.TextSecondary)
+                    Text("KDA ${String.format("%.1f", duo.combinedKda)}", fontSize = 10.sp, color = LolColors.TextDisabled)
+                }
+                Spacer(Modifier.height(4.dp))
+            }
+        }
+    }
+}
+
+// ── Rival Matchup Section ────────────────────────
+
+@Composable
+private fun RivalMatchupSection(rivals: List<RivalEntry>) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = LolColors.BgCard),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, LolColors.Border),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.Compare, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Error)
+                Text("라이벌 경고", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Error)
+            }
+            Spacer(Modifier.height(8.dp))
+            Text("내전에서 자주 맞붙은 상대", fontSize = 11.sp, color = LolColors.TextSecondary)
+            Spacer(Modifier.height(10.dp))
+            rivals.sortedByDescending { it.games }.take(5).forEach { rival ->
+                Row(
+                    modifier = Modifier.fillMaxWidth()
+                        .background(LolColors.BgHover, RoundedCornerShape(4.dp))
+                        .padding(horizontal = 8.dp, vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(rival.player1.split("#").first(), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Info)
+                    Text("vs", fontSize = 10.sp, color = LolColors.TextSecondary)
+                    Text(rival.player2.split("#").first(), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Error, modifier = Modifier.weight(1f))
+                    Text("${rival.player1Wins}W", fontSize = 11.sp, color = LolColors.Info)
+                    Text("-", fontSize = 10.sp, color = LolColors.TextSecondary)
+                    Text("${rival.player2Wins}W", fontSize = 11.sp, color = LolColors.Error)
+                    Text("(${rival.games}판)", fontSize = 10.sp, color = LolColors.TextSecondary)
+                }
+                Spacer(Modifier.height(4.dp))
+            }
+        }
+    }
+}
+
+// ── Internal Ban Analysis Section ────────────────
+
+@Composable
+private fun InternalBanAnalysisSection(data: BanAnalysisResult) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = LolColors.BgCard),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, LolColors.Border),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.Block, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Warning)
+                Text("내전 밴 분석", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Warning)
+            }
+            Spacer(Modifier.height(8.dp))
+            Text("내전에서 자주 밴되는 챔피언", fontSize = 11.sp, color = LolColors.TextSecondary)
+            Spacer(Modifier.height(10.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                data.bans.take(8).forEach { ban ->
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .background(LolColors.BgHover, RoundedCornerShape(6.dp))
+                            .border(1.dp, LolColors.Border, RoundedCornerShape(6.dp))
+                            .padding(8.dp),
+                    ) {
+                        ChampionIcon(ban.championId, 32.dp)
+                        Spacer(Modifier.height(4.dp))
+                        Text("${ban.banRate.toInt()}%밴", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = LolColors.Error)
+                        Text("${ban.banCount}회", fontSize = 9.sp, color = LolColors.TextSecondary)
+                        if (ban.winRateWhenNotBanned > 0) {
+                            Text("비밴시 ${ban.winRateWhenNotBanned.toInt()}%", fontSize = 9.sp, color = winRateColor(ban.winRateWhenNotBanned))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ── Champion Tier Section ────────────────────────
+
+@Composable
+private fun ChampionTierSection(data: ChampionTierResult?) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = LolColors.BgCard),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, LolColors.Border),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Icon(Icons.Default.TrendingUp, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
+                Text("내전 챔피언 티어", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
+            }
+            Spacer(Modifier.height(4.dp))
+            Text("내전 데이터 기반 챔피언 메타 (3판 이상)", fontSize = 11.sp, color = LolColors.TextSecondary)
+            Spacer(Modifier.height(12.dp))
+
+            if (data == null || data.tiers.isEmpty()) {
+                Text("티어 데이터 없음", fontSize = 13.sp, color = LolColors.TextSecondary)
+            } else {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Spacer(Modifier.width(30.dp)) // icon space
+                    Text("챔피언", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = LolColors.TextSecondary, modifier = Modifier.weight(1f))
+                    Text("티어", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = LolColors.TextSecondary, modifier = Modifier.width(32.dp))
+                    Text("판수", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = LolColors.TextSecondary, modifier = Modifier.width(32.dp))
+                    Text("승률", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = LolColors.TextSecondary, modifier = Modifier.width(36.dp))
+                    Text("KDA", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = LolColors.TextSecondary, modifier = Modifier.width(36.dp))
+                }
+                data.tiers.take(20).forEach { entry ->
+                    val tierColor = when (entry.tier.uppercase()) {
+                        "S" -> Color(0xFFFFD700)
+                        "A" -> Color(0xFF4CAF50)
+                        "B" -> LolColors.Info
+                        "C" -> LolColors.TextSecondary
+                        else -> LolColors.TextDisabled
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                            .background(LolColors.BgHover, RoundedCornerShape(4.dp))
+                            .padding(horizontal = 8.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        ChampionIcon(entry.championId, 24.dp)
+                        Text(entry.champion, fontSize = 12.sp, color = LolColors.TextPrimary, modifier = Modifier.weight(1f))
+                        Text(entry.tier, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = tierColor, modifier = Modifier.width(32.dp))
+                        Text("${entry.games}", fontSize = 11.sp, color = LolColors.TextSecondary, modifier = Modifier.width(32.dp))
+                        Text("${entry.winRate.toInt()}%", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = winRateColor(entry.winRate), modifier = Modifier.width(36.dp))
+                        Text(String.format("%.1f", entry.kda), fontSize = 11.sp, color = LolColors.TextSecondary, modifier = Modifier.width(36.dp))
+                    }
+                    Spacer(Modifier.height(3.dp))
+                }
+            }
+        }
+    }
 }

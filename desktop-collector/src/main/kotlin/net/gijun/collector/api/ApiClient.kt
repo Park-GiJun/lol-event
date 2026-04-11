@@ -63,6 +63,146 @@ object ApiClient {
         }
     }
 
+    // ── 듀오 시너지 ──
+    suspend fun fetchDuoSynergy(mode: String = "normal", minGames: Int = 2): DuoSynergyResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/duo?mode=$mode&minGames=$minGames")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<DuoSynergyResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── 라이벌 매치업 ──
+    suspend fun fetchRivalMatchup(mode: String = "normal", minGames: Int = 2): RivalMatchupResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/rival?mode=$mode&minGames=$minGames")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<RivalMatchupResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── 챔피언 티어 ──
+    suspend fun fetchChampionTier(mode: String = "normal", minGames: Int = 3): ChampionTierResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/champion-tier?mode=$mode&minGames=$minGames")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<ChampionTierResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── 밴 분석 ──
+    suspend fun fetchBanAnalysis(mode: String = "normal"): BanAnalysisResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/ban-analysis?mode=$mode")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<BanAnalysisResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── Elo 리더보드 ──
+    suspend fun fetchEloLeaderboard(): EloLeaderboardResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/elo-leaderboard")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<EloLeaderboardResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── Elo 히스토리 ──
+    suspend fun fetchEloHistory(riotId: String, limit: Int = 20): EloHistoryResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/elo-history/${riotId.encodeURLPath()}?limit=$limit")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<EloHistoryResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── 플레이어 스트릭 ──
+    suspend fun fetchPlayerStreak(riotId: String, mode: String = "normal"): PlayerStreakResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/streak/${riotId.encodeURLPath()}?mode=$mode")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<PlayerStreakResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── 어워즈 ──
+    suspend fun fetchAwards(mode: String = "normal"): AwardsResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/awards?mode=$mode")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<AwardsResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── 멀티킬 하이라이트 ──
+    suspend fun fetchMultikillHighlights(mode: String = "normal"): MultikillHighlightsResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/multikill?mode=$mode")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<MultikillHighlightsResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── MVP 랭킹 ──
+    suspend fun fetchMvpRanking(mode: String = "normal"): MvpRankingResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/mvp?mode=$mode")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<MvpRankingResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── 포지션별 챔피언 풀 ──
+    suspend fun fetchPositionPool(mode: String = "normal"): PositionPoolResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/position-pool?mode=$mode")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<PositionPoolResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── 플레이스타일 DNA ──
+    suspend fun fetchPlaystyleDna(mode: String = "normal"): PlaystyleDnaResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/playstyle-dna?mode=$mode")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<PlaystyleDnaResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── 전체 개요 ──
+    suspend fun fetchOverview(mode: String = "normal"): OverviewResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/overview?mode=$mode")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<OverviewResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── 플레이어 비교 ──
+    suspend fun fetchCompare(player1: String, player2: String, mode: String = "normal"): CompareResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/compare?player1=${player1.encodeURLParameter()}&player2=${player2.encodeURLParameter()}&mode=$mode")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<CompareResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
     suspend fun postMatches(matches: List<JsonObject>): Pair<Int, Int> {
         val body = buildJsonObject {
             put("matches", JsonArray(matches))

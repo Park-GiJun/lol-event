@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import net.gijun.collector.ui.theme.LolColors
 
 enum class Page(val label: String, val icon: ImageVector) {
+    DASHBOARD("내전 대시보드", Icons.Default.Layers),
     COLLECT("매치 수집", Icons.Default.Layers),
     CUSTOM("내전 분석", Icons.Default.Layers),       // Swords 아이콘 대체
     SUMMONER("소환사 검색", Icons.Default.Search),
