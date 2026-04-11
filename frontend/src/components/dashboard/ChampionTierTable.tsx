@@ -139,23 +139,35 @@ export function ChampionTierTable() {
               style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 width: '100%', textAlign: 'left',
-                padding: '8px 12px', background: tierColor + '0D',
-                border: `1px solid ${tierColor}33`, borderRadius: isExpanded ? '6px 6px 0 0' : 6,
+                padding: '9px 14px',
+                background: isExpanded
+                  ? `linear-gradient(135deg, ${tierColor}18, ${tierColor}0A)`
+                  : `${tierColor}0D`,
+                border: `1px solid ${isExpanded ? tierColor + '44' : tierColor + '28'}`,
+                borderRadius: isExpanded ? 'var(--radius-sm) var(--radius-sm) 0 0' : 'var(--radius-sm)',
                 cursor: 'pointer',
+                transition: 'all var(--transition-fast)',
+                boxShadow: isExpanded ? `0 0 12px ${tierColor}18` : 'none',
               }}
               onClick={() => setExpanded(prev => ({ ...prev, [tier]: !prev[tier] }))}
             >
               <span style={{
-                fontSize: 11, fontWeight: 700, color: tierColor,
-                background: tierColor + '28', borderRadius: 4, padding: '2px 7px',
-                border: `1px solid ${tierColor}66`,
+                fontSize: 11, fontWeight: 800, color: tierColor,
+                background: tierColor + '25', borderRadius: 4, padding: '2px 8px',
+                border: `1px solid ${tierColor}55`,
+                minWidth: 24, textAlign: 'center',
               }}>
                 {tier}
               </span>
-              <span style={{ fontSize: 13, fontWeight: 600, color: tierColor }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: tierColor }}>
                 {tier} 티어
               </span>
-              <span style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginLeft: 4 }}>
+              <span style={{
+                fontSize: 11, color: 'var(--color-text-disabled)',
+                background: 'rgba(255,255,255,0.04)',
+                borderRadius: 10, padding: '1px 7px',
+                border: '1px solid rgba(255,255,255,0.06)',
+              }}>
                 {champions.length}개
               </span>
               <span style={{ marginLeft: 'auto', color: 'var(--color-text-secondary)', fontSize: 12 }}>
@@ -164,7 +176,15 @@ export function ChampionTierTable() {
             </button>
 
             {isExpanded && (
-              <div className="table-wrapper" style={{ borderRadius: '0 0 6px 6px', border: `1px solid ${tierColor}22`, borderTop: 'none' }}>
+              <div
+                className="table-wrapper"
+                style={{
+                  borderRadius: '0 0 var(--radius-sm) var(--radius-sm)',
+                  border: `1px solid ${tierColor}28`,
+                  borderTop: 'none',
+                  animation: 'fadeInDown 0.15s ease both',
+                }}
+              >
                 <table className="table member-stats-table">
                   <ColGroup />
                   <thead>

@@ -44,7 +44,7 @@ function ChampionRow({ entry, displayName, imgUrl, onNavigate }: ChampionRowProp
         {showFallback ? (
           <div style={{
             width: 32, height: 32, borderRadius: 4,
-            background: 'var(--color-bg-hover)',
+            background: 'rgba(255,255,255,0.05)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 10, color: 'var(--color-text-secondary)', flexShrink: 0,
           }}>
@@ -56,7 +56,7 @@ function ChampionRow({ entry, displayName, imgUrl, onNavigate }: ChampionRowProp
             alt={displayName}
             width={32}
             height={32}
-            style={{ borderRadius: 4, border: '1px solid var(--color-border)', objectFit: 'cover', flexShrink: 0 }}
+            style={{ borderRadius: 4, border: '1px solid var(--glass-border)', objectFit: 'cover', flexShrink: 0 }}
             onError={() => setImgError(true)}
           />
         )}

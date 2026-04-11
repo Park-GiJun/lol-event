@@ -23,7 +23,9 @@ export function Sidebar({ drawerOpen = false, onClose }: SidebarProps) {
   return (
     <aside className={`sidebar${drawerOpen ? ' sidebar--open' : ''}`}>
       <div className="sidebar-logo">
-        <Swords size={22} color="var(--color-primary)" />
+        <div className="sidebar-logo-icon">
+          <Swords size={18} />
+        </div>
         <span className="sidebar-logo-text">LoL 내전</span>
         {onClose && (
           <button className="sidebar-close-btn" onClick={onClose} aria-label="닫기">
@@ -34,9 +36,11 @@ export function Sidebar({ drawerOpen = false, onClose }: SidebarProps) {
       <nav className="sidebar-nav">
         {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
           <NavLink key={to} to={to} end={to === '/'}
-            className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}>
-            <Icon size={18} />
-            {label}
+            className={({ isActive }) => `sidebar-item${isActive ? ' active' : ''}`}>
+            <span className="sidebar-item-icon">
+              <Icon size={17} />
+            </span>
+            <span className="sidebar-item-label">{label}</span>
           </NavLink>
         ))}
       </nav>

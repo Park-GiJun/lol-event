@@ -161,7 +161,7 @@ function DnaBar({ label, value, color }: { label: string; value: number; color: 
         <span style={{ color: 'var(--color-text-secondary)' }}>{label}</span>
         <span style={{ color }}>{value.toFixed(0)}</span>
       </div>
-      <div style={{ height: 4, borderRadius: 2, background: 'var(--color-bg-hover)' }}>
+      <div style={{ height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.06)' }}>
         <div style={{ height: '100%', borderRadius: 2, background: color, width: `${Math.min(value, 100)}%` }} />
       </div>
     </div>
@@ -341,7 +341,7 @@ function GrowthTab({ mode }: { mode: string }) {
       <div className="m-card" style={{ marginBottom: 12 }}>
         <div style={{ display: 'flex', gap: 8 }}>
           <input value={riotId} onChange={e => setRiotId(e.target.value)} placeholder="닉네임#태그"
-            style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-bg-hover)', color: 'var(--color-text-primary)', fontSize: 12 }} />
+            style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--color-text-primary)', fontSize: 12 }} />
           <button onClick={() => riotId && setQuery(riotId)}
             style={{ padding: '8px 16px', borderRadius: 8, background: 'var(--color-primary)', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer' }}>
             조회
@@ -379,7 +379,7 @@ function GrowthTab({ mode }: { mode: string }) {
           </div>
           <p className="m-section-title">최근 경기 기록</p>
           {data.entries.slice(-15).reverse().map((e, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--color-border)' }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--glass-border)' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: e.win ? 'var(--color-win)' : 'var(--color-loss)', flexShrink: 0 }} />
               <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', width: 40 }}>
                 {new Date(e.gameCreation).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })}

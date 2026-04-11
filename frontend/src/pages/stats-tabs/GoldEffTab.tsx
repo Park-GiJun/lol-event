@@ -32,49 +32,49 @@ export default function GoldEffTab({ mode }: { mode: string }) {
     <div>
       <div className="grid-16" style={{ marginBottom: 20 }}>
         {kings.map(k => (
-          <div key={k.label} className="card col-span-8" style={{ padding: 12, textAlign: 'center' }}>
-            <div style={{ fontSize: 22, marginBottom: 4 }}>{k.emoji}</div>
-            <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', marginBottom: 3 }}>{k.label}</div>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#FFD700' }}>{k.name?.split('#')[0] ?? '-'}</div>
+          <div key={k.label} className="card col-span-8" style={{ padding: '14px 12px', textAlign: 'center', transition: 'border-color var(--transition-fast), background var(--transition-fast)' }}>
+            <div style={{ fontSize: 24, marginBottom: 6, filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.2))' }}>{k.emoji}</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-secondary)', letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase', marginBottom: 5 }}>{k.label}</div>
+            <div style={{ fontWeight: 800, fontSize: 14, color: '#FFD700', textShadow: '0 0 8px rgba(255,215,0,0.3)' }}>{k.name?.split('#')[0] ?? '-'}</div>
           </div>
         ))}
       </div>
 
-      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>골드 효율 랭킹</h3>
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid var(--glass-border)', color: 'var(--color-text-primary)' }}>골드 효율 랭킹</h3>
+      <div className="table-wrapper">
+        <table className="table member-stats-table" style={{ fontSize: 12 }}>
           <thead>
-            <tr style={{ background: 'var(--color-bg-hover)' }}>
-              <th style={{ padding: '7px 10px', textAlign: 'left' }}>플레이어</th>
-              <th style={{ padding: '7px 10px', textAlign: 'center' }}>효율점수</th>
-              <th style={{ padding: '7px 10px', textAlign: 'center' }}>딜/골드</th>
-              <th style={{ padding: '7px 10px', textAlign: 'center' }}>시야/골드</th>
-              <th style={{ padding: '7px 10px', textAlign: 'center' }}>CS/골드</th>
-              <th style={{ padding: '7px 10px', textAlign: 'left' }}>태그</th>
+            <tr>
+              <th style={{ padding: '8px 12px', textAlign: 'left' }}>플레이어</th>
+              <th style={{ padding: '8px 12px', textAlign: 'center' }}>효율점수</th>
+              <th style={{ padding: '8px 12px', textAlign: 'center' }}>딜/골드</th>
+              <th style={{ padding: '8px 12px', textAlign: 'center' }}>시야/골드</th>
+              <th style={{ padding: '8px 12px', textAlign: 'center' }}>CS/골드</th>
+              <th style={{ padding: '8px 12px', textAlign: 'left' }}>태그</th>
             </tr>
           </thead>
           <tbody>
             {data.rankings.map((e: GoldEfficiencyEntry, i: number) => (
-              <tr key={e.riotId} style={{ borderTop: '1px solid var(--color-border)' }}>
-                <td style={{ padding: '7px 10px' }}>
+              <tr key={e.riotId} className="member-stats-row">
+                <td style={{ padding: '8px 12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <RankBadge rank={i + 1} />
                     <PlayerLink riotId={e.riotId} mode={mode}>
-                      <span style={{ fontWeight: 600 }}>{e.riotId.split('#')[0]}</span>
+                      <span style={{ fontWeight: 700 }}>{e.riotId.split('#')[0]}</span>
                     </PlayerLink>
                   </div>
-                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', paddingLeft: 32 }}>{e.games}게임</div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', paddingLeft: 32, marginTop: 1 }}>{e.games}게임</div>
                 </td>
-                <td style={{ padding: '7px 10px', textAlign: 'center', fontWeight: 700, color: 'var(--color-primary)' }}>
+                <td style={{ padding: '8px 12px', textAlign: 'center', fontWeight: 800, color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>
                   {e.goldEfficiencyScore.toFixed(2)}
                 </td>
-                <td style={{ padding: '7px 10px', textAlign: 'center' }}>{e.avgDmgPerGold.toFixed(3)}</td>
-                <td style={{ padding: '7px 10px', textAlign: 'center' }}>{e.avgVisionPerGold.toFixed(4)}</td>
-                <td style={{ padding: '7px 10px', textAlign: 'center' }}>{e.avgCsPerGold.toFixed(4)}</td>
-                <td style={{ padding: '7px 10px' }}>
-                  <div className="grid-16" style={{ gap: 3 }}>
+                <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--color-text-secondary)', fontVariantNumeric: 'tabular-nums' }}>{e.avgDmgPerGold.toFixed(3)}</td>
+                <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--color-text-secondary)', fontVariantNumeric: 'tabular-nums' }}>{e.avgVisionPerGold.toFixed(4)}</td>
+                <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--color-text-secondary)', fontVariantNumeric: 'tabular-nums' }}>{e.avgCsPerGold.toFixed(4)}</td>
+                <td style={{ padding: '8px 12px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                     {e.tags.map((t: string) => (
-                      <span key={t} className="col-span-1" style={{ fontSize: 10, padding: '1px 5px', borderRadius: 8, background: 'var(--color-primary)22', color: 'var(--color-primary)' }}>{t}</span>
+                      <span key={t} style={{ fontSize: 10, padding: '2px 6px', borderRadius: 10, background: 'rgba(0,180,216,0.12)', color: 'var(--color-primary)', fontWeight: 600 }}>{t}</span>
                     ))}
                   </div>
                 </td>

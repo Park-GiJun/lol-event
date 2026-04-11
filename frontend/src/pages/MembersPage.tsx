@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Trash2, UserPlus, Users } from 'lucide-react';
 import { api } from '../lib/api/api';
+import '../styles/pages/stats.css';
 import { PlayerLink } from '../components/common/PlayerLink';
 import type { Member, BulkRegisterResponse } from '../lib/types/member';
 import { Button } from '../components/common/Button';
@@ -86,7 +87,7 @@ export function MembersPage() {
                   </tr>
                 ))}
                 {!members.length && (
-                  <tr><td colSpan={4} style={{ textAlign: 'center', color: 'var(--color-text-secondary)', padding: '32px' }}>등록된 멤버 없음</td></tr>
+                  <tr className="members-empty-row"><td colSpan={4}>등록된 멤버 없음</td></tr>
                 )}
               </tbody>
             </table>
@@ -104,9 +105,9 @@ export function MembersPage() {
         {!bulkResult ? (
           <Textarea label="Riot ID 목록 (줄 구분)" value={bulkInput} onChange={setBulkInput} placeholder={"플레이어1#KR1\n플레이어2#KR2"} rows={8} />
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '320px', overflowY: 'auto' }}>
+          <div className="bulk-result-list">
             {bulkResult.results.map((r, i) => (
-              <div key={i} className="flex items-center justify-between" style={{ fontSize: 'var(--font-size-sm)' }}>
+              <div key={i} className="bulk-result-item">
                 <span>{r.riotId}</span>
                 <span className={`badge ${r.status === 'ok' ? 'badge-win' : r.status === 'error' ? 'badge-loss' : 'badge-normal'}`}>
                   {r.status === 'ok' ? '등록' : r.status === 'skip' ? `스킵: ${r.reason}` : `오류: ${r.reason}`}

@@ -128,7 +128,7 @@ function ChampionGrid({ data }: { data: DragonChampion[] }) {
               onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
             />
           ) : (
-            <div style={{ width: 52, height: 52, borderRadius: 8, background: 'var(--color-bg-hover)', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'var(--color-text-disabled)' }}>
+            <div style={{ width: 52, height: 52, borderRadius: 8, background: 'rgba(255,255,255,0.05)', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'var(--color-text-disabled)' }}>
               {c.nameKo.slice(0, 2)}
             </div>
           )}
@@ -153,7 +153,7 @@ function ItemGrid({ data }: { data: DragonItem[] }) {
               onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
             />
           ) : (
-            <div style={{ width: 52, height: 52, borderRadius: 8, background: 'var(--color-bg-hover)', margin: '0 auto' }} />
+            <div style={{ width: 52, height: 52, borderRadius: 8, background: 'rgba(255,255,255,0.05)', margin: '0 auto' }} />
           )}
           <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {item.nameKo}
@@ -176,7 +176,7 @@ function SpellGrid({ data }: { data: DragonSummonerSpell[] }) {
               onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
             />
           ) : (
-            <div style={{ width: 52, height: 52, borderRadius: 8, background: 'var(--color-bg-hover)', margin: '0 auto' }} />
+            <div style={{ width: 52, height: 52, borderRadius: 8, background: 'rgba(255,255,255,0.05)', margin: '0 auto' }} />
           )}
           <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {s.nameKo}

@@ -395,7 +395,7 @@ function MobileTimeTab({ mode }: { mode: string }) {
             <span style={{ fontWeight: 600 }}>{d.dayName}요일</span>
             <span style={{ color: 'var(--color-text-secondary)' }}>{d.games}게임 · {d.sessions}세션</span>
           </div>
-          <div style={{ height: 8, borderRadius: 4, background: 'var(--color-bg-hover)' }}>
+          <div style={{ height: 8, borderRadius: 4, background: 'rgba(255,255,255,0.06)' }}>
             <div style={{ height: '100%', borderRadius: 4, background: 'var(--color-primary)', width: `${d.games / maxDay * 100}%` }} />
           </div>
         </div>
@@ -404,7 +404,7 @@ function MobileTimeTab({ mode }: { mode: string }) {
       {data.byHour.map(h => (
         <div key={h.hour} style={{ marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 11, color: 'var(--color-text-secondary)', width: 28, flexShrink: 0 }}>{h.hour}시</span>
-          <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--color-bg-hover)' }}>
+          <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'rgba(255,255,255,0.06)' }}>
             <div style={{ height: '100%', borderRadius: 3, background: 'var(--color-primary)', width: `${h.games / maxHour * 100}%` }} />
           </div>
           <span style={{ fontSize: 11, color: 'var(--color-text-secondary)', width: 30, textAlign: 'right', flexShrink: 0 }}>{h.games}</span>

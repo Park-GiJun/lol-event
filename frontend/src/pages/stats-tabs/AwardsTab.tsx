@@ -42,16 +42,17 @@ export default function AwardsTab({ mode }: { mode: string }) {
         {entries.map(([key, label]) => {
           const entry = data[key];
           return (
-            <div key={key} className="card" style={{ padding: '14px 16px' }}>
-              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>{label}</div>
+            <div key={key} className="card" style={{ padding: '14px 16px', transition: 'border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast)', cursor: entry ? 'pointer' : 'default' }}
+              onClick={entry ? () => navigate(`/player-stats/${encodeURIComponent(entry.riotId)}`) : undefined}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-secondary)', letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase', marginBottom: 8 }}>{label}</div>
               {entry ? (
-                <div style={{ cursor: 'pointer' }} onClick={() => navigate(`/player-stats/${encodeURIComponent(entry.riotId)}`)}>
+                <>
                   <div style={{ fontWeight: 700, fontSize: 15 }}>{entry.riotId.split('#')[0]}</div>
-                  <div style={{ fontSize: 13, color: 'var(--color-primary)', marginTop: 2 }}>{entry.displayValue}</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-primary)', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{entry.displayValue}</div>
                   <div style={{ fontSize: 11, color: 'var(--color-text-disabled)', marginTop: 2 }}>{entry.games}판</div>
-                </div>
+                </>
               ) : (
-                <div style={{ color: 'var(--color-text-disabled)', fontSize: 12 }}>데이터 없음</div>
+                <div style={{ color: 'var(--color-text-disabled)', fontSize: 12, marginTop: 4 }}>데이터 없음</div>
               )}
             </div>
           );

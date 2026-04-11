@@ -37,9 +37,9 @@ export default function ChaosTab({ mode }: { mode: string }) {
   const renderCard = (entry: ChaosMatchEntry) => {
     const tagColor = chaosTagColor(entry.gameTypeTag);
     return (
-      <div key={entry.matchId} className="card" style={{ padding: '12px 14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <span style={{ fontWeight: 800, fontSize: 20, color: 'var(--color-primary)' }}>
+      <div key={entry.matchId} className="card" style={{ padding: '14px 16px', borderLeft: `3px solid ${tagColor}88`, transition: 'border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ fontWeight: 800, fontSize: 22, color: tagColor, fontVariantNumeric: 'tabular-nums', textShadow: `0 0 12px ${tagColor}44` }}>
             {entry.chaosIndex.toFixed(1)}
           </span>
           <span style={{ fontSize: 11, fontWeight: 700, color: tagColor,
@@ -61,9 +61,9 @@ export default function ChaosTab({ mode }: { mode: string }) {
   return (
     <div>
       <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
-        평균 혼돈 지수: {data.avgChaosIndex.toFixed(1)}
+        평균 혼돈 지수: <span style={{ fontWeight: 700, color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>{data.avgChaosIndex.toFixed(1)}</span>
       </p>
-      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 8 }}>🔥 최고 혼돈 경기 TOP 10</h3>
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: 'var(--color-text-primary)' }}>🔥 최고 혼돈 경기 TOP 10</h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10, marginBottom: 20 }}>
         {data.topChaosMatches.map(renderCard)}
       </div>

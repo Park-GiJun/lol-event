@@ -1,40 +1,158 @@
+/* ================================================================
+ * CARD — 글래스모피즘 기반 카드 시스템
+ * ================================================================ */
 .card {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast),
+    background var(--transition-fast);
+  box-shadow: var(--shadow-inset);
+  position: relative;
+  overflow: hidden;
 }
+
+/* 카드 상단 미세 하이라이트 */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+  pointer-events: none;
+}
+
 .card:hover {
   border-color: var(--color-border-light);
+  background: var(--glass-bg-hover);
 }
+
 .card.clickable {
   cursor: pointer;
 }
 .card.clickable:hover {
-  border-color: var(--color-primary);
+  border-color: rgba(0, 180, 216, 0.25);
   box-shadow: var(--shadow-card-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 .card.clickable:active {
   transform: translateY(0);
+  box-shadow: var(--shadow-md);
 }
+
+/* Card internal structure */
 .card-header {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--glass-border);
 }
-.card-title { font-size: var(--font-size-md); font-weight: 600; color: var(--color-primary); }
+.card-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  letter-spacing: var(--tracking-wide);
+}
+
+.card-body {
+  flex: 1;
+}
+
+.card-footer {
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--glass-border);
+}
+
+/* ================================================================
+ * STAT CARD — 값 강조형
+ * ================================================================ */
 .stat-card {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
-  display: flex; flex-direction: column; gap: var(--spacing-xs);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast),
+    transform var(--transition-fast);
+  box-shadow: var(--shadow-inset);
+  position: relative;
+  overflow: hidden;
 }
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 180, 216, 0.1), transparent);
+  pointer-events: none;
+}
+
 .stat-card:hover {
-  background: var(--color-bg-hover);
-  border-color: var(--color-border-light);
+  background: var(--glass-bg-hover);
+  border-color: rgba(0, 180, 216, 0.15);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-teal);
 }
-.stat-card-label { font-size: var(--font-size-xs); color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
-.stat-card-value { font-size: var(--font-size-2xl); font-weight: 700; color: var(--color-primary); font-variant-numeric: tabular-nums; line-height: 1.2; }
+
+.stat-card-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  font-weight: var(--font-weight-semibold);
+}
+.stat-card-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* ================================================================
+ * CARD GLASS — 순수 글래스모피즘 변형
+ * ================================================================ */
+.card-glass {
+  background: rgba(13, 18, 37, 0.4);
+  backdrop-filter: blur(var(--glass-blur-heavy));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-inset), 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.card-glass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+  pointer-events: none;
+}

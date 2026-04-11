@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Monitor, Lock, ExternalLink, Activity } from 'lucide-react';
 import '../styles/pages/monitoring.css';
+import '../styles/pages/stats.css';
 
 const MONITORING_PASSWORD = 'admin1234';
 const SESSION_KEY = 'monitoring_auth';
@@ -80,7 +81,7 @@ export function MonitoringPage() {
           href={GRAFANA_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="monitoring-link-card"
+          className="monitoring-link-card monitoring-link-card--grafana"
         >
           <Monitor size={24} />
           <div>
@@ -98,7 +99,7 @@ export function MonitoringPage() {
           href={PROMETHEUS_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="monitoring-link-card"
+          className="monitoring-link-card monitoring-link-card--prometheus"
         >
           <Activity size={24} />
           <div>

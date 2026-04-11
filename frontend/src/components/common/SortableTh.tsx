@@ -40,12 +40,21 @@ function SortableThInner<T extends string>({
         userSelect: 'none',
         whiteSpace: 'nowrap',
         width: width ?? undefined,
-        color: active ? 'var(--color-primary)' : undefined,
+        color: active ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+        transition: 'color var(--transition-fast)',
       }}
     >
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>
         {label}
-        <span style={{ fontSize: 9, opacity: active ? 1 : 0.25 }} aria-hidden="true">
+        <span
+          style={{
+            fontSize: 9,
+            opacity: active ? 1 : 0.3,
+            color: active ? 'var(--color-primary)' : undefined,
+            transition: 'opacity var(--transition-fast), color var(--transition-fast)',
+          }}
+          aria-hidden="true"
+        >
           {!active ? '↕' : sortDir === 'desc' ? '▼' : '▲'}
         </span>
       </span>

@@ -49,7 +49,7 @@ export function MobileLayout() {
         <div style={{ width: 44 }} />
       </header>
 
-      <main className="m-content">
+      <main className="m-content page-enter">
         <Outlet />
       </main>
 
@@ -57,8 +57,15 @@ export function MobileLayout() {
         {TABS.map(({ to, icon: Icon, label, end }) => (
           <NavLink key={to} to={to} end={end}
             className={({ isActive }) => `m-bottom-nav-item${isActive ? ' active' : ''}`}>
-            <Icon size={22} />
-            <span>{label}</span>
+            {({ isActive }) => (
+              <>
+                <span className="m-bottom-nav-icon">
+                  <Icon size={22} />
+                  {isActive && <span className="m-bottom-nav-dot" />}
+                </span>
+                <span>{label}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </nav>

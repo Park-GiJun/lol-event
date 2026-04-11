@@ -190,7 +190,7 @@ export function MobilePlayerDetailPage() {
             {champInfo?.imageUrl ? (
               <img src={champInfo.imageUrl} alt={champInfo.nameKo} width={44} height={44} style={{ borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
             ) : (
-              <div style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--color-bg-hover)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(255,255,255,0.05)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>
                 {cs.champion.slice(0, 2)}
               </div>
             )}
@@ -215,7 +215,7 @@ export function MobilePlayerDetailPage() {
             {champInfo?.imageUrl ? (
               <img src={champInfo.imageUrl} alt={rm.champion} width={40} height={40} style={{ borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
             ) : (
-              <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--color-bg-hover)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 8, background: 'rgba(255,255,255,0.05)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>
                 {rm.champion.slice(0, 2)}
               </div>
             )}
@@ -251,7 +251,7 @@ export function MobilePlayerDetailPage() {
                   {growthData.recentAvgKda.toFixed(2)}
                 </div>
               </div>
-              <div style={{ padding: '4px 10px', borderRadius: 12, fontSize: 12, fontWeight: 700, background: growthData.trend === 'IMPROVING' ? 'rgba(76,175,80,0.15)' : growthData.trend === 'DECLINING' ? 'rgba(255,71,87,0.15)' : 'var(--color-bg-hover)', color: growthData.trend === 'IMPROVING' ? '#4CAF50' : growthData.trend === 'DECLINING' ? '#FF4757' : 'var(--color-text-secondary)' }}>
+              <div style={{ padding: '4px 10px', borderRadius: 12, fontSize: 12, fontWeight: 700, background: growthData.trend === 'IMPROVING' ? 'rgba(76,175,80,0.15)' : growthData.trend === 'DECLINING' ? 'rgba(255,71,87,0.15)' : 'rgba(255,255,255,0.05)', color: growthData.trend === 'IMPROVING' ? '#4CAF50' : growthData.trend === 'DECLINING' ? '#FF4757' : 'var(--color-text-secondary)' }}>
                 {growthData.trend === 'IMPROVING' ? '↑ 상승 중' : growthData.trend === 'DECLINING' ? '↓ 하락 중' : '→ 안정적'}
               </div>
             </div>
@@ -283,7 +283,7 @@ export function MobilePlayerDetailPage() {
                     <span style={{ color: 'var(--color-text-secondary)' }}>{label}</span>
                     <span style={{ color }}>{value.toFixed(0)}</span>
                   </div>
-                  <div style={{ height: 4, borderRadius: 2, background: 'var(--color-bg-hover)' }}>
+                  <div style={{ height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.05)' }}>
                     <div style={{ height: '100%', borderRadius: 2, background: color, width: `${Math.min(value, 100)}%` }} />
                   </div>
                 </div>

@@ -14,17 +14,18 @@ import '../styles/pages/stats.css';
 
 function WinRatePill({ winRate, wins, losses }: { winRate: number; wins: number; losses: number }) {
   const color = winRate >= 60 ? 'var(--color-win)' : winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
+  const fillClass = winRate >= 60 ? 'wr-bar-fill--high' : winRate >= 50 ? 'wr-bar-fill--mid' : 'wr-bar-fill--low';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-        <span style={{ fontWeight: 700, fontSize: 13, color, minWidth: 34 }}>{winRate}%</span>
+        <span className="tabular-nums" style={{ fontWeight: 700, fontSize: 13, color, minWidth: 34 }}>{winRate}%</span>
         <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>
           <span style={{ color: 'var(--color-win)' }}>{wins}W</span>
           {' '}<span style={{ color: 'var(--color-loss)' }}>{losses}L</span>
         </span>
       </div>
-      <div style={{ height: 3, background: 'var(--color-bg-hover)', borderRadius: 2, overflow: 'hidden', width: 80 }}>
-        <div style={{ width: `${winRate}%`, height: '100%', background: color, borderRadius: 2 }} />
+      <div className="wr-bar-track" style={{ width: 80 }}>
+        <div className={`wr-bar-fill ${fillClass}`} style={{ width: `${winRate}%` }} />
       </div>
     </div>
   );
@@ -33,7 +34,7 @@ function WinRatePill({ winRate, wins, losses }: { winRate: number; wins: number;
 function KdaDisplay({ kda, kills, deaths, assists }: { kda: number; kills: number; deaths: number; assists: number }) {
   const color = kda >= 5 ? 'var(--color-win)' : kda >= 3 ? 'var(--color-primary)' : 'var(--color-text-primary)';
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+    <div className="tabular-nums" style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
       <span style={{ fontWeight: 700, fontSize: 13, color }}>{kda.toFixed(2)}</span>
       <span style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>
         {kills.toFixed(1)} / <span style={{ color: 'var(--color-error)' }}>{deaths.toFixed(1)}</span> / {assists.toFixed(1)}
@@ -52,7 +53,7 @@ function ChampBadges({ champions }: { champions: PlayerStats['topChampions'] }) 
           <div key={c.champ} style={{ position: 'relative' }}>
             {found?.imageUrl
               ? <img src={found.imageUrl} alt={c.champ} width={26} height={26}
-                  style={{ borderRadius: 4, border: '1px solid var(--color-border)', objectFit: 'cover' }}
+                  className="champ-list-img"
                   onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
               : <div style={{ width: 26, height: 26, background: 'var(--color-bg-hover)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: 'var(--color-text-secondary)' }}>{c.champ.slice(0, 2)}</div>
             }

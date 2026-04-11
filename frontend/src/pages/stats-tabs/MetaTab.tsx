@@ -23,28 +23,28 @@ export default function MetaTab({ mode }: { mode: string }) {
 
   const renderChampList = (title: string, list: MetaShiftChampion[], trendColor: string) => (
     <section style={{ marginBottom: 24 }}>
-      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>{title}</h3>
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid var(--glass-border)', color: 'var(--color-text-primary)' }}>{title}</h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
         {list.map((c: MetaShiftChampion) => {
           const nameKo = champions.get(c.championId)?.nameKo ?? c.champion;
           const trendSign = c.trend >= 0 ? '+' : '';
           return (
-            <div key={c.champion} className="card" style={{ padding: '10px 12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <ChampImg championId={c.championId} champion={c.champion} size={28} />
+            <div key={c.champion} className="card" style={{ padding: '12px 14px', transition: 'border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <ChampImg championId={c.championId} champion={c.champion} size={32} />
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 13 }}>{nameKo}</div>
-                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>{c.metaTag}</div>
+                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', marginTop: 1 }}>{c.metaTag}</div>
                 </div>
               </div>
-              <div style={{ fontSize: 12, display: 'flex', gap: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>
                 <span style={{ color: 'var(--color-text-secondary)' }}>픽률 {(c.pickRate * 100).toFixed(1)}%</span>
-                <span style={{ fontWeight: 700, color: trendColor }}>
+                <span style={{ fontWeight: 800, color: trendColor, fontSize: 13 }}>
                   {trendSign}{(c.trend * 100).toFixed(1)}%
                 </span>
               </div>
-              <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>
-                승률 {c.winRate.toFixed(1)}%
+              <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
+                승률 <span style={{ fontWeight: 700, color: c.winRate >= 55 ? 'var(--color-win)' : c.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)' }}>{c.winRate.toFixed(1)}%</span>
               </div>
             </div>
           );

@@ -102,22 +102,18 @@ function PlayerChip({ riotId, from, allStats, mvpStats, eloMap, color, onRemove 
   const elo = eloMap.get(riotId);
   return (
     <div
+      className="player-chip"
       draggable
       onDragStart={e => {
         e.dataTransfer.setData('riotId', riotId);
         e.dataTransfer.setData('from', from);
         e.dataTransfer.effectAllowed = 'move';
       }}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        padding: '5px 8px', borderRadius: 6,
-        border: `1px solid ${color}44`, background: `${color}11`,
-        cursor: 'grab', userSelect: 'none', fontSize: 12,
-      }}
+      style={{ border: `1px solid ${color}44`, background: `${color}11` }}
     >
       <div>
-        <div style={{ fontWeight: 700, color }}>{riotId.split('#')[0]}</div>
-        <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>
+        <div className="player-chip-name" style={{ color }}>{riotId.split('#')[0]}</div>
+        <div className="player-chip-meta">
           WR {stat?.winRate.toFixed(0) ?? '—'}%
           {elo != null ? ` · Elo ${elo.toFixed(0)}` : ''}
           {mvp ? ` · MVP ${mvp.avgMvpScore.toFixed(1)}` : ''}
@@ -125,8 +121,8 @@ function PlayerChip({ riotId, from, allStats, mvpStats, eloMap, color, onRemove 
       </div>
       {onRemove && (
         <button
+          className="player-chip-remove"
           onClick={e => { e.stopPropagation(); onRemove(); }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--color-text-secondary)', display: 'flex' }}
         >
           <X size={12} />
         </button>
@@ -221,20 +217,14 @@ export function TeamBuilderPage() {
             <DropZone
               teamKey="pool" dragOver={dragOver}
               onDragOverChange={setDragOver} onDrop={onDrop}
-              style={{
-                minHeight: 64, padding: 4,
-                borderRadius: 8,
-                border: `1px dashed ${dragOver === 'pool' ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                background: dragOver === 'pool' ? 'rgba(200,170,110,0.06)' : 'transparent',
-                transition: 'all 0.15s',
-              }}
+              className={`team-pool-zone${dragOver === 'pool' ? ' drag-active' : ''}`}
             >
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', marginBottom: 8 }}>
+              <div className="team-pool-label">
                 미배정 플레이어 ({teams.pool.length}명)
               </div>
               <div className="grid-16">
                 {teams.pool.length === 0 && (
-                  <span className="col-span-16" style={{ fontSize: 12, color: 'var(--color-text-secondary)', opacity: 0.5 }}>모든 플레이어 배정 완료</span>
+                  <span className="col-span-16 team-drop-hint">모든 플레이어 배정 완료</span>
                 )}
                 {teams.pool.map(id => (
                   <PlayerChip key={id} riotId={id} from="pool"
@@ -257,58 +247,47 @@ export function TeamBuilderPage() {
               const avgElo = members.length
                 ? members.reduce((s, id) => s + (eloMap.get(id) ?? 1000), 0) / members.length
                 : null;
+              const wrColor = wr >= 0.6 ? 'var(--color-win)' : wr < 0.45 ? 'var(--color-loss)' : meta.main;
 
               return (
                 <DropZone key={tk} teamKey={tk} dragOver={dragOver}
-                  className="col-span-8"
+                  className="col-span-8 team-drop-zone"
                   onDragOverChange={setDragOver} onDrop={onDrop}
                   style={{
-                    borderRadius: 10,
                     border: `1px solid ${dragOver === tk ? meta.main : meta.border}`,
                     background: dragOver === tk ? meta.bg.replace('0.08', '0.14') : meta.bg,
-                    padding: 16, minHeight: 180, transition: 'all 0.15s',
                   }}
                 >
                   {/* 팀 헤더 */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                  <div className="team-header">
                     <div>
-                      <span style={{ fontWeight: 700, fontSize: 15, color: meta.main }}>{meta.label}</span>
+                      <span className="team-label" style={{ color: meta.main }}>{meta.label}</span>
                       {avgElo != null && (
-                        <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginTop: 2 }}>
-                          평균 Elo {avgElo.toFixed(0)}
-                        </div>
+                        <div className="team-elo-sub">평균 Elo {avgElo.toFixed(0)}</div>
                       )}
                     </div>
                     {members.length > 0 && (
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{
-                          fontSize: 22, fontWeight: 900, lineHeight: 1,
-                          color: wr >= 0.6 ? 'var(--color-win)' : wr < 0.45 ? 'var(--color-loss)' : meta.main,
-                        }}>
+                      <div className="team-wr-display">
+                        <div className="team-wr-value" style={{ color: wrColor }}>
                           {(wr * 100).toFixed(1)}%
                         </div>
-                        <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>예상 승률</div>
+                        <div className="team-wr-label">예상 승률</div>
                       </div>
                     )}
                   </div>
 
                   {/* 승률 게이지 */}
                   {members.length > 0 && (
-                    <div style={{ height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 2, marginBottom: 12, overflow: 'hidden' }}>
-                      <div style={{
-                        height: '100%', width: `${wr * 100}%`, borderRadius: 2,
-                        background: wr >= 0.6 ? 'var(--color-win)' : wr < 0.45 ? 'var(--color-loss)' : meta.main,
-                        transition: 'width 0.4s ease',
-                      }} />
+                    <div className="team-wr-bar-track">
+                      <div className="team-wr-bar-fill"
+                        style={{ width: `${wr * 100}%`, background: wrColor }} />
                     </div>
                   )}
 
                   {/* 플레이어 칩 */}
                   <div className="grid-16" style={{ minHeight: 36 }}>
                     {members.length === 0 && (
-                      <span className="col-span-16" style={{ fontSize: 12, color: 'var(--color-text-secondary)', opacity: 0.4, alignSelf: 'center' }}>
-                        여기에 드롭
-                      </span>
+                      <span className="col-span-16 team-drop-hint">여기에 드롭</span>
                     )}
                     {members.map(id => (
                       <PlayerChip key={id} riotId={id} from={tk}
@@ -320,19 +299,15 @@ export function TeamBuilderPage() {
 
                   {/* 듀오 시너지 */}
                   {teamDuos.length > 0 && (
-                    <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${meta.border}` }}>
-                      <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>
-                        듀오 시너지
-                      </div>
+                    <div className="team-duo-section" style={{ borderTop: `1px solid ${meta.border}` }}>
+                      <div className="team-duo-title">듀오 시너지</div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                         {teamDuos.map(d => (
-                          <div key={`${d.player1}-${d.player2}`}
-                            style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
-                            <span style={{ color: 'var(--color-text-secondary)' }}>
+                          <div key={`${d.player1}-${d.player2}`} className="team-duo-item">
+                            <span className="team-duo-names">
                               {d.player1.split('#')[0]} + {d.player2.split('#')[0]}
                             </span>
-                            <span style={{
-                              fontWeight: 700,
+                            <span className="team-duo-wr" style={{
                               color: d.winRate >= 60 ? 'var(--color-win)' : d.winRate < 45 ? 'var(--color-loss)' : 'var(--color-text-primary)',
                             }}>
                               {d.winRate.toFixed(1)}% ({d.games}판)
@@ -350,29 +325,25 @@ export function TeamBuilderPage() {
           {/* 전체 듀오 시너지 참고 */}
           {duoData.length > 0 && (
             <div className="card" style={{ marginTop: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, color: 'var(--color-text-secondary)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                <Users size={14} style={{ display: 'inline', marginRight: 6 }} />
+              <div className="stats-section-title" style={{ marginBottom: 12 }}>
+                <Users size={14} />
                 듀오 시너지 전체 참고
               </div>
               <div className="grid-16">
                 {[...duoData].sort((a, b) => b.winRate - a.winRate).slice(0, 20).map(d => (
-                  <div key={`${d.player1}-${d.player2}`} className="col-span-4" style={{
-                    padding: '7px 11px', borderRadius: 8,
-                    background: 'var(--color-bg-secondary)',
-                    border: `1px solid ${d.winRate >= 60 ? 'var(--color-win)' : d.winRate < 45 ? 'var(--color-loss)' : 'var(--color-border)'}`,
-                    fontSize: 12,
-                  }}>
-                    <div style={{ fontWeight: 600, marginBottom: 3 }}>
+                  <div key={`${d.player1}-${d.player2}`} className="duo-ref-card col-span-4"
+                    style={{ borderColor: d.winRate >= 60 ? 'rgba(16,185,129,0.3)' : d.winRate < 45 ? 'rgba(239,68,68,0.3)' : 'var(--glass-border)' }}>
+                    <div className="duo-ref-players">
                       <PlayerLink riotId={d.player1}>{d.player1.split('#')[0]}</PlayerLink>
-                      <span style={{ color: 'var(--color-text-secondary)', margin: '0 4px' }}>+</span>
+                      <span className="text-secondary" style={{ margin: '0 4px' }}>+</span>
                       <PlayerLink riotId={d.player2}>{d.player2.split('#')[0]}</PlayerLink>
                     </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div className="duo-ref-stats">
                       <span style={{ fontWeight: 700, color: d.winRate >= 60 ? 'var(--color-win)' : d.winRate < 45 ? 'var(--color-loss)' : 'var(--color-text-primary)' }}>
                         {d.winRate.toFixed(1)}%
                       </span>
-                      <span style={{ color: 'var(--color-text-disabled)' }}>{d.games}판</span>
-                      <span style={{ color: 'var(--color-text-disabled)' }}>KDA {d.kda.toFixed(1)}</span>
+                      <span className="text-disabled">{d.games}판</span>
+                      <span className="text-disabled">KDA {d.kda.toFixed(1)}</span>
                     </div>
                   </div>
                 ))}

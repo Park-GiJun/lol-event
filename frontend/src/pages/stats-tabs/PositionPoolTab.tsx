@@ -31,48 +31,50 @@ export default function PositionPoolTab({ mode }: { mode: string }) {
     <div>
       <div className="grid-16" style={{ marginBottom: 16 }}>
         {POSITIONS.map(pos => (
-          <button key={pos} className="col-span-3" onClick={() => { setSelectedPos(pos); setSelectedPlayer(null); }}
-            style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid var(--color-border)', background: selectedPos === pos && !selectedPlayer ? 'var(--color-primary)' : 'var(--color-bg-hover)', color: selectedPos === pos && !selectedPlayer ? '#fff' : 'var(--color-text-primary)', cursor: 'pointer', fontWeight: selectedPos === pos ? 600 : 400, fontSize: 12 }}>
+          <button key={pos} className={`member-sort-tab col-span-3 ${selectedPos === pos && !selectedPlayer ? 'active' : ''}`}
+            onClick={() => { setSelectedPos(pos); setSelectedPlayer(null); }}>
             {POS_LABEL[pos]}
           </button>
         ))}
         <select onChange={e => setSelectedPlayer(e.target.value || null)} value={selectedPlayer ?? ''}
-          style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-bg-hover)', color: 'var(--color-text-primary)', cursor: 'pointer', fontSize: 12 }}>
+          style={{ padding: '6px 10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--color-text-primary)', cursor: 'pointer', fontSize: 12 }}>
           <option value="">플레이어 선택</option>
           {(allRiotIds as string[]).map(id => <option key={id} value={id}>{id.split('#')[0]}</option>)}
         </select>
       </div>
 
       {!selectedPlayer ? (
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="table-wrapper">
+          <table className="table member-stats-table" style={{ fontSize: 13 }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-secondary)', fontSize: 11 }}>
-              <th style={{ textAlign: 'left', padding: '6px 8px' }}>플레이어</th>
-              <th style={{ textAlign: 'center', padding: '6px 8px' }}>주챔피언</th>
-              <th style={{ textAlign: 'right', padding: '6px 8px' }}>게임</th>
-              <th style={{ textAlign: 'right', padding: '6px 8px' }}>승률</th>
+            <tr>
+              <th style={{ textAlign: 'left', padding: '8px 12px' }}>플레이어</th>
+              <th style={{ textAlign: 'center', padding: '8px 12px' }}>주챔피언</th>
+              <th style={{ textAlign: 'right', padding: '8px 12px' }}>게임</th>
+              <th style={{ textAlign: 'right', padding: '8px 12px' }}>승률</th>
             </tr>
           </thead>
           <tbody>
             {posPlayers.map((p: PlayerPositionEntry) => {
               const c = p.topChampionId ? champions.get(p.topChampionId) : null;
               return (
-                <tr key={p.riotId} style={{ borderBottom: '1px solid var(--color-border)', cursor: 'pointer' }}
+                <tr key={p.riotId} className="member-stats-row"
                   onClick={() => setSelectedPlayer(p.riotId)}>
-                  <td style={{ padding: '8px' }}><PlayerLink riotId={p.riotId}>{p.riotId.split('#')[0]}</PlayerLink></td>
-                  <td style={{ padding: '8px', textAlign: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                      {c?.imageUrl && <img src={c.imageUrl} alt={c.nameKo} width={24} height={24} style={{ borderRadius: 4 }} />}
+                  <td style={{ padding: '8px 12px' }}><PlayerLink riotId={p.riotId}><span style={{ fontWeight: 600 }}>{p.riotId.split('#')[0]}</span></PlayerLink></td>
+                  <td style={{ padding: '8px 12px', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                      {c?.imageUrl && <img src={c.imageUrl} alt={c.nameKo} width={24} height={24} style={{ borderRadius: 4, border: '1px solid var(--glass-border)' }} />}
                       <span>{c?.nameKo ?? p.topChampion ?? '-'}</span>
                     </div>
                   </td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>{p.games}</td>
-                  <td style={{ padding: '8px', textAlign: 'right', color: p.winRate >= 60 ? 'var(--color-win)' : p.winRate < 45 ? 'var(--color-loss)' : 'inherit' }}>{p.winRate.toFixed(1)}%</td>
+                  <td style={{ padding: '8px 12px', textAlign: 'right', color: 'var(--color-text-secondary)', fontVariantNumeric: 'tabular-nums' }}>{p.games}</td>
+                  <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: p.winRate >= 60 ? 'var(--color-win)' : p.winRate < 45 ? 'var(--color-loss)' : 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>{p.winRate.toFixed(1)}%</td>
                 </tr>
               );
             })}
           </tbody>
         </table>
+        </div>
       ) : (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>

@@ -16,37 +16,41 @@ export default function BanAnalysisTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div style={{ marginBottom: 8, fontSize: 12, color: 'var(--color-text-secondary)' }}>
-        총 {data.totalGamesAnalyzed}게임 분석 · 가장 많이 밴된 챔피언: {data.mostBannedChampion ?? '-'}
+      <div style={{ marginBottom: 12, fontSize: 12, color: 'var(--color-text-secondary)' }}>
+        총 {data.totalGamesAnalyzed}게임 분석 · 가장 많이 밴된 챔피언: <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}>{data.mostBannedChampion ?? '-'}</span>
       </div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-        <thead>
-          <tr style={{ borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-secondary)', fontSize: 11 }}>
-            <th style={{ textAlign: 'left', padding: '6px 8px' }}>#</th>
-            <th style={{ textAlign: 'left', padding: '6px 8px' }}>챔피언</th>
-            <th style={{ textAlign: 'right', padding: '6px 8px' }}>밴 횟수</th>
-            <th style={{ textAlign: 'right', padding: '6px 8px' }}>밴율</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.topBanned.map((e: BanEntry, i: number) => {
-            const c = champions.get(e.championId);
-            return (
-              <tr key={e.champion} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <td style={{ padding: '8px', color: 'var(--color-text-secondary)', fontSize: 11 }}>{i + 1}</td>
-                <td style={{ padding: '8px', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {c?.imageUrl && <img src={c.imageUrl} alt={c.nameKo} width={28} height={28} style={{ borderRadius: 4 }} />}
-                  <ChampionLink champion={e.champion} championId={e.championId}>{c?.nameKo ?? e.champion}</ChampionLink>
-                </td>
-                <td style={{ padding: '8px', textAlign: 'right', fontWeight: 600 }}>{e.banCount}회</td>
-                <td style={{ padding: '8px', textAlign: 'right', color: e.banRate >= 50 ? '#FF4757' : e.banRate >= 30 ? '#FF6B2B' : 'inherit' }}>
-                  {e.banRate.toFixed(1)}%
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="table-wrapper">
+        <table className="table member-stats-table" style={{ fontSize: 13 }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: 'left', padding: '8px 12px', width: 40 }}>#</th>
+              <th style={{ textAlign: 'left', padding: '8px 12px' }}>챔피언</th>
+              <th style={{ textAlign: 'right', padding: '8px 12px' }}>밴 횟수</th>
+              <th style={{ textAlign: 'right', padding: '8px 12px' }}>밴율</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.topBanned.map((e: BanEntry, i: number) => {
+              const c = champions.get(e.championId);
+              return (
+                <tr key={e.champion} className="member-stats-row">
+                  <td style={{ padding: '8px 12px', color: i < 3 ? 'var(--color-primary)' : 'var(--color-text-secondary)', fontSize: 12, fontWeight: i < 3 ? 700 : 400 }}>{i + 1}</td>
+                  <td style={{ padding: '8px 12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {c?.imageUrl && <img src={c.imageUrl} alt={c.nameKo} width={28} height={28} style={{ borderRadius: 4, border: '1px solid var(--glass-border)' }} />}
+                      <ChampionLink champion={e.champion} championId={e.championId}><span style={{ fontWeight: 600 }}>{c?.nameKo ?? e.champion}</span></ChampionLink>
+                    </div>
+                  </td>
+                  <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{e.banCount}회</td>
+                  <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: e.banRate >= 50 ? '#FF4757' : e.banRate >= 30 ? '#FF6B2B' : 'var(--color-text-secondary)', fontVariantNumeric: 'tabular-nums' }}>
+                    {e.banRate.toFixed(1)}%
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

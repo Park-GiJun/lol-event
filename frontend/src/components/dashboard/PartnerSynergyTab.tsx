@@ -21,7 +21,7 @@ function ColGroup() {
     <colgroup>
       <col style={{ width: 36 }} />
       <col />
-      <col style={{ width: 84 }} />
+      <col style={{ width: 90 }} />
       <col style={{ width: 56 }} />
       <col style={{ width: 64 }} />
       <col style={{ width: 80 }} />
@@ -107,11 +107,15 @@ export function PartnerSynergyTab() {
                   <tr key={`${d.player1}-${d.player2}`} className="member-stats-row">
                     <td style={{ color: 'var(--color-text-disabled)', fontSize: 12 }}>{idx + 1}</td>
                     <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                         <PlayerLink riotId={d.player1} mode="all">
                           <span style={{ fontWeight: 700, fontSize: 13 }}>{d.player1.split('#')[0]}</span>
                         </PlayerLink>
-                        <span style={{ color: 'var(--color-text-disabled)', fontSize: 13 }}>+</span>
+                        <span style={{
+                          color: 'var(--color-primary)', fontSize: 11, fontWeight: 700,
+                          background: 'rgba(0,180,216,0.1)', borderRadius: 3,
+                          padding: '1px 4px', border: '1px solid rgba(0,180,216,0.2)',
+                        }}>+</span>
                         <PlayerLink riotId={d.player2} mode="all">
                           <span style={{ fontWeight: 700, fontSize: 13 }}>{d.player2.split('#')[0]}</span>
                         </PlayerLink>

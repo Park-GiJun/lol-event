@@ -1,31 +1,51 @@
+/* ================================================================
+ * INPUT — 글래스모피즘 폼 컨트롤
+ * ================================================================ */
 .input-wrapper { display: flex; flex-direction: column; gap: 6px; }
-.input-label { font-size: var(--font-size-sm); color: var(--color-text-secondary); font-weight: 500; }
+
+.input-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-wide);
+}
+
 .input {
   width: 100%;
   padding: 10px 14px;
-  background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
   outline: none;
-  min-height: 42px; /* Touch target */
+  min-height: 42px;
 }
+
 .input:hover:not(:focus) {
   border-color: var(--color-border-light);
-  background: var(--color-bg-hover);
+  background: rgba(255, 255, 255, 0.04);
 }
+
 .input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.15);
-  background: var(--color-bg-tertiary);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1), var(--shadow-teal);
+  background: rgba(0, 180, 216, 0.03);
 }
+
 .input::placeholder { color: var(--color-text-disabled); }
+
 .input-error { border-color: var(--color-error) !important; }
-.input-error:focus { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15); }
+.input-error:focus { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12), 0 0 12px rgba(239, 68, 68, 0.08); }
 .input-error-msg { font-size: var(--font-size-xs); color: var(--color-error); margin-top: 2px; }
+
 .textarea { resize: vertical; min-height: 100px; }
+
+/* Icon wrapper */
 .input-icon-wrapper {
   position: relative;
   display: flex;
@@ -39,4 +59,8 @@
   left: 12px;
   color: var(--color-text-disabled);
   pointer-events: none;
+  transition: color var(--transition-fast);
+}
+.input-icon-wrapper:focus-within .input-icon {
+  color: var(--color-primary);
 }

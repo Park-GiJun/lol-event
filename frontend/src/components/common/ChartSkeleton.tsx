@@ -3,8 +3,8 @@ import { Skeleton } from '@/components/common/Skeleton';
 
 export const ChartSkeleton = memo(function ChartSkeleton() {
   return (
-    <div style={{ marginBottom: 16 }} role="status" aria-label="차트 로딩 중">
-      <Skeleton className="h-[220px] w-full rounded-lg" />
+    <div style={{ marginBottom: 'var(--spacing-md)' }} role="status" aria-label="차트 로딩 중">
+      <Skeleton variant="card" style={{ height: 220, width: '100%' }} />
     </div>
   );
 });

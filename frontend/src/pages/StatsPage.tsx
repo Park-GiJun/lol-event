@@ -88,7 +88,7 @@ export function StatsPage() {
       </div>
 
       {/* 탭 */}
-      <div className="stats-tab-bar" style={{ overflowX: 'auto', display: 'flex', flexWrap: 'nowrap' }}>
+      <div className="stats-tab-bar" style={{ overflowX: 'auto', display: 'flex', flexWrap: 'nowrap', background: 'var(--glass-bg)', backdropFilter: 'blur(var(--glass-blur))', WebkitBackdropFilter: 'blur(var(--glass-blur))', borderRadius: 'var(--radius-lg)', padding: '4px', marginBottom: 20, border: '1px solid var(--glass-border)', borderBottomColor: 'var(--glass-border)' }}>
         {TABS.map(t => (
           <button key={t.key} className={`stats-tab-btn ${tab === t.key ? 'active' : ''}`}
             onClick={() => setTab(t.key)} style={{ flexShrink: 0 }}>

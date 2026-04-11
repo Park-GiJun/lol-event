@@ -61,7 +61,7 @@ function ChampionImg({ championId, champion, size, side }: {
   if (data?.imageUrl) {
     return (
       <img src={data.imageUrl} alt={champion} width={size} height={size}
-        className={`dragon-champ-img ${side}`}
+        className={`dragon-champ-img champ-img-hover ${side}`}
         style={{ borderRadius: size <= 20 ? 3 : 4 }}
         onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
       />
@@ -209,6 +209,7 @@ function MatchGroup({ sessionKey, matches, defaultOpen, onOpen, onDelete }: {
           {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           <span className="match-group-date">{label}</span>
           <span className="match-group-count">{matches.length}경기</span>
+          <span className="match-group-date-line" />
         </div>
         <div className="match-group-summary">
           {(() => {
@@ -422,9 +423,9 @@ function PlayerStatBlock({ p, tab }: { p: Participant; tab: Tab }) {
       <div className="stat-player-header">
         <ChampionImg championId={p.championId} champion={p.champion} size={24} side={p.team} />
         <span>{p.champion}</span>
-        <span style={{ color: 'var(--color-text-secondary)', fontWeight: 400 }}>{p.riotId.split('#')[0]}</span>
+        <span className="sb-riot-id">{p.riotId.split('#')[0]}</span>
         <span className={`sb-result ${p.win ? 'win' : 'loss'}`}>{p.win ? '승' : '패'}</span>
-        <span style={{ marginLeft: 'auto', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+        <span className="sb-kda-ratio" style={{ marginLeft: 'auto' }}>
           {p.kills}/{p.deaths}/{p.assists} · {kda(p)} KDA
         </span>
       </div>
@@ -437,12 +438,8 @@ export function StatsTab({ match, tab }: { match: Match; tab: Tab }) {
   return (
     <div>
       {(['blue', 'red'] as const).map(side => (
-        <div key={side} style={{ marginBottom: 20 }}>
-          <div style={{
-            fontSize: 'var(--font-size-xs)', fontWeight: 700, letterSpacing: '0.5px',
-            color: side === 'blue' ? 'var(--color-blue)' : 'var(--color-red)',
-            marginBottom: 8, textTransform: 'uppercase'
-          }}>
+        <div key={side} className="stat-section-heading">
+          <div className={`stat-team-label--${side}`}>
             {side === 'blue' ? '블루팀' : '레드팀'}
           </div>
           {match.participants.filter(p => p.team === side).map((p, i) => (
@@ -464,7 +461,7 @@ export function TeamInfoTab({ teams }: { teams: Team[] }) {
         return (
           <div key={t.teamId} className="team-info-block">
             <div className={`team-info-header ${side}-team`} style={{ borderLeft: `3px solid var(--color-${side === 'blue' ? 'blue' : 'red'})` }}>
-              <span className="scoreboard-team-name">{side === 'blue' ? '블루팀' : '레드팀'}</span>
+              <span className={`scoreboard-team-name`} style={{ color: side === 'blue' ? 'var(--color-blue)' : 'var(--color-red)' }}>{side === 'blue' ? '블루팀' : '레드팀'}</span>
               <span className={`sb-result ${win ? 'win' : 'loss'}`}>{win ? '승리' : '패배'}</span>
             </div>
             <div className="team-info-stats">
@@ -490,14 +487,7 @@ export function TeamInfoTab({ teams }: { teams: Team[] }) {
                 { label: '첫 억제기', v: t.firstInhibitor },
                 { label: '첫 드래곤', v: t.firstDragon },
               ].filter(x => x.v).map(({ label }) => (
-                <span key={label} className="col-span-4" style={{
-                  fontSize: 'var(--font-size-xs)',
-                  background: 'rgba(200,155,60,0.1)',
-                  border: '1px solid rgba(200,155,60,0.25)',
-                  color: 'var(--color-primary)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '2px 8px',
-                }}>
+                <span key={label} className="col-span-4 team-info-first-badge">
                   {label}
                 </span>
               ))}

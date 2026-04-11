@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, CheckCircle, Database, Swords, Zap } from 'lucide-react';
 import { api } from '../lib/api/api';
+import '../styles/pages/stats.css';
 import type { DragonSyncResponse, DragonChampion, DragonItem, DragonSummonerSpell } from '../lib/types/dragon';
 import { Spinner } from '../components/common/Spinner';
 
@@ -59,13 +60,13 @@ export function SyncPage() {
       </div>
 
       {syncResult && (
-        <div className="card" style={{ marginBottom: 'var(--spacing-lg)', borderColor: 'var(--color-win)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', color: 'var(--color-win)' }}>
+        <div className="card sync-result-banner">
+          <div className="sync-result-header">
             <CheckCircle size={18} />
             <strong>동기화 완료</strong>
-            <span style={{ color: 'var(--color-text-muted)', marginLeft: 'auto' }}>버전: {syncResult.version}</span>
+            <span className="sync-result-version">버전: {syncResult.version}</span>
           </div>
-          <div style={{ display: 'flex', gap: 'var(--spacing-lg)', marginTop: 'var(--spacing-sm)' }}>
+          <div className="sync-result-stats">
             <SyncStat icon={<Swords size={14} />} label="챔피언" value={syncResult.champions} />
             <SyncStat icon={<Database size={14} />} label="아이템" value={syncResult.items} />
             <SyncStat icon={<Zap size={14} />} label="소환사 스펠" value={syncResult.spells} />
@@ -74,7 +75,7 @@ export function SyncPage() {
       )}
 
       <div className="card">
-        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
+        <div className="sync-tab-bar">
           {(['champions', 'items', 'spells'] as Tab[]).map(t => (
             <button key={t} className={`btn ${tab === t ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => setTab(t)}>
@@ -99,10 +100,10 @@ export function SyncPage() {
 
 function SyncStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', color: 'var(--color-text-muted)' }}>
+    <div className="sync-stat-item">
       {icon}
       <span>{label}:</span>
-      <strong style={{ color: 'var(--color-text)' }}>{value}</strong>
+      <strong className="sync-stat-value">{value}</strong>
     </div>
   );
 }
@@ -122,7 +123,7 @@ function ChampionTable({ data }: { data: DragonChampion[] }) {
               <td>{c.championId}</td>
               <td><code>{c.championKey}</code></td>
               <td><strong>{c.nameKo}</strong></td>
-              <td style={{ color: 'var(--color-text-muted)' }}>{c.titleKo}</td>
+              <td className="text-secondary">{c.titleKo}</td>
               <td><span className="badge">{c.version}</span></td>
             </tr>
           ))}
@@ -182,7 +183,7 @@ function SpellTable({ data }: { data: DragonSummonerSpell[] }) {
 
 function Empty() {
   return (
-    <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)', color: 'var(--color-text-muted)' }}>
+    <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)', color: 'var(--color-text-secondary)' }}>
       데이터가 없습니다. 동기화를 먼저 실행해주세요.
     </div>
   );

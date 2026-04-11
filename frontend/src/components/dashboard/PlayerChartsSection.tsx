@@ -47,12 +47,18 @@ export function PlayerChartsSection({ eloHistory, championStats }: Props) {
       tooltip: { enabled: true },
     },
     scales: {
-      y: { beginAtZero: false },
+      x: {
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: '#7B8DB5', font: { size: 11 } },
+      },
+      y: {
+        beginAtZero: false,
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: '#7B8DB5', font: { size: 11 } },
+      },
     },
     elements: {
-      line: {
-        tension: 0.3,
-      },
+      line: { tension: 0.3 },
     },
   };
 
@@ -92,7 +98,16 @@ export function PlayerChartsSection({ eloHistory, championStats }: Props) {
       },
     },
     scales: {
-      y: { beginAtZero: true, max: 100 },
+      x: {
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: '#7B8DB5', font: { size: 11 } },
+      },
+      y: {
+        beginAtZero: true,
+        max: 100,
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: '#7B8DB5', font: { size: 11 } },
+      },
     },
   };
 
@@ -102,27 +117,40 @@ export function PlayerChartsSection({ eloHistory, championStats }: Props) {
       label: '승률 (%)',
       data: topChamps.map(c => c.winRate),
       backgroundColor: topChamps.map(c =>
-        c.winRate >= 50 ? 'rgba(34,197,94,0.7)' : 'rgba(239,68,68,0.7)'
+        c.winRate >= 50 ? 'rgba(16,185,129,0.6)' : 'rgba(239,68,68,0.6)'
       ),
+      borderColor: topChamps.map(c =>
+        c.winRate >= 50 ? 'rgba(16,185,129,0.9)' : 'rgba(239,68,68,0.9)'
+      ),
+      borderWidth: 1,
       borderRadius: 4,
     }],
   };
 
   return (
-    <div className="card" style={{ marginBottom: 20 }}>
-      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', marginBottom: 16 }}>
+    <div className="card-glass" style={{ marginBottom: 20 }}>
+      <div style={{
+        fontWeight: 700, fontSize: 'var(--font-size-sm)',
+        marginBottom: 16, color: 'var(--color-text-primary)',
+        display: 'flex', alignItems: 'center', gap: 8,
+      }}>
+        <span style={{ color: 'var(--color-primary)' }}>📈</span>
         통계 차트
       </div>
       <div className="grid-16">
         {hasElo && (
           <div className="col-span-8" style={{ height: '220px' }}>
-            <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>Elo 추이</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+              Elo 추이
+            </div>
             <Line data={eloData} options={eloOptions} />
           </div>
         )}
         {hasChamp && (
           <div className="col-span-8" style={{ height: '220px' }}>
-            <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>챔피언별 승률</div>
+            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+              챔피언별 승률
+            </div>
             <Bar data={champData} options={champOptions} />
           </div>
         )}

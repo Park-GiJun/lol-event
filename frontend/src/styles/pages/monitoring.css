@@ -1,3 +1,7 @@
+/* ================================================================
+ * MONITORING PAGE — 모니터링 및 비밀번호 게이트
+ * ================================================================ */
+
 /* ── 비밀번호 게이트 ─────────────────────────────── */
 .monitoring-gate {
   display: flex;
@@ -8,9 +12,11 @@
 }
 
 .monitoring-gate-card {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur-heavy));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
   padding: var(--spacing-2xl) var(--spacing-xl);
   width: 100%;
   max-width: 360px;
@@ -18,21 +24,38 @@
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-md);
+  box-shadow: var(--shadow-lg), 0 0 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 카드 상단 글로우 */
+.monitoring-gate-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 180, 216, 0.2), transparent);
+  pointer-events: none;
 }
 
 .monitoring-gate-icon {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: rgba(200, 155, 60, 0.12);
+  background: rgba(0, 180, 216, 0.08);
+  border: 1px solid rgba(0, 180, 216, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 0 24px rgba(0, 180, 216, 0.1);
 }
 
 .monitoring-gate-title {
   font-size: var(--font-size-lg);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   margin: 0;
 }
@@ -53,20 +76,20 @@
 
 .monitoring-gate-input {
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-sm);
-  background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border);
+  padding: var(--spacing-sm);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   box-sizing: border-box;
 }
 
 .monitoring-gate-input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.15);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1), var(--shadow-teal);
 }
 
 .monitoring-gate-input.error {
@@ -107,7 +130,7 @@
 
 .monitoring-header-left h1 {
   font-size: var(--font-size-md);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   margin: 0;
 }
@@ -130,19 +153,22 @@
   align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   text-decoration: none;
   color: var(--color-text-primary);
   flex: 1;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
   cursor: pointer;
 }
 
 .monitoring-link-card:hover {
-  border-color: var(--color-primary);
-  background: var(--color-bg-hover);
+  border-color: rgba(0, 180, 216, 0.2);
+  background: var(--glass-bg-hover);
+  box-shadow: var(--shadow-teal);
 }
 
 .monitoring-link-card svg {
@@ -152,7 +178,7 @@
 
 .monitoring-link-title {
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
 
@@ -171,8 +197,10 @@
 
 /* ── 설정 가이드 ─────────────────────────────────── */
 .monitoring-setup-guide {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   padding: var(--spacing-md) var(--spacing-lg);
   flex-shrink: 0;
@@ -180,7 +208,7 @@
 
 .monitoring-setup-guide h3 {
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   margin: 0 0 var(--spacing-xs);
 }
@@ -192,8 +220,8 @@
 }
 
 .monitoring-setup-guide pre {
-  background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   padding: var(--spacing-sm) var(--spacing-md);
   font-size: var(--font-size-xs);
@@ -201,13 +229,13 @@
   color: var(--color-text-primary);
   overflow-x: auto;
   margin: var(--spacing-xs) 0;
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
 }
 
 .monitoring-setup-guide code {
-  background: var(--color-bg-tertiary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  background: rgba(0, 180, 216, 0.06);
+  border: 1px solid rgba(0, 180, 216, 0.12);
+  border-radius: var(--radius-xs);
   padding: 0.1em 0.35em;
   font-size: 0.82em;
   font-family: var(--font-family-mono);

@@ -1,9 +1,9 @@
 /* ════════════════════════════════════════════════════════════
    Mobile Responsive Overrides  (max-width: 768px)
-   ════════════════════════════════════════════════════════════ */
+   ═════════════════���════════════════════════════���═════════════ */
 @media (max-width: 768px) {
 
-  /* ── Card padding 축소 ─────────────────────────────────── */
+  /* ── Card padding 축소 ─────────────���───────────────────── */
   .card { padding: var(--spacing-md) !important; }
   .stats-section.card { padding: var(--spacing-md) !important; }
 
@@ -13,11 +13,15 @@
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     max-height: 92dvh;
     max-width: 100% !important;
+    background: rgba(13, 18, 37, 0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
   }
   .modal-body { padding: var(--spacing-md); }
   .modal-header { padding: var(--spacing-md); }
 
-  /* ── Tab bars — 가로 스크롤 ────────────────────────────── */
+  /* ── Tab bars — 가로 스크롤 + 선택 탭 글로우 ──────────── */
   .stats-tab-bar,
   .member-sort-tabs,
   .match-tabs,
@@ -32,7 +36,7 @@
   .member-sort-tabs::-webkit-scrollbar,
   .match-tabs::-webkit-scrollbar { display: none; }
 
-  /* ── 전체 통계 페이지 ──────────────────────────────────── */
+  /* ── 전체 통계 페이지 ───────────────────���──────────────── */
 
   /* Overview hero row — 세로 스택 */
   .overview-hero-row {
@@ -40,9 +44,9 @@
     gap: 12px;
     padding: 16px;
   }
-  .overview-hero-main { padding-right: 0; padding-bottom: 12px; border-bottom: 1px solid var(--color-border); }
+  .overview-hero-main { padding-right: 0; padding-bottom: 12px; border-bottom: 1px solid var(--glass-border); }
   .overview-hero-divider { display: none; }
-  .overview-hero-stat { border-right: none; flex-direction: row; gap: 8px; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--color-border); }
+  .overview-hero-stat { border-right: none; flex-direction: row; gap: 8px; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--glass-border); }
   .overview-hero-stat:last-child { border-bottom: none; }
   .overview-hero-stat-emoji { font-size: 16px; }
   .overview-hero-stat-value { font-size: 18px; }
@@ -53,8 +57,8 @@
 
   /* ── 멤버 통계 (PlayerStatsPage) ──────────────────────── */
   .player-summary-header { flex-wrap: wrap; gap: 12px; }
-  .player-stat-card { border-right: none; border-bottom: 1px solid var(--color-border); }
-  .player-stat-card:nth-child(even) { border-bottom: 1px solid var(--color-border); }
+  .player-stat-card { border-right: none; border-bottom: 1px solid var(--glass-border); }
+  .player-stat-card:nth-child(even) { border-bottom: 1px solid var(--glass-border); }
   .player-stat-card:last-child,
   .player-stat-card:nth-last-child(2):nth-child(odd) { border-bottom: none; }
 
@@ -64,7 +68,7 @@
   .recent-match-card { grid-template-columns: 44px 1fr auto; gap: 8px; }
   .recent-match-stats { display: none; }
 
-  /* ── 경기 목록 (MatchesPage) ───────────────────────────── */
+  /* ── 경기 목록 (MatchesPage) ──────────────────��────────── */
   .match-teams { grid-template-columns: 1fr 24px 1fr; }
   .match-player-row { grid-template-columns: 70px 1fr auto; }
   /* 마지막 auto (뱃지) 숨기기 */
@@ -76,17 +80,17 @@
   .sb-items { flex-wrap: wrap; }
   .team-info-stats { grid-template-columns: repeat(3, 1fr); }
   .team-info-stat:nth-child(3) { border-right: none; }
-  .team-info-stat:nth-child(4) { border-top: 1px solid var(--color-border); }
+  .team-info-stat:nth-child(4) { border-top: 1px solid var(--glass-border); }
 
   /* ── 챔피언 통계 (ChampionStatsPage) ──────────────────── */
   /* 아이템 목록 간격 축소 */
   .member-stats-table th,
   .member-stats-table td { padding: 8px; font-size: 12px; }
 
-  /* ── monitoring page ─────────────────────────────────── */
+  /* ── monitoring page ──────────────────���──────────────── */
   .monitoring-links { flex-direction: column !important; }
 
-  /* ── Hall group grid ──────────────────────────────────── */
+  /* ── Hall group grid ─────────────────────���────────────── */
   .hall-group-grid { grid-template-columns: repeat(2, 1fr) !important; }
 
   /* ── Match group header 텍스트 크기 ──────────────────── */
@@ -97,7 +101,7 @@
   .page-header .flex.gap-sm { flex-wrap: wrap; }
 }
 
-/* ── 작은 화면 (480px 이하) ────────────────────────────────── */
+/* ── 작은 화면 (480px 이하) ───────────────��────────────────── */
 @media (max-width: 480px) {
   .page-content { padding: 12px !important; padding-bottom: calc(64px + 8px) !important; }
   .overview-hero-number { font-size: 36px; }

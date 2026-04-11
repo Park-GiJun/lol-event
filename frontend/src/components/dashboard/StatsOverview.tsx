@@ -26,37 +26,61 @@ interface LeaderCardProps {
 
 function LeaderCard({ icon, label, leader, isLoading, accent = 'var(--color-primary)' }: LeaderCardProps) {
   return (
-    <div className="col-span-4" style={{
-      background: 'var(--color-bg-secondary)',
-      border: '1px solid var(--color-border)',
-      borderRadius: 8,
-      padding: '11px 14px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 12,
-      minWidth: 0,
-      overflow: 'hidden',
-    }}>
+    <div
+      className="col-span-4"
+      style={{
+        background: 'rgba(13, 18, 37, 0.5)',
+        border: '1px solid rgba(255,255,255,0.06)',
+        borderRadius: 'var(--radius-md)',
+        padding: '10px 12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        minWidth: 0,
+        overflow: 'hidden',
+        transition: 'all var(--transition-fast)',
+        cursor: 'default',
+        position: 'relative',
+      }}
+      onMouseEnter={e => {
+        const el = e.currentTarget as HTMLElement;
+        el.style.background = 'rgba(13, 18, 37, 0.75)';
+        el.style.borderColor = accent + '40';
+        el.style.boxShadow = `0 0 14px ${accent}18`;
+        el.style.transform = 'translateY(-1px)';
+      }}
+      onMouseLeave={e => {
+        const el = e.currentTarget as HTMLElement;
+        el.style.background = 'rgba(13, 18, 37, 0.5)';
+        el.style.borderColor = 'rgba(255,255,255,0.06)';
+        el.style.boxShadow = 'none';
+        el.style.transform = 'translateY(0)';
+      }}
+    >
       {/* 아이콘 */}
       <div style={{
-        width: 36, height: 36, flexShrink: 0,
-        background: accent + '18',
-        border: `1px solid ${accent}33`,
-        borderRadius: 8,
+        width: 34, height: 34, flexShrink: 0,
+        background: `linear-gradient(135deg, ${accent}22, ${accent}0D)`,
+        border: `1px solid ${accent}30`,
+        borderRadius: 'var(--radius-sm)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 17,
+        fontSize: 16,
       }}>
         {icon}
       </div>
 
       {/* 텍스트 */}
       <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-        <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 3 }}>
+        <div style={{
+          fontSize: 10, color: 'var(--color-text-disabled)',
+          fontWeight: 600, letterSpacing: 'var(--tracking-wider)',
+          textTransform: 'uppercase', marginBottom: 2,
+        }}>
           {label}
         </div>
         {isLoading ? (
           <>
-            <Skeleton className="h-4 w-20" style={{ marginBottom: 4 }} />
+            <Skeleton className="h-4 w-20" style={{ marginBottom: 3 }} />
             <Skeleton className="h-3 w-12" />
           </>
         ) : leader ? (
@@ -71,7 +95,7 @@ function LeaderCard({ icon, label, leader, isLoading, accent = 'var(--color-prim
                 {leader.riotId.split('#')[0]}
               </span>
             </PlayerLink>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
               <span style={{ fontSize: 12, color: accent, fontWeight: 700 }}>
                 {leader.displayValue}
               </span>
@@ -100,6 +124,19 @@ function laneLeader(
   return { riotId: top.riotId, displayValue: format(top[key] as number), games: top.games };
 }
 
+// ── 전체 통계 요약 바 ──────────────────────────────────
+function Divider() {
+  return <span style={{ color: 'var(--color-border)', fontSize: 14 }}>|</span>;
+}
+function Stat({ label, value, color }: { label: string; value: string | number; color?: string }) {
+  return (
+    <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+      {label}{' '}
+      <strong style={{ color: color ?? 'var(--color-text-primary)', fontWeight: 700 }}>{value}</strong>
+    </span>
+  );
+}
+
 // ── 전체 모드 카드 목록 ──────────────────────────────────
 function OverallCards() {
   const { data: ov, isLoading } = useChampions();
@@ -122,7 +159,13 @@ function OverallCards() {
   return (
     <>
       {ov && (
-        <div className="grid-16" style={{ marginBottom: 14, padding: '8px 12px', background: 'var(--color-bg-hover)', borderRadius: 7 }}>
+        <div className="grid-16" style={{
+          marginBottom: 12, padding: '8px 12px',
+          background: 'rgba(255,255,255,0.02)',
+          borderRadius: 'var(--radius-sm)',
+          border: '1px solid rgba(255,255,255,0.04)',
+          alignItems: 'center',
+        }}>
           <span className="col-span-3"><Stat label="총 경기" value={`${ov.matchCount}게임`} /></span>
           <span className="col-span-1"><Divider /></span>
           <span className="col-span-3"><Stat label="평균시간" value={`${ov.avgGameMinutes.toFixed(1)}분`} /></span>
@@ -134,17 +177,6 @@ function OverallCards() {
       )}
       <CardGrid cards={cards} isLoading={isLoading} />
     </>
-  );
-}
-
-function Divider() {
-  return <span style={{ color: 'var(--color-border)', fontSize: 14 }}>|</span>;
-}
-function Stat({ label, value, color }: { label: string; value: string | number; color?: string }) {
-  return (
-    <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
-      {label} <strong style={{ color: color ?? 'var(--color-text-primary)' }}>{value}</strong>
-    </span>
   );
 }
 
@@ -173,7 +205,7 @@ function LaneCards({ lane }: { lane: string }) {
 
 function CardGrid({ cards, isLoading }: { cards: LeaderCardProps[]; isLoading?: boolean }) {
   return (
-    <div className="grid-16">
+    <div className="grid-16 stagger-children">
       {cards.map(c => (
         <LeaderCard key={c.label} {...c} isLoading={isLoading} />
       ))}
@@ -186,32 +218,39 @@ export function StatsOverview() {
   const [lane, setLane] = useState('ALL');
 
   return (
-    <div style={{
-      background: 'var(--color-bg-card)',
-      border: '1px solid var(--color-border)',
-      borderRadius: 12,
-      padding: '16px',
-    }}>
+    <div className="card">
       {/* 헤더 + 레인 필터 */}
       <div className="grid-16" style={{ alignItems: 'center', marginBottom: 14 }}>
-        <h3 className="col-span-8" style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>
-          명예의 전당
-        </h3>
+        <div className="col-span-8" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{
+            width: 24, height: 24, borderRadius: 6,
+            background: 'linear-gradient(135deg, rgba(200,155,60,0.3), rgba(200,155,60,0.1))',
+            border: '1px solid rgba(200,155,60,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12,
+          }}>👑</div>
+          <h3 style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--color-text-primary)', letterSpacing: 'var(--tracking-wide)' }}>
+            명예의 전당
+          </h3>
+        </div>
+
         <div className="col-span-8" style={{ display: 'flex', gap: 3, justifyContent: 'flex-end' }}>
           {LANES.map(l => (
             <button
               key={l.key}
               onClick={() => setLane(l.key)}
               style={{
-                background: lane === l.key ? 'var(--color-primary)' : 'transparent',
-                border: `1px solid ${lane === l.key ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                borderRadius: 5,
+                background: lane === l.key
+                  ? 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))'
+                  : 'transparent',
+                border: `1px solid ${lane === l.key ? 'var(--color-primary)' : 'rgba(255,255,255,0.08)'}`,
+                borderRadius: 'var(--radius-xs)',
                 padding: '4px 9px',
                 fontSize: 11,
                 fontWeight: lane === l.key ? 700 : 500,
                 color: lane === l.key ? '#fff' : 'var(--color-text-secondary)',
                 cursor: 'pointer',
-                transition: 'all 0.15s',
+                transition: 'all var(--transition-fast)',
+                boxShadow: lane === l.key ? '0 0 10px rgba(0,180,216,0.25)' : 'none',
               }}
             >
               {l.label}
@@ -220,7 +259,9 @@ export function StatsOverview() {
         </div>
       </div>
 
-      {lane === 'ALL' ? <OverallCards /> : <LaneCards lane={lane} />}
+      <div style={{ animation: 'fadeIn 0.2s ease both' }} key={lane}>
+        {lane === 'ALL' ? <OverallCards /> : <LaneCards lane={lane} />}
+      </div>
     </div>
   );
 }

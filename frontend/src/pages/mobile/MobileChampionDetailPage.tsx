@@ -62,7 +62,7 @@ export function MobileChampionDetailPage() {
         {champInfo?.imageUrl ? (
           <img src={champInfo.imageUrl} alt={champInfo.nameKo} width={64} height={64} style={{ borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
         ) : (
-          <div style={{ width: 64, height: 64, borderRadius: 12, background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+          <div style={{ width: 64, height: 64, borderRadius: 12, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
             {data.champion.slice(0, 2)}
           </div>
         )}
@@ -162,7 +162,7 @@ export function MobileChampionDetailPage() {
                   {itemInfo?.imageUrl ? (
                     <img src={itemInfo.imageUrl} alt={itemInfo.nameKo} width={44} height={44} style={{ borderRadius: 8 }} title={itemInfo.nameKo} />
                   ) : (
-                    <div style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--color-bg-hover)' }} />
+                    <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(255,255,255,0.05)' }} />
                   )}
                   <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>{it.picks}회</div>
                   <div style={{ fontSize: 10, color: 'var(--color-win)' }}>{it.winRate.toFixed(0)}%</div>

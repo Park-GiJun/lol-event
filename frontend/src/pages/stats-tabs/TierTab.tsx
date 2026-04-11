@@ -37,21 +37,21 @@ export default function TierTab({ mode }: { mode: string }) {
         if (!list.length) return null;
         const color = TIER_COLORS[tier] ?? '#888';
         return (
-          <div key={tier} style={{ marginBottom: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-              <div style={{ width: 28, height: 28, borderRadius: 6, background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 14, color: '#111' }}>{tier}</div>
-              <span style={{ fontWeight: 700, fontSize: 13, color }}>{tier} 티어</span>
-              <span style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>({list.length})</span>
+          <div key={tier} style={{ marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10, paddingBottom: 8, borderBottom: `1px solid ${color}33` }}>
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 15, color: '#111', boxShadow: `0 0 12px ${color}66` }}>{tier}</div>
+              <span style={{ fontWeight: 800, fontSize: 14, color }}>{tier} 티어</span>
+              <span style={{ fontSize: 11, color: 'var(--color-text-disabled)', background: 'var(--color-bg-hover)', padding: '1px 7px', borderRadius: 10 }}>{list.length}</span>
             </div>
             <div className="grid-16">
               {list.map((c: ChampionTierEntry) => {
                 const nameKo = champions.get(c.championId)?.nameKo ?? c.champion;
                 return (
                   <ChampionLink key={c.champion} champion={c.champion} championId={c.championId} className="popup-trigger--card col-span-2">
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '8px 10px', background: 'var(--color-bg-secondary)', borderRadius: 8, border: `1px solid ${color}44`, cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 8px', background: 'var(--glass-bg)', backdropFilter: 'blur(var(--glass-blur))', borderRadius: 8, border: `1px solid ${color}44`, cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s, transform 0.15s', boxShadow: `0 0 8px ${color}11` }}>
                       <ChampImg championId={c.championId} champion={c.champion} size={36} />
                       <div style={{ fontSize: 11, fontWeight: 600, textAlign: 'center', lineHeight: 1.2 }}>{nameKo}</div>
-                      <div style={{ fontSize: 10, color: c.winRate >= 60 ? 'var(--color-win)' : c.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)' }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: c.winRate >= 60 ? 'var(--color-win)' : c.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)', fontVariantNumeric: 'tabular-nums' }}>
                         {c.winRate.toFixed(1)}%
                       </div>
                       <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>{c.games}픽</div>

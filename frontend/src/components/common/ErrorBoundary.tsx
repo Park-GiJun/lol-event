@@ -31,6 +31,7 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <div
           role="alert"
+          className="card"
           style={{
             padding: 'var(--spacing-md)',
             color: 'var(--color-error)',
@@ -67,6 +68,7 @@ export class ChartErrorBoundary extends Component<Props, State> {
       return (
         <div
           role="alert"
+          className="card"
           style={{
             height: 220,
             display: 'flex',
@@ -74,8 +76,6 @@ export class ChartErrorBoundary extends Component<Props, State> {
             justifyContent: 'center',
             color: 'var(--color-error)',
             fontSize: 13,
-            background: 'var(--color-bg-hover)',
-            borderRadius: 8,
             marginBottom: 16,
           }}
         >

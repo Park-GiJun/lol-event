@@ -50,7 +50,7 @@ export default function MobileOverviewTab({ mode }: { mode: string }) {
                   {c?.imageUrl ? (
                     <img src={c.imageUrl} alt={c.nameKo} width={48} height={48} style={{ borderRadius: 8, objectFit: 'cover' }} />
                   ) : (
-                    <div style={{ width: 48, height: 48, borderRadius: 8, background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 8, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>
                       {cp.champion.slice(0, 2)}
                     </div>
                   )}

@@ -7,10 +7,11 @@ interface ButtonProps {
   onClick?: () => void;
   type?: 'button' | 'submit';
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   disabled?: boolean;
   loading?: boolean;
   className?: string;
+  icon?: boolean;
   'aria-label'?: string;
 }
 
@@ -23,8 +24,13 @@ export const Button = memo(function Button({
   disabled,
   loading,
   className = '',
+  icon,
   'aria-label': ariaLabel,
 }: ButtonProps) {
+  const sizeClass = size !== 'md' ? `btn-${size}` : '';
+  const iconClass = icon ? 'btn-icon' : '';
+  const loadingClass = loading ? 'btn-loading' : '';
+
   return (
     <button
       type={type}
@@ -32,7 +38,7 @@ export const Button = memo(function Button({
       disabled={disabled || loading}
       aria-label={ariaLabel}
       aria-busy={loading ? true : undefined}
-      className={`btn btn-${variant} ${size !== 'md' ? `btn-${size}` : ''} ${loading ? 'btn-loading' : ''} ${className}`}
+      className={`btn btn-${variant} ${sizeClass} ${iconClass} ${loadingClass} ${className}`.trim().replace(/\s+/g, ' ')}
     >
       {loading && <Loader2 size={14} className="icon-spin" aria-hidden="true" />}
       {children}

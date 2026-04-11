@@ -38,7 +38,7 @@ function ChampIcon({ championId, champion, size = 26, className }: { championId:
   return (
     <div style={{
       width: size, height: size, borderRadius: 4,
-      background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center',
+      background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center',
       justifyContent: 'center', fontSize: 9, color: 'var(--color-text-disabled)', flexShrink: 0,
     }}>
       {champion.slice(0, 2)}
@@ -65,10 +65,12 @@ function MatchCard({ match }: { match: Match }) {
   return (
     <div
       style={{
-        background: 'var(--color-bg-card)',
-        border: '1px solid var(--color-border)',
+        background: 'var(--glass-bg)',
+        backdropFilter: 'blur(var(--glass-blur))',
+        WebkitBackdropFilter: 'blur(var(--glass-blur))',
+        border: '1px solid var(--glass-border)',
         borderLeft: `3px solid ${borderColor}`,
-        borderRadius: 10,
+        borderRadius: 12,
         marginBottom: 8,
         overflow: 'hidden',
       }}
@@ -79,14 +81,14 @@ function MatchCard({ match }: { match: Match }) {
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
           padding: '8px 12px', cursor: 'pointer',
-          borderBottom: '1px solid var(--color-border)',
+          borderBottom: '1px solid var(--glass-border)',
         }}
       >
         <span style={{
-          fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 5, flexShrink: 0,
-          background: blueWin ? 'rgba(59,158,255,0.15)' : 'rgba(232,64,64,0.15)',
+          fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 6, flexShrink: 0,
+          background: blueWin ? 'rgba(59,158,255,0.12)' : 'rgba(232,64,64,0.12)',
           color: blueWin ? 'var(--color-info)' : 'var(--color-loss)',
-          border: `1px solid ${blueWin ? 'rgba(59,158,255,0.3)' : 'rgba(232,64,64,0.3)'}`,
+          border: `1px solid ${blueWin ? 'rgba(59,158,255,0.25)' : 'rgba(232,64,64,0.25)'}`,
         }}>
           {blueWin ? '블루 승' : '레드 승'}
         </span>
@@ -151,7 +153,7 @@ function MatchCard({ match }: { match: Match }) {
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
           gap: 4, padding: '5px 0', background: 'none', border: 'none',
-          borderTop: '1px solid var(--color-border)',
+          borderTop: '1px solid var(--glass-border)',
           fontSize: 11, color: 'var(--color-text-disabled)', cursor: 'pointer',
         }}
       >
@@ -160,7 +162,7 @@ function MatchCard({ match }: { match: Match }) {
 
       {/* ── 펼쳐진 플레이어 목록 ── */}
       {expanded && (
-        <div style={{ borderTop: '1px solid var(--color-border)' }}>
+        <div style={{ borderTop: '1px solid var(--glass-border)' }}>
           {/* 블루팀 */}
           <div style={{ padding: '6px 12px 2px', fontSize: 10, fontWeight: 700, color: 'var(--color-info)' }}>
             블루팀 {blueWin ? '✓ 승' : '패'}
@@ -197,7 +199,7 @@ function MatchCard({ match }: { match: Match }) {
           })}
 
           {/* 구분선 */}
-          <div style={{ height: 1, background: 'var(--color-border)', margin: '2px 0' }} />
+          <div style={{ height: 1, background: 'var(--glass-border)', margin: '2px 0' }} />
 
           {/* 레드팀 */}
           <div style={{ padding: '6px 12px 2px', fontSize: 10, fontWeight: 700, color: 'var(--color-loss)' }}>

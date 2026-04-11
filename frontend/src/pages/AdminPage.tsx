@@ -68,12 +68,6 @@ function calcExpectedWR(members: string[], allStats: PlayerStats[], duos: DuoSta
   return Math.min(Math.max(base + synergy, 0.05), 0.95);
 }
 
-const thS: React.CSSProperties = {
-  padding: '8px 12px', textAlign: 'left', fontSize: 11, fontWeight: 700,
-  color: 'var(--color-text-secondary)', textTransform: 'uppercase', whiteSpace: 'nowrap',
-};
-const tdS: React.CSSProperties = { padding: '10px 12px', verticalAlign: 'middle' };
-
 
 export function AdminPage() {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem(SESSION_KEY) === 'true');
@@ -272,58 +266,55 @@ export function AdminPage() {
 
       {/* ── 1. 배치 스케쥴러 ──────────────────────── */}
       <section className="stats-section card" style={{ marginBottom: 20 }}>
-        <div className="stats-section-title">
+        <div className="admin-section-title">
           <RefreshCw size={16} />통계 배치 스케쥴러
-          <span className="stats-section-sub">매일 04:00 자동 실행 | Kafka 이벤트 수신 시 자동 실행</span>
+          <span className="admin-section-sub">매일 04:00 자동 실행 | Kafka 이벤트 수신 시 자동 실행</span>
         </div>
-        <div className="grid-16" style={{ alignItems: 'center' }}>
-          <button className="btn btn-primary col-span-4" onClick={triggerBatch} disabled={triggering}
-            style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div className="admin-action-row">
+          <button className="btn btn-primary" onClick={triggerBatch} disabled={triggering}>
             <Play size={14} />{triggering ? '실행 중...' : '배치 수동 실행'}
           </button>
-          <button className="btn btn-secondary col-span-4" onClick={loadAll}
-            style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button className="btn btn-secondary" onClick={loadAll}>
             <RefreshCw size={14} />상태 새로고침
           </button>
           {triggerMsg && (
-            <span className="col-span-8" style={{ fontSize: 13, color: triggerMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
+            <span className={`admin-msg ${triggerMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}>
               {triggerMsg}
             </span>
           )}
         </div>
-        <div className="grid-16" style={{ alignItems: 'center', marginTop: 12 }}>
-          <button className="btn btn-secondary col-span-4" onClick={triggerItemStats} disabled={triggeringItems}
-            style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div className="admin-action-row">
+          <button className="btn btn-secondary" onClick={triggerItemStats} disabled={triggeringItems}>
             <Play size={14} />{triggeringItems ? '집계 중...' : '아이템 통계만 재집계'}
           </button>
           {triggerItemMsg && (
-            <span className="col-span-12" style={{ fontSize: 13, color: triggerItemMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
+            <span className={`admin-msg ${triggerItemMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}>
               {triggerItemMsg}
             </span>
           )}
         </div>
-        <div className="grid-16" style={{ alignItems: 'center', marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
-          <button className="btn btn-secondary col-span-4" onClick={clearAllCache} disabled={clearingCache}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-loss)' }}>
+        <div className="admin-action-sep" />
+        <div className="admin-action-row">
+          <button className="btn btn-danger" onClick={clearAllCache} disabled={clearingCache}>
             <Trash2 size={14} />{clearingCache ? '초기화 중...' : '전체 캐시 초기화'}
           </button>
           {clearCacheMsg && (
-            <span className="col-span-12" style={{ fontSize: 13, color: clearCacheMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
+            <span className={`admin-msg ${clearCacheMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}>
               {clearCacheMsg}
             </span>
           )}
         </div>
         {batchStatus && (
-          <div className="grid-16" style={{ marginTop: 16 }}>
+          <div className="grid-16 admin-batch-cards">
             {[
               { label: '플레이어 스냅샷',    value: `${batchStatus.playerSnapshotCount}건` },
               { label: '챔피언 스냅샷',      value: `${batchStatus.championSnapshotCount}건` },
               { label: '챔피언 아이템 통계', value: `${batchStatus.championItemSnapshotCount}건` },
               { label: '마지막 집계',        value: batchStatus.lastAggregatedAt ?? '없음' },
             ].map(({ label, value }) => (
-              <div key={label} className="summary-stat-card col-span-4" style={{ alignItems: 'flex-start', gap: 4 }}>
-                <span style={{ fontSize: 10, color: 'var(--color-text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>{label}</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>{value}</span>
+              <div key={label} className="admin-batch-card col-span-4">
+                <span className="admin-batch-card-label">{label}</span>
+                <span className="admin-batch-card-value">{value}</span>
               </div>
             ))}
           </div>
@@ -332,51 +323,48 @@ export function AdminPage() {
 
       {/* ── 2. Elo 관리 ──────────────────────────── */}
       <section className="stats-section card" style={{ marginBottom: 20 }}>
-        <div className="stats-section-title" style={{ justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <BarChart2 size={16} />Elo 관리
-            <span className="stats-section-sub">전체 초기화 후 매치 시간순 재집계</span>
-          </div>
-          <button className="btn btn-secondary" onClick={loadEloLeaderboard} disabled={eloLoading}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
+        <div className="admin-section-title">
+          <BarChart2 size={16} />Elo 관리
+          <span className="admin-section-sub">전체 초기화 후 매치 시간순 재집계</span>
+          <button className="btn btn-secondary btn-sm" onClick={loadEloLeaderboard} disabled={eloLoading}
+            style={{ marginLeft: 'auto' }}>
             <RefreshCw size={12} />{eloLoading ? '로딩 중...' : '새로고침'}
           </button>
         </div>
 
-        <div className="grid-16" style={{ alignItems: 'center' }}>
-          <button className="btn btn-secondary col-span-6" onClick={resetElo} disabled={eloResetting}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-loss)' }}>
+        <div className="admin-action-row">
+          <button className="btn btn-danger" onClick={resetElo} disabled={eloResetting}>
             <Trash2 size={14} />{eloResetting ? '재집계 중...' : 'Elo 전체 초기화 및 재집계'}
           </button>
           {eloResetMsg && (
-            <span className="col-span-10" style={{ fontSize: 13, color: eloResetMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
+            <span className={`admin-msg ${eloResetMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}>
               {eloResetMsg}
             </span>
           )}
         </div>
 
         {eloLeaderboard.length > 0 && (
-          <div style={{ marginTop: 16, overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="elo-table">
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                  <th style={thS}>순위</th>
-                  <th style={thS}>플레이어</th>
-                  <th style={thS}>Elo</th>
-                  <th style={thS}>판수</th>
+                <tr>
+                  <th>순위</th>
+                  <th>플레이어</th>
+                  <th>Elo</th>
+                  <th>판수</th>
                 </tr>
               </thead>
               <tbody>
                 {eloLeaderboard.map(entry => (
-                  <tr key={entry.riotId} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <td style={{ ...tdS, fontWeight: 700, color: entry.rank <= 3 ? 'var(--color-primary)' : 'var(--color-text-secondary)', width: 48 }}>
+                  <tr key={entry.riotId}>
+                    <td className={`elo-rank${entry.rank <= 3 ? ' elo-rank--top' : ''}`} style={{ width: 48 }}>
                       #{entry.rank}
                     </td>
-                    <td style={{ ...tdS, fontWeight: 600 }}><PlayerLink riotId={entry.riotId}>{entry.riotId}</PlayerLink></td>
-                    <td style={{ ...tdS, fontWeight: 700, color: entry.elo >= 1100 ? 'var(--color-win)' : entry.elo < 900 ? 'var(--color-loss)' : 'var(--color-text-primary)' }}>
+                    <td style={{ fontWeight: 600 }}><PlayerLink riotId={entry.riotId}>{entry.riotId}</PlayerLink></td>
+                    <td className={entry.elo >= 1100 ? 'elo-score--high' : entry.elo < 900 ? 'elo-score--low' : 'elo-score--mid'}>
                       {entry.elo.toFixed(1)}
                     </td>
-                    <td style={{ ...tdS, color: 'var(--color-text-secondary)' }}>{entry.games}판</td>
+                    <td className="text-secondary">{entry.games}판</td>
                   </tr>
                 ))}
               </tbody>
@@ -384,7 +372,7 @@ export function AdminPage() {
           </div>
         )}
         {!eloLoading && eloLeaderboard.length === 0 && (
-          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: '12px 0' }}>
+          <p className="text-secondary" style={{ fontSize: 13, margin: '12px 0' }}>
             Elo 데이터가 없습니다. [Elo 전체 초기화 및 재집계] 버튼을 눌러 집계하세요.
           </p>
         )}
@@ -392,26 +380,24 @@ export function AdminPage() {
 
       {/* ── 3. 포지션별 승리기여도 ────────────────── */}
       <section className="stats-section card" style={{ marginBottom: 20 }}>
-        <div className="stats-section-title" style={{ justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Trophy size={16} />포지션별 승리기여도
-            <span className="stats-section-sub">KDA · 승률 · 비전 · CS 종합 기여 점수</span>
-          </div>
+        <div className="admin-section-title">
+          <Trophy size={16} />포지션별 승리기여도
+          <span className="admin-section-sub">KDA · 승률 · 비전 · CS 종합 기여 점수</span>
           {!posLoaded && (
-            <button className="btn btn-secondary" onClick={loadPositions}
-              disabled={posLoading || !allStats.length} style={{ fontSize: 12 }}>
+            <button className="btn btn-secondary btn-sm" onClick={loadPositions}
+              disabled={posLoading || !allStats.length} style={{ marginLeft: 'auto' }}>
               {posLoading ? '로딩 중...' : '통계 불러오기'}
             </button>
           )}
         </div>
         {posLoaded ? (
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <table className="pos-table">
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                  <th style={thS}>플레이어</th>
-                  <th style={thS}>MVP점수</th>
-                  {POS_ORDER.map(pos => <th key={pos} style={thS}>{POS_LABELS[pos]}</th>)}
+                <tr>
+                  <th>플레이어</th>
+                  <th>MVP점수</th>
+                  {POS_ORDER.map(pos => <th key={pos}>{POS_LABELS[pos]}</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -419,27 +405,25 @@ export function AdminPage() {
                   const lanes = posMap[player.riotId] ?? [];
                   const mvp = mvpStats.find(m => m.riotId === player.riotId);
                   return (
-                    <tr key={player.riotId} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <td style={tdS}><PlayerLink riotId={player.riotId}><span style={{ fontWeight: 600 }}>{player.riotId}</span></PlayerLink></td>
-                      <td style={{ ...tdS, color: 'var(--color-primary)', fontWeight: 700 }}>
+                    <tr key={player.riotId}>
+                      <td><PlayerLink riotId={player.riotId}><span style={{ fontWeight: 600 }}>{player.riotId}</span></PlayerLink></td>
+                      <td style={{ color: 'var(--color-primary)', fontWeight: 700 }}>
                         {mvp ? mvp.avgMvpScore.toFixed(1) : '-'}
                         {mvp && mvp.mvpCount > 0 && (
-                          <span style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginLeft: 4 }}>
+                          <span className="text-secondary" style={{ fontSize: 10, marginLeft: 4 }}>
                             ({mvp.mvpCount}MVP)
                           </span>
                         )}
                       </td>
                       {POS_ORDER.map(pos => {
                         const lane = lanes.find(l => l.position === pos);
-                        if (!lane) return <td key={pos} style={{ ...tdS, color: 'var(--color-text-secondary)', opacity: 0.3 }}>—</td>;
+                        if (!lane) return <td key={pos} className="pos-empty">—</td>;
                         const score = calcPosScore(lane);
                         const col = lane.winRate >= 60 ? 'var(--color-win)' : lane.winRate < 45 ? 'var(--color-loss)' : 'var(--color-text-primary)';
                         return (
-                          <td key={pos} style={tdS}>
-                            <div style={{ color: col, fontWeight: 700, fontSize: 14 }}>{score}</div>
-                            <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginTop: 2 }}>
-                              {lane.winRate.toFixed(0)}% · {lane.games}판
-                            </div>
+                          <td key={pos}>
+                            <div className="pos-score" style={{ color: col }}>{score}</div>
+                            <div className="pos-meta">{lane.winRate.toFixed(0)}% · {lane.games}판</div>
                           </td>
                         );
                       })}
@@ -450,7 +434,7 @@ export function AdminPage() {
             </table>
           </div>
         ) : (
-          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', margin: '12px 0' }}>
+          <p className="text-secondary" style={{ fontSize: 13, margin: '12px 0' }}>
             [통계 불러오기] 버튼을 눌러 포지션별 데이터를 로드하세요.
           </p>
         )}
@@ -458,12 +442,10 @@ export function AdminPage() {
 
       {/* ── 4. 팀 빌더 (Drag & Drop 4팀) ─────────── */}
       <section className="stats-section card" style={{ marginBottom: 20 }}>
-        <div className="stats-section-title" style={{ justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Users size={16} />팀 빌더 · 예상 승률
-            <span className="stats-section-sub">드래그 &amp; 드롭으로 4팀 구성 · 각 팀 최대 5명</span>
-          </div>
-          <button className="btn btn-secondary" onClick={resetTeams} style={{ fontSize: 12 }}>초기화</button>
+        <div className="admin-section-title">
+          <Users size={16} />팀 빌더 · 예상 승률
+          <span className="admin-section-sub">드래그 &amp; 드롭으로 4팀 구성 · 각 팀 최대 5명</span>
+          <button className="btn btn-secondary btn-sm" onClick={resetTeams} style={{ marginLeft: 'auto' }}>초기화</button>
         </div>
 
         {/* 플레이어 풀 */}
@@ -472,22 +454,15 @@ export function AdminPage() {
           dragOver={dragOver}
           onDragOverChange={setDragOver}
           onDrop={onDrop}
-          style={{
-            minHeight: 64,
-            marginBottom: 20,
-            padding: 12,
-            borderRadius: 8,
-            border: `1px dashed ${dragOver === 'pool' ? 'var(--color-primary)' : 'var(--color-border)'}`,
-            background: dragOver === 'pool' ? 'rgba(200,170,110,0.06)' : 'transparent',
-            transition: 'all 0.15s',
-          }}
+          className={`team-pool-zone${dragOver === 'pool' ? ' drag-active' : ''}`}
+          style={{ marginBottom: 20 }}
         >
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', marginBottom: 8 }}>
+          <div className="team-pool-label">
             미배정 플레이어 ({teams.pool.length}명)
           </div>
           <div className="grid-16">
             {teams.pool.length === 0 && (
-              <span className="col-span-16" style={{ fontSize: 12, color: 'var(--color-text-secondary)', opacity: 0.5 }}>모든 플레이어가 팀에 배정됨</span>
+              <span className="col-span-16 team-drop-hint">모든 플레이어가 팀에 배정됨</span>
             )}
             {teams.pool.map(id => (
               <PlayerChip
@@ -509,54 +484,42 @@ export function AdminPage() {
             const teamDuos = duoData
               .filter(d => members.includes(d.player1) && members.includes(d.player2))
               .sort((a, b) => b.winRate - a.winRate);
+            const wrColor = wr >= 0.6 ? 'var(--color-win)' : wr < 0.45 ? 'var(--color-loss)' : meta.main;
 
             return (
               <DropZone
                 key={tk} teamKey={tk}
-                className="col-span-8"
+                className="col-span-8 team-drop-zone"
                 dragOver={dragOver} onDragOverChange={setDragOver} onDrop={onDrop}
                 style={{
-                  borderRadius: 10,
                   border: `1px solid ${dragOver === tk ? meta.main : meta.border}`,
                   background: dragOver === tk ? meta.bg.replace('0.08', '0.14') : meta.bg,
-                  padding: 14,
-                  minHeight: 160,
-                  transition: 'all 0.15s',
                 }}
               >
                 {/* 팀 헤더 */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <span style={{ fontWeight: 700, fontSize: 14, color: meta.main }}>{meta.label}</span>
+                <div className="team-header">
+                  <span className="team-label" style={{ color: meta.main }}>{meta.label}</span>
                   {members.length > 0 && (
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{
-                        fontSize: 22, fontWeight: 900, lineHeight: 1,
-                        color: wr >= 0.6 ? 'var(--color-win)' : wr < 0.45 ? 'var(--color-loss)' : meta.main,
-                      }}>
+                    <div className="team-wr-display">
+                      <div className="team-wr-value" style={{ color: wrColor }}>
                         {(wr * 100).toFixed(1)}%
                       </div>
-                      <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>예상 승률</div>
+                      <div className="team-wr-label">예상 승률</div>
                     </div>
                   )}
                 </div>
 
                 {/* 승률 게이지 */}
                 {members.length > 0 && (
-                  <div style={{ height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 2, marginBottom: 12, overflow: 'hidden' }}>
-                    <div style={{
-                      height: '100%', width: `${wr * 100}%`, borderRadius: 2,
-                      background: wr >= 0.6 ? 'var(--color-win)' : wr < 0.45 ? 'var(--color-loss)' : meta.main,
-                      transition: 'width 0.4s ease',
-                    }} />
+                  <div className="team-wr-bar-track">
+                    <div className="team-wr-bar-fill" style={{ width: `${wr * 100}%`, background: wrColor }} />
                   </div>
                 )}
 
                 {/* 플레이어 칩 */}
                 <div className="grid-16" style={{ minHeight: 36 }}>
                   {members.length === 0 && (
-                    <span className="col-span-16" style={{ fontSize: 12, color: 'var(--color-text-secondary)', opacity: 0.4, alignSelf: 'center' }}>
-                      여기에 드롭
-                    </span>
+                    <span className="col-span-16 team-drop-hint">여기에 드롭</span>
                   )}
                   {members.map(id => (
                     <PlayerChip
@@ -571,19 +534,13 @@ export function AdminPage() {
 
                 {/* 팀 내 듀오 시너지 */}
                 {teamDuos.length > 0 && (
-                  <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${meta.border}` }}>
-                    <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>
-                      듀오 시너지
-                    </div>
+                  <div className="team-duo-section" style={{ borderTop: `1px solid ${meta.border}` }}>
+                    <div className="team-duo-title">듀오 시너지</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                       {teamDuos.map(d => (
-                        <div key={`${d.player1}-${d.player2}`}
-                          style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
-                          <span style={{ color: 'var(--color-text-secondary)' }}>
-                            {d.player1} + {d.player2}
-                          </span>
-                          <span style={{
-                            fontWeight: 700,
+                        <div key={`${d.player1}-${d.player2}`} className="team-duo-item">
+                          <span className="team-duo-names">{d.player1} + {d.player2}</span>
+                          <span className="team-duo-wr" style={{
                             color: d.winRate >= 60 ? 'var(--color-win)' : d.winRate < 45 ? 'var(--color-loss)' : 'var(--color-text-primary)',
                           }}>
                             {d.winRate.toFixed(1)}% ({d.games}판)
@@ -601,33 +558,30 @@ export function AdminPage() {
 
       {/* ── 5. 전체 듀오 시너지 Top ───────────────── */}
       <section className="stats-section card">
-        <div className="stats-section-title">
+        <div className="admin-section-title">
           <Zap size={16} />듀오 시너지 전체
-          <span className="stats-section-sub">승률 순 정렬</span>
+          <span className="admin-section-sub">승률 순 정렬</span>
         </div>
         {duoData.length === 0 ? (
-          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>듀오 데이터가 없습니다.</p>
+          <p className="text-secondary" style={{ fontSize: 13 }}>듀오 데이터가 없습니다.</p>
         ) : (
           <div className="grid-16">
             {duoData.slice(0, 20).map(duo => (
-              <div key={`${duo.player1}-${duo.player2}`} className="col-span-4" style={{
-                padding: '8px 12px', borderRadius: 8,
-                background: 'var(--color-surface)',
-                border: `1px solid ${duo.winRate >= 60 ? 'var(--color-win)' : duo.winRate < 45 ? 'var(--color-loss)' : 'var(--color-border)'}`,
-                fontSize: 13,
-              }}>
-                <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                  {duo.player1} <span style={{ color: 'var(--color-text-secondary)' }}>+</span> {duo.player2}
+              <div key={`${duo.player1}-${duo.player2}`}
+                className="duo-ref-card col-span-4"
+                style={{ borderColor: duo.winRate >= 60 ? 'rgba(16,185,129,0.3)' : duo.winRate < 45 ? 'rgba(239,68,68,0.3)' : 'var(--glass-border)' }}>
+                <div className="duo-ref-players">
+                  {duo.player1} <span className="text-secondary">+</span> {duo.player2}
                 </div>
-                <div style={{ display: 'flex', gap: 10, fontSize: 12 }}>
+                <div className="duo-ref-stats">
                   <span style={{
                     fontWeight: 700,
                     color: duo.winRate >= 60 ? 'var(--color-win)' : duo.winRate < 45 ? 'var(--color-loss)' : 'var(--color-text-primary)',
                   }}>
                     {duo.winRate.toFixed(1)}%
                   </span>
-                  <span style={{ color: 'var(--color-text-secondary)' }}>{duo.games}판</span>
-                  <span style={{ color: 'var(--color-text-secondary)' }}>KDA {duo.kda.toFixed(2)}</span>
+                  <span className="text-secondary">{duo.games}판</span>
+                  <span className="text-secondary">KDA {duo.kda.toFixed(2)}</span>
                 </div>
               </div>
             ))}
@@ -687,33 +641,23 @@ function PlayerChip({ riotId, from, allStats, mvpStats, color, className, onRemo
   const mvp = mvpStats.find(m => m.riotId === riotId);
   return (
     <div
-      className={className}
+      className={`player-chip${className ? ` ${className}` : ''}`}
       draggable
       onDragStart={e => {
         e.dataTransfer.setData('riotId', riotId);
         e.dataTransfer.setData('from', from);
         e.dataTransfer.effectAllowed = 'move';
       }}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 6,
-        padding: '5px 8px', borderRadius: 6,
-        border: `1px solid ${color}44`,
-        background: `${color}11`,
-        cursor: 'grab', userSelect: 'none',
-        fontSize: 12,
-      }}
+      style={{ border: `1px solid ${color}44`, background: `${color}11` }}
     >
       <div>
-        <div style={{ fontWeight: 700, color }}>{riotId}</div>
-        <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>
+        <div className="player-chip-name" style={{ color }}>{riotId}</div>
+        <div className="player-chip-meta">
           {stat?.winRate.toFixed(1)}% · MVP {mvp?.avgMvpScore.toFixed(1) ?? '-'}
         </div>
       </div>
       {onRemove && (
-        <button
-          onClick={e => { e.stopPropagation(); onRemove(); }}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center' }}
-        >
+        <button className="player-chip-remove" onClick={e => { e.stopPropagation(); onRemove(); }}>
           <X size={12} />
         </button>
       )}

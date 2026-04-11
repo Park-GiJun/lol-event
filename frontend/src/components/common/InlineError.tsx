@@ -12,12 +12,16 @@ export const InlineError = memo(function InlineError({ message, onRetry, classNa
   return (
     <div
       className={`flex items-center gap-sm ${className}`}
-      style={{ color: 'var(--color-error)', padding: 'var(--spacing-md)' }}
+      style={{
+        color: 'var(--color-error)',
+        padding: 'var(--spacing-md)',
+        fontSize: 'var(--font-size-sm)',
+      }}
       role="alert"
     >
-      <AlertCircle size={16} aria-hidden="true" />
-      <span className="text-sm">{message}</span>
-      <Button variant="secondary" size="sm" onClick={onRetry} aria-label="다시 시도">
+      <AlertCircle size={16} aria-hidden="true" style={{ flexShrink: 0 }} />
+      <span style={{ flex: 1 }}>{message}</span>
+      <Button variant="ghost" size="sm" onClick={onRetry} aria-label="다시 시도">
         다시 시도
       </Button>
     </div>

@@ -27,11 +27,12 @@ function ColGroup() {
 
 function WrBar({ winRate }: { winRate: number }) {
   const color = winRate >= 60 ? 'var(--color-win)' : winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
+  const fillClass = winRate >= 60 ? 'wr-bar-fill--high' : winRate >= 50 ? 'wr-bar-fill--mid' : 'wr-bar-fill--low';
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <div className="tabular-nums" style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <span style={{ fontWeight: 700, fontSize: 13, color }}>{winRate.toFixed(1)}%</span>
-      <div style={{ height: 3, background: 'var(--color-bg-hover)', borderRadius: 2, overflow: 'hidden', width: 60 }}>
-        <div style={{ width: `${winRate}%`, height: '100%', background: color, borderRadius: 2 }} />
+      <div className="wr-bar-track" style={{ width: 60 }}>
+        <div className={`wr-bar-fill ${fillClass}`} style={{ width: `${winRate}%` }} />
       </div>
     </div>
   );
@@ -165,7 +166,7 @@ export function ChampionListPage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                           {imgUrl ? (
                             <img src={imgUrl} alt={displayName} width={32} height={32}
-                              style={{ borderRadius: 4, border: '1px solid var(--color-border)', objectFit: 'cover' }}
+                              className="champ-list-img"
                               onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                           ) : (
                             <div style={{
@@ -192,7 +193,7 @@ export function ChampionListPage() {
                         const kda = entry.kda ?? 0;
                         const color = kda >= 5 ? 'var(--color-win)' : kda >= 3 ? 'var(--color-primary)' : 'var(--color-text-primary)';
                         return (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <div className="tabular-nums" style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                             <span style={{ fontWeight: 700, fontSize: 12, color }}>{kda.toFixed(2)}</span>
                             <span style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>
                               {(entry.avgKills ?? 0).toFixed(1)} / <span style={{ color: 'var(--color-error)' }}>{(entry.avgDeaths ?? 0).toFixed(1)}</span> / {(entry.avgAssists ?? 0).toFixed(1)}

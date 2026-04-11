@@ -18,17 +18,24 @@ function eloTier(elo: number): { label: string; color: string } {
   return                  { label: 'Bronze',     color: '#CD7F32' };
 }
 
-const RANK_COLORS: Record<number, string> = { 1: '#FFD700', 2: '#C0C0C0', 3: '#CD7F32' };
+const RANK_META: Record<number, { color: string; glow: string; shadow: string }> = {
+  1: { color: '#FFD700', glow: 'rgba(255,215,0,0.35)',   shadow: '0 0 16px rgba(255,215,0,0.25)' },
+  2: { color: '#C0C0C0', glow: 'rgba(192,192,192,0.3)',  shadow: '0 0 14px rgba(192,192,192,0.2)' },
+  3: { color: '#CD7F32', glow: 'rgba(205,127,50,0.3)',   shadow: '0 0 12px rgba(205,127,50,0.2)' },
+};
 
 function RankBadge({ rank }: { rank: number }) {
-  const color = RANK_COLORS[rank];
-  if (color) {
+  const meta = RANK_META[rank];
+  if (meta) {
     return (
       <div style={{
-        width: 26, height: 26, borderRadius: '50%',
-        background: color, display: 'flex', alignItems: 'center',
+        width: 28, height: 28, borderRadius: '50%',
+        background: `radial-gradient(circle at 35% 35%, ${meta.color}, ${meta.color}BB)`,
+        boxShadow: meta.shadow,
+        display: 'flex', alignItems: 'center',
         justifyContent: 'center', fontSize: 11, fontWeight: 800,
         color: '#111', flexShrink: 0,
+        border: `1px solid ${meta.glow}`,
       }}>
         {rank}
       </div>
@@ -37,7 +44,7 @@ function RankBadge({ rank }: { rank: number }) {
   return (
     <span style={{
       color: 'var(--color-text-disabled)', fontSize: 12,
-      width: 26, textAlign: 'center', display: 'inline-block',
+      width: 28, textAlign: 'center', display: 'inline-block',
     }}>
       {rank}
     </span>
@@ -49,8 +56,8 @@ function StreakBadge({ winStreak, lossStreak }: { winStreak: number; lossStreak:
     return (
       <span style={{
         fontSize: 10, fontWeight: 700, color: '#FF6B2B',
-        background: 'rgba(255,107,43,0.15)', borderRadius: 4,
-        padding: '1px 5px', border: '1px solid rgba(255,107,43,0.3)',
+        background: 'rgba(255,107,43,0.12)', borderRadius: 'var(--radius-xs)',
+        padding: '2px 6px', border: '1px solid rgba(255,107,43,0.25)',
         whiteSpace: 'nowrap',
       }}>
         🔥 {winStreak}연승
@@ -61,8 +68,8 @@ function StreakBadge({ winStreak, lossStreak }: { winStreak: number; lossStreak:
     return (
       <span style={{
         fontSize: 10, fontWeight: 700, color: '#6BAAFF',
-        background: 'rgba(107,170,255,0.15)', borderRadius: 4,
-        padding: '1px 5px', border: '1px solid rgba(107,170,255,0.3)',
+        background: 'rgba(107,170,255,0.12)', borderRadius: 'var(--radius-xs)',
+        padding: '2px 6px', border: '1px solid rgba(107,170,255,0.25)',
         whiteSpace: 'nowrap',
       }}>
         🧊 {lossStreak}연패
@@ -82,8 +89,8 @@ function ColGroup() {
       <col style={{ width: 88 }} />
       <col style={{ width: 80 }} />
       <col style={{ width: 80 }} />
-      <col style={{ width: 72 }} />
       <col style={{ width: 80 }} />
+      <col style={{ width: 72 }} />
       <col style={{ width: 52 }} />
     </colgroup>
   );
@@ -178,11 +185,23 @@ export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
             const isCurrentUser = currentRiotId !== undefined && entry.riotId === currentRiotId;
             const [name, tag = ''] = entry.riotId.split('#');
             const wrColor = entry.winRate >= 60 ? 'var(--color-win)' : entry.winRate >= 50 ? 'var(--color-primary)' : entry.winRate > 0 ? 'var(--color-loss)' : 'var(--color-text-disabled)';
+            const rankMeta = RANK_META[entry.rank];
             return (
               <tr
                 key={entry.riotId}
                 className="member-stats-row"
-                style={isCurrentUser ? { background: 'rgba(11, 196, 180, 0.08)' } : undefined}
+                style={{
+                  background: isCurrentUser
+                    ? 'rgba(0, 180, 216, 0.06)'
+                    : rankMeta
+                    ? `${rankMeta.color}05`
+                    : undefined,
+                  boxShadow: rankMeta
+                    ? `inset 3px 0 0 ${rankMeta.color}55`
+                    : isCurrentUser
+                    ? 'inset 3px 0 0 rgba(0,180,216,0.4)'
+                    : undefined,
+                }}
               >
                 <td><RankBadge rank={entry.rank} /></td>
                 <td>
@@ -198,8 +217,9 @@ export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
                 <td>
                   <span style={{
                     fontSize: 11, fontWeight: 700, color: tier.color,
-                    background: tier.color + '22', borderRadius: 4, padding: '2px 7px',
-                    border: `1px solid ${tier.color}44`,
+                    background: tier.color + '1A', borderRadius: 'var(--radius-xs)', padding: '2px 7px',
+                    border: `1px solid ${tier.color}33`,
+                    boxShadow: `0 0 8px ${tier.color}18`,
                   }}>
                     {tier.label}
                   </span>
@@ -212,8 +232,17 @@ export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
                   {' '}
                   <span style={{ color: 'var(--color-loss)', fontWeight: 600 }}>{entry.losses}패</span>
                 </td>
-                <td className="table-number" style={{ fontWeight: 600, color: wrColor }}>
-                  {entry.games > 0 ? `${entry.winRate.toFixed(1)}%` : '—'}
+                <td className="table-number">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-end' }}>
+                    <span style={{ fontWeight: 700, color: wrColor, fontSize: 12 }}>
+                      {entry.games > 0 ? `${entry.winRate.toFixed(1)}%` : '—'}
+                    </span>
+                    {entry.games > 0 && (
+                      <div style={{ height: 2, width: 44, background: 'var(--color-bg-hover)', borderRadius: 2, overflow: 'hidden' }}>
+                        <div style={{ width: `${entry.winRate}%`, height: '100%', background: wrColor, borderRadius: 2 }} />
+                      </div>
+                    )}
+                  </div>
                 </td>
                 <td>
                   <StreakBadge winStreak={entry.winStreak} lossStreak={entry.lossStreak} />

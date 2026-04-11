@@ -272,22 +272,11 @@ export function AdvancedStatsPage() {
       </div>
 
       {/* 탭 선택 */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid var(--color-border)', paddingBottom: 0 }}>
+      <div className="adv-tab-header">
         {TABS.map(t => (
           <button key={t.key}
             onClick={() => setTab(t.key)}
-            style={{
-              background: 'none',
-              border: 'none',
-              borderBottom: tab === t.key ? '2px solid var(--color-primary)' : '2px solid transparent',
-              padding: '10px 20px',
-              fontSize: 14,
-              fontWeight: tab === t.key ? 700 : 500,
-              color: tab === t.key ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-              marginBottom: -1,
-            }}>
+            className={`adv-tab-btn${tab === t.key ? ' active' : ''}`}>
             {t.label}
           </button>
         ))}

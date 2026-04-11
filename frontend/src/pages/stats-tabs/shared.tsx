@@ -63,7 +63,7 @@ export function ChampPickCard({ stat, champions, onClick, countLabel, imgStyle }
   return (
     <ChampionLink champion={stat.champion} championId={stat.championId} className="popup-trigger--card">
       <div className="champ-pick-card" onClick={onClick} style={{ cursor: 'pointer' }}>
-        <div className="champ-pick-img-wrap">
+        <div className="champ-pick-img-wrap" style={{ boxShadow: '0 0 10px rgba(0,180,216,0.12)' }}>
           {imgUrl
             ? <img src={imgUrl} alt={nameKo} className="champ-pick-img" style={imgStyle} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             : <div className="champ-pick-img-fallback">{nameKo.slice(0, 2)}</div>
@@ -72,7 +72,7 @@ export function ChampPickCard({ stat, champions, onClick, countLabel, imgStyle }
         <div className="champ-pick-name">{nameKo}</div>
         <div className="champ-pick-meta">
           <span className="champ-pick-count">{countLabel ?? `${stat.picks}픽`}</span>
-          {!countLabel && stat.winRate > 0 && <span className="champ-pick-wr" style={{ color: wrColor }}>{stat.winRate}%</span>}
+          {!countLabel && stat.winRate > 0 && <span className="champ-pick-wr" style={{ color: wrColor, fontVariantNumeric: 'tabular-nums' }}>{stat.winRate}%</span>}
         </div>
       </div>
     </ChampionLink>
@@ -89,14 +89,14 @@ export function HallCard({ emoji, label, stat, basis, mode }: { emoji: string; l
   const navigate = useNavigate();
   if (!stat) return (
     <div className="hall-card hall-card--empty">
-      <div className="hall-emoji">{emoji}</div>
+      <div className="hall-emoji" style={{ filter: 'grayscale(1) opacity(0.5)' }}>{emoji}</div>
       <div className="hall-label">{label}</div>
       <div className="hall-empty-text">데이터 없음</div>
     </div>
   );
   return (
     <div className="hall-card" onClick={() => navigate(`/player-stats/${encodeURIComponent(stat.riotId)}`)}>
-      <div className="hall-emoji">{emoji}</div>
+      <div className="hall-emoji" style={{ filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.25))' }}>{emoji}</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>
         <div className="hall-label">{label}</div>
         <BasisBadge basis={basis} />
@@ -104,7 +104,7 @@ export function HallCard({ emoji, label, stat, basis, mode }: { emoji: string; l
       <PlayerLink riotId={stat.riotId} mode={mode}>
         <div className="hall-player">{stat.riotId.split('#')[0]}</div>
       </PlayerLink>
-      <div className="hall-value">{stat.displayValue}</div>
+      <div className="hall-value" style={{ fontVariantNumeric: 'tabular-nums' }}>{stat.displayValue}</div>
       <div className="hall-games">{stat.games}판</div>
     </div>
   );

@@ -26,23 +26,23 @@ export default function SessionsTab({ mode }: { mode: string }) {
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {data.sessions.map((s: SessionEntry) => (
-          <div key={s.date} className="card" style={{ padding: 12 }}>
-            <div className="grid-16" style={{ alignItems: 'flex-start' }}>
+          <div key={s.date} className="card" style={{ padding: '14px 16px', transition: 'border-color var(--transition-fast), background var(--transition-fast)' }}>
+            <div className="grid-16" style={{ alignItems: 'flex-start', marginBottom: 8 }}>
               <div className="col-span-8">
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{s.date}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>
+                <div style={{ fontWeight: 800, fontSize: 15 }}>{s.date}</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 3 }}>
                   {s.games}경기 · 약 {s.totalDurationMin}분
                 </div>
               </div>
               <div className="col-span-8" style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'flex-end' }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>팀100</div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-win)' }}>{s.team100Wins}</div>
+                  <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--color-win)', fontVariantNumeric: 'tabular-nums' }}>{s.team100Wins}</div>
                 </div>
-                <div style={{ fontSize: 12, color: 'var(--color-text-disabled)' }}>vs</div>
+                <div style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>vs</div>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>팀200</div>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-loss)' }}>{s.team200Wins}</div>
+                  <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--color-loss)', fontVariantNumeric: 'tabular-nums' }}>{s.team200Wins}</div>
                 </div>
               </div>
             </div>

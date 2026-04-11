@@ -1,3 +1,7 @@
+/* ================================================================
+ * MATCHES PAGE — 매치 목록 및 상세 스타일
+ * ================================================================ */
+
 /* ── Match List ───────────────────────────────────────────── */
 .matches-list {
   display: flex;
@@ -6,16 +10,19 @@
 }
 
 .match-card {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
 }
 .match-card:hover {
   border-color: var(--color-border-light);
   box-shadow: var(--shadow-md);
+  background: var(--glass-bg-hover);
 }
 
 /* ── Card Header ── */
@@ -24,8 +31,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-bg-tertiary);
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.015);
 }
 
 .match-card-meta {
@@ -35,12 +42,12 @@
 }
 
 .match-mode-badge {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.4px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-wider);
   color: var(--color-primary);
-  background: rgba(200, 155, 60, 0.12);
-  border: 1px solid rgba(200, 155, 60, 0.3);
+  background: rgba(0, 180, 216, 0.1);
+  border: 1px solid rgba(0, 180, 216, 0.2);
   border-radius: var(--radius-sm);
   padding: 2px 8px;
   text-transform: uppercase;
@@ -55,7 +62,7 @@
 }
 
 .match-version {
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   opacity: 0.6;
 }
 
@@ -74,16 +81,16 @@
   color: var(--color-text-disabled);
   padding: 4px;
   border-radius: var(--radius-sm);
-  transition: color 0.15s, background 0.15s;
+  transition: color var(--transition-fast), background var(--transition-fast);
 }
 .match-delete-btn:hover {
   color: var(--color-error);
-  background: rgba(232, 64, 64, 0.1);
+  background: rgba(239, 68, 68, 0.08);
 }
 
 .match-arrow {
   color: var(--color-text-disabled);
-  transition: transform 0.15s, color 0.15s;
+  transition: transform var(--transition-fast), color var(--transition-fast);
 }
 .match-card:hover .match-arrow {
   color: var(--color-primary);
@@ -101,12 +108,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-disabled);
-  letter-spacing: 0.5px;
-  border-left: 1px solid var(--color-border);
-  border-right: 1px solid var(--color-border);
+  letter-spacing: var(--tracking-wider);
+  border-left: 1px solid var(--glass-border);
+  border-right: 1px solid var(--glass-border);
 }
 
 .match-team {
@@ -125,20 +132,20 @@
 }
 
 .match-team-name {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-secondary);
-  letter-spacing: 0.5px;
+  letter-spacing: var(--tracking-wider);
 }
 
 .match-result-badge {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
   padding: 1px 6px;
-  border-radius: 10px;
+  border-radius: var(--radius-full);
 }
-.match-result-badge.win  { background: rgba(11,196,180,0.15); color: var(--color-win); }
-.match-result-badge.loss { background: rgba(232,64,64,0.12);  color: var(--color-loss); }
+.match-result-badge.win  { background: rgba(16, 185, 129, 0.12); color: var(--color-win); }
+.match-result-badge.loss { background: rgba(239, 68, 68, 0.1);  color: var(--color-loss); }
 
 .match-players {
   display: flex;
@@ -156,10 +163,10 @@
   border-radius: 3px;
 }
 .match-player-ace {
-  background: rgba(200, 155, 60, 0.08);
+  background: rgba(200, 155, 60, 0.06);
 }
 .match-player-mvp {
-  background: rgba(11, 196, 180, 0.06);
+  background: rgba(16, 185, 129, 0.04);
 }
 
 /* ── MVP / ACE 배지 (카드용) ────────────────────────────── */
@@ -168,21 +175,21 @@
   align-items: center;
   gap: 2px;
   font-size: 9px;
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   padding: 1px 5px;
   border-radius: 8px;
-  letter-spacing: 0.3px;
+  letter-spacing: var(--tracking-wide);
   white-space: nowrap;
 }
 .match-mvp-badge--ace {
-  background: rgba(200, 155, 60, 0.18);
+  background: rgba(200, 155, 60, 0.15);
   color: var(--color-primary);
-  border: 1px solid rgba(200, 155, 60, 0.35);
+  border: 1px solid rgba(200, 155, 60, 0.3);
 }
 .match-mvp-badge--team {
-  background: rgba(11, 196, 180, 0.12);
+  background: rgba(16, 185, 129, 0.1);
   color: var(--color-win);
-  border: 1px solid rgba(11, 196, 180, 0.25);
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 /* ── Scoreboard MVP 배지 ─────────────────────────────────── */
@@ -191,23 +198,26 @@
   align-items: center;
   gap: 2px;
   font-size: 9px;
-  font-weight: 800;
+  font-weight: var(--font-weight-extrabold);
   padding: 1px 5px;
   border-radius: 8px;
   margin-left: 5px;
   vertical-align: middle;
 }
-.sb-mvp-badge--ace  { background: rgba(200,155,60,0.18); color: var(--color-primary); border: 1px solid rgba(200,155,60,0.35); }
-.sb-mvp-badge--team { background: rgba(11,196,180,0.12);  color: var(--color-win);     border: 1px solid rgba(11,196,180,0.25); }
-.sb-row-ace  { background: rgba(200, 155, 60, 0.05); }
-.sb-row-mvp  { background: rgba(11, 196, 180, 0.04); }
+.sb-mvp-badge--ace  { background: rgba(200,155,60,0.15); color: var(--color-primary); border: 1px solid rgba(200,155,60,0.3); }
+.sb-mvp-badge--team { background: rgba(16,185,129,0.1);  color: var(--color-win);     border: 1px solid rgba(16,185,129,0.2); }
+.sb-row-ace  { background: rgba(200, 155, 60, 0.04); }
+.sb-row-mvp  { background: rgba(16, 185, 129, 0.03); }
 
 /* ── Match Group (날짜별 묶음) ───────────────────────────── */
 .match-group {
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
   margin-bottom: 10px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
 }
 
 .match-group-header {
@@ -215,14 +225,14 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  background: var(--color-bg-tertiary);
+  background: rgba(255, 255, 255, 0.02);
   border: none;
   padding: 12px 16px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--transition-fast);
   text-align: left;
 }
-.match-group-header:hover { background: var(--color-bg-hover, rgba(255,255,255,0.04)); }
+.match-group-header:hover { background: rgba(0, 180, 216, 0.04); }
 
 .match-group-header-left {
   display: flex;
@@ -232,21 +242,21 @@
 }
 .match-group-date {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
 }
 .match-group-count {
   font-size: 12px;
   color: var(--color-text-secondary);
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
   padding: 1px 8px;
 }
 .match-group-summary { display: flex; align-items: center; gap: 8px; }
 .match-group-winloss {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-secondary);
 }
 
@@ -255,13 +265,13 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: var(--color-bg-secondary, var(--color-bg));
+  background: rgba(0, 0, 0, 0.15);
 }
 .match-group-body .match-group { margin-bottom: 0; }
 .match-group-body .match-card  { margin-bottom: 0; }
 
 .match-champion {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -279,7 +289,7 @@
   font-variant-numeric: tabular-nums;
   color: var(--color-text-secondary);
   white-space: nowrap;
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
 }
 
 /* ── Detail Modal ─────────────────────────────────────────── */
@@ -288,7 +298,7 @@
   align-items: center;
   gap: 16px;
   padding: 12px 0 16px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--glass-border);
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
@@ -303,7 +313,7 @@
 
 .match-detail-meta-item strong {
   color: var(--color-text-primary);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 /* ── Tabs ── */
@@ -311,7 +321,7 @@
   display: flex;
   gap: 2px;
   margin-bottom: 16px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--glass-border);
   padding-bottom: 0;
 }
 
@@ -320,11 +330,11 @@
   border: none;
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   padding: 8px 14px;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-  transition: color 0.15s, border-color 0.15s;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
   white-space: nowrap;
 }
 
@@ -350,19 +360,19 @@
 }
 
 .scoreboard-team-header.blue-team {
-  background: linear-gradient(90deg, rgba(59,158,255,0.15) 0%, transparent 100%);
+  background: linear-gradient(90deg, rgba(59,158,255,0.1) 0%, transparent 100%);
   border-left: 3px solid var(--color-blue);
 }
 
 .scoreboard-team-header.red-team {
-  background: linear-gradient(90deg, rgba(232,64,64,0.12) 0%, transparent 100%);
+  background: linear-gradient(90deg, rgba(239,68,68,0.08) 0%, transparent 100%);
   border-left: 3px solid var(--color-red);
 }
 
 .scoreboard-team-name {
   font-size: var(--font-size-sm);
-  font-weight: 700;
-  letter-spacing: 0.3px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-wide);
 }
 
 .scoreboard-team-kills {
@@ -378,12 +388,12 @@
 
 .scoreboard-table th {
   padding: 7px 10px;
-  background: var(--color-bg-tertiary);
+  background: rgba(255, 255, 255, 0.02);
   color: var(--color-text-secondary);
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-wide);
   white-space: nowrap;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .scoreboard-table th:first-child { text-align: left; }
@@ -392,12 +402,15 @@
 
 .scoreboard-table td {
   padding: 8px 10px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   vertical-align: middle;
   white-space: nowrap;
 }
 
-.scoreboard-table tbody tr:hover { background: var(--color-bg-hover); }
+.scoreboard-table tbody tr {
+  transition: background var(--transition-fast);
+}
+.scoreboard-table tbody tr:hover { background: rgba(0, 180, 216, 0.04); }
 .scoreboard-table tbody tr:last-child td { border-bottom: none; }
 
 .scoreboard-table .td-num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -416,29 +429,29 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
   flex-shrink: 0;
-  background: var(--color-bg-hover);
+  background: rgba(255, 255, 255, 0.03);
   color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--glass-border);
 }
-.sb-champion-badge.blue { border-color: rgba(59,158,255,0.4); color: var(--color-blue); }
-.sb-champion-badge.red  { border-color: rgba(232,64,64,0.4);  color: var(--color-red); }
+.sb-champion-badge.blue { border-color: rgba(59,158,255,0.3); color: var(--color-blue); }
+.sb-champion-badge.red  { border-color: rgba(239,68,68,0.3);  color: var(--color-red); }
 
 .sb-player-info {}
 
 .sb-champion-name {
   font-size: var(--font-size-xs);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
-  line-height: 1.2;
+  line-height: var(--line-height-tight);
 }
 
 .sb-riot-id {
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   color: var(--color-text-secondary);
-  line-height: 1.2;
+  line-height: var(--line-height-tight);
 }
 
 /* KDA cell */
@@ -449,7 +462,7 @@
 
 .sb-kda-nums {
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   letter-spacing: -0.3px;
 }
 
@@ -459,7 +472,7 @@
 .sb-kda-nums .assists { color: var(--color-text-secondary); }
 
 .sb-kda-ratio {
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   color: var(--color-text-secondary);
   margin-top: 1px;
 }
@@ -478,15 +491,15 @@
 
 .sb-damage-bar-track {
   height: 5px;
-  background: var(--color-bg-hover);
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-full);
   overflow: hidden;
 }
 
 .sb-damage-bar-fill {
   height: 100%;
-  border-radius: 3px;
-  transition: width 0.3s ease;
+  border-radius: var(--radius-full);
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .sb-damage-bar-fill.blue { background: linear-gradient(90deg, #3B9EFF, #5BB8FF); }
@@ -495,13 +508,13 @@
 /* Result badge in table */
 .sb-result {
   display: inline-block;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
   padding: 2px 7px;
-  border-radius: 10px;
+  border-radius: var(--radius-full);
 }
-.sb-result.win  { background: rgba(11,196,180,0.15); color: var(--color-win); }
-.sb-result.loss { background: rgba(232,64,64,0.12);  color: var(--color-loss); }
+.sb-result.win  { background: rgba(16,185,129,0.12); color: var(--color-win); }
+.sb-result.loss { background: rgba(239,68,68,0.1);  color: var(--color-loss); }
 
 /* ── Detail Stats (other tabs) ── */
 .stat-grid {
@@ -515,7 +528,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 5px 0;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   font-size: var(--font-size-xs);
 }
 
@@ -523,15 +536,16 @@
 
 .stat-row-value {
   font-variant-numeric: tabular-nums;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
 }
 
 .stat-player-block {
-  background: var(--color-bg-tertiary);
+  background: rgba(255, 255, 255, 0.02);
   border-radius: var(--radius-md);
   padding: 10px 14px;
   margin-bottom: 8px;
+  border: 1px solid var(--glass-border);
 }
 
 .stat-player-header {
@@ -540,7 +554,7 @@
   gap: 8px;
   margin-bottom: 8px;
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 /* Team info */
@@ -551,9 +565,10 @@
 }
 
 .team-info-block {
-  background: var(--color-bg-tertiary);
+  background: rgba(255, 255, 255, 0.02);
   border-radius: var(--radius-md);
   overflow: hidden;
+  border: 1px solid var(--glass-border);
 }
 
 .team-info-header {
@@ -561,7 +576,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .team-info-stats {
@@ -575,18 +590,18 @@
   flex-direction: column;
   align-items: center;
   padding: 10px 8px;
-  border-right: 1px solid var(--color-border);
+  border-right: 1px solid var(--glass-border);
 }
 .team-info-stat:last-child { border-right: none; }
 
 .team-info-stat-value {
   font-size: var(--font-size-md);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   font-variant-numeric: tabular-nums;
 }
 
 .team-info-stat-label {
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   color: var(--color-text-secondary);
   margin-top: 2px;
 }
@@ -602,7 +617,7 @@
 .dragon-champ-img {
   flex-shrink: 0;
   object-fit: cover;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--glass-border);
 }
 
 /* ── Scoreboard champion + spell column ── */
@@ -622,15 +637,15 @@
 .dragon-spell-img {
   border-radius: 2px;
   object-fit: cover;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--glass-border);
 }
 
 .dragon-spell-empty {
   width: 16px;
   height: 16px;
-  background: var(--color-bg-hover);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 2px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--glass-border);
 }
 
 /* ── Items row ── */
@@ -644,14 +659,145 @@
 .dragon-item-img {
   border-radius: 3px;
   object-fit: cover;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--glass-border);
 }
 
 .dragon-item-empty {
   width: 22px;
   height: 22px;
-  background: var(--color-bg-hover);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 3px;
-  border: 1px solid var(--color-border);
-  opacity: 0.4;
+  border: 1px solid var(--glass-border);
+  opacity: 0.35;
+}
+
+/* ================================================================
+ * REDESIGN ADDITIONS — glassmorphism, gradients, hover effects
+ * ================================================================ */
+
+/* ── Match Card Win/Loss Left-Border Gradient ── */
+.match-card--win {
+  border-left: 3px solid var(--color-win);
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.04) 0%, var(--glass-bg) 20%);
+}
+.match-card--loss {
+  border-left: 3px solid var(--color-loss);
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.04) 0%, var(--glass-bg) 20%);
+}
+
+/* ── Date Group Header Gradient Line ── */
+.match-group-date-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(0, 180, 216, 0.3), transparent);
+  margin-left: 10px;
+}
+
+/* ── Scoreboard Row Hover ── */
+.scoreboard-table tbody tr:hover .sb-mvp-badge--ace {
+  box-shadow: 0 0 8px rgba(200, 155, 60, 0.4);
+}
+.scoreboard-table tbody tr:hover .sb-mvp-badge--team {
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+/* ACE/MVP badge glow */
+.sb-row-ace .sb-mvp-badge--ace {
+  box-shadow: 0 0 6px rgba(200, 155, 60, 0.35);
+}
+.sb-row-mvp .sb-mvp-badge--team {
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.3);
+}
+
+/* ── Champion Icon Hover Scale ── */
+.dragon-champ-img {
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.dragon-champ-img:hover {
+  transform: scale(1.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Team Color Gradient Background ── */
+.scoreboard-team-header.blue-team {
+  background: linear-gradient(90deg, rgba(59, 158, 255, 0.12) 0%, rgba(59, 158, 255, 0.03) 60%, transparent 100%);
+}
+.scoreboard-team-header.red-team {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.02) 60%, transparent 100%);
+}
+
+/* ── Match Team Area Gradient ── */
+.match-team-blue {
+  background: linear-gradient(90deg, rgba(59, 158, 255, 0.03) 0%, transparent 50%);
+}
+.match-team-red {
+  background: linear-gradient(270deg, rgba(239, 68, 68, 0.03) 0%, transparent 50%);
+}
+
+/* ── Stats Tab Player Block Team Color ── */
+.stat-team-label--blue {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.5px;
+  color: var(--color-blue);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stat-team-label--blue::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(59, 158, 255, 0.3), transparent);
+}
+.stat-team-label--red {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.5px;
+  color: var(--color-red);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stat-team-label--red::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.3), transparent);
+}
+
+/* ── Team-colored header row ── */
+.team-info-header.blue-team {
+  background: linear-gradient(90deg, rgba(59, 158, 255, 0.08) 0%, transparent 100%);
+}
+.team-info-header.red-team {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.06) 0%, transparent 100%);
+}
+
+/* ── First-badge highlight ── */
+.team-info-first-badge {
+  font-size: var(--font-size-xs);
+  background: rgba(200, 155, 60, 0.1);
+  border: 1px solid rgba(200, 155, 60, 0.25);
+  color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+}
+
+/* ── Stat section team heading ── */
+.stat-section-heading {
+  margin-bottom: 20px;
+}
+
+/* ── Match card: numeric data ── */
+.match-kda,
+.sb-kda-nums,
+.sb-kda-ratio,
+.sb-damage-num,
+.team-info-stat-value {
+  font-variant-numeric: tabular-nums;
 }

@@ -24,11 +24,12 @@ const PlayerChartsSection = lazy(
 const QUEUE_LABEL: Record<number, string> = { 0: '커스텀', 3130: '5v5 내전', 3270: '칼바람' };
 
 function WinRateBar({ winRate }: { winRate: number }) {
+  const fillClass = winRate >= 60 ? 'wr-bar-fill--high' : winRate >= 50 ? 'wr-bar-fill--mid' : 'wr-bar-fill--low';
   const color = winRate >= 60 ? 'var(--color-win)' : winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <div style={{ flex: 1, height: 5, background: 'var(--color-bg-hover)', borderRadius: 3, overflow: 'hidden' }}>
-        <div style={{ width: `${winRate}%`, height: '100%', background: color, borderRadius: 3 }} />
+      <div className="wr-bar-track" style={{ flex: 1 }}>
+        <div className={`wr-bar-fill ${fillClass}`} style={{ width: `${winRate}%` }} />
       </div>
       <span style={{ fontSize: 11, fontWeight: 700, color, minWidth: 32 }}>{winRate}%</span>
     </div>
@@ -50,7 +51,7 @@ function ChampionTable({ stats }: { stats: ChampionStat[] }) {
   const { champions } = useDragon();
   return (
     <div className="card" style={{ marginBottom: 20 }}>
-      <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 'var(--font-size-sm)' }}>챔피언별 통계</div>
+      <div className="section-title-with-line">챔피언별 통계</div>
       <div className="table-wrapper">
         <table className="table">
           <thead>
@@ -88,9 +89,9 @@ function ChampionTable({ stats }: { stats: ChampionStat[] }) {
                   {s.avgKills.toFixed(1)} / <span style={{ color: 'var(--color-error)' }}>{s.avgDeaths.toFixed(1)}</span> / {s.avgAssists.toFixed(1)}
                 </td>
                 <td>
-                  <div style={{ fontSize: 11 }}>{s.avgDamage.toLocaleString()}</div>
-                  <div style={{ height: 3, background: 'var(--color-bg-hover)', borderRadius: 2, marginTop: 2 }}>
-                    <div style={{ width: `${(s.avgDamage / maxDmg) * 100}%`, height: '100%', background: 'var(--color-primary)', borderRadius: 2 }} />
+                  <div className="tabular-nums" style={{ fontSize: 11 }}>{s.avgDamage.toLocaleString()}</div>
+                  <div className="wr-bar-track" style={{ marginTop: 2 }}>
+                    <div className="wr-bar-fill wr-bar-fill--mid" style={{ width: `${(s.avgDamage / maxDmg) * 100}%` }} />
                   </div>
                 </td>
                 <td className="table-number">{s.avgCs.toFixed(1)}</td>
@@ -166,7 +167,7 @@ function LaneStatSection({ laneStats }: { laneStats: LaneStat[] }) {
 
   return (
     <div className="card" style={{ marginBottom: 20 }}>
-      <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 'var(--font-size-sm)' }}>포지션별 통계</div>
+      <div className="section-title-with-line">포지션별 통계</div>
 
       {/* 탭 */}
       <div className="lane-tabs">
@@ -385,7 +386,7 @@ export function PlayerStatsPage() {
           {/* Elo 카드 + 히스토리 */}
           {eloHistory && (
             <div className="card" style={{ marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, fontWeight: 700, fontSize: 'var(--font-size-sm)' }}>
+              <div className="section-title-with-line">
                 <TrendingUp size={15} color="var(--color-primary)" />Elo 레이팅
               </div>
               {/* 현재 Elo 요약 */}
@@ -395,7 +396,7 @@ export function PlayerStatsPage() {
                     const tier = eloTier(eloHistory.currentElo);
                     return (
                       <>
-                        <span style={{ fontSize: 32, fontWeight: 900, color: tier.color, lineHeight: 1 }}>
+                        <span className="elo-score-glow" style={{ fontSize: 32, fontWeight: 900, color: tier.color, lineHeight: 1 }}>
                           {eloHistory.currentElo.toFixed(0)}
                         </span>
                         <span style={{ fontSize: 12, fontWeight: 700, color: tier.color }}>{tier.label}</span>
@@ -405,7 +406,7 @@ export function PlayerStatsPage() {
                 </div>
                 {eloHistory.eloRank != null && (
                   <div className="col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <span style={{ fontSize: 22, fontWeight: 800, color: eloHistory.eloRank <= 3 ? 'var(--color-primary)' : 'var(--color-text-primary)' }}>
+                    <span className={eloHistory.eloRank <= 3 ? 'elo-rank-top' : ''} style={{ fontSize: 22, fontWeight: 800 }}>
                       #{eloHistory.eloRank}
                     </span>
                     <span style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>전체 순위</span>
@@ -428,7 +429,7 @@ export function PlayerStatsPage() {
               {/* 변동 내역 테이블 */}
               {eloHistory.history.length > 0 && (
                 <div style={{ overflowX: 'auto' }}>
-                  <table className="table" style={{ fontSize: 12 }}>
+                  <table className="table elo-table" style={{ fontSize: 12 }}>
                     <thead>
                       <tr>
                         <th>결과</th>
@@ -498,7 +499,7 @@ export function PlayerStatsPage() {
           {/* 최근 경기 */}
           {data.recentMatches.length > 0 && (
             <div className="card">
-              <div style={{ fontWeight: 700, marginBottom: 12, fontSize: 'var(--font-size-sm)' }}>최근 경기</div>
+              <div className="section-title-with-line">최근 경기</div>
               {modalLoading && (
                 <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>경기 불러오는 중…</div>
               )}

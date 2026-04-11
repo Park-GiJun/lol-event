@@ -20,7 +20,7 @@ export function MobileAdminPage() {
   if (!authed) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 16px' }}>
-        <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(200,155,60,0.1)', border: '1px solid rgba(200,155,60,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+        <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(var(--color-primary-rgb),0.08)', border: '1px solid rgba(var(--color-primary-rgb),0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
           <Shield size={26} color="var(--color-primary)" />
         </div>
         <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>관리자 인증</div>

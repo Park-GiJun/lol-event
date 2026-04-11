@@ -36,7 +36,7 @@ export default function EloTab() {
 
   return (
     <div>
-      <div style={{ fontWeight: 700, marginBottom: 16, fontSize: 'var(--font-size-sm)' }}>Elo 랭킹</div>
+      <div style={{ fontWeight: 700, marginBottom: 16, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase' }}>Elo 랭킹</div>
       <div className="table-wrapper">
         <table className="table member-stats-table">
           <thead>

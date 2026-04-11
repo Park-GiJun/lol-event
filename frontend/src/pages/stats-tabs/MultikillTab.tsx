@@ -32,17 +32,17 @@ export default function MultikillTab({ mode }: { mode: string }) {
     <div>
       {data.pentaKillEvents.length > 0 && (
         <section style={{ marginBottom: 24 }}>
-          <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>⭐ 펜타킬 명예의 전당</h3>
+          <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: 'var(--color-text-primary)' }}>⭐ 펜타킬 명예의 전당</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
             {data.pentaKillEvents.map((ev: MultiKillEvent) => {
               const nameKo = ev.championId ? (champions.get(ev.championId)?.nameKo ?? ev.champion) : ev.champion;
               return (
-                <div key={`${ev.matchId}-${ev.riotId}`} className="card" style={{ padding: '12px 14px', borderLeft: '3px solid #FFD700' }}>
-                  <div style={{ fontWeight: 700, fontSize: 14, color: '#FFD700', marginBottom: 4 }}>펜타킬!</div>
-                  <div style={{ fontWeight: 600, fontSize: 13 }}>{ev.riotId.split('#')[0]}</div>
-                  <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 2 }}>
+                <div key={`${ev.matchId}-${ev.riotId}`} className="card" style={{ padding: '12px 14px', borderLeft: '3px solid #FFD700', boxShadow: '0 0 16px rgba(255,215,0,0.08)' }}>
+                  <div style={{ fontWeight: 800, fontSize: 13, color: '#FFD700', marginBottom: 6, letterSpacing: 'var(--tracking-wide)', textShadow: '0 0 8px rgba(255,215,0,0.4)' }}>PENTA KILL</div>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{ev.riotId.split('#')[0]}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>
                     <ChampImg championId={ev.championId} champion={ev.champion} size={18} />
-                    <span style={{ marginLeft: 4 }}>{nameKo}</span>
+                    <span>{nameKo}</span>
                   </div>
                 </div>
               );

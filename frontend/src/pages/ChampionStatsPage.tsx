@@ -31,7 +31,8 @@ function ChampIcon({ id, size = 28 }: { id: number; size?: number }) {
       src={`${CDN}/${id}.png`}
       alt=""
       width={size} height={size}
-      style={{ borderRadius: 4, objectFit: 'cover', flexShrink: 0 }}
+      className="champ-img-hover"
+      style={{ flexShrink: 0 }}
       onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
     />
   );
@@ -63,9 +64,9 @@ function ChampionMatchupSection({ champion, mode }: { champion: string; mode: st
 
   return (
     <div className="card" style={{ marginBottom: 16 }}>
-      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', marginBottom: 12 }}>
+      <div className="section-title-with-line">
         같은 라인 상대 챔피언 승률
-        <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-secondary)', marginLeft: 8 }}>
+        <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-secondary)' }}>
           동일 포지션 기준 · 2판 이상
         </span>
       </div>
@@ -75,19 +76,16 @@ function ChampionMatchupSection({ champion, mode }: { champion: string; mode: st
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
           {matchups.map(m => {
             const color = m.winRate >= 60 ? 'var(--color-win)' : m.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
+            const fillClass = m.winRate >= 60 ? 'wr-bar-fill--high' : m.winRate >= 50 ? 'wr-bar-fill--mid' : 'wr-bar-fill--low';
             return (
-              <div key={m.opponent} style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '8px 10px', borderRadius: 'var(--radius-sm)',
-                background: 'var(--color-bg-hover)', border: '1px solid var(--color-border)',
-              }}>
+              <div key={m.opponent} className="matchup-card">
                 <ChampIcon id={m.opponentId} size={32} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 3 }}>{m.opponent}</div>
-                  <div style={{ height: 4, background: 'var(--color-bg-card)', borderRadius: 2, overflow: 'hidden', marginBottom: 3 }}>
-                    <div style={{ width: `${m.winRate}%`, height: '100%', background: color, borderRadius: 2 }} />
+                  <div className="wr-bar-track" style={{ marginBottom: 3 }}>
+                    <div className={`wr-bar-fill ${fillClass}`} style={{ width: `${m.winRate}%` }} />
                   </div>
-                  <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>
+                  <div className="tabular-nums" style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>
                     <span style={{ fontWeight: 700, color }}>{m.winRate}%</span>
                     <span style={{ marginLeft: 4 }}>{m.wins}승 {m.games - m.wins}패 ({m.games}판)</span>
                   </div>
@@ -126,7 +124,7 @@ function ChampionLaneStats({ laneStats }: { laneStats: ChampionLaneStat[] }) {
 
   return (
     <div className="card" style={{ marginBottom: 16 }}>
-      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', marginBottom: 12 }}>포지션별 통계</div>
+      <div className="section-title-with-line">포지션별 통계</div>
       <div className="grid-16" style={{ marginBottom: 14 }}>
         {laneStats.map(s => {
           const m = LANE_META[s.position] ?? { label: s.position, emoji: '' };
@@ -197,8 +195,9 @@ function RankBadge({ rank }: { rank: number }) {
 
 function WinRatePill({ winRate, wins, losses }: { winRate: number; wins: number; losses: number }) {
   const color = winRate >= 60 ? 'var(--color-win)' : winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
+  const fillClass = winRate >= 60 ? 'wr-bar-fill--high' : winRate >= 50 ? 'wr-bar-fill--mid' : 'wr-bar-fill--low';
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 90 }}>
+    <div className="tabular-nums" style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 90 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <span style={{ fontWeight: 700, fontSize: 13, color, minWidth: 36 }}>{winRate}%</span>
         <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>
@@ -206,8 +205,8 @@ function WinRatePill({ winRate, wins, losses }: { winRate: number; wins: number;
           {' '}<span style={{ color: 'var(--color-loss)' }}>{losses}L</span>
         </span>
       </div>
-      <div style={{ height: 4, background: 'var(--color-bg-hover)', borderRadius: 2, overflow: 'hidden' }}>
-        <div style={{ width: `${winRate}%`, height: '100%', background: color, borderRadius: 2, transition: 'width 0.3s' }} />
+      <div className="wr-bar-track">
+        <div className={`wr-bar-fill ${fillClass}`} style={{ width: `${winRate}%` }} />
       </div>
     </div>
   );
@@ -216,7 +215,7 @@ function WinRatePill({ winRate, wins, losses }: { winRate: number; wins: number;
 function KdaDisplay({ kda, kills, deaths, assists }: { kda: number; kills: number; deaths: number; assists: number }) {
   const color = kda >= 5 ? 'var(--color-win)' : kda >= 3 ? 'var(--color-primary)' : 'var(--color-text-primary)';
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+    <div className="tabular-nums" style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
       <span style={{ fontWeight: 700, fontSize: 13, color }}>{kda.toFixed(2)}</span>
       <span style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>
         {kills.toFixed(1)} / <span style={{ color: 'var(--color-error)' }}>{deaths.toFixed(1)}</span> / {assists.toFixed(1)}
@@ -284,7 +283,7 @@ export function ChampionStatsPage() {
             <img
               src={champImg}
               alt={data?.champion}
-              style={{ width: 52, height: 52, borderRadius: 8, border: '2px solid var(--color-border)', objectFit: 'cover' }}
+              className="champ-header-img"
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           )}
@@ -318,35 +317,34 @@ export function ChampionStatsPage() {
       ) : data ? (
         <div className="grid-16" style={{ marginBottom: 16 }}>
           {/* 승률 */}
-          <div className="card col-span-4" style={{ padding: '12px 16px' }}>
-            <div className="font-mono" style={{
-              fontSize: 22, fontWeight: 800,
+          <div className="card col-span-4 champ-stat-card">
+            <div className="champ-stat-card-value tabular-nums" style={{
               color: data.winRate >= 60 ? 'var(--color-win)' : data.winRate < 50 ? 'var(--color-loss)' : 'var(--color-primary)',
             }}>
               {data.winRate.toFixed(1)}%
             </div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>승률</div>
+            <div className="champ-stat-card-label">승률</div>
           </div>
           {/* 총 판수 */}
-          <div className="card col-span-4" style={{ padding: '12px 16px' }}>
-            <div className="font-mono" style={{ fontSize: 22, fontWeight: 800 }}>
+          <div className="card col-span-4 champ-stat-card">
+            <div className="champ-stat-card-value tabular-nums">
               {data.totalGames}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>총 판수</div>
+            <div className="champ-stat-card-label">총 판수</div>
           </div>
           {/* 전체 KDA */}
-          <div className="card col-span-4" style={{ padding: '12px 16px' }}>
-            <div className="font-mono" style={{ fontSize: 22, fontWeight: 800 }}>
+          <div className="card col-span-4 champ-stat-card">
+            <div className="champ-stat-card-value tabular-nums">
               {overallKda !== null ? overallKda.toFixed(2) : '—'}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>전체 KDA</div>
+            <div className="champ-stat-card-label">전체 KDA</div>
           </div>
           {/* 픽률 */}
-          <div className="card col-span-4" style={{ padding: '12px 16px' }}>
-            <div className="font-mono" style={{ fontSize: 22, fontWeight: 800 }}>
+          <div className="card col-span-4 champ-stat-card">
+            <div className="champ-stat-card-value tabular-nums">
               {pickRate !== null ? `${pickRate}%` : '—'}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>픽률</div>
+            <div className="champ-stat-card-label">픽률</div>
           </div>
         </div>
       ) : null}
@@ -356,7 +354,7 @@ export function ChampionStatsPage() {
         {/* 인기 아이템 */}
         {data && data.itemStats.length > 0 && (
           <div className="card" style={{ marginBottom: 16 }}>
-            <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', marginBottom: 12 }}>
+            <div className="section-title-with-line">
               인기 아이템 <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--color-text-secondary)' }}>픽률 기준</span>
             </div>
             <div className="grid-16" style={{ alignItems: 'flex-end' }}>
