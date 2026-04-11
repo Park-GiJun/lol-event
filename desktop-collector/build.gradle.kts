@@ -1,10 +1,10 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
-    kotlin("jvm") version "2.1.0"
-    kotlin("plugin.compose") version "2.1.0"
-    kotlin("plugin.serialization") version "2.1.0"
-    id("org.jetbrains.compose") version "1.7.3"
+    kotlin("jvm") version "2.1.21"
+    kotlin("plugin.compose") version "2.1.21"
+    kotlin("plugin.serialization") version "2.1.21"
+    id("org.jetbrains.compose") version "1.8.0"
 }
 
 group = "net.gijun"
@@ -33,7 +33,18 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+    }
 }
 
 compose.desktop {
@@ -42,13 +53,13 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Msi, TargetFormat.Exe)
-            packageName = "LoL 수집기"
+            packageName = "LoL-Collector"
             packageVersion = version.toString()
             vendor = "gijun.net"
             windows {
                 iconFile.set(project.file("src/main/resources/icon.ico"))
                 dirChooser = true
-                menuGroup = "LoL 수집기"
+                menuGroup = "LoL-Collector"
             }
         }
     }
