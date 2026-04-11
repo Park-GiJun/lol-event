@@ -2,6 +2,7 @@ package net.gijun.collector.service
 
 import kotlinx.coroutines.*
 import net.gijun.collector.lcu.LcuClient
+import net.gijun.collector.lcu.LobbyCache
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -83,6 +84,17 @@ class GamePhaseMonitor(
 
             if (phase == "Lobby") {
                 try { LcuClient.cacheLobbyMembers() } catch (_: Exception) {}
+
+                // Clear old cache when entering Lobby from None or EndOfGame
+                if (lastPhase in listOf("None", "EndOfGame", "WaitingForStats", "")) {
+                    LobbyCache.clear()
+                    onLog("info", "로비 캐시 초기화 — 새로운 로비 진입")
+                }
+
+                // Log cache status if populated
+                if (LobbyCache.isValid()) {
+                    onLog("info", "로비 캐시 업데이트: 블루 ${LobbyCache.blueTeam.size}명, 레드 ${LobbyCache.redTeam.size}명")
+                }
             }
 
             if (lastPhase == "InProgress"

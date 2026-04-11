@@ -217,4 +217,28 @@ object ApiClient {
         val skipped = data?.get("skipped")?.jsonPrimitive?.intOrNull ?: 0
         return saved to skipped
     }
+
+    // ── Riot API 프로필 (랭크 + 숙련도) ──
+    suspend fun fetchRiotProfile(riotId: String): RiotProfile? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/riot/profile/${riotId.encodeURLPath()}")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<RiotProfile>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── Riot API 프로필 일괄 조회 ──
+    suspend fun fetchRiotProfiles(riotIds: List<String>): Map<String, RiotProfile> {
+        return try {
+            val body = buildJsonObject { put("riotIds", JsonArray(riotIds.map { JsonPrimitive(it) })) }
+            val response: HttpResponse = client.post("$BASE_URL/riot/profiles/bulk") {
+                contentType(ContentType.Application.Json)
+                setBody(body.toString())
+            }
+            if (!response.status.isSuccess()) return emptyMap()
+            val wrapper = json.decodeFromString<ApiResponse<Map<String, RiotProfile>>>(response.body<String>())
+            wrapper.data ?: emptyMap()
+        } catch (_: Exception) { emptyMap() }
+    }
 }

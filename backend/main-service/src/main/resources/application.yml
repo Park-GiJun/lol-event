@@ -44,7 +44,7 @@ management:
 
 riot:
   api:
-    key: ${RIOT_API_KEY:}
+    key: ${RIOT_API_KEY:RGAPI-f03ce321-61e7-4ea3-96c9-4d8892b85949}
 
 springdoc:
   api-docs:

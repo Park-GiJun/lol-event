@@ -304,3 +304,33 @@ data class CompareResult(
     val player1: PlayerStats? = null,
     val player2: PlayerStats? = null,
 )
+
+// ── Riot API 프로필 ──────────────────────────────
+
+@Serializable
+data class RiotProfile(
+    val riotId: String = "",
+    val puuid: String? = null,
+    val summonerLevel: Long? = null,
+    val profileIconId: Int? = null,
+    val soloRank: RankedInfo? = null,
+    val flexRank: RankedInfo? = null,
+    val topMastery: List<MasteryInfo> = emptyList(),
+)
+
+@Serializable
+data class RankedInfo(
+    val tier: String = "",
+    val rank: String = "",
+    val lp: Int = 0,
+    val wins: Int = 0,
+    val losses: Int = 0,
+    val winRate: Double = 0.0,
+)
+
+@Serializable
+data class MasteryInfo(
+    val championId: Int = 0,
+    val level: Int = 0,
+    val points: Int = 0,
+)

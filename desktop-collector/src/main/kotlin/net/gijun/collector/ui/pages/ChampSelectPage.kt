@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,7 @@ import net.gijun.collector.api.*
 import net.gijun.collector.lcu.ChampSelectFull
 import net.gijun.collector.lcu.ChampSelectSlot
 import net.gijun.collector.lcu.LcuClient
+import net.gijun.collector.lcu.LobbyCache
 import net.gijun.collector.ui.components.BanRecommendBadge
 import net.gijun.collector.ui.components.ChampionIcon
 import net.gijun.collector.ui.components.Grid16
@@ -73,22 +75,48 @@ fun ChampSelectPage() {
         }
     }
 
-    // 플레이어 데이터 fetch
+    // Lobby cache state
+    var lobbyCacheActive by remember { mutableStateOf(false) }
+    var cachedEnemyRiotIds by remember { mutableStateOf<List<String>>(emptyList()) }
+
+    // 플레이어 데이터 fetch (with lobby cache fallback)
     val riotIdKey = state?.let { s ->
         (s.myTeam.map { it.riotId } + s.theirTeam.map { it.riotId }).filter { it.isNotEmpty() }.joinToString(",")
     }
-    LaunchedEffect(riotIdKey) {
+    LaunchedEffect(riotIdKey, state) {
         if (state == null) return@LaunchedEffect
         val allSlots = state!!.myTeam + state!!.theirTeam
-        val riotIds = allSlots.map { it.riotId }.filter { it.isNotEmpty() }
-        if (riotIds.isEmpty()) return@LaunchedEffect
+        val riotIds = allSlots.map { it.riotId }.filter { it.isNotEmpty() }.toMutableSet()
         val map = mutableMapOf<String, PlayerStats>()
-        riotIds.forEach { riotId ->
+
+        // Check if enemy team has empty riotIds and lobby cache is valid
+        val enemiesEmpty = state!!.theirTeam.all { it.riotId.isEmpty() } || state!!.theirTeam.count { it.riotId.isNotEmpty() } == 0
+        if (enemiesEmpty && LobbyCache.isValid()) {
+            lobbyCacheActive = true
+            val iAmBlue = LobbyCache.iAmBlue()
+            val cachedEnemies = LobbyCache.getEnemyTeam(iAmBlue)
+            cachedEnemyRiotIds = cachedEnemies.map { it.riotId }
+            // Use cached PlayerStats for enemies
+            cachedEnemies.forEach { cached ->
+                val cachedStats = LobbyCache.playerStats[cached.riotId]
+                if (cachedStats != null) {
+                    map[cached.riotId] = cachedStats
+                } else if (cached.riotId.isNotEmpty()) {
+                    riotIds.add(cached.riotId)
+                }
+            }
+        } else {
+            lobbyCacheActive = false
+            cachedEnemyRiotIds = emptyList()
+        }
+
+        // Fetch stats for all riotIds not already in map
+        riotIds.filter { it !in map }.forEach { riotId ->
             val stats = ApiClient.fetchPlayerStats(riotId)
             if (stats != null) map[riotId] = stats
         }
         playerDetails = map
-        fetchedRiotIds = riotIds.toSet()
+        fetchedRiotIds = riotIds
     }
 
     // 내전 데이터 fetch
@@ -142,6 +170,17 @@ fun ChampSelectPage() {
                     }
                 }
             }
+            if (lobbyCacheActive) {
+                Row(
+                    modifier = Modifier.padding(start = 16.dp, bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Box(Modifier.size(8.dp).background(LolColors.Win, RoundedCornerShape(50)))
+                    Text("로비 캐시 활성", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Win)
+                    Text("— 상대팀 ${cachedEnemyRiotIds.size}명 캐시됨", fontSize = 11.sp, color = LolColors.TextSecondary)
+                }
+            }
             if (lcuError) Text("LoL 클라이언트를 실행해주세요", fontSize = 13.sp, color = LolColors.TextSecondary, modifier = Modifier.padding(start = 16.dp, bottom = 16.dp))
             if (!lcuError && state == null && !loading) Text("챔피언 선택 화면이 아닙니다", fontSize = 13.sp, color = LolColors.TextSecondary, modifier = Modifier.padding(start = 16.dp, bottom = 16.dp))
         }
@@ -179,16 +218,53 @@ fun ChampSelectPage() {
                     border = BorderStroke(1.dp, LolColors.Border),
                 ) {
                     Column(Modifier.padding(16.dp)) {
-                        Text("상대팀", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Error)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("상대팀", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Error)
+                            if (lobbyCacheActive) {
+                                Text(
+                                    "캐시",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    modifier = Modifier
+                                        .background(LolColors.Win, RoundedCornerShape(3.dp))
+                                        .padding(horizontal = 4.dp, vertical = 1.dp),
+                                )
+                            }
+                        }
                         Spacer(Modifier.height(8.dp))
-                        s.theirTeam.forEach { slot ->
-                            val riotId = slot.riotId.ifEmpty { slot.summonerName.ifEmpty { "Player ${slot.cellId}" } }
-                            PlayerCard(
-                                riotId = riotId,
-                                data = if (slot.riotId.isNotEmpty()) playerDetails[slot.riotId] else null,
-                                loading = loading || (slot.riotId.isNotEmpty() && slot.riotId !in fetchedRiotIds),
-                            )
-                            Spacer(Modifier.height(8.dp))
+                        if (lobbyCacheActive && cachedEnemyRiotIds.isNotEmpty()) {
+                            // Show cached enemy players
+                            cachedEnemyRiotIds.forEach { cachedRiotId ->
+                                val stats = playerDetails[cachedRiotId]
+                                PlayerCard(
+                                    riotId = cachedRiotId,
+                                    data = stats,
+                                    loading = loading || cachedRiotId !in playerDetails,
+                                )
+                                // Show champion warning from cached stats
+                                stats?.championStats?.firstOrNull()?.let { topChamp ->
+                                    if (topChamp.games >= 3) {
+                                        Text(
+                                            "이 플레이어는 ${topChamp.champion}을 ${topChamp.games}판 ${topChamp.winRate.toInt()}%승률로 플레이합니다",
+                                            fontSize = 10.sp,
+                                            color = LolColors.Warning,
+                                            modifier = Modifier.padding(start = 8.dp, bottom = 4.dp),
+                                        )
+                                    }
+                                }
+                                Spacer(Modifier.height(8.dp))
+                            }
+                        } else {
+                            s.theirTeam.forEach { slot ->
+                                val riotId = slot.riotId.ifEmpty { slot.summonerName.ifEmpty { "Player ${slot.cellId}" } }
+                                PlayerCard(
+                                    riotId = riotId,
+                                    data = if (slot.riotId.isNotEmpty()) playerDetails[slot.riotId] else null,
+                                    loading = loading || (slot.riotId.isNotEmpty() && slot.riotId !in fetchedRiotIds),
+                                )
+                                Spacer(Modifier.height(8.dp))
+                            }
                         }
                     }
                 }
@@ -198,7 +274,7 @@ fun ChampSelectPage() {
             // 분석 탭
             when (tab) {
                 "ban" -> {
-                    BanRecommendSection(s.theirTeam, playerDetails)
+                    BanRecommendSection(s.theirTeam, playerDetails, lobbyCacheActive, cachedEnemyRiotIds)
                     // 내전 밴 분석 강화
                     banAnalysis?.let { ba ->
                         if (ba.bans.isNotEmpty()) {
@@ -222,18 +298,28 @@ fun ChampSelectPage() {
                 }
             }
 
-            // 라이벌 경고 (우리팀 vs 상대팀)
-            rivalMatchup?.let { rival ->
-                val myRiotIds = s.myTeam.mapNotNull { it.riotId.ifEmpty { null } }.toSet()
-                val theirRiotIds = s.theirTeam.mapNotNull { it.riotId.ifEmpty { null } }.toSet()
-                val relevantRivals = rival.rivals.filter {
-                    (it.player1 in myRiotIds && it.player2 in theirRiotIds) ||
-                    (it.player2 in myRiotIds && it.player1 in theirRiotIds)
+            // 라이벌 경고 (우리팀 vs 상대팀) - with cache fallback
+            val rivalSource = rivalMatchup
+            val myRiotIdsForRival = s.myTeam.mapNotNull { it.riotId.ifEmpty { null } }.toSet()
+            val theirRiotIdsForRival = if (lobbyCacheActive) cachedEnemyRiotIds.toSet()
+                else s.theirTeam.mapNotNull { it.riotId.ifEmpty { null } }.toSet()
+
+            // Try API data first, then cache
+            val relevantRivals = if (rivalSource != null) {
+                rivalSource.rivals.filter {
+                    (it.player1 in myRiotIdsForRival && it.player2 in theirRiotIdsForRival) ||
+                    (it.player2 in myRiotIdsForRival && it.player1 in theirRiotIdsForRival)
                 }
-                if (relevantRivals.isNotEmpty()) {
-                    Spacer(Modifier.height(16.dp))
-                    RivalMatchupSection(relevantRivals)
+            } else if (lobbyCacheActive) {
+                LobbyCache.rivalMatchups.filter {
+                    (it.player1 in myRiotIdsForRival && it.player2 in theirRiotIdsForRival) ||
+                    (it.player2 in myRiotIdsForRival && it.player1 in theirRiotIdsForRival)
                 }
+            } else emptyList()
+
+            if (relevantRivals.isNotEmpty()) {
+                Spacer(Modifier.height(16.dp))
+                RivalMatchupSection(relevantRivals)
             }
 
             // 밴 목록
@@ -265,7 +351,7 @@ fun ChampSelectPage() {
 
             // 팀 전력 분석
             Spacer(Modifier.height(16.dp))
-            TeamStrengthSection(s.myTeam, s.theirTeam, playerDetails)
+            TeamStrengthSection(s.myTeam, s.theirTeam, playerDetails, lobbyCacheActive, cachedEnemyRiotIds)
 
             // 룬 추천 & 자동 적용
             val mySlot = s.myTeam.find { it.isMe }
@@ -278,7 +364,20 @@ fun ChampSelectPage() {
 }
 
 @Composable
-private fun BanRecommendSection(enemies: List<ChampSelectSlot>, playerDetails: Map<String, PlayerStats>) {
+private fun BanRecommendSection(
+    enemies: List<ChampSelectSlot>,
+    playerDetails: Map<String, PlayerStats>,
+    lobbyCacheActive: Boolean = false,
+    cachedEnemyRiotIds: List<String> = emptyList(),
+) {
+    // Determine which riotIds to show ban recommendations for
+    val banTargets: List<Pair<String, Int>> = if (lobbyCacheActive && cachedEnemyRiotIds.isNotEmpty()) {
+        // Use cached enemy riotIds with championId=0 (no champ pick info from cache)
+        cachedEnemyRiotIds.map { it to 0 }
+    } else {
+        enemies.filter { it.riotId.isNotEmpty() }.map { it.riotId to it.championId }
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = LolColors.BgCard),
@@ -289,19 +388,29 @@ private fun BanRecommendSection(enemies: List<ChampSelectSlot>, playerDetails: M
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(Icons.Default.Shield, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
                 Text("밴 추천", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
+                if (lobbyCacheActive) {
+                    Text(
+                        "캐시 기반",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        modifier = Modifier
+                            .background(LolColors.Win, RoundedCornerShape(3.dp))
+                            .padding(horizontal = 4.dp, vertical = 1.dp),
+                    )
+                }
             }
             Spacer(Modifier.height(12.dp))
-            val hasRiotIds = enemies.any { it.riotId.isNotEmpty() }
-            if (!hasRiotIds) {
+            if (banTargets.isEmpty()) {
                 Text("상대팀 소환사 정보를 불러오는 중...", fontSize = 13.sp, color = LolColors.TextSecondary)
             }
-            enemies.filter { it.riotId.isNotEmpty() }.forEach { e ->
-                val player = playerDetails[e.riotId]
-                val top3 = player?.championStats?.take(3) ?: emptyList()
+            banTargets.forEach { (riotId, champId) ->
+                val player = playerDetails[riotId]
+                val top3 = player?.championStats?.filter { it.winRate >= 50.0 || it.games >= 3 }?.take(3) ?: player?.championStats?.take(3) ?: emptyList()
                 Column(modifier = Modifier.padding(bottom = 12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        ChampionIcon(e.championId, 24.dp)
-                        Text(e.riotId, fontSize = 13.sp, color = LolColors.Error)
+                        if (champId > 0) ChampionIcon(champId, 24.dp)
+                        Text(riotId, fontSize = 13.sp, color = LolColors.Error)
                         player?.let { Text("${it.games}판 ${it.winRate.toInt()}%", fontSize = 11.sp, color = LolColors.TextSecondary) }
                     }
                     Spacer(Modifier.height(6.dp))
@@ -481,14 +590,23 @@ private fun TeamStrengthSection(
     myTeam: List<ChampSelectSlot>,
     theirTeam: List<ChampSelectSlot>,
     playerDetails: Map<String, PlayerStats>,
+    lobbyCacheActive: Boolean = false,
+    cachedEnemyRiotIds: List<String> = emptyList(),
 ) {
     val myElos = myTeam.mapNotNull { slot ->
         if (slot.riotId.isEmpty()) return@mapNotNull null
         playerDetails[slot.riotId]?.elo?.takeIf { it.isFinite() }
     }
-    val theirElos = theirTeam.mapNotNull { slot ->
-        if (slot.riotId.isEmpty()) return@mapNotNull null
-        playerDetails[slot.riotId]?.elo?.takeIf { it.isFinite() }
+    // Use cached enemy riotIds for elo when cache is active
+    val theirElos = if (lobbyCacheActive && cachedEnemyRiotIds.isNotEmpty()) {
+        cachedEnemyRiotIds.mapNotNull { riotId ->
+            playerDetails[riotId]?.elo?.takeIf { it.isFinite() }
+        }
+    } else {
+        theirTeam.mapNotNull { slot ->
+            if (slot.riotId.isEmpty()) return@mapNotNull null
+            playerDetails[slot.riotId]?.elo?.takeIf { it.isFinite() }
+        }
     }
 
     val hasData = myElos.isNotEmpty() || theirElos.isNotEmpty()
@@ -600,15 +718,19 @@ private fun TeamStrengthSection(
                         }
                     }
                     Column(Modifier.weight(1f)) {
-                        theirTeam.forEach { slot ->
-                            if (slot.riotId.isEmpty()) return@forEach
-                            val elo = playerDetails[slot.riotId]?.elo?.takeIf { it.isFinite() }?.roundToInt()
+                        val theirRiotIds = if (lobbyCacheActive && cachedEnemyRiotIds.isNotEmpty()) {
+                            cachedEnemyRiotIds
+                        } else {
+                            theirTeam.map { it.riotId }.filter { it.isNotEmpty() }
+                        }
+                        theirRiotIds.forEach { riotId ->
+                            val elo = playerDetails[riotId]?.elo?.takeIf { it.isFinite() }?.roundToInt()
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 1.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
                                 Text(
-                                    slot.riotId.split("#").first(),
+                                    riotId.split("#").first(),
                                     fontSize = 10.sp,
                                     color = LolColors.TextSecondary,
                                 )
