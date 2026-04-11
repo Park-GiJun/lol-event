@@ -22,12 +22,13 @@ function formatSessionLabel(key: string): string {
   return `${m}월 ${d}일 (${DAY_NAMES[date.getDay()]})`;
 }
 
-function ChampIcon({ championId, champion, size = 26 }: { championId: number; champion: string; size?: number }) {
+function ChampIcon({ championId, champion, size = 26, className }: { championId: number; champion: string; size?: number; className?: string }) {
   const { champions } = useDragon();
   const data = champions.get(championId);
   if (data?.imageUrl) {
     return (
       <img src={data.imageUrl} alt={champion}
+        className={className}
         style={{ width: size, height: size, borderRadius: 4, objectFit: 'cover', flexShrink: 0 }}
         loading="lazy"
         onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}

@@ -93,6 +93,7 @@ interface PlayerChipProps {
   mvpStats: MvpPlayerStat[];
   eloMap: Map<string, number>;
   color: string;
+  className?: string;
   onRemove?: () => void;
 }
 function PlayerChip({ riotId, from, allStats, mvpStats, eloMap, color, onRemove }: PlayerChipProps) {
