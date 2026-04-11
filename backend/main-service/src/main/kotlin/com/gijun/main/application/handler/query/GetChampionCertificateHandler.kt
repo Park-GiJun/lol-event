@@ -4,7 +4,7 @@ import com.gijun.main.application.dto.stats.result.ChampionCertEntry
 import com.gijun.main.application.dto.stats.result.ChampionCertificateResult
 import com.gijun.main.application.port.`in`.GetChampionCertificateUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
-import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
+import com.gijun.main.application.port.out.StatsCachePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class GetChampionCertificateHandler(
     private val matchPersistencePort: MatchPersistencePort,
-    private val cache: StatsQueryCache,
+    private val cache: StatsCachePort,
 ) : GetChampionCertificateUseCase {
 
     private fun r1(v: Double) = (v * 10).toInt() / 10.0

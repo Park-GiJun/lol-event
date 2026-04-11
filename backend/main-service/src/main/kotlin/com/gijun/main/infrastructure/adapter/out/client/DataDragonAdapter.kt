@@ -1,6 +1,7 @@
 package com.gijun.main.infrastructure.adapter.out.client
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.gijun.main.application.port.out.DataDragonFetchPort
 import com.gijun.main.domain.model.dragon.DragonChampion
 import com.gijun.main.domain.model.dragon.DragonItem
 import com.gijun.main.domain.model.dragon.DragonSummonerSpell
@@ -15,18 +16,18 @@ import org.springframework.stereotype.Component
 class DataDragonAdapter(
     private val client: HttpClient,
     private val objectMapper: ObjectMapper
-) {
+) : DataDragonFetchPort {
 
     private val log = LoggerFactory.getLogger(javaClass)
     private val base = "https://ddragon.leagueoflegends.com"
 
-    fun fetchLatestVersion(): String = runBlocking {
+    override fun fetchLatestVersion(): String = runBlocking {
         val text = client.get("$base/api/versions.json").bodyAsText()
         objectMapper.readValue(text, Array<String>::class.java).firstOrNull() ?: "15.1.1"
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun fetchChampions(version: String): List<DragonChampion> = runBlocking {
+    override fun fetchChampions(version: String): List<DragonChampion> = runBlocking {
         val text = client.get("$base/cdn/$version/data/ko_KR/champion.json").bodyAsText()
         val raw = objectMapper.readValue(text, Map::class.java)
         val data = raw["data"] as? Map<String, Any> ?: return@runBlocking emptyList()
@@ -49,7 +50,7 @@ class DataDragonAdapter(
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun fetchItems(version: String): List<DragonItem> = runBlocking {
+    override fun fetchItems(version: String): List<DragonItem> = runBlocking {
         val text = client.get("$base/cdn/$version/data/ko_KR/item.json").bodyAsText()
         val raw = objectMapper.readValue(text, Map::class.java)
         val data = raw["data"] as? Map<String, Any> ?: return@runBlocking emptyList()
@@ -73,7 +74,7 @@ class DataDragonAdapter(
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun fetchSummonerSpells(version: String): List<DragonSummonerSpell> = runBlocking {
+    override fun fetchSummonerSpells(version: String): List<DragonSummonerSpell> = runBlocking {
         val text = client.get("$base/cdn/$version/data/ko_KR/summoner.json").bodyAsText()
         val raw = objectMapper.readValue(text, Map::class.java)
         val data = raw["data"] as? Map<String, Any> ?: return@runBlocking emptyList()

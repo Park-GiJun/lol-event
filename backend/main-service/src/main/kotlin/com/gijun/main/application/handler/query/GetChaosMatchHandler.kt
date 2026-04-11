@@ -6,13 +6,13 @@ import com.gijun.main.application.port.`in`.GetChaosMatchUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
+import com.gijun.main.application.port.out.StatsCachePort
 
 @Service
 @Transactional(readOnly = true)
 class GetChaosMatchHandler(
     private val matchPersistencePort: MatchPersistencePort,
-    private val cache: StatsQueryCache,
+    private val cache: StatsCachePort,
 ) : GetChaosMatchUseCase {
     override fun getChaosMatch(mode: String): ChaosMatchResult = cache.getOrCompute("chaos-match:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))

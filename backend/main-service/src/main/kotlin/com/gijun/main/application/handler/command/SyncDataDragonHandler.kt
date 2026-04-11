@@ -2,17 +2,17 @@ package com.gijun.main.application.handler.command
 
 import com.gijun.main.application.dto.dragon.result.DragonSyncResult
 import com.gijun.main.application.port.`in`.SyncDataDragonUseCase
+import com.gijun.main.application.port.out.DataDragonCachePort
+import com.gijun.main.application.port.out.DataDragonFetchPort
 import com.gijun.main.application.port.out.DragonDataPort
-import com.gijun.main.infrastructure.adapter.out.client.DataDragonAdapter
-import com.gijun.main.infrastructure.adapter.out.cache.DataDragonCacheStore
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
 class SyncDataDragonHandler(
-    private val dataDragonAdapter: DataDragonAdapter,
+    private val dataDragonAdapter: DataDragonFetchPort,
     private val dragonDataPort: DragonDataPort,
-    private val cacheStore: DataDragonCacheStore
+    private val cacheStore: DataDragonCachePort
 ) : SyncDataDragonUseCase {
 
     private val log = LoggerFactory.getLogger(javaClass)

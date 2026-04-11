@@ -1,5 +1,6 @@
 package com.gijun.main.infrastructure.adapter.out.cache
 
+import com.gijun.main.application.port.out.StatsCachePort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
@@ -10,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
  * 매 요청마다 DB 풀스캔하는 것을 방지한다.
  */
 @Component
-class StatsQueryCache {
+class StatsQueryCache : StatsCachePort {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -23,7 +24,7 @@ class StatsQueryCache {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T> getOrCompute(key: String, compute: () -> T): T {
+    override fun <T> getOrCompute(key: String, compute: () -> T): T {
         val now = System.currentTimeMillis()
         val cached = store[key] as? CacheEntry<T>
         if (cached != null && cached.expiresAt > now) {
@@ -34,12 +35,12 @@ class StatsQueryCache {
         return result
     }
 
-    fun evictAll() {
+    override fun evictAll() {
         store.clear()
         log.info("[StatsQueryCache] 전체 캐시 초기화")
     }
 
-    fun evictByPrefix(prefix: String) {
+    override fun evictByPrefix(prefix: String) {
         store.keys.removeIf { it.startsWith(prefix) }
     }
 }

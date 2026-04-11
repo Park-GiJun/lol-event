@@ -106,7 +106,8 @@ class MatchParticipantEntity(
     @Column(nullable = false) val subteamPlacement: Int = 0,
     @Column(nullable = false) val roleBoundItem: Int = 0,
     @Column val lane: String? = null,
-    @Column val role: String? = null
+    @Column val role: String? = null,
+    @Column val assignedPosition: String = ""
 ) {
     fun toDomain() = MatchParticipant(
         id = id, puuid = puuid, riotId = riotId, champion = champion, championId = championId,
@@ -155,7 +156,8 @@ class MatchParticipantEntity(
         playerAugment3 = playerAugment3, playerAugment4 = playerAugment4,
         playerAugment5 = playerAugment5, playerAugment6 = playerAugment6,
         playerSubteamId = playerSubteamId, subteamPlacement = subteamPlacement,
-        roleBoundItem = roleBoundItem, lane = lane, role = role
+        roleBoundItem = roleBoundItem, lane = lane, role = role,
+        assignedPosition = assignedPosition
     )
 
     companion object {
@@ -209,7 +211,8 @@ class MatchParticipantEntity(
             playerAugment3 = domain.playerAugment3, playerAugment4 = domain.playerAugment4,
             playerAugment5 = domain.playerAugment5, playerAugment6 = domain.playerAugment6,
             playerSubteamId = domain.playerSubteamId, subteamPlacement = domain.subteamPlacement,
-            roleBoundItem = domain.roleBoundItem, lane = domain.lane, role = domain.role
+            roleBoundItem = domain.roleBoundItem, lane = domain.lane, role = domain.role,
+            assignedPosition = domain.assignedPosition
         )
     }
 }

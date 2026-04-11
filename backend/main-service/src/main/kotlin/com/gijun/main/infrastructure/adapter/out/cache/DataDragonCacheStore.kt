@@ -3,13 +3,14 @@ package com.gijun.main.infrastructure.adapter.out.cache
 import com.gijun.main.application.dto.dragon.result.DragonChampionResult
 import com.gijun.main.application.dto.dragon.result.DragonItemResult
 import com.gijun.main.application.dto.dragon.result.DragonSummonerSpellResult
+import com.gijun.main.application.port.out.DataDragonCachePort
 import com.gijun.main.application.port.out.DragonDataPort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 
 @Component
-class DataDragonCacheStore(private val dragonDataPort: DragonDataPort) {
+class DataDragonCacheStore(private val dragonDataPort: DragonDataPort) : DataDragonCachePort {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -17,7 +18,7 @@ class DataDragonCacheStore(private val dragonDataPort: DragonDataPort) {
     private val items = ConcurrentHashMap<Int, DragonItemResult>()
     private val spells = ConcurrentHashMap<Int, DragonSummonerSpellResult>()
 
-    fun warmUp() {
+    override fun warmUp() {
         champions.clear()
         items.clear()
         spells.clear()

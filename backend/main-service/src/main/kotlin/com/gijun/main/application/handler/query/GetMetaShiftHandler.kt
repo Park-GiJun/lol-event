@@ -6,13 +6,13 @@ import com.gijun.main.application.port.`in`.GetMetaShiftUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
+import com.gijun.main.application.port.out.StatsCachePort
 
 @Service
 @Transactional(readOnly = true)
 class GetMetaShiftHandler(
     private val matchPersistencePort: MatchPersistencePort,
-    private val cache: StatsQueryCache,
+    private val cache: StatsCachePort,
 ) : GetMetaShiftUseCase {
 
     private fun r2(v: Double) = (v * 100).toInt() / 100.0

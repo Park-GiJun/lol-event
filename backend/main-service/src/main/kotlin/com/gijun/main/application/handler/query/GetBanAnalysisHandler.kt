@@ -4,7 +4,7 @@ import com.gijun.main.application.dto.stats.result.BanEntry
 import com.gijun.main.application.dto.stats.result.BanAnalysisResult
 import com.gijun.main.application.port.`in`.GetBanAnalysisUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
-import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
+import com.gijun.main.application.port.out.StatsCachePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class GetBanAnalysisHandler(
     private val matchPersistencePort: MatchPersistencePort,
-    private val cache: StatsQueryCache,
+    private val cache: StatsCachePort,
 ) : GetBanAnalysisUseCase {
 
     override fun getBanAnalysis(mode: String): BanAnalysisResult = cache.getOrCompute("ban-analysis:$mode") {

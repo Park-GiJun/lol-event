@@ -5,13 +5,13 @@ import com.gijun.main.application.port.`in`.GetPlayerStreakUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
+import com.gijun.main.application.port.out.StatsCachePort
 
 @Service
 @Transactional(readOnly = true)
 class GetPlayerStreakHandler(
     private val matchPersistencePort: MatchPersistencePort,
-    private val cache: StatsQueryCache,
+    private val cache: StatsCachePort,
 ) : GetPlayerStreakUseCase {
 
     override fun getPlayerStreak(riotId: String, mode: String): StreakResult = cache.getOrCompute("player-streak:$riotId:$mode") {

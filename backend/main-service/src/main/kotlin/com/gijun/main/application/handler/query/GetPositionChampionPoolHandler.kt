@@ -7,13 +7,13 @@ import com.gijun.main.application.port.`in`.GetPositionChampionPoolUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
+import com.gijun.main.application.port.out.StatsCachePort
 
 @Service
 @Transactional(readOnly = true)
 class GetPositionChampionPoolHandler(
     private val matchPersistencePort: MatchPersistencePort,
-    private val cache: StatsQueryCache,
+    private val cache: StatsCachePort,
 ) : GetPositionChampionPoolUseCase {
 
     override fun getPositionChampionPool(mode: String): PositionChampionPoolResult = cache.getOrCompute("position-champion-pool:$mode") {

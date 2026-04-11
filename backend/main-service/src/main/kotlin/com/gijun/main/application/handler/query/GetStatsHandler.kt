@@ -9,7 +9,7 @@ import com.gijun.main.application.port.out.MemberPersistencePort
 import com.gijun.main.application.port.out.StatsCachePersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
+import com.gijun.main.application.port.out.StatsCachePort
 
 @Service
 @Transactional(readOnly = true)
@@ -17,7 +17,7 @@ class GetStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val memberPersistencePort: MemberPersistencePort,
     private val statsCachePersistencePort: StatsCachePersistencePort,
-    private val cache: StatsQueryCache,
+    private val cache: StatsCachePort,
 ) : GetStatsUseCase {
 
     override fun getStats(mode: String): StatsResult = cache.getOrCompute("stats:$mode") {

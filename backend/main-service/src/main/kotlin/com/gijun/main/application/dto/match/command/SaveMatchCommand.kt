@@ -147,7 +147,8 @@ data class ParticipantInput(
         playerAugment3 = playerAugment3, playerAugment4 = playerAugment4,
         playerAugment5 = playerAugment5, playerAugment6 = playerAugment6,
         playerSubteamId = playerSubteamId, subteamPlacement = subteamPlacement,
-        roleBoundItem = roleBoundItem, lane = lane, role = role
+        roleBoundItem = roleBoundItem, lane = lane, role = role,
+        assignedPosition = ""
     )
 }
 

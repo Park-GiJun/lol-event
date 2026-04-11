@@ -115,5 +115,6 @@ data class MatchParticipant(
     val subteamPlacement: Int = 0,
     val roleBoundItem: Int = 0,
     val lane: String? = null,
-    val role: String? = null
+    val role: String? = null,
+    val assignedPosition: String = ""
 )

@@ -7,13 +7,13 @@ import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.domain.model.match.MatchParticipant
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
+import com.gijun.main.application.port.out.StatsCachePort
 
 @Service
 @Transactional(readOnly = true)
 class GetMvpStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
-    private val cache: StatsQueryCache,
+    private val cache: StatsCachePort,
 ) : GetMvpStatsUseCase {
 
     /**

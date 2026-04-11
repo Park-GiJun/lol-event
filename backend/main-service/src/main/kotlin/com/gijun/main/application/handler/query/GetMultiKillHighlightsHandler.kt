@@ -7,13 +7,13 @@ import com.gijun.main.application.port.`in`.GetMultiKillHighlightsUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
+import com.gijun.main.application.port.out.StatsCachePort
 
 @Service
 @Transactional(readOnly = true)
 class GetMultiKillHighlightsHandler(
     private val matchPersistencePort: MatchPersistencePort,
-    private val cache: StatsQueryCache,
+    private val cache: StatsCachePort,
 ) : GetMultiKillHighlightsUseCase {
     override fun getMultiKillHighlights(mode: String): MultiKillHighlightsResult = cache.getOrCompute("multi-kill-highlights:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))

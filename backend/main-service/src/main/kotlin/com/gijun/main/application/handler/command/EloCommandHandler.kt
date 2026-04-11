@@ -1,13 +1,6 @@
 package com.gijun.main.application.handler.command
 
-import com.gijun.main.application.dto.stats.result.EloHistoryEntry
-import com.gijun.main.application.dto.stats.result.EloLeaderboardResult
-import com.gijun.main.application.dto.stats.result.EloRankEntry
-import com.gijun.main.application.dto.stats.result.PlayerEloHistoryResult
 import com.gijun.main.application.port.`in`.CalculateEloForMatchUseCase
-import com.gijun.main.application.port.`in`.GetEloHistoryUseCase
-import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
-import com.gijun.main.application.port.`in`.GetEloUseCase
 import com.gijun.main.application.port.`in`.ResetAndRecalculateEloUseCase
 import com.gijun.main.application.port.out.EloHistoryPort
 import com.gijun.main.application.port.out.EloPort
@@ -16,20 +9,20 @@ import com.gijun.main.domain.model.elo.PlayerElo
 import com.gijun.main.domain.model.elo.PlayerEloHistory
 import com.gijun.main.domain.model.match.Match
 import com.gijun.main.domain.model.match.MatchParticipant
+import com.gijun.main.domain.model.match.Position
+import com.gijun.main.domain.service.PositionDetector
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import kotlin.math.ln
 import kotlin.math.pow
-import kotlin.math.sqrt
 
 @Service
-class EloCalculationHandler(
+class EloCommandHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val eloPort: EloPort,
     private val eloHistoryPort: EloHistoryPort,
-) : CalculateEloForMatchUseCase, ResetAndRecalculateEloUseCase, GetEloUseCase, GetEloLeaderboardUseCase, GetEloHistoryUseCase {
+) : CalculateEloForMatchUseCase, ResetAndRecalculateEloUseCase {
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -97,51 +90,8 @@ class EloCalculationHandler(
         log.info("Elo 재집계 완료")
     }
 
-    override fun getAll(): List<PlayerElo> = eloPort.findAll()
-    override fun getByRiotId(riotId: String): PlayerElo? = eloPort.findByRiotId(riotId)
-
-    override fun getHistory(riotId: String, limit: Int): PlayerEloHistoryResult {
-        val allElos = eloPort.findAll().sortedByDescending { it.elo }
-        val myElo   = allElos.firstOrNull { it.riotId == riotId }
-        val currentElo = myElo?.elo ?: INITIAL_ELO
-        val eloRank    = allElos.indexOfFirst { it.riotId == riotId }.takeIf { it >= 0 }?.plus(1)
-        val history    = eloHistoryPort.findByRiotId(riotId, limit).map {
-            EloHistoryEntry(
-                matchId = it.matchId, eloBefore = it.eloBefore, eloAfter = it.eloAfter,
-                delta = it.delta, win = it.win, gameCreation = it.gameCreation,
-            )
-        }
-        return PlayerEloHistoryResult(riotId = riotId, currentElo = currentElo, eloRank = eloRank, history = history)
-    }
-
-    override fun getLeaderboard(): EloLeaderboardResult {
-        val sorted = eloPort.findAll().sortedByDescending { it.elo }
-        return EloLeaderboardResult(
-            players = sorted.mapIndexed { idx, elo ->
-                val wr = if (elo.games > 0) elo.wins * 100.0 / elo.games else 0.0
-                EloRankEntry(
-                    rank = idx + 1, riotId = elo.riotId, elo = elo.elo,
-                    games = elo.games, wins = elo.wins, losses = elo.losses,
-                    winRate = (wr * 10).toLong() / 10.0,
-                    winStreak = elo.winStreak, lossStreak = elo.lossStreak,
-                )
-            }
-        )
-    }
-
     // ═══════════════════════════════════════════════════════════
     //  핵심 계산 — 고도화된 Elo 시스템 v2
-    //
-    //  공식:
-    //    delta = K × (actual − expected) × streakMult × upsetMult
-    //            + PERF_WEIGHT × (performanceScore − 0.5)
-    //            + LANE_WEIGHT × (laneScore − 0.5)
-    //            + CARRY_BONUS
-    //
-    //  performanceScore: 포지션별 가중치 (팀 내 상대적 기여도)
-    //  laneScore: 라인 상대와의 직접 비교 (같은 포지션)
-    //  carryBonus: 1인 캐리 or 앵커 감지
-    //  upsetMult: 이변 보너스/패널티
     // ═══════════════════════════════════════════════════════════
 
     private fun processMatch(match: Match) {
@@ -238,8 +188,8 @@ class EloCalculationHandler(
         val aWon = teamA.any { it.win }
 
         // 포지션 배정
-        val positionsA = assignPositions(teamA)
-        val positionsB = assignPositions(teamB)
+        val positionsA = PositionDetector.assignPositions(teamA)
+        val positionsB = PositionDetector.assignPositions(teamB)
         val allPositions = positionsA + positionsB
 
         // 라인 상대 매핑 (같은 포지션끼리 매칭)
@@ -250,7 +200,6 @@ class EloCalculationHandler(
         val upsetMult = if (eloDiff > 100) 1.0 + (eloDiff - 100) * 0.001 else 1.0 // 최대 ~1.3
 
         val result = mutableMapOf<String, Double>()
-        val allParticipants = teamA + teamB
 
         fun calcForPlayer(p: MatchParticipant, team: List<MatchParticipant>, enemyTeam: List<MatchParticipant>,
                           expected: Double, won: Boolean) {
@@ -276,19 +225,11 @@ class EloCalculationHandler(
             val objectiveBonus = calcObjectiveBonus(p, team)
 
             // ── 최종 공식 ──
-            // 기본: K × (실제 − 기대) × 연승배율 × 이변배율
             val baseChange = k * ((if (won) 1.0 else 0.0) - expected) * mult *
                 (if ((won && expected < 0.4) || (!won && expected > 0.6)) upsetMult else 1.0)
 
-            // 퍼포먼스 보정: 최대 ±18점 (팀 내 기여도)
             val perfAdj = 36.0 * (perfScore - 0.5)
-
-            // 라인전 보정: 최대 ±10점 (상대 라이너 대비)
             val laneAdj = 20.0 * (laneScore - 0.5)
-
-            // 캐리 보너스: 최대 ±8점
-            // 멀티킬 보너스: 최대 +6점
-            // 목표 기여 보너스: 최대 ±4점
 
             val totalDelta = baseChange + perfAdj + laneAdj + carryBonus + multikillBonus + objectiveBonus
             result[p.riotId] = totalDelta
@@ -301,9 +242,6 @@ class EloCalculationHandler(
 
     // ═══════════════════════════════════════════════════════════
     //  퍼포먼스 점수 (팀 내 상대적 기여도) — 고도화 v2
-    //
-    //  7개 기본 지표 + 3개 신규 지표 = 10개 지표
-    //  포지션별 가중치로 합산
     // ═══════════════════════════════════════════════════════════
 
     private fun calcPerformanceScore(p: MatchParticipant, team: List<MatchParticipant>, pos: Position): Double {
@@ -317,12 +255,10 @@ class EloCalculationHandler(
         val teamHeal    = team.sumOf { it.totalHeal }.coerceAtLeast(1)
         val teamWards   = team.sumOf { it.wardsPlaced + it.wardsKilled }.coerceAtLeast(1)
 
-        // KDA 랭킹 (팀 내 순위 → 0~1 정규화)
         val kda = (p.kills + p.assists).toDouble() / maxOf(1, p.deaths)
         val teamKdas = team.map { (it.kills + it.assists).toDouble() / maxOf(1, it.deaths) }
         val kdaRank = normalizeInTeam(kda, teamKdas)
 
-        // 기본 Share 지표
         val kp          = (p.kills + p.assists).toDouble() / teamKills
         val dmgShare    = p.damage.toDouble() / teamDamage
         val goldShare   = p.gold.toDouble() / teamGold
@@ -330,20 +266,16 @@ class EloCalculationHandler(
         val objDmgShare = p.damageDealtToObjectives.toDouble() / teamObjDmg
         val ccShare     = p.timeCCingOthers.toDouble() / teamCC
 
-        // 신규 지표
-        val tankShare   = p.totalDamageTaken.toDouble() / teamTankDmg   // 탱킹 기여
-        val healShare   = p.totalHeal.toDouble() / teamHeal             // 힐링 기여
-        val wardShare   = (p.wardsPlaced + p.wardsKilled).toDouble() / teamWards  // 시야 전체 기여
+        val tankShare   = p.totalDamageTaken.toDouble() / teamTankDmg
+        val healShare   = p.totalHeal.toDouble() / teamHeal
+        val wardShare   = (p.wardsPlaced + p.wardsKilled).toDouble() / teamWards
 
-        // 골드 효율 (딜/골드 비율의 팀 내 순위)
         val goldEff = p.damage.toDouble() / maxOf(1, p.gold)
         val teamGoldEffs = team.map { it.damage.toDouble() / maxOf(1, it.gold) }
         val goldEffRank = normalizeInTeam(goldEff, teamGoldEffs)
 
-        // 데스 절제력 (데스 적을수록 높음)
         val deathControl = 1.0 - (p.deaths.toDouble() / maxOf(1, team.maxOf { it.deaths }))
 
-        // 포지션별 가중치 (합계 = 1.0)
         return when (pos) {
             Position.TOP -> {
                 0.20 * kdaRank + 0.15 * kp + 0.15 * dmgShare + 0.10 * goldShare +
@@ -365,18 +297,18 @@ class EloCalculationHandler(
                 0.12 * kdaRank + 0.18 * kp + 0.03 * dmgShare + 0.05 * goldShare +
                 0.25 * wardShare + 0.15 * ccShare + 0.08 * healShare + 0.07 * deathControl + 0.07 * tankShare
             }
+            Position.UNKNOWN -> {
+                0.20 * kdaRank + 0.18 * kp + 0.22 * dmgShare + 0.10 * goldShare +
+                0.08 * goldEffRank + 0.07 * deathControl + 0.05 * objDmgShare + 0.05 * ccShare + 0.05 * visionShare
+            }
         }
     }
 
     // ═══════════════════════════════════════════════════════════
     //  라인전 점수 — 같은 포지션 상대와 직접 비교
-    //
-    //  CS 차이, 골드 차이, 딜 차이, KDA 비교, 시야 비교
-    //  게임 시간 보정 (분당 환산)
     // ═══════════════════════════════════════════════════════════
 
     private fun calcLaneScore(me: MatchParticipant, opp: MatchParticipant, pos: Position): Double {
-        // 각 지표에서 상대 대비 우위도 계산 (0~1, 0.5가 동등)
         fun compareMetric(myVal: Double, oppVal: Double): Double {
             val total = myVal + oppVal
             return if (total <= 0) 0.5 else myVal / total
@@ -392,21 +324,18 @@ class EloCalculationHandler(
         val objAdv    = compareMetric(me.damageDealtToObjectives.toDouble(), opp.damageDealtToObjectives.toDouble())
         val tankAdv   = compareMetric(me.totalDamageTaken.toDouble(), opp.totalDamageTaken.toDouble())
 
-        // 포지션별 가중치 (합계 = 1.0)
         return when (pos) {
             Position.TOP     -> 0.20 * kdaAdv + 0.20 * csAdv + 0.15 * goldAdv + 0.15 * dmgAdv + 0.20 * tankAdv + 0.10 * objAdv
             Position.JUNGLE  -> 0.25 * kdaAdv + 0.10 * csAdv + 0.15 * goldAdv + 0.10 * dmgAdv + 0.30 * objAdv + 0.10 * visionAdv
             Position.MID     -> 0.25 * kdaAdv + 0.20 * csAdv + 0.15 * goldAdv + 0.25 * dmgAdv + 0.10 * visionAdv + 0.05 * objAdv
             Position.ADC     -> 0.20 * kdaAdv + 0.20 * csAdv + 0.20 * goldAdv + 0.30 * dmgAdv + 0.10 * objAdv
             Position.SUPPORT -> 0.25 * kdaAdv + 0.05 * csAdv + 0.10 * goldAdv + 0.05 * dmgAdv + 0.30 * visionAdv + 0.15 * tankAdv + 0.10 * objAdv
+            Position.UNKNOWN -> 0.25 * kdaAdv + 0.20 * csAdv + 0.15 * goldAdv + 0.25 * dmgAdv + 0.10 * visionAdv + 0.05 * objAdv
         }
     }
 
     // ═══════════════════════════════════════════════════════════
     //  캐리/앵커 보너스
-    //
-    //  팀 내 딜 비중 40%+ 이면서 이기면 캐리 보너스
-    //  팀 내 데스 비중 40%+ 이면서 지면 앵커 패널티
     // ═══════════════════════════════════════════════════════════
 
     private fun calcCarryBonus(p: MatchParticipant, team: List<MatchParticipant>,
@@ -421,18 +350,13 @@ class EloCalculationHandler(
         var bonus = 0.0
 
         if (won) {
-            // 캐리 보너스: 딜 비중이 높으면서 승리
             if (dmgShare >= 0.40) bonus += 4.0
-            if (dmgShare >= 0.50) bonus += 4.0  // 총 +8 가능
-            // 킬 주도: 킬 비중이 높으면 추가
+            if (dmgShare >= 0.50) bonus += 4.0
             if (killShare >= 0.45) bonus += 2.0
-            // 죽지 않고 이기면 추가
             if (p.deaths == 0 && p.kills + p.assists >= 5) bonus += 2.0
         } else {
-            // 앵커 패널티: 데스 비중이 높으면서 패배
             if (deathShare >= 0.40) bonus -= 3.0
-            if (deathShare >= 0.50) bonus -= 3.0  // 총 -6 가능
-            // 패배 시에도 딜량이 높으면 방어적 보정
+            if (deathShare >= 0.50) bonus -= 3.0
             if (dmgShare >= 0.35) bonus += 2.0
         }
 
@@ -440,7 +364,7 @@ class EloCalculationHandler(
     }
 
     // ═══════════════════════════════════════════════════════════
-    //  멀티킬 보너스 — 더블킬~펜타킬 가산
+    //  멀티킬 보너스
     // ═══════════════════════════════════════════════════════════
 
     private fun calcMultikillBonus(p: MatchParticipant): Double {
@@ -448,14 +372,13 @@ class EloCalculationHandler(
         bonus += p.pentaKills * 4.0
         bonus += p.quadraKills * 2.0
         bonus += p.tripleKills * 1.0
-        // 최대 킬링 스프리 보너스
         if (p.largestKillingSpree >= 8) bonus += 2.0
         else if (p.largestKillingSpree >= 5) bonus += 1.0
         return bonus.coerceAtMost(6.0)
     }
 
     // ═══════════════════════════════════════════════════════════
-    //  목표 기여 보너스 — 퍼스트블러드, 퍼스트타워 등
+    //  목표 기여 보너스
     // ═══════════════════════════════════════════════════════════
 
     private fun calcObjectiveBonus(p: MatchParticipant, team: List<MatchParticipant>): Double {
@@ -464,13 +387,12 @@ class EloCalculationHandler(
         if (p.firstBloodAssist) bonus += 0.5
         if (p.firstTowerKill) bonus += 1.0
         if (p.firstTowerAssist) bonus += 0.3
-        // 억제기 파괴
         bonus += p.inhibitorKills * 0.5
         return bonus.coerceAtMost(4.0)
     }
 
     // ═══════════════════════════════════════════════════════════
-    //  라인 상대 매핑 — 같은 포지션끼리 매칭
+    //  라인 상대 매핑
     // ═══════════════════════════════════════════════════════════
 
     private fun buildLaneOpponentMap(
@@ -496,71 +418,9 @@ class EloCalculationHandler(
     //  유틸리티
     // ═══════════════════════════════════════════════════════════
 
-    /** 팀 내 값 정규화 (0=최하, 1=최상, 전원 동일하면 0.5) */
     private fun normalizeInTeam(value: Double, allValues: List<Double>): Double {
         val min = allValues.min()
         val max = allValues.max()
         return if (max == min) 0.5 else (value - min) / (max - min)
-    }
-
-    // ────────── 포지션 배정 ──────────
-
-    private enum class Position { TOP, JUNGLE, MID, ADC, SUPPORT }
-
-    private fun assignPositions(team: List<MatchParticipant>): Map<String, Position> {
-        val assigned = mutableMapOf<String, Position>()
-        val taken    = mutableSetOf<Position>()
-        val pending  = mutableListOf<MatchParticipant>()
-
-        for (p in team) {
-            val pos = primaryPosition(p)
-            if (pos != null && pos !in taken) {
-                assigned[p.riotId] = pos; taken.add(pos)
-            } else {
-                pending.add(p)
-            }
-        }
-
-        val remaining = Position.entries.toMutableList().apply { removeAll(taken) }
-
-        if (Position.ADC in remaining && Position.SUPPORT in remaining) {
-            val bottomPending = pending.filter {
-                it.lane == "BOTTOM" || it.role in listOf("DUO_CARRY", "DUO_SUPPORT", "DUO")
-            }
-            if (bottomPending.size == 2) {
-                val adc = bottomPending.maxByOrNull { it.damage + it.gold }!!
-                val sup = bottomPending.first { it.riotId != adc.riotId }
-                assigned[adc.riotId] = Position.ADC;     remaining.remove(Position.ADC)
-                assigned[sup.riotId] = Position.SUPPORT; remaining.remove(Position.SUPPORT)
-                pending.removeAll(bottomPending.toSet())
-            }
-        }
-
-        for (pos in remaining.toList()) {
-            if (pending.isEmpty()) break
-            val best = pending.maxByOrNull { positionScore(it, pos) }!!
-            assigned[best.riotId] = pos
-            pending.remove(best); remaining.remove(pos)
-        }
-        return assigned
-    }
-
-    private fun primaryPosition(p: MatchParticipant): Position? = when {
-        p.lane == "TOP"                                 -> Position.TOP
-        p.lane == "JUNGLE"                              -> Position.JUNGLE
-        p.lane == "MIDDLE"                              -> Position.MID
-        p.lane == "BOTTOM" && p.role == "CARRY"         -> Position.ADC
-        p.lane == "BOTTOM" && p.role == "DUO_CARRY"     -> Position.ADC
-        p.lane == "BOTTOM" && p.role == "SUPPORT"       -> Position.SUPPORT
-        p.lane == "BOTTOM" && p.role == "DUO_SUPPORT"   -> Position.SUPPORT
-        else                                            -> null
-    }
-
-    private fun positionScore(p: MatchParticipant, pos: Position): Double = when (pos) {
-        Position.TOP     -> p.cs * 0.35 + p.damage * 0.3 + p.totalDamageTaken * 0.25 + p.turretKills * 5.0
-        Position.JUNGLE  -> p.neutralMinionsKilled * 2.5 + p.damageDealtToObjectives * 0.5
-        Position.MID     -> p.damage * 0.6 + p.cs * 0.4
-        Position.ADC     -> p.damage * 0.5 + p.gold * 0.3 + p.cs * 0.2
-        Position.SUPPORT -> p.visionScore * 3.0 + p.timeCCingOthers * 1.5 + p.wardsPlaced * 2.0
     }
 }

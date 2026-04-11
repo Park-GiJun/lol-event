@@ -6,13 +6,13 @@ import com.gijun.main.application.port.`in`.GetTeamChemistryUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
+import com.gijun.main.application.port.out.StatsCachePort
 
 @Service
 @Transactional(readOnly = true)
 class GetTeamChemistryHandler(
     private val matchPersistencePort: MatchPersistencePort,
-    private val cache: StatsQueryCache,
+    private val cache: StatsCachePort,
 ) : GetTeamChemistryUseCase {
 
     private fun <T> List<T>.combinations(n: Int): List<List<T>> {

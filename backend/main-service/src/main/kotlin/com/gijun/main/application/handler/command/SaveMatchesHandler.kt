@@ -5,7 +5,8 @@ import com.gijun.main.application.dto.match.result.SaveMatchesResult
 import com.gijun.main.application.port.`in`.DeleteMatchUseCase
 import com.gijun.main.application.port.`in`.SaveMatchesUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
-import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
+import com.gijun.main.application.port.out.StatsCachePort
+import com.gijun.main.domain.service.PositionDetector
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
@@ -15,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 class SaveMatchesHandler(
     private val matchPersistencePort: MatchPersistencePort,
-    private val statsQueryCache: StatsQueryCache,
+    private val statsQueryCache: StatsCachePort,
     private val kafkaTemplate: KafkaTemplate<String, String>,
 ) : SaveMatchesUseCase, DeleteMatchUseCase {
 
@@ -30,7 +31,11 @@ class SaveMatchesHandler(
                 skipped++
                 continue
             }
-            matchPersistencePort.save(input.toDomain())
+            val match = input.toDomain()
+            val withPositions = match.copy(
+                participants = PositionDetector.assignPositionsToAll(match.participants).toMutableList()
+            )
+            matchPersistencePort.save(withPositions)
             savedMatchIds.add(input.matchId)
             saved++
         }

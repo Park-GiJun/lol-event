@@ -9,14 +9,14 @@ import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.application.port.out.StatsCachePersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import com.gijun.main.infrastructure.adapter.out.cache.StatsQueryCache
+import com.gijun.main.application.port.out.StatsCachePort
 
 @Service
 @Transactional(readOnly = true)
 class GetChampionStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val statsCachePersistencePort: StatsCachePersistencePort,
-    private val cache: StatsQueryCache,
+    private val cache: StatsCachePort,
 ) : GetChampionStatsUseCase {
 
     private fun resolvePosition(lane: String?, role: String?, neutralMinionsKilled: Int): String? = when {
