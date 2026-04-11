@@ -181,7 +181,7 @@ object Build : BuildType({
                         curl -sL "${'$'}GH_MSI_URL" -o ${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi
                         if [ ${'$'}? -eq 0 ] && [ -s "${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi" ]; then
                             MSI_DEPLOYED=true
-                            MSI_VERSION=${'$'}(echo "${'$'}GH_MSI_URL" | grep -oP '\d+\.\d+\.\d+' || echo "1.0.1")
+                            MSI_VERSION=${'$'}(echo "${'$'}GH_MSI_URL" | grep -oP '\d+\.\d+\.\d+' | head -1 || echo "1.0.1")
                             echo "GitHub Release MSI 다운로드 완료 (v${'$'}MSI_VERSION)"
                         fi
                     fi
@@ -191,7 +191,7 @@ object Build : BuildType({
                         MSI_SOURCE=${'$'}(ls desktop-collector/build/compose/binaries/main/msi/*.msi | head -1)
                         cp "${'$'}MSI_SOURCE" ${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi
                         MSI_DEPLOYED=true
-                        MSI_VERSION=${'$'}(echo "${'$'}MSI_SOURCE" | grep -oP '\d+\.\d+\.\d+' || echo "1.0.1")
+                        MSI_VERSION=${'$'}(echo "${'$'}MSI_SOURCE" | grep -oP '\d+\.\d+\.\d+' | head -1 || echo "1.0.1")
                         echo "로컬 빌드 MSI 복사 완료 (v${'$'}MSI_VERSION)"
                     fi
 

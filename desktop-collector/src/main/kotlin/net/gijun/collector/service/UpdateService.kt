@@ -66,7 +66,8 @@ class UpdateService(
                     return@launch
                 }
                 val text: String = response.body()
-                val info = json.decodeFromString<UpdateInfo>(text)
+                val raw = json.decodeFromString<UpdateInfo>(text)
+                val info = raw.copy(version = raw.version.trim().lines().first(), url = raw.url.trim())
 
                 if (info.version.isBlank() || info.url.isBlank()) {
                     state = UpdateState.NOT_AVAILABLE
