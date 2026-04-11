@@ -22,6 +22,11 @@ const SyncPage = lazy(() => import('./pages/SyncPage').then(m => ({ default: m.S
 const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
 const TeamBuilderPage = lazy(() => import('./pages/TeamBuilderPage').then(m => ({ default: m.TeamBuilderPage })));
 const StatsPage = lazy(() => import('./pages/StatsPage').then(m => ({ default: m.StatsPage })));
+const RankingsPage = lazy(() => import('./pages/RankingsPage').then(m => ({ default: m.RankingsPage })));
+const PlayerAnalysisPage = lazy(() => import('./pages/PlayerAnalysisPage').then(m => ({ default: m.PlayerAnalysisPage })));
+const ChampionAnalysisPage = lazy(() => import('./pages/ChampionAnalysisPage').then(m => ({ default: m.ChampionAnalysisPage })));
+const MatchAnalysisPage = lazy(() => import('./pages/MatchAnalysisPage').then(m => ({ default: m.MatchAnalysisPage })));
+const EfficiencyPage = lazy(() => import('./pages/EfficiencyPage').then(m => ({ default: m.EfficiencyPage })));
 
 // Mobile pages
 const MobileHomePage = lazy(() => import('./pages/mobile/MobileHomePage').then(m => ({ default: m.MobileHomePage })));
@@ -74,6 +79,11 @@ function App() {
             <Route path="sync" element={<SyncPage />} />
             <Route path="admin" element={<AdminPage />} />
             <Route path="team-builder" element={<TeamBuilderPage />} />
+            <Route path="rankings" element={<RankingsPage />} />
+            <Route path="player-analysis" element={<PlayerAnalysisPage />} />
+            <Route path="champion-analysis" element={<ChampionAnalysisPage />} />
+            <Route path="match-analysis" element={<MatchAnalysisPage />} />
+            <Route path="efficiency" element={<EfficiencyPage />} />
             <Route path="reports" element={<StatsPage />} />
           </Route>
 

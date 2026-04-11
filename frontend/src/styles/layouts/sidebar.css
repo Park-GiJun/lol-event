@@ -94,6 +94,15 @@
   overflow-y: auto;
 }
 
+.sidebar-group-label {
+  padding: 16px 16px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-disabled);
+}
+
 .sidebar-item {
   display: flex;
   align-items: center;
