@@ -146,7 +146,7 @@ class EloCommandHandler(
             match.participants
         }
         if (participants.size < 2) return
-        val correctedMatch = match.copy(participants = participants)
+        val correctedMatch = match.copy(participants = participants.toMutableList())
         val currentElos = participants
             .mapNotNull { it.riotId.takeIf { r -> r.isNotBlank() } }
             .associateWith { eloCache[it] }.filterValues { it != null }.mapValues { it.value!! }.toMutableMap()
