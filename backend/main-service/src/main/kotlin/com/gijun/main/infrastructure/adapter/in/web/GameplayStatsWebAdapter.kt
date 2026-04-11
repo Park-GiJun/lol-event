@@ -2,25 +2,33 @@ package com.gijun.main.infrastructure.adapter.`in`.web
 
 import com.gijun.common.response.CommonApiResponse
 import com.gijun.main.application.dto.stats.result.ChaosMatchResult
+import com.gijun.main.application.dto.stats.result.DamageAnalysisResult
 import com.gijun.main.application.dto.stats.result.DefeatContributionResult
 import com.gijun.main.application.dto.stats.result.GoldEfficiencyResult
 import com.gijun.main.application.dto.stats.result.JungleDominanceResult
+import com.gijun.main.application.dto.stats.result.LateGameResult
 import com.gijun.main.application.dto.stats.result.MultiKillHighlightsResult
 import com.gijun.main.application.dto.stats.result.PlaystyleDnaResult
 import com.gijun.main.application.dto.stats.result.PositionBadgeResult
 import com.gijun.main.application.dto.stats.result.PositionChampionPoolResult
 import com.gijun.main.application.dto.stats.result.SupportImpactResult
+import com.gijun.main.application.dto.stats.result.SurrenderAnalysisResult
 import com.gijun.main.application.dto.stats.result.SurvivalIndexResult
+import com.gijun.main.application.dto.stats.result.VisionDominanceResult
 import com.gijun.main.application.port.`in`.GetChaosMatchUseCase
+import com.gijun.main.application.port.`in`.GetDamageAnalysisUseCase
 import com.gijun.main.application.port.`in`.GetDefeatContributionUseCase
 import com.gijun.main.application.port.`in`.GetGoldEfficiencyUseCase
 import com.gijun.main.application.port.`in`.GetJungleDominanceUseCase
+import com.gijun.main.application.port.`in`.GetLateGameUseCase
 import com.gijun.main.application.port.`in`.GetMultiKillHighlightsUseCase
 import com.gijun.main.application.port.`in`.GetPlaystyleDnaUseCase
 import com.gijun.main.application.port.`in`.GetPositionBadgeUseCase
 import com.gijun.main.application.port.`in`.GetPositionChampionPoolUseCase
 import com.gijun.main.application.port.`in`.GetSupportImpactUseCase
+import com.gijun.main.application.port.`in`.GetSurrenderAnalysisUseCase
 import com.gijun.main.application.port.`in`.GetSurvivalIndexUseCase
+import com.gijun.main.application.port.`in`.GetVisionDominanceUseCase
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
 
@@ -38,6 +46,10 @@ class GameplayStatsWebAdapter(
     private val getPlaystyleDnaUseCase: GetPlaystyleDnaUseCase,
     private val getPositionBadgeUseCase: GetPositionBadgeUseCase,
     private val getPositionChampionPoolUseCase: GetPositionChampionPoolUseCase,
+    private val getDamageAnalysisUseCase: GetDamageAnalysisUseCase,
+    private val getVisionDominanceUseCase: GetVisionDominanceUseCase,
+    private val getSurrenderAnalysisUseCase: GetSurrenderAnalysisUseCase,
+    private val getLateGameUseCase: GetLateGameUseCase,
 ) {
     @GetMapping("/multikill-highlights")
     fun getMultiKillHighlights(
@@ -98,4 +110,28 @@ class GameplayStatsWebAdapter(
         @RequestParam(defaultValue = "normal") mode: String,
     ): CommonApiResponse<PositionChampionPoolResult> =
         CommonApiResponse.success(getPositionChampionPoolUseCase.getPositionChampionPool(mode))
+
+    @GetMapping("/damage-analysis")
+    fun getDamageAnalysis(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<DamageAnalysisResult> =
+        CommonApiResponse.success(getDamageAnalysisUseCase.getDamageAnalysis(mode))
+
+    @GetMapping("/vision-dominance")
+    fun getVisionDominance(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<VisionDominanceResult> =
+        CommonApiResponse.success(getVisionDominanceUseCase.getVisionDominance(mode))
+
+    @GetMapping("/surrender-analysis")
+    fun getSurrenderAnalysis(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<SurrenderAnalysisResult> =
+        CommonApiResponse.success(getSurrenderAnalysisUseCase.getSurrenderAnalysis(mode))
+
+    @GetMapping("/late-game")
+    fun getLateGame(
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<LateGameResult> =
+        CommonApiResponse.success(getLateGameUseCase.getLateGame(mode))
 }

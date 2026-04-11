@@ -4,16 +4,24 @@ import { LoadingCenter } from '../components/common/Spinner';
 import { MODES } from '../lib/lol';
 import '../styles/pages/stats.css';
 
-const GoldEffTab = lazy(() => import('./stats-tabs/GoldEffTab'));
-const SurvivalTab = lazy(() => import('./stats-tabs/SurvivalTab'));
-const JungleTab = lazy(() => import('./stats-tabs/JungleTab'));
-const SupportTab = lazy(() => import('./stats-tabs/SupportTab'));
+const GoldEffTab       = lazy(() => import('./stats-tabs/GoldEffTab'));
+const SurvivalTab      = lazy(() => import('./stats-tabs/SurvivalTab'));
+const JungleTab        = lazy(() => import('./stats-tabs/JungleTab'));
+const SupportTab       = lazy(() => import('./stats-tabs/SupportTab'));
+const DamageAnalysisTab = lazy(() => import('./stats-tabs/DamageAnalysisTab'));
+const VisionDominanceTab = lazy(() => import('./stats-tabs/VisionDominanceTab'));
+const SurrenderTab     = lazy(() => import('./stats-tabs/SurrenderTab'));
+const LateGameTab      = lazy(() => import('./stats-tabs/LateGameTab'));
 
 const TABS = [
-  { key: 'goldeff',  label: '💰 골드 효율' },
-  { key: 'survival', label: '🛡️ 생존력' },
-  { key: 'jungle',   label: '🌲 정글' },
-  { key: 'support',  label: '💚 서폿 기여' },
+  { key: 'goldeff',   label: '💰 골드 효율' },
+  { key: 'survival',  label: '🛡️ 생존력' },
+  { key: 'jungle',    label: '🌲 정글' },
+  { key: 'support',   label: '💚 서폿 기여' },
+  { key: 'damage',    label: '🔥 데미지 분석' },
+  { key: 'vision',    label: '👁️ 시야 지배' },
+  { key: 'surrender', label: '🏳️ 서렌더 분석' },
+  { key: 'lategame',  label: '👑 후반 지배' },
 ];
 
 export function EfficiencyPage() {
@@ -45,10 +53,14 @@ export function EfficiencyPage() {
       </div>
 
       <Suspense fallback={<LoadingCenter />}>
-        {tab === 'goldeff'  && <div className="card" style={{ marginTop: 4 }}><GoldEffTab mode={mode} /></div>}
-        {tab === 'survival' && <div className="card" style={{ marginTop: 4 }}><SurvivalTab mode={mode} /></div>}
-        {tab === 'jungle'   && <div className="card" style={{ marginTop: 4 }}><JungleTab mode={mode} /></div>}
-        {tab === 'support'  && <div className="card" style={{ marginTop: 4 }}><SupportTab mode={mode} /></div>}
+        {tab === 'goldeff'   && <div className="card" style={{ marginTop: 4 }}><GoldEffTab mode={mode} /></div>}
+        {tab === 'survival'  && <div className="card" style={{ marginTop: 4 }}><SurvivalTab mode={mode} /></div>}
+        {tab === 'jungle'    && <div className="card" style={{ marginTop: 4 }}><JungleTab mode={mode} /></div>}
+        {tab === 'support'   && <div className="card" style={{ marginTop: 4 }}><SupportTab mode={mode} /></div>}
+        {tab === 'damage'    && <div className="card" style={{ marginTop: 4 }}><DamageAnalysisTab mode={mode} /></div>}
+        {tab === 'vision'    && <div className="card" style={{ marginTop: 4 }}><VisionDominanceTab mode={mode} /></div>}
+        {tab === 'surrender' && <div className="card" style={{ marginTop: 4 }}><SurrenderTab mode={mode} /></div>}
+        {tab === 'lategame'  && <div className="card" style={{ marginTop: 4 }}><LateGameTab mode={mode} /></div>}
       </Suspense>
     </div>
   );

@@ -140,18 +140,23 @@ class EloCommandHandler(
         match: Match, eloCache: MutableMap<String, PlayerElo>,
         allHistories: MutableList<PlayerEloHistory>,
     ) {
-        val participants = match.participants
+        val participants = if (match.participants.any { it.assignedPosition.isBlank() }) {
+            PositionDetector.assignPositionsToAll(match.participants)
+        } else {
+            match.participants
+        }
         if (participants.size < 2) return
+        val correctedMatch = match.copy(participants = participants)
         val currentElos = participants
             .mapNotNull { it.riotId.takeIf { r -> r.isNotBlank() } }
             .associateWith { eloCache[it] }.filterValues { it != null }.mapValues { it.value!! }.toMutableMap()
 
-        val changes = calcEloChanges(match, currentElos)
+        val changes = calcEloChanges(correctedMatch, currentElos)
         val now = LocalDateTime.now()
 
         changes.forEach { (riotId, delta) ->
             val prev = currentElos[riotId]
-            val won = match.participants.firstOrNull { it.riotId == riotId }?.win ?: false
+            val won = participants.firstOrNull { it.riotId == riotId }?.win ?: false
             val newElo = maxOf(MIN_ELO, (prev?.elo ?: INITIAL_ELO) + delta)
             val updated = PlayerElo(
                 id = prev?.id ?: 0, riotId = riotId, elo = newElo,

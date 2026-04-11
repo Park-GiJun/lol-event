@@ -13,12 +13,15 @@ const MobileAwardsGroup        = lazy(() => import('./stats-tabs/MobileAwardsGro
 const MobileTeamAnalysisGroup  = lazy(() => import('./stats-tabs/MobileTeamAnalysisGroup'));
 const MobileMasteryGroup       = lazy(() => import('./stats-tabs/MobileMasteryGroup'));
 const MobilePersonalAnalysisGroup = lazy(() => import('./stats-tabs/MobilePersonalAnalysisGroup'));
+const MobileAnalysisGroup      = lazy(() => import('./stats-tabs/MobileAnalysisGroup'));
+const MobileMatchGroup         = lazy(() => import('./stats-tabs/MobileMatchGroup'));
+const MobileEfficiencyGroup    = lazy(() => import('./stats-tabs/MobileEfficiencyGroup'));
 
-type MainTab = '개요' | '랭킹' | 'Elo' | 'MVP' | '시너지' | '듀오' | '라인' | '어워즈' | '팀분석' | '장인' | '개인분석';
-const MAIN_TABS: MainTab[] = ['개요', '랭킹', 'Elo', 'MVP', '시너지', '듀오', '라인', '어워즈', '팀분석', '장인', '개인분석'];
+type MainTab = '개요' | '랭킹' | 'Elo' | 'MVP' | '시너지' | '듀오' | '라인' | '어워즈' | '팀분석' | '장인' | '개인분석' | '분석' | '경기' | '효율';
+const MAIN_TABS: MainTab[] = ['개요', '랭킹', 'Elo', 'MVP', '시너지', '듀오', '라인', '어워즈', '팀분석', '장인', '개인분석', '분석', '경기', '효율'];
 
 
-const noModeTabGroups: MainTab[] = ['랭킹', 'Elo', '어워즈', '팀분석', '장인', '개인분석'];
+const noModeTabGroups: MainTab[] = ['랭킹', 'Elo', '어워즈', '팀분석', '장인', '개인분석', '분석', '경기', '효율'];
 
 export function MobileStatsPage() {
   const [tab, setTab] = useState<MainTab>('개요');
@@ -59,6 +62,9 @@ export function MobileStatsPage() {
         {tab === '팀분석'  && <MobileTeamAnalysisGroup />}
         {tab === '장인'    && <MobileMasteryGroup />}
         {tab === '개인분석' && <MobilePersonalAnalysisGroup />}
+        {tab === '분석'    && <MobileAnalysisGroup />}
+        {tab === '경기'    && <MobileMatchGroup />}
+        {tab === '효율'    && <MobileEfficiencyGroup />}
       </Suspense>
     </div>
   );

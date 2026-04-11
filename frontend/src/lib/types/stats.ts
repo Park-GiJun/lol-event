@@ -725,6 +725,77 @@ export interface GoldEfficiencyResult {
   objEfficiencyKing: string | null;
 }
 
+// ── 데미지/시야/서렌더/후반 분석 ──────────────────────────────────
+
+// 데미지 분석
+export interface DamagePlayerEntry {
+  riotId: string;
+  games: number;
+  avgTotalDamage: number;
+  avgPhysicalDamage: number;
+  avgMagicDamage: number;
+  avgTrueDamage: number;
+  physicalRatio: number;
+  magicRatio: number;
+  trueRatio: number;
+  damageProfile: 'AD' | 'AP' | 'Hybrid' | 'Tank' | 'Unknown';
+  avgDamageTaken: number;
+  avgTurretDamage: number;
+}
+export interface DamageAnalysisResult {
+  rankings: DamagePlayerEntry[];
+}
+
+// 시야 지배
+export interface VisionPlayerEntry {
+  riotId: string;
+  games: number;
+  avgVisionScore: number;
+  avgWardsPlaced: number;
+  avgWardsKilled: number;
+  avgControlWardsBought: number;
+  visionIndex: number;
+}
+export interface VisionDominanceResult {
+  rankings: VisionPlayerEntry[];
+  visionKing: string | null;
+}
+
+// 서렌더 분석
+export interface SurrenderPlayerEntry {
+  riotId: string;
+  games: number;
+  surrenderCount: number;
+  surrenderRate: number;
+  earlySurrenderCount: number;
+  earlySurrenderRate: number;
+  surrenderWinRate: number;
+}
+export interface SurrenderAnalysisResult {
+  overallSurrenderRate: number;
+  earlyOverallSurrenderRate: number;
+  rankings: SurrenderPlayerEntry[];
+  surrenderTrigger: string | null;
+  neverGiveUpKing: string | null;
+}
+
+// 후반 지배
+export interface LateGamePlayerEntry {
+  riotId: string;
+  games: number;
+  avgInhibitorKills: number;
+  avgSurvivalSeconds: number;
+  avgKillingSpree: number;
+  lateGameScore: number;
+  longestKillingSpree: number;
+  topChampion: string | null;
+  topChampionId: number | null;
+}
+export interface LateGameResult {
+  rankings: LateGamePlayerEntry[];
+  lateGameKing: string | null;
+}
+
 // ── 신규 추가 4종 ──────────────────────────────────────────────
 
 // 밴 분석

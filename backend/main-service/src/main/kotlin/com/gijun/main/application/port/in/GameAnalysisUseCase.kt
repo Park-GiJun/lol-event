@@ -2,6 +2,7 @@ package com.gijun.main.application.port.`in`
 
 import com.gijun.main.application.dto.stats.result.ChaosMatchResult
 import com.gijun.main.application.dto.stats.result.ComebackIndexResult
+import com.gijun.main.application.dto.stats.result.DamageAnalysisResult
 import com.gijun.main.application.dto.stats.result.DefeatContributionResult
 import com.gijun.main.application.dto.stats.result.EarlyGameDominanceResult
 import com.gijun.main.application.dto.stats.result.GameLengthTendencyResult
@@ -9,6 +10,7 @@ import com.gijun.main.application.dto.stats.result.GoldEfficiencyResult
 import com.gijun.main.application.dto.stats.result.JungleDominanceResult
 import com.gijun.main.application.dto.stats.result.KillParticipationResult
 import com.gijun.main.application.dto.stats.result.LaneLeaderboardResult
+import com.gijun.main.application.dto.stats.result.LateGameResult
 import com.gijun.main.application.dto.stats.result.MultiKillHighlightsResult
 import com.gijun.main.application.dto.stats.result.ObjectiveCorrelationResult
 import com.gijun.main.application.dto.stats.result.PositionBadgeResult
@@ -16,9 +18,11 @@ import com.gijun.main.application.dto.stats.result.PositionChampionPoolResult
 import com.gijun.main.application.dto.stats.result.RivalMatchupResult
 import com.gijun.main.application.dto.stats.result.SessionReportResult
 import com.gijun.main.application.dto.stats.result.SupportImpactResult
+import com.gijun.main.application.dto.stats.result.SurrenderAnalysisResult
 import com.gijun.main.application.dto.stats.result.SurvivalIndexResult
 import com.gijun.main.application.dto.stats.result.TeamChemistryResult
 import com.gijun.main.application.dto.stats.result.TimePatternResult
+import com.gijun.main.application.dto.stats.result.VisionDominanceResult
 import com.gijun.main.application.dto.stats.result.WeeklyAwardsResult
 
 interface GetLaneLeaderboardUseCase {
@@ -99,4 +103,20 @@ interface GetKillParticipationUseCase {
 
 interface GetPositionChampionPoolUseCase {
     fun getPositionChampionPool(mode: String): PositionChampionPoolResult
+}
+
+interface GetDamageAnalysisUseCase {
+    fun getDamageAnalysis(mode: String): DamageAnalysisResult
+}
+
+interface GetVisionDominanceUseCase {
+    fun getVisionDominance(mode: String): VisionDominanceResult
+}
+
+interface GetSurrenderAnalysisUseCase {
+    fun getSurrenderAnalysis(mode: String): SurrenderAnalysisResult
+}
+
+interface GetLateGameUseCase {
+    fun getLateGame(mode: String): LateGameResult
 }
