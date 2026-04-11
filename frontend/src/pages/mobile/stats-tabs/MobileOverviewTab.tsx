@@ -79,7 +79,7 @@ export default function MobileOverviewTab({ mode }: { mode: string }) {
       )}
 
       <p className="m-section-title" style={{ marginTop: 12 }}>오브젝트</p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+      <div className="grid-16">
         {[
           { label: '바론', value: data.totalBaronKills },
           { label: '드래곤', value: data.totalDragonKills },
@@ -88,7 +88,7 @@ export default function MobileOverviewTab({ mode }: { mode: string }) {
           { label: '억제기', value: data.totalInhibitorKills },
           { label: '퍼블', value: data.totalFirstBloods },
         ].map(({ label, value }) => (
-          <div key={label} className="m-overview-stat">
+          <div key={label} className="m-overview-stat col-span-5">
             <div className="m-overview-stat-value" style={{ fontSize: 18 }}>{value.toLocaleString()}</div>
             <div className="m-overview-stat-label">{label}</div>
           </div>

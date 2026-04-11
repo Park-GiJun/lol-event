@@ -362,16 +362,16 @@ function GrowthTab({ mode }: { mode: string }) {
             </span>
           </div>
           <div className="m-card" style={{ marginBottom: 12 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, textAlign: 'center' }}>
-              <div>
+            <div className="grid-16" style={{ textAlign: 'center' }}>
+              <div className="col-span-5">
                 <div style={{ fontSize: 18, fontWeight: 700 }}>{data.totalGames}</div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>총 게임</div>
               </div>
-              <div>
+              <div className="col-span-5">
                 <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--color-primary)' }}>{data.recentAvgKda.toFixed(2)}</div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>최근 KDA</div>
               </div>
-              <div>
+              <div className="col-span-5">
                 <div style={{ fontSize: 18, fontWeight: 700 }}>{data.overallAvgKda.toFixed(2)}</div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>전체 KDA</div>
               </div>
@@ -461,9 +461,9 @@ function MobilePosPoolTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+      <div className="grid-16" style={{ marginBottom: 12 }}>
         {POSITIONS.map(pos => (
-          <button key={pos} className={`m-lane-tab${selectedPos === pos ? ' active' : ''}`} onClick={() => setSelectedPos(pos)}>
+          <button key={pos} className={`m-lane-tab col-span-3${selectedPos === pos ? ' active' : ''}`} onClick={() => setSelectedPos(pos)}>
             {POS_LABEL[pos]}
           </button>
         ))}

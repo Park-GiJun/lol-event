@@ -81,12 +81,12 @@ export function ChampionChartsSection({ laneStats }: Props) {
       <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', marginBottom: 16 }}>
         포지션별 통계 차트
       </div>
-      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 240px', height: '220px' }}>
+      <div className="grid-16">
+        <div className="col-span-8" style={{ height: '220px' }}>
           <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>승률</div>
           <Bar data={winRateData} options={chartOptions} />
         </div>
-        <div style={{ flex: '1 1 240px', height: '220px' }}>
+        <div className="col-span-8" style={{ height: '220px' }}>
           <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>KDA</div>
           <Bar data={kdaData} options={chartOptions} />
         </div>

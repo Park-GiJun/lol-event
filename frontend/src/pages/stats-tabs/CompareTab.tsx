@@ -68,18 +68,20 @@ export default function CompareTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+      <div className="grid-16" style={{ marginBottom: 16 }}>
         <input
           value={p1Input} onChange={e => setP1Input(e.target.value)}
           placeholder="플레이어1 (RiotID#태그)"
-          style={{ flex: 1, minWidth: 140, padding: '7px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', fontSize: 13 }}
+          className="col-span-6"
+          style={{ minWidth: 140, padding: '7px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', fontSize: 13 }}
         />
         <input
           value={p2Input} onChange={e => setP2Input(e.target.value)}
           placeholder="플레이어2 (RiotID#태그)"
-          style={{ flex: 1, minWidth: 140, padding: '7px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', fontSize: 13 }}
+          className="col-span-6"
+          style={{ minWidth: 140, padding: '7px 10px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', color: 'var(--color-text-primary)', fontSize: 13 }}
         />
-        <Button variant="primary" size="sm" onClick={load} disabled={loading}>
+        <Button className="col-span-4" variant="primary" size="sm" onClick={load} disabled={loading}>
           {loading ? '로딩...' : '비교'}
         </Button>
       </div>
@@ -89,12 +91,12 @@ export default function CompareTab({ mode }: { mode: string }) {
 
       {data && !loading && (
         <div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
-            <div className="card" style={{ padding: 12, textAlign: 'center' }}>
+          <div className="grid-16" style={{ marginBottom: 16 }}>
+            <div className="card col-span-8" style={{ padding: 12, textAlign: 'center' }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-primary)' }}>{data.player1.split('#')[0]}</div>
               <div style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>{data.player1}</div>
             </div>
-            <div className="card" style={{ padding: 12, textAlign: 'center' }}>
+            <div className="card col-span-8" style={{ padding: 12, textAlign: 'center' }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-primary)' }}>{data.player2.split('#')[0]}</div>
               <div style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>{data.player2}</div>
             </div>

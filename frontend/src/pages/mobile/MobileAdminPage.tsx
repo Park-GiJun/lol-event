@@ -122,12 +122,12 @@ function AdminContent() {
       <div className="m-card" style={{ marginBottom: 12 }}>
         {batchStatus && (
           <div style={{ marginBottom: 12 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 8 }}>
+            <div className="grid-16" style={{ marginBottom: 8 }}>
               {[
                 { label: '플레이어 스냅샷', value: batchStatus.playerSnapshotCount },
                 { label: '챔피언 스냅샷', value: batchStatus.championSnapshotCount },
               ].map(({ label, value }) => (
-                <div key={label} className="m-overview-stat">
+                <div key={label} className="m-overview-stat col-span-8">
                   <div className="m-overview-stat-value">{value.toLocaleString()}</div>
                   <div className="m-overview-stat-label">{label}</div>
                 </div>
@@ -147,21 +147,19 @@ function AdminContent() {
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div className="grid-16">
           <button
-            className="m-admin-btn m-admin-btn-primary"
+            className="m-admin-btn m-admin-btn-primary col-span-8"
             onClick={handleBatchRun}
             disabled={batchRunning}
-            style={{ flex: 1 }}
           >
             <Play size={15} />
             {batchRunning ? '실행 중...' : '배치 실행'}
           </button>
           <button
-            className="m-admin-btn m-admin-btn-secondary"
+            className="m-admin-btn m-admin-btn-secondary col-span-8"
             onClick={loadStatus}
             disabled={batchStatusLoading}
-            style={{ flex: 1 }}
           >
             <RefreshCw size={15} />
             상태 갱신

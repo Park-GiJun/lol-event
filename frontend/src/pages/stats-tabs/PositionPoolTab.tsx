@@ -29,9 +29,9 @@ export default function PositionPoolTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+      <div className="grid-16" style={{ marginBottom: 16 }}>
         {POSITIONS.map(pos => (
-          <button key={pos} onClick={() => { setSelectedPos(pos); setSelectedPlayer(null); }}
+          <button key={pos} className="col-span-3" onClick={() => { setSelectedPos(pos); setSelectedPlayer(null); }}
             style={{ padding: '6px 14px', borderRadius: 20, border: '1px solid var(--color-border)', background: selectedPos === pos && !selectedPlayer ? 'var(--color-primary)' : 'var(--color-bg-hover)', color: selectedPos === pos && !selectedPlayer ? '#fff' : 'var(--color-text-primary)', cursor: 'pointer', fontWeight: selectedPos === pos ? 600 : 400, fontSize: 12 }}>
             {POS_LABEL[pos]}
           </button>
@@ -82,11 +82,11 @@ export default function PositionPoolTab({ mode }: { mode: string }) {
           {playerEntries.map((pe: PlayerPositionEntry) => (
             <div key={pe.position} style={{ marginBottom: 20 }}>
               <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8 }}>{POS_LABEL[pe.position] ?? pe.position} ({pe.games}게임 · {pe.winRate.toFixed(1)}%)</div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div className="grid-16">
                 {pe.champions.slice(0, 8).map((ce: PositionChampEntry) => {
                   const c = champions.get(ce.championId);
                   return (
-                    <div key={ce.champion} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: 56 }}>
+                    <div key={ce.champion} className="col-span-2" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                       {c?.imageUrl ? (
                         <img src={c.imageUrl} alt={c.nameKo} width={44} height={44} style={{ borderRadius: 8, border: '1px solid var(--color-border)' }} />
                       ) : (

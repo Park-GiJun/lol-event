@@ -23,8 +23,8 @@ export default function EarlyGameTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
-        <div className="card" style={{ padding: 14, textAlign: 'center' }}>
+      <div className="grid-16" style={{ marginBottom: 20 }}>
+        <div className="card col-span-8" style={{ padding: 14, textAlign: 'center' }}>
           <div style={{ fontSize: 24, marginBottom: 4 }}>🗡️</div>
           <div style={{ fontSize: 11, color: 'var(--color-text-disabled)', marginBottom: 4 }}>퍼블킹</div>
           <div style={{ fontWeight: 700, fontSize: 15, color: '#FFD700' }}>{data.firstBloodKing?.split('#')[0] ?? '-'}</div>
@@ -32,7 +32,7 @@ export default function EarlyGameTab({ mode }: { mode: string }) {
             전체 퍼블 승률: {data.overallFirstBloodWinRate.toFixed(1)}%
           </div>
         </div>
-        <div className="card" style={{ padding: 14, textAlign: 'center' }}>
+        <div className="card col-span-8" style={{ padding: 14, textAlign: 'center' }}>
           <div style={{ fontSize: 24, marginBottom: 4 }}>🏯</div>
           <div style={{ fontSize: 11, color: 'var(--color-text-disabled)', marginBottom: 4 }}>포탑 파괴자</div>
           <div style={{ fontWeight: 700, fontSize: 15, color: '#60a5fa' }}>{data.towerDestroyer?.split('#')[0] ?? '-'}</div>
@@ -76,9 +76,9 @@ export default function EarlyGameTab({ mode }: { mode: string }) {
                   {(e.firstTowerRate * 100).toFixed(1)}%
                 </td>
                 <td style={{ padding: '7px 10px' }}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                  <div className="grid-16" style={{ gap: 3 }}>
                     {e.badges.map((b: string) => (
-                      <span key={b} style={{ fontSize: 10, padding: '1px 5px', borderRadius: 8, background: 'var(--color-primary)22', color: 'var(--color-primary)' }}>{b}</span>
+                      <span key={b} className="col-span-1" style={{ fontSize: 10, padding: '1px 5px', borderRadius: 8, background: 'var(--color-primary)22', color: 'var(--color-primary)' }}>{b}</span>
                     ))}
                   </div>
                 </td>

@@ -37,7 +37,7 @@ function WinRateBar({ winRate }: { winRate: number }) {
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
   return (
-    <div className="player-stat-card">
+    <div className="player-stat-card col-span-4">
       <div className="player-stat-icon">{icon}</div>
       <div className="player-stat-value">{value}</div>
       <div className="player-stat-label">{label}</div>
@@ -206,9 +206,9 @@ function LaneStatSection({ laneStats }: { laneStats: LaneStat[] }) {
           </div>
 
           {/* 포지션 핵심 스탯 */}
-          <div className="lane-key-stats">
+          <div className="lane-key-stats grid-16">
             {meta.keyStats.map(({ key, label, format }) => (
-              <div key={key} className="lane-key-stat">
+              <div key={key} className="lane-key-stat col-span-4">
                 <div className="lane-key-stat-value">{format(stat[key] as number)}</div>
                 <div className="lane-key-stat-label">{label}</div>
               </div>
@@ -356,7 +356,7 @@ export function PlayerStatsPage() {
                 </div>
               </div>
             </div>
-            <div className="player-stat-cards">
+            <div className="player-stat-cards grid-16">
               <StatCard icon={<Sword size={14} />} label="평균 딜량" value={data.avgDamage.toLocaleString()} />
               <StatCard icon={<Shield size={14} />} label="평균 CS" value={data.avgCs.toFixed(1)} />
               <StatCard icon={<Coins size={14} />} label="평균 골드" value={data.avgGold.toLocaleString()} />
@@ -389,8 +389,8 @@ export function PlayerStatsPage() {
                 <TrendingUp size={15} color="var(--color-primary)" />Elo 레이팅
               </div>
               {/* 현재 Elo 요약 */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 16, flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div className="grid-16" style={{ alignItems: 'center', marginBottom: 16 }}>
+                <div className="col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {(() => {
                     const tier = eloTier(eloHistory.currentElo);
                     return (
@@ -404,7 +404,7 @@ export function PlayerStatsPage() {
                   })()}
                 </div>
                 {eloHistory.eloRank != null && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div className="col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <span style={{ fontSize: 22, fontWeight: 800, color: eloHistory.eloRank <= 3 ? 'var(--color-primary)' : 'var(--color-text-primary)' }}>
                       #{eloHistory.eloRank}
                     </span>

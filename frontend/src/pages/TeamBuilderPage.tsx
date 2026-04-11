@@ -65,11 +65,13 @@ interface DropZoneProps {
   onDragOverChange: (k: TeamKey | null) => void;
   onDrop: (to: TeamKey, riotId: string, from: TeamKey) => void;
   style?: React.CSSProperties;
+  className?: string;
   children: React.ReactNode;
 }
-function DropZone({ teamKey, onDragOverChange, onDrop, style, children }: DropZoneProps) {
+function DropZone({ teamKey, onDragOverChange, onDrop, style, className, children }: DropZoneProps) {
   return (
     <div
+      className={className}
       style={style}
       onDragOver={e => { e.preventDefault(); onDragOverChange(teamKey); }}
       onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget as Node)) onDragOverChange(null); }}
@@ -229,21 +231,21 @@ export function TeamBuilderPage() {
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', marginBottom: 8 }}>
                 미배정 플레이어 ({teams.pool.length}명)
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <div className="grid-16">
                 {teams.pool.length === 0 && (
-                  <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', opacity: 0.5 }}>모든 플레이어 배정 완료</span>
+                  <span className="col-span-16" style={{ fontSize: 12, color: 'var(--color-text-secondary)', opacity: 0.5 }}>모든 플레이어 배정 완료</span>
                 )}
                 {teams.pool.map(id => (
                   <PlayerChip key={id} riotId={id} from="pool"
                     allStats={allStats} mvpStats={mvpStats} eloMap={eloMap}
-                    color="var(--color-text-primary)" />
+                    color="var(--color-text-primary)" className="col-span-2" />
                 ))}
               </div>
             </DropZone>
           </div>
 
           {/* 4팀 그리드 */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+          <div className="grid-16">
             {(Object.keys(TEAM_META) as Exclude<TeamKey, 'pool'>[]).map(tk => {
               const meta = TEAM_META[tk];
               const members = teams[tk];
@@ -257,6 +259,7 @@ export function TeamBuilderPage() {
 
               return (
                 <DropZone key={tk} teamKey={tk} dragOver={dragOver}
+                  className="col-span-8"
                   onDragOverChange={setDragOver} onDrop={onDrop}
                   style={{
                     borderRadius: 10,
@@ -300,16 +303,16 @@ export function TeamBuilderPage() {
                   )}
 
                   {/* 플레이어 칩 */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, minHeight: 36 }}>
+                  <div className="grid-16" style={{ minHeight: 36 }}>
                     {members.length === 0 && (
-                      <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', opacity: 0.4, alignSelf: 'center' }}>
+                      <span className="col-span-16" style={{ fontSize: 12, color: 'var(--color-text-secondary)', opacity: 0.4, alignSelf: 'center' }}>
                         여기에 드롭
                       </span>
                     )}
                     {members.map(id => (
                       <PlayerChip key={id} riotId={id} from={tk}
                         allStats={allStats} mvpStats={mvpStats} eloMap={eloMap}
-                        color={meta.main}
+                        color={meta.main} className="col-span-2"
                         onRemove={() => removeFromTeam(id, tk)} />
                     ))}
                   </div>
@@ -350,13 +353,13 @@ export function TeamBuilderPage() {
                 <Users size={14} style={{ display: 'inline', marginRight: 6 }} />
                 듀오 시너지 전체 참고
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <div className="grid-16">
                 {[...duoData].sort((a, b) => b.winRate - a.winRate).slice(0, 20).map(d => (
-                  <div key={`${d.player1}-${d.player2}`} style={{
+                  <div key={`${d.player1}-${d.player2}`} className="col-span-4" style={{
                     padding: '7px 11px', borderRadius: 8,
                     background: 'var(--color-bg-secondary)',
                     border: `1px solid ${d.winRate >= 60 ? 'var(--color-win)' : d.winRate < 45 ? 'var(--color-loss)' : 'var(--color-border)'}`,
-                    fontSize: 12, minWidth: 148,
+                    fontSize: 12,
                   }}>
                     <div style={{ fontWeight: 600, marginBottom: 3 }}>
                       <PlayerLink riotId={d.player1}>{d.player1.split('#')[0]}</PlayerLink>

@@ -26,7 +26,7 @@ interface LeaderCardProps {
 
 function LeaderCard({ icon, label, leader, isLoading, accent = 'var(--color-primary)' }: LeaderCardProps) {
   return (
-    <div style={{
+    <div className="col-span-4" style={{
       background: 'var(--color-bg-secondary)',
       border: '1px solid var(--color-border)',
       borderRadius: 8,
@@ -122,14 +122,14 @@ function OverallCards() {
   return (
     <>
       {ov && (
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 14, padding: '8px 12px', background: 'var(--color-bg-hover)', borderRadius: 7 }}>
-          <Stat label="총 경기" value={`${ov.matchCount}게임`} />
-          <Divider />
-          <Stat label="평균시간" value={`${ov.avgGameMinutes.toFixed(1)}분`} />
-          <Divider />
-          <Stat label="바론" value={ov.totalBaronKills} color="#AA47BC" />
-          <Stat label="드래곤" value={ov.totalDragonKills} color="var(--color-win)" />
-          <Stat label="포탑" value={ov.totalTowerKills} color="#E8A030" />
+        <div className="grid-16" style={{ marginBottom: 14, padding: '8px 12px', background: 'var(--color-bg-hover)', borderRadius: 7 }}>
+          <span className="col-span-3"><Stat label="총 경기" value={`${ov.matchCount}게임`} /></span>
+          <span className="col-span-1"><Divider /></span>
+          <span className="col-span-3"><Stat label="평균시간" value={`${ov.avgGameMinutes.toFixed(1)}분`} /></span>
+          <span className="col-span-1"><Divider /></span>
+          <span className="col-span-3"><Stat label="바론" value={ov.totalBaronKills} color="#AA47BC" /></span>
+          <span className="col-span-3"><Stat label="드래곤" value={ov.totalDragonKills} color="var(--color-win)" /></span>
+          <span className="col-span-2"><Stat label="포탑" value={ov.totalTowerKills} color="#E8A030" /></span>
         </div>
       )}
       <CardGrid cards={cards} isLoading={isLoading} />
@@ -173,11 +173,7 @@ function LaneCards({ lane }: { lane: string }) {
 
 function CardGrid({ cards, isLoading }: { cards: LeaderCardProps[]; isLoading?: boolean }) {
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(4, 1fr)',
-      gap: 8,
-    }}>
+    <div className="grid-16">
       {cards.map(c => (
         <LeaderCard key={c.label} {...c} isLoading={isLoading} />
       ))}
@@ -197,11 +193,11 @@ export function StatsOverview() {
       padding: '16px',
     }}>
       {/* 헤더 + 레인 필터 */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 8 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>
+      <div className="grid-16" style={{ alignItems: 'center', marginBottom: 14 }}>
+        <h3 className="col-span-8" style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--color-text-primary)' }}>
           명예의 전당
         </h3>
-        <div style={{ display: 'flex', gap: 3 }}>
+        <div className="col-span-8" style={{ display: 'flex', gap: 3, justifyContent: 'flex-end' }}>
           {LANES.map(l => (
             <button
               key={l.key}

@@ -30,9 +30,9 @@ export default function GoldEffTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, marginBottom: 20 }}>
+      <div className="grid-16" style={{ marginBottom: 20 }}>
         {kings.map(k => (
-          <div key={k.label} className="card" style={{ padding: 12, textAlign: 'center' }}>
+          <div key={k.label} className="card col-span-8" style={{ padding: 12, textAlign: 'center' }}>
             <div style={{ fontSize: 22, marginBottom: 4 }}>{k.emoji}</div>
             <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', marginBottom: 3 }}>{k.label}</div>
             <div style={{ fontWeight: 700, fontSize: 14, color: '#FFD700' }}>{k.name?.split('#')[0] ?? '-'}</div>
@@ -72,9 +72,9 @@ export default function GoldEffTab({ mode }: { mode: string }) {
                 <td style={{ padding: '7px 10px', textAlign: 'center' }}>{e.avgVisionPerGold.toFixed(4)}</td>
                 <td style={{ padding: '7px 10px', textAlign: 'center' }}>{e.avgCsPerGold.toFixed(4)}</td>
                 <td style={{ padding: '7px 10px' }}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                  <div className="grid-16" style={{ gap: 3 }}>
                     {e.tags.map((t: string) => (
-                      <span key={t} style={{ fontSize: 10, padding: '1px 5px', borderRadius: 8, background: 'var(--color-primary)22', color: 'var(--color-primary)' }}>{t}</span>
+                      <span key={t} className="col-span-1" style={{ fontSize: 10, padding: '1px 5px', borderRadius: 8, background: 'var(--color-primary)22', color: 'var(--color-primary)' }}>{t}</span>
                     ))}
                   </div>
                 </td>

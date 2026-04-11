@@ -43,12 +43,12 @@ export default function TierTab({ mode }: { mode: string }) {
               <span style={{ fontWeight: 700, fontSize: 13, color }}>{tier} 티어</span>
               <span style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>({list.length})</span>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <div className="grid-16">
               {list.map((c: ChampionTierEntry) => {
                 const nameKo = champions.get(c.championId)?.nameKo ?? c.champion;
                 return (
-                  <ChampionLink key={c.champion} champion={c.champion} championId={c.championId} className="popup-trigger--card">
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '8px 10px', background: 'var(--color-bg-secondary)', borderRadius: 8, border: `1px solid ${color}44`, minWidth: 70, cursor: 'pointer' }}>
+                  <ChampionLink key={c.champion} champion={c.champion} championId={c.championId} className="popup-trigger--card col-span-2">
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '8px 10px', background: 'var(--color-bg-secondary)', borderRadius: 8, border: `1px solid ${color}44`, cursor: 'pointer' }}>
                       <ChampImg championId={c.championId} champion={c.champion} size={36} />
                       <div style={{ fontSize: 11, fontWeight: 600, textAlign: 'center', lineHeight: 1.2 }}>{nameKo}</div>
                       <div style={{ fontSize: 10, color: c.winRate >= 60 ? 'var(--color-win)' : c.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)' }}>

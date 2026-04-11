@@ -19,13 +19,7 @@
 
 /* ── Champion Pick Grid ───────────────────────────── */
 .champ-pick-grid {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 8px;
 }
-@media (max-width: 1200px) { .champ-pick-grid { grid-template-columns: repeat(6, 1fr); } }
-@media (max-width: 768px)  { .champ-pick-grid { grid-template-columns: repeat(4, 1fr); } }
-@media (max-width: 480px)  { .champ-pick-grid { grid-template-columns: repeat(3, 1fr); } }
 
 .champ-pick-card {
   background: var(--color-bg-card);
@@ -348,9 +342,6 @@
   flex-shrink: 0;
 }
 .player-stat-cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0;
 }
 .player-stat-card {
   display: flex;
@@ -433,14 +424,10 @@
 .lane-summary-kda { display: flex; flex-direction: column; gap: 4px; }
 
 .lane-key-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
-@media (max-width: 600px) { .lane-key-stats { grid-template-columns: repeat(2, 1fr); } }
 
 .lane-key-stat {
   display: flex;
@@ -557,12 +544,8 @@
 
 /* ── 3열 레이아웃 (밴/승률 챔피언) ──────────────── */
 .stats-3col {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
   margin-bottom: 16px;
 }
-@media (max-width: 900px) { .stats-3col { grid-template-columns: 1fr; } }
 
 /* ── Small champion grid (밴/승률용) ─────────────── */
 .champ-pick-grid--sm {
@@ -654,9 +637,6 @@
 
 /* ── Overview Spotlight 4인방 ─────────────────────── */
 .overview-spotlight-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
   margin-bottom: 14px;
 }
 .overview-spotlight-card {
@@ -720,13 +700,9 @@
 
 /* ── Overview 2열 메인 ───────────────────────────── */
 .overview-main-row {
-  display: grid;
-  grid-template-columns: 1fr 280px;
-  gap: 14px;
   margin-bottom: 14px;
   align-items: stretch;
 }
-@media (max-width: 1100px) { .overview-main-row { grid-template-columns: 1fr; } }
 
 .overview-main-left  { margin-bottom: 0 !important; }
 .overview-main-right { display: flex; flex-direction: column; gap: 14px; }

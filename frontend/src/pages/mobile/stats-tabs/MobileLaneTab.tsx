@@ -21,9 +21,9 @@ export default function MobileLaneTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+      <div className="grid-16" style={{ marginBottom: 12 }}>
         {LANES.map(l => (
-          <button key={l} className={`m-lane-tab${lane === l ? ' active' : ''}`} onClick={() => setLane(l)}>
+          <button key={l} className={`m-lane-tab col-span-3${lane === l ? ' active' : ''}`} onClick={() => setLane(l)}>
             {LANE_LABELS[l]}
           </button>
         ))}

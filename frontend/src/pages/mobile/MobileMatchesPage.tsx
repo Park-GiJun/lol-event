@@ -100,11 +100,11 @@ function MatchCard({ match }: { match: Match }) {
 
       {/* ── 챔피언 아이콘 행 ── */}
       <div style={{ padding: '8px 12px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 8, alignItems: 'center' }}>
+        <div className="grid-16" style={{ alignItems: 'center' }}>
           {/* 블루팀 */}
-          <div>
-            <div style={{ display: 'flex', gap: 3, marginBottom: 4, flexWrap: 'wrap' }}>
-              {blue.map((p, i) => <ChampIcon key={i} championId={p.championId} champion={p.champion} size={28} />)}
+          <div className="col-span-7">
+            <div className="grid-16" style={{ marginBottom: 4 }}>
+              {blue.map((p, i) => <ChampIcon key={i} championId={p.championId} champion={p.champion} size={28} className="col-span-3" />)}
             </div>
             <div style={{ display: 'flex', gap: 6, fontSize: 10, color: 'var(--color-text-disabled)' }}>
               {blueTeam && (
@@ -121,12 +121,12 @@ function MatchCard({ match }: { match: Match }) {
           </div>
 
           {/* VS */}
-          <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-disabled)', textAlign: 'center' }}>VS</div>
+          <div className="col-span-2" style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-disabled)', textAlign: 'center' }}>VS</div>
 
           {/* 레드팀 */}
-          <div>
-            <div style={{ display: 'flex', gap: 3, marginBottom: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-              {red.map((p, i) => <ChampIcon key={i} championId={p.championId} champion={p.champion} size={28} />)}
+          <div className="col-span-7">
+            <div className="grid-16" style={{ marginBottom: 4 }}>
+              {red.map((p, i) => <ChampIcon key={i} championId={p.championId} champion={p.champion} size={28} className="col-span-3" />)}
             </div>
             <div style={{ display: 'flex', gap: 6, fontSize: 10, color: 'var(--color-text-disabled)', justifyContent: 'flex-end' }}>
               <span style={{ marginRight: 'auto', color: blueWin ? 'var(--color-loss)' : 'var(--color-win)', fontWeight: 700 }}>

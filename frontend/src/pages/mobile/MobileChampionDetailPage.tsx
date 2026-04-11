@@ -154,11 +154,11 @@ export function MobileChampionDetailPage() {
       {data.itemStats.length > 0 && (
         <>
           <p className="m-section-title" style={{ marginTop: 8 }}>아이템 통계</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <div className="grid-16">
             {data.itemStats.slice(0, 12).map(it => {
               const itemInfo = items.get(it.itemId);
               return (
-                <div key={it.itemId} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                <div key={it.itemId} className="col-span-2" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                   {itemInfo?.imageUrl ? (
                     <img src={itemInfo.imageUrl} alt={itemInfo.nameKo} width={44} height={44} style={{ borderRadius: 8 }} title={itemInfo.nameKo} />
                   ) : (

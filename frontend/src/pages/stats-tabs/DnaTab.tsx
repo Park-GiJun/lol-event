@@ -46,11 +46,11 @@ export default function DnaTab({ mode }: { mode: string }) {
                 {p.games}판
               </span>
             </div>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div className="grid-16">
               {DNA_LABELS.map(({ key, label, color }) => {
                 const val = p[key] as number;
                 return (
-                  <div key={key} style={{ minWidth: 80 }}>
+                  <div key={key} className="col-span-2">
                     <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginBottom: 2 }}>{label}</div>
                     <div style={{ height: 4, background: 'var(--color-bg-hover)', borderRadius: 2, overflow: 'hidden', marginBottom: 2 }}>
                       <div style={{ width: `${Math.min(val * 100, 100)}%`, height: '100%', background: color, borderRadius: 2 }} />

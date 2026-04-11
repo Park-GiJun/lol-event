@@ -127,14 +127,14 @@ function ChampionLaneStats({ laneStats }: { laneStats: ChampionLaneStat[] }) {
   return (
     <div className="card" style={{ marginBottom: 16 }}>
       <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', marginBottom: 12 }}>포지션별 통계</div>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
+      <div className="grid-16" style={{ marginBottom: 14 }}>
         {laneStats.map(s => {
           const m = LANE_META[s.position] ?? { label: s.position, emoji: '' };
           const wr = s.winRate;
           const c = wr >= 60 ? 'var(--color-win)' : wr >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
           return (
             <button key={s.position}
-              className={`lane-tab ${selected === s.position ? 'active' : ''}`}
+              className={`lane-tab col-span-2 ${selected === s.position ? 'active' : ''}`}
               onClick={() => setSelected(s.position)}
               style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '8px 14px', minWidth: 72 }}>
               <span style={{ fontSize: 16 }}>{m.emoji}</span>
@@ -146,9 +146,9 @@ function ChampionLaneStats({ laneStats }: { laneStats: ChampionLaneStat[] }) {
         })}
       </div>
       {stat && (
-        <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'flex-start' }}>
+        <div className="grid-16" style={{ alignItems: 'flex-start' }}>
           {/* 승률 */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 80 }}>
+          <div className="col-span-3" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, minWidth: 80 }}>
             <div style={{ fontSize: 28, fontWeight: 800, color: wrColor(stat.winRate) }}>{stat.winRate}%</div>
             <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{stat.wins}승 {stat.games - stat.wins}패</div>
             <div style={{ height: 5, width: 70, background: 'var(--color-bg-hover)', borderRadius: 3, overflow: 'hidden' }}>
@@ -156,7 +156,7 @@ function ChampionLaneStats({ laneStats }: { laneStats: ChampionLaneStat[] }) {
             </div>
           </div>
           {/* KDA */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div className="col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div style={{ fontSize: 22, fontWeight: 800 }}>{stat.kda.toFixed(2)} KDA</div>
             <div style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
               {stat.avgKills.toFixed(1)} /&nbsp;
@@ -170,7 +170,7 @@ function ChampionLaneStats({ laneStats }: { laneStats: ChampionLaneStat[] }) {
             { label: '평균 CS',   value: stat.avgCs.toFixed(1) },
             { label: '평균 골드', value: stat.avgGold.toLocaleString() },
           ].map(({ label, value }) => (
-            <div key={label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div key={label} className="col-span-3" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <div style={{ fontSize: 18, fontWeight: 700 }}>{value}</div>
               <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{label}</div>
             </div>
@@ -307,18 +307,18 @@ export function ChampionStatsPage() {
 
       {/* 수치 카드 */}
       {loading ? (
-        <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+        <div className="grid-16" style={{ marginBottom: 16 }}>
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="card" style={{ minWidth: 110, flex: '1 1 110px', padding: '12px 16px' }}>
+            <div key={i} className="card col-span-4" style={{ padding: '12px 16px' }}>
               <Skeleton className="h-7 w-16 mb-1" />
               <Skeleton className="h-3 w-10" />
             </div>
           ))}
         </div>
       ) : data ? (
-        <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
+        <div className="grid-16" style={{ marginBottom: 16 }}>
           {/* 승률 */}
-          <div className="card" style={{ minWidth: 110, flex: '1 1 110px', padding: '12px 16px' }}>
+          <div className="card col-span-4" style={{ padding: '12px 16px' }}>
             <div className="font-mono" style={{
               fontSize: 22, fontWeight: 800,
               color: data.winRate >= 60 ? 'var(--color-win)' : data.winRate < 50 ? 'var(--color-loss)' : 'var(--color-primary)',
@@ -328,21 +328,21 @@ export function ChampionStatsPage() {
             <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>승률</div>
           </div>
           {/* 총 판수 */}
-          <div className="card" style={{ minWidth: 110, flex: '1 1 110px', padding: '12px 16px' }}>
+          <div className="card col-span-4" style={{ padding: '12px 16px' }}>
             <div className="font-mono" style={{ fontSize: 22, fontWeight: 800 }}>
               {data.totalGames}
             </div>
             <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>총 판수</div>
           </div>
           {/* 전체 KDA */}
-          <div className="card" style={{ minWidth: 110, flex: '1 1 110px', padding: '12px 16px' }}>
+          <div className="card col-span-4" style={{ padding: '12px 16px' }}>
             <div className="font-mono" style={{ fontSize: 22, fontWeight: 800 }}>
               {overallKda !== null ? overallKda.toFixed(2) : '—'}
             </div>
             <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>전체 KDA</div>
           </div>
           {/* 픽률 */}
-          <div className="card" style={{ minWidth: 110, flex: '1 1 110px', padding: '12px 16px' }}>
+          <div className="card col-span-4" style={{ padding: '12px 16px' }}>
             <div className="font-mono" style={{ fontSize: 22, fontWeight: 800 }}>
               {pickRate !== null ? `${pickRate}%` : '—'}
             </div>
@@ -359,12 +359,12 @@ export function ChampionStatsPage() {
             <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', marginBottom: 12 }}>
               인기 아이템 <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--color-text-secondary)' }}>픽률 기준</span>
             </div>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <div className="grid-16" style={{ alignItems: 'flex-end' }}>
               {data.itemStats.map((item, idx) => {
                 const itemData = items.get(item.itemId);
                 const wrColor  = item.winRate >= 60 ? 'var(--color-win)' : item.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
                 return (
-                  <div key={item.itemId} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                  <div key={item.itemId} className="col-span-2" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
                     <div style={{ position: 'relative' }}>
                       {idx === 0 && (
                         <div style={{

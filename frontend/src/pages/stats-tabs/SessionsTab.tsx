@@ -27,14 +27,14 @@ export default function SessionsTab({ mode }: { mode: string }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {data.sessions.map((s: SessionEntry) => (
           <div key={s.date} className="card" style={{ padding: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 6 }}>
-              <div>
+            <div className="grid-16" style={{ alignItems: 'flex-start' }}>
+              <div className="col-span-8">
                 <div style={{ fontWeight: 700, fontSize: 14 }}>{s.date}</div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>
                   {s.games}경기 · 약 {s.totalDurationMin}분
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+              <div className="col-span-8" style={{ display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'flex-end' }}>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>팀100</div>
                   <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-win)' }}>{s.team100Wins}</div>
@@ -46,29 +46,29 @@ export default function SessionsTab({ mode }: { mode: string }) {
                 </div>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 12, marginTop: 8, flexWrap: 'wrap' }}>
+            <div className="grid-16" style={{ marginTop: 8 }}>
               {s.sessionMvp && (
-                <div style={{ fontSize: 12 }}>
+                <div className="col-span-6" style={{ fontSize: 12 }}>
                   <span style={{ color: 'var(--color-text-disabled)' }}>MVP: </span>
                   <span style={{ fontWeight: 700, color: '#FFD700' }}>{s.sessionMvp.split('#')[0]}</span>
                   <span style={{ color: 'var(--color-text-disabled)', fontSize: 11 }}> (KDA {s.sessionMvpKda.toFixed(2)})</span>
                 </div>
               )}
               {s.pentaKills > 0 && (
-                <div style={{ fontSize: 12 }}>
+                <div className="col-span-4" style={{ fontSize: 12 }}>
                   <span style={{ color: 'var(--color-text-disabled)' }}>펜타킬: </span>
                   <span style={{ fontWeight: 700, color: '#f472b6' }}>{s.pentaKills}회</span>
                 </div>
               )}
-              <div style={{ fontSize: 12 }}>
+              <div className="col-span-4" style={{ fontSize: 12 }}>
                 <span style={{ color: 'var(--color-text-disabled)' }}>총킬: </span>
                 <span style={{ fontWeight: 600 }}>{s.totalKills}</span>
               </div>
             </div>
             {s.participants.length > 0 && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
+              <div className="grid-16" style={{ marginTop: 8 }}>
                 {s.participants.map(p => (
-                  <span key={p} style={{ fontSize: 10, padding: '2px 6px', borderRadius: 10, background: 'var(--color-bg-hover)', color: 'var(--color-text-secondary)' }}>
+                  <span key={p} className="col-span-2" style={{ fontSize: 10, padding: '2px 6px', borderRadius: 10, background: 'var(--color-bg-hover)', color: 'var(--color-text-secondary)' }}>
                     {p.split('#')[0]}
                   </span>
                 ))}

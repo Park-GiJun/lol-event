@@ -37,12 +37,12 @@ export default function LaneTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+      <div className="grid-16" style={{ marginBottom: 16 }}>
         {LANES.map(lane => {
           const m = LANE_META[lane];
           return (
             <button key={lane}
-              className={`member-sort-tab ${selectedLane === lane ? 'active' : ''}`}
+              className={`member-sort-tab col-span-3 ${selectedLane === lane ? 'active' : ''}`}
               onClick={() => setSelectedLane(lane)}
               style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 14px' }}>
               <span>{m.emoji}</span>

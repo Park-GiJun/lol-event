@@ -142,11 +142,11 @@ function ChampTierTab({ mode }: { mode: string }) {
         return (
           <div key={tier}>
             <p className="m-section-title" style={{ color: TIER_COLOR[tier] }}>Tier {tier}</p>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+            <div className="grid-16" style={{ marginBottom: 8 }}>
               {entries.map(e => {
                 const c = champions.get(e.championId);
                 return (
-                  <div key={e.champion} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, width: 52 }}>
+                  <div key={e.champion} className="col-span-2" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
                     <ChampImg championId={e.championId} champion={e.champion} size={44} style={{ borderRadius: 8, border: `2px solid ${TIER_COLOR[tier]}` }} />
                     <span style={{ fontSize: 9, color: 'var(--color-text-secondary)', textAlign: 'center', lineHeight: 1.2 }}>
                       {c?.nameKo ?? e.champion}

@@ -74,13 +74,13 @@ export function MobileSyncPage() {
               v{syncResult.version}
             </span>
           </div>
-          <div style={{ display: 'flex', gap: 16 }}>
+          <div className="grid-16">
             {[
               { label: '챔피언', value: syncResult.champions },
               { label: '아이템', value: syncResult.items },
               { label: '스펠', value: syncResult.spells },
             ].map(({ label, value }) => (
-              <div key={label} style={{ textAlign: 'center' }}>
+              <div key={label} className="col-span-5" style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-primary)' }}>{value}</div>
                 <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{label}</div>
               </div>
@@ -119,9 +119,9 @@ export function MobileSyncPage() {
 function ChampionGrid({ data }: { data: DragonChampion[] }) {
   if (!data.length) return <Empty />;
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+    <div className="grid-16">
       {data.map(c => (
-        <div key={c.championId} style={{ textAlign: 'center', padding: '6px 4px' }}>
+        <div key={c.championId} className="col-span-4" style={{ textAlign: 'center', padding: '6px 4px' }}>
           {c.imageUrl ? (
             <img src={c.imageUrl} alt={c.nameKo} width={52} height={52}
               style={{ borderRadius: 8, objectFit: 'cover' }}
@@ -144,9 +144,9 @@ function ChampionGrid({ data }: { data: DragonChampion[] }) {
 function ItemGrid({ data }: { data: DragonItem[] }) {
   if (!data.length) return <Empty />;
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+    <div className="grid-16">
       {data.map(item => (
-        <div key={item.itemId} style={{ textAlign: 'center', padding: '6px 4px' }}>
+        <div key={item.itemId} className="col-span-4" style={{ textAlign: 'center', padding: '6px 4px' }}>
           {item.imageUrl ? (
             <img src={item.imageUrl} alt={item.nameKo} width={52} height={52}
               style={{ borderRadius: 8, objectFit: 'cover' }}
@@ -167,9 +167,9 @@ function ItemGrid({ data }: { data: DragonItem[] }) {
 function SpellGrid({ data }: { data: DragonSummonerSpell[] }) {
   if (!data.length) return <Empty />;
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+    <div className="grid-16">
       {data.map(s => (
-        <div key={s.spellId} style={{ textAlign: 'center', padding: '6px 4px' }}>
+        <div key={s.spellId} className="col-span-4" style={{ textAlign: 'center', padding: '6px 4px' }}>
           {s.imageUrl ? (
             <img src={s.imageUrl} alt={s.nameKo} width={52} height={52}
               style={{ borderRadius: 8, objectFit: 'cover' }}

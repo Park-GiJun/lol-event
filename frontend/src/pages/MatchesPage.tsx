@@ -482,7 +482,7 @@ export function TeamInfoTab({ teams }: { teams: Team[] }) {
                 </div>
               ))}
             </div>
-            <div style={{ padding: '8px 14px', display: 'flex', gap: 12, flexWrap: 'wrap', borderTop: '1px solid var(--color-border)' }}>
+            <div className="grid-16" style={{ padding: '8px 14px', borderTop: '1px solid var(--color-border)' }}>
               {[
                 { label: '첫 피바람', v: t.firstBlood },
                 { label: '첫 포탑',  v: t.firstTower },
@@ -490,7 +490,7 @@ export function TeamInfoTab({ teams }: { teams: Team[] }) {
                 { label: '첫 억제기', v: t.firstInhibitor },
                 { label: '첫 드래곤', v: t.firstDragon },
               ].filter(x => x.v).map(({ label }) => (
-                <span key={label} style={{
+                <span key={label} className="col-span-4" style={{
                   fontSize: 'var(--font-size-xs)',
                   background: 'rgba(200,155,60,0.1)',
                   border: '1px solid rgba(200,155,60,0.25)',

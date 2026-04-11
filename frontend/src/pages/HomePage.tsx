@@ -41,9 +41,9 @@ export function HomePage() {
 
       {/* 하이라이트 위젯 */}
       {(awards || mkHighlights) && (
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <div className="grid-16">
           {awards && (
-            <div style={{ flex: 1, minWidth: 220, background: 'var(--color-bg-card)', borderRadius: 12, padding: '12px 16px', border: '1px solid var(--color-border)' }}>
+            <div className="col-span-8" style={{ background: 'var(--color-bg-card)', borderRadius: 12, padding: '12px 16px', border: '1px solid var(--color-border)' }}>
               <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8 }}>🏆 이번 기간 어워즈</div>
               {[
                 { label: '펜타킬', entry: awards.pentaKillHero, emoji: '⚔️' },
@@ -60,7 +60,7 @@ export function HomePage() {
             </div>
           )}
           {mkHighlights && mkHighlights.pentaKillEvents.length > 0 && (
-            <div style={{ flex: 1, minWidth: 220, background: 'var(--color-bg-card)', borderRadius: 12, padding: '12px 16px', border: '1px solid var(--color-border)' }}>
+            <div className="col-span-8" style={{ background: 'var(--color-bg-card)', borderRadius: 12, padding: '12px 16px', border: '1px solid var(--color-border)' }}>
               <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8 }}>⚡ 최근 펜타킬</div>
               {mkHighlights.pentaKillEvents.slice(0, 3).map((e, i) => {
                 const date = new Date(e.gameCreation).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' });

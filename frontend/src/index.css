@@ -10,6 +10,7 @@
 @import './styles/components/badge.css';
 @import './styles/components/sse.css';
 @import './styles/layouts/sidebar.css';
+@import './styles/layouts/grid.css';
 @import './styles/pages/monitoring.css';
 @import './styles/components/popup.css';
 @import './styles/mobile.css';

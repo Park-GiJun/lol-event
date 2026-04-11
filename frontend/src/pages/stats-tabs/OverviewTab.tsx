@@ -94,10 +94,10 @@ export default function OverviewTab({ mode }: { mode: string }) {
       </div>
 
       {/* ② 스포트라이트 4인방 */}
-      <div className="overview-spotlight-row">
+      <div className="grid-16 overview-spotlight-row">
         {spotlights.map(({ emoji, label, stat }) => (
           <div key={label}
-            className={`overview-spotlight-card${stat ? ' clickable' : ''}`}
+            className={`col-span-4 overview-spotlight-card${stat ? ' clickable' : ''}`}
             onClick={stat ? () => navigate(`/player-stats/${encodeURIComponent(stat.riotId)}`) : undefined}
           >
             <div className="overview-spotlight-emoji">{emoji}</div>
@@ -116,9 +116,9 @@ export default function OverviewTab({ mode }: { mode: string }) {
       </div>
 
       {/* ③ 챔피언 픽 + 사이드 정보 2열 */}
-      <div className="overview-main-row">
+      <div className="grid-16 overview-main-row">
         {/* 왼쪽: 픽률 챔피언 */}
-        <section className="stats-section card overview-main-left">
+        <section className="col-span-11 stats-section card overview-main-left">
           <h2 className="stats-section-title">🏆 많이 사용된 챔피언</h2>
           <div className="overview-champ-grid">
             {data.topPickedChampions.slice(0, 20).map(s => (
@@ -129,7 +129,7 @@ export default function OverviewTab({ mode }: { mode: string }) {
         </section>
 
         {/* 오른쪽: 밴 + 승률 챔피언 */}
-        <div className="overview-main-right">
+        <div className="col-span-5 overview-main-right">
           {data.topBannedChampions.length > 0 && (
             <section className="stats-section card">
               <h2 className="stats-section-title">🚫 많이 밴된 챔피언</h2>

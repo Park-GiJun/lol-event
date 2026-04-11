@@ -276,52 +276,52 @@ export function AdminPage() {
           <RefreshCw size={16} />통계 배치 스케쥴러
           <span className="stats-section-sub">매일 04:00 자동 실행 | Kafka 이벤트 수신 시 자동 실행</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <button className="btn btn-primary" onClick={triggerBatch} disabled={triggering}
+        <div className="grid-16" style={{ alignItems: 'center' }}>
+          <button className="btn btn-primary col-span-4" onClick={triggerBatch} disabled={triggering}
             style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Play size={14} />{triggering ? '실행 중...' : '배치 수동 실행'}
           </button>
-          <button className="btn btn-secondary" onClick={loadAll}
+          <button className="btn btn-secondary col-span-4" onClick={loadAll}
             style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <RefreshCw size={14} />상태 새로고침
           </button>
           {triggerMsg && (
-            <span style={{ fontSize: 13, color: triggerMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
+            <span className="col-span-8" style={{ fontSize: 13, color: triggerMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
               {triggerMsg}
             </span>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', marginTop: 12 }}>
-          <button className="btn btn-secondary" onClick={triggerItemStats} disabled={triggeringItems}
+        <div className="grid-16" style={{ alignItems: 'center', marginTop: 12 }}>
+          <button className="btn btn-secondary col-span-4" onClick={triggerItemStats} disabled={triggeringItems}
             style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <Play size={14} />{triggeringItems ? '집계 중...' : '아이템 통계만 재집계'}
           </button>
           {triggerItemMsg && (
-            <span style={{ fontSize: 13, color: triggerItemMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
+            <span className="col-span-12" style={{ fontSize: 13, color: triggerItemMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
               {triggerItemMsg}
             </span>
           )}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
-          <button className="btn btn-secondary" onClick={clearAllCache} disabled={clearingCache}
+        <div className="grid-16" style={{ alignItems: 'center', marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
+          <button className="btn btn-secondary col-span-4" onClick={clearAllCache} disabled={clearingCache}
             style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-loss)' }}>
             <Trash2 size={14} />{clearingCache ? '초기화 중...' : '전체 캐시 초기화'}
           </button>
           {clearCacheMsg && (
-            <span style={{ fontSize: 13, color: clearCacheMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
+            <span className="col-span-12" style={{ fontSize: 13, color: clearCacheMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
               {clearCacheMsg}
             </span>
           )}
         </div>
         {batchStatus && (
-          <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+          <div className="grid-16" style={{ marginTop: 16 }}>
             {[
               { label: '플레이어 스냅샷',    value: `${batchStatus.playerSnapshotCount}건` },
               { label: '챔피언 스냅샷',      value: `${batchStatus.championSnapshotCount}건` },
               { label: '챔피언 아이템 통계', value: `${batchStatus.championItemSnapshotCount}건` },
               { label: '마지막 집계',        value: batchStatus.lastAggregatedAt ?? '없음' },
             ].map(({ label, value }) => (
-              <div key={label} className="summary-stat-card" style={{ alignItems: 'flex-start', gap: 4 }}>
+              <div key={label} className="summary-stat-card col-span-4" style={{ alignItems: 'flex-start', gap: 4 }}>
                 <span style={{ fontSize: 10, color: 'var(--color-text-secondary)', fontWeight: 700, textTransform: 'uppercase' }}>{label}</span>
                 <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>{value}</span>
               </div>
@@ -343,13 +343,13 @@ export function AdminPage() {
           </button>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <button className="btn btn-secondary" onClick={resetElo} disabled={eloResetting}
+        <div className="grid-16" style={{ alignItems: 'center' }}>
+          <button className="btn btn-secondary col-span-6" onClick={resetElo} disabled={eloResetting}
             style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--color-loss)' }}>
             <Trash2 size={14} />{eloResetting ? '재집계 중...' : 'Elo 전체 초기화 및 재집계'}
           </button>
           {eloResetMsg && (
-            <span style={{ fontSize: 13, color: eloResetMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
+            <span className="col-span-10" style={{ fontSize: 13, color: eloResetMsg.includes('실패') ? 'var(--color-loss)' : 'var(--color-win)' }}>
               {eloResetMsg}
             </span>
           )}
@@ -485,22 +485,23 @@ export function AdminPage() {
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-secondary)', textTransform: 'uppercase', marginBottom: 8 }}>
             미배정 플레이어 ({teams.pool.length}명)
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <div className="grid-16">
             {teams.pool.length === 0 && (
-              <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', opacity: 0.5 }}>모든 플레이어가 팀에 배정됨</span>
+              <span className="col-span-16" style={{ fontSize: 12, color: 'var(--color-text-secondary)', opacity: 0.5 }}>모든 플레이어가 팀에 배정됨</span>
             )}
             {teams.pool.map(id => (
               <PlayerChip
                 key={id} riotId={id} from="pool"
                 allStats={allStats} mvpStats={mvpStats}
                 color="var(--color-text-primary)"
+                className="col-span-2"
               />
             ))}
           </div>
         </DropZone>
 
         {/* 4팀 그리드 */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+        <div className="grid-16">
           {(Object.keys(TEAM_META) as Exclude<TeamKey, 'pool'>[]).map(tk => {
             const meta = TEAM_META[tk];
             const members = teams[tk];
@@ -512,6 +513,7 @@ export function AdminPage() {
             return (
               <DropZone
                 key={tk} teamKey={tk}
+                className="col-span-8"
                 dragOver={dragOver} onDragOverChange={setDragOver} onDrop={onDrop}
                 style={{
                   borderRadius: 10,
@@ -550,9 +552,9 @@ export function AdminPage() {
                 )}
 
                 {/* 플레이어 칩 */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, minHeight: 36 }}>
+                <div className="grid-16" style={{ minHeight: 36 }}>
                   {members.length === 0 && (
-                    <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', opacity: 0.4, alignSelf: 'center' }}>
+                    <span className="col-span-16" style={{ fontSize: 12, color: 'var(--color-text-secondary)', opacity: 0.4, alignSelf: 'center' }}>
                       여기에 드롭
                     </span>
                   )}
@@ -561,6 +563,7 @@ export function AdminPage() {
                       key={id} riotId={id} from={tk}
                       allStats={allStats} mvpStats={mvpStats}
                       color={meta.main}
+                      className="col-span-2"
                       onRemove={() => removeFromTeam(id, tk)}
                     />
                   ))}
@@ -605,13 +608,13 @@ export function AdminPage() {
         {duoData.length === 0 ? (
           <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>듀오 데이터가 없습니다.</p>
         ) : (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <div className="grid-16">
             {duoData.slice(0, 20).map(duo => (
-              <div key={`${duo.player1}-${duo.player2}`} style={{
+              <div key={`${duo.player1}-${duo.player2}`} className="col-span-4" style={{
                 padding: '8px 12px', borderRadius: 8,
                 background: 'var(--color-surface)',
                 border: `1px solid ${duo.winRate >= 60 ? 'var(--color-win)' : duo.winRate < 45 ? 'var(--color-loss)' : 'var(--color-border)'}`,
-                fontSize: 13, minWidth: 160,
+                fontSize: 13,
               }}>
                 <div style={{ fontWeight: 600, marginBottom: 4 }}>
                   {duo.player1} <span style={{ color: 'var(--color-text-secondary)' }}>+</span> {duo.player2}
@@ -643,11 +646,13 @@ interface DropZoneProps {
   onDragOverChange: (key: TeamKey | null) => void;
   onDrop: (to: TeamKey, riotId: string, from: TeamKey) => void;
   style?: React.CSSProperties;
+  className?: string;
   children: React.ReactNode;
 }
-function DropZone({ teamKey, onDragOverChange, onDrop, style, children }: DropZoneProps) {
+function DropZone({ teamKey, onDragOverChange, onDrop, style, className, children }: DropZoneProps) {
   return (
     <div
+      className={className}
       style={style}
       onDragOver={e => { e.preventDefault(); onDragOverChange(teamKey); }}
       onDragLeave={e => {
@@ -674,13 +679,15 @@ interface PlayerChipProps {
   allStats: PlayerStats[];
   mvpStats: MvpPlayerStat[];
   color: string;
+  className?: string;
   onRemove?: () => void;
 }
-function PlayerChip({ riotId, from, allStats, mvpStats, color, onRemove }: PlayerChipProps) {
+function PlayerChip({ riotId, from, allStats, mvpStats, color, className, onRemove }: PlayerChipProps) {
   const stat = allStats.find(s => s.riotId === riotId);
   const mvp = mvpStats.find(m => m.riotId === riotId);
   return (
     <div
+      className={className}
       draggable
       onDragStart={e => {
         e.dataTransfer.setData('riotId', riotId);

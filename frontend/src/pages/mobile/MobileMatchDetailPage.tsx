@@ -190,13 +190,13 @@ function TeamInfoTab({ match }: { match: Match }) {
   return (
     <div style={{ padding: '12px 0' }}>
       {/* 팀 헤더 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 8, padding: '0 12px 12px', borderBottom: '1px solid var(--color-border)' }}>
-        <div style={{ textAlign: 'left' }}>
+      <div className="grid-16" style={{ padding: '0 12px 12px', borderBottom: '1px solid var(--color-border)' }}>
+        <div className="col-span-7" style={{ textAlign: 'left' }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-info)' }}>블루팀</div>
           <div style={{ fontSize: 11, color: blueWin ? 'var(--color-win)' : 'var(--color-loss)' }}>{blueWin ? '승리' : '패배'}</div>
         </div>
-        <div style={{ fontSize: 11, color: 'var(--color-text-disabled)', alignSelf: 'center' }}>VS</div>
-        <div style={{ textAlign: 'right' }}>
+        <div className="col-span-2" style={{ fontSize: 11, color: 'var(--color-text-disabled)', alignSelf: 'center' }}>VS</div>
+        <div className="col-span-7" style={{ textAlign: 'right' }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-loss)' }}>레드팀</div>
           <div style={{ fontSize: 11, color: !blueWin ? 'var(--color-win)' : 'var(--color-loss)' }}>{!blueWin ? '승리' : '패배'}</div>
         </div>
@@ -204,19 +204,19 @@ function TeamInfoTab({ match }: { match: Match }) {
 
       {/* 통계 행 */}
       {rows.map(r => (
-        <div key={r.label} style={{ display: 'grid', gridTemplateColumns: '1fr 60px 1fr', alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid var(--color-border)' }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: r.blue > r.red ? 'var(--color-text-primary)' : 'var(--color-text-disabled)', textAlign: 'left' }}>
+        <div key={r.label} className="grid-16" style={{ alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid var(--color-border)' }}>
+          <div className="col-span-7" style={{ fontSize: 16, fontWeight: 800, color: r.blue > r.red ? 'var(--color-text-primary)' : 'var(--color-text-disabled)', textAlign: 'left' }}>
             {r.blue}
           </div>
-          <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', textAlign: 'center', fontWeight: 600 }}>{r.label}</div>
-          <div style={{ fontSize: 16, fontWeight: 800, color: r.red > r.blue ? 'var(--color-text-primary)' : 'var(--color-text-disabled)', textAlign: 'right' }}>
+          <div className="col-span-2" style={{ fontSize: 11, color: 'var(--color-text-secondary)', textAlign: 'center', fontWeight: 600 }}>{r.label}</div>
+          <div className="col-span-7" style={{ fontSize: 16, fontWeight: 800, color: r.red > r.blue ? 'var(--color-text-primary)' : 'var(--color-text-disabled)', textAlign: 'right' }}>
             {r.red}
           </div>
         </div>
       ))}
 
       {/* 퍼스트 배지 */}
-      <div style={{ padding: '10px 12px', display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+      <div className="grid-16" style={{ padding: '10px 12px' }}>
         {blue.firstBlood && <Badge label="퍼스트 블러드" team="blue" />}
         {red.firstBlood && <Badge label="퍼스트 블러드" team="red" />}
         {blue.firstTower && <Badge label="퍼스트 포탑" team="blue" />}

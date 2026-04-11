@@ -47,19 +47,12 @@
   .overview-hero-stat-emoji { font-size: 16px; }
   .overview-hero-stat-value { font-size: 18px; }
 
-  /* Spotlight 4인방 → 2열 */
-  .overview-spotlight-row { grid-template-columns: repeat(2, 1fr) !important; }
-
   /* Overview champion grids */
   .overview-champ-grid     { grid-template-columns: repeat(4, 1fr) !important; }
   .overview-champ-grid--sm { grid-template-columns: repeat(3, 1fr) !important; }
 
-  /* Overview 2열 메인 → 1열 */
-  .overview-main-row { grid-template-columns: 1fr !important; }
-
   /* ── 멤버 통계 (PlayerStatsPage) ──────────────────────── */
   .player-summary-header { flex-wrap: wrap; gap: 12px; }
-  .player-stat-cards { grid-template-columns: repeat(2, 1fr); }
   .player-stat-card { border-right: none; border-bottom: 1px solid var(--color-border); }
   .player-stat-card:nth-child(even) { border-bottom: 1px solid var(--color-border); }
   .player-stat-card:last-child,
@@ -90,14 +83,8 @@
   .member-stats-table th,
   .member-stats-table td { padding: 8px; font-size: 12px; }
 
-  /* ── 배치 스케쥴러 stat grid (AdminPage) ──────────────── */
-  /* grid-template-columns: repeat(4, 1fr) → 2열 */
-
   /* ── monitoring page ─────────────────────────────────── */
   .monitoring-links { flex-direction: column !important; }
-
-  /* ── Summary stats row ────────────────────────────────── */
-  .summary-stats-row { grid-template-columns: repeat(2, 1fr) !important; }
 
   /* ── Hall group grid ──────────────────────────────────── */
   .hall-group-grid { grid-template-columns: repeat(2, 1fr) !important; }
@@ -114,12 +101,7 @@
 @media (max-width: 480px) {
   .page-content { padding: 12px !important; padding-bottom: calc(64px + 8px) !important; }
   .overview-hero-number { font-size: 36px; }
-  .champ-pick-grid { grid-template-columns: repeat(3, 1fr) !important; }
   .match-teams { grid-template-columns: 1fr 20px 1fr; }
   .match-player-row { font-size: 10px; }
 
-  /* 배치 상태 카드 2열 */
-  div[style*="grid-template-columns: repeat(4, 1fr)"] {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
 }

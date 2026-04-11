@@ -113,15 +113,15 @@ export function PlayerChartsSection({ eloHistory, championStats }: Props) {
       <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', marginBottom: 16 }}>
         통계 차트
       </div>
-      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+      <div className="grid-16">
         {hasElo && (
-          <div style={{ flex: '1 1 280px', height: '220px' }}>
+          <div className="col-span-8" style={{ height: '220px' }}>
             <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>Elo 추이</div>
             <Line data={eloData} options={eloOptions} />
           </div>
         )}
         {hasChamp && (
-          <div style={{ flex: '1 1 280px', height: '220px' }}>
+          <div className="col-span-8" style={{ height: '220px' }}>
             <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>챔피언별 승률</div>
             <Bar data={champData} options={champOptions} />
           </div>
