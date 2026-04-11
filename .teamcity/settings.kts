@@ -19,7 +19,7 @@ object Build : BuildType({
         frontend/dist/** => frontend-dist/
         backend/lcu-service/dist/** => lcu-service-dist/
         backend/lcu-service/package.json => lcu-service-dist/
-        electron-collector/dist/** => electron-collector-dist/
+        desktop-collector/build/compose/binaries/main/msi/*.msi => desktop-collector-dist/
     """.trimIndent()
 
     params {
@@ -33,8 +33,8 @@ object Build : BuildType({
         checkbox("build.lcu", "true",
             label = "[빌드] LCU Service", description = "Node.js LCU 서비스 빌드",
             checked = "true", unchecked = "false")
-        checkbox("build.electron", "false",
-            label = "[빌드] Electron Collector", description = "Electron 앱 TypeScript 빌드",
+        checkbox("build.desktop", "false",
+            label = "[빌드] Desktop Collector", description = "Compose Desktop 수집기 MSI 빌드",
             checked = "true", unchecked = "false")
 
         // 배포 항목
@@ -97,16 +97,15 @@ object Build : BuildType({
                 equals("build.lcu", "true")
             }
         }
-        script {
-            id = "electron_build"
-            name = "Electron Collector - TypeScript Check"
-            workingDir = "electron-collector"
-            scriptContent = """
-                ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci
-                npm run build
-            """.trimIndent()
+        gradle {
+            id = "desktop_build"
+            name = "Desktop Collector - Package MSI"
+            tasks = "packageMsi"
+            workingDir = "desktop-collector"
+            gradleWrapperPath = ""
+            jdkHome = "%env.JAVA_HOME%"
             conditions {
-                equals("build.electron", "true")
+                equals("build.desktop", "true")
             }
         }
         script {
@@ -119,6 +118,7 @@ object Build : BuildType({
                 DEPLOY_BACKEND="%build.backend%"
                 DEPLOY_FRONTEND="%build.frontend%"
                 DEPLOY_LCU="%build.lcu%"
+                DEPLOY_DESKTOP="%build.desktop%"
                 DO_EUREKA="%deploy.eureka%"
                 DO_MAIN="%deploy.main%"
                 DO_GATEWAY="%deploy.gateway%"
@@ -145,12 +145,15 @@ object Build : BuildType({
                     rm -rf ${'$'}DEPLOY_DIR/frontend-dist
                     cp -r frontend/dist ${'$'}DEPLOY_DIR/frontend-dist
                     mkdir -p ${'$'}DEPLOY_DIR/frontend-dist/downloads
-                    if ls installer/*.exe 1>/dev/null 2>&1; then
-                        cp installer/*.exe ${'$'}DEPLOY_DIR/frontend-dist/downloads/
-                        cp installer/latest.yml ${'$'}DEPLOY_DIR/frontend-dist/downloads/ 2>/dev/null || true
-                        cp installer/*.blockmap ${'$'}DEPLOY_DIR/frontend-dist/downloads/ 2>/dev/null || true
-                        echo "installer 배포 완료"
+
+                    # Desktop Collector MSI → 프론트엔드 다운로드 경로
+                    if ls desktop-collector/build/compose/binaries/main/msi/*.msi 1>/dev/null 2>&1; then
+                        cp desktop-collector/build/compose/binaries/main/msi/*.msi ${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi
+                        echo "Desktop Collector MSI 배포 완료"
+                    elif [ "${'$'}DEPLOY_DESKTOP" = "true" ]; then
+                        echo "WARNING: Desktop 빌드 활성화됐지만 MSI 파일 없음"
                     fi
+
                     echo "Frontend dist 복사 완료"
                 fi
 
