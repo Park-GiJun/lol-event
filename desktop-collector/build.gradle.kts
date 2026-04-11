@@ -1,4 +1,4 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+﻿import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     kotlin("jvm") version "2.1.21"
@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "net.gijun"
-version = "1.0.3"
+version = "1.0.4"
 
 repositories {
     google()
@@ -60,8 +60,8 @@ compose.desktop {
                 iconFile.set(project.file("src/main/resources/icon.ico"))
                 dirChooser = true
                 menuGroup = "LoL-Collector"
-                shortcut = true          // 바탕?�면 바로가�??�성
-                upgradeUuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"  // MSI ?�그?�이??UUID (고정)
+                shortcut = true          // 바탕?�면 바로가�??�성
+                upgradeUuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"  // MSI ?�그?�이??UUID (고정)
             }
         }
     }
