@@ -2,6 +2,7 @@ import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.perfmon
 import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.triggers.vcs
 
 version = "2025.11"
 
@@ -57,6 +58,12 @@ object Build : BuildType({
 
     vcs {
         root(DslContext.settingsRoot)
+    }
+
+    triggers {
+        vcs {
+            branchFilter = "+:refs/heads/master"
+        }
     }
 
     steps {
