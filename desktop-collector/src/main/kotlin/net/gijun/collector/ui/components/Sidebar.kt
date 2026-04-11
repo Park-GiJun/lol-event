@@ -7,9 +7,12 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -28,6 +31,9 @@ enum class Page(val label: String, val icon: ImageVector) {
     COLLECT("매치 수집", Icons.Default.Layers),
     CUSTOM("내전 분석", Icons.Default.Layers),       // Swords 아이콘 대체
     SUMMONER("소환사 검색", Icons.Default.Search),
+    DAMAGE_ANALYSIS("데미지 분석", Icons.Default.Whatshot),
+    VISION("시야 분석", Icons.Default.Visibility),
+    SURRENDER("서렌더 분석", Icons.Default.Flag),
 }
 
 @Composable

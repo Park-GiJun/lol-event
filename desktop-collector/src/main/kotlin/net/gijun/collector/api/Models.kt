@@ -348,3 +348,57 @@ data class MasteryInfo(
     val level: Int = 0,
     val points: Int = 0,
 )
+
+// ── 데미지 분석 ───────────────────────────────────────
+
+@Serializable
+data class DamageAnalysisResult(val players: List<DamagePlayerEntry> = emptyList())
+
+@Serializable
+data class DamagePlayerEntry(
+    val riotId: String = "",
+    val games: Int = 0,
+    val avgPhysicalDmg: Double = 0.0,
+    val avgMagicDmg: Double = 0.0,
+    val avgTrueDmg: Double = 0.0,
+    val physicalPct: Double = 0.0,
+    val magicPct: Double = 0.0,
+    val truePct: Double = 0.0,
+    val avgMitigated: Double = 0.0,
+    val avgTurretDmg: Double = 0.0,
+    val damageProfile: String = "",
+)
+
+// ── 시야 분석 ─────────────────────────────────────────
+
+@Serializable
+data class VisionDominanceResult(val players: List<VisionPlayerEntry> = emptyList())
+
+@Serializable
+data class VisionPlayerEntry(
+    val riotId: String = "",
+    val games: Int = 0,
+    val avgVisionScore: Double = 0.0,
+    val avgWardsPlaced: Double = 0.0,
+    val avgWardsKilled: Double = 0.0,
+    val avgControlWards: Double = 0.0,
+    val visionRank: Int = 0,
+)
+
+// ── 서렌더 분석 ───────────────────────────────────────
+
+@Serializable
+data class SurrenderAnalysisResult(
+    val surrenderRate: Double = 0.0,
+    val earlySurrenderRate: Double = 0.0,
+    val players: List<SurrenderPlayerEntry> = emptyList(),
+)
+
+@Serializable
+data class SurrenderPlayerEntry(
+    val riotId: String = "",
+    val surrenderVotes: Int = 0,
+    val totalVotes: Int = 0,
+    val surrenderRate: Double = 0.0,
+    val label: String = "",
+)

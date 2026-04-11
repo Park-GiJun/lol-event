@@ -203,6 +203,36 @@ object ApiClient {
         } catch (_: Exception) { null }
     }
 
+    // ── 데미지 분석 ──
+    suspend fun fetchDamageAnalysis(mode: String = "normal"): DamageAnalysisResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/damage-analysis?mode=$mode")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<DamageAnalysisResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── 시야 분석 ──
+    suspend fun fetchVisionDominance(mode: String = "normal"): VisionDominanceResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/vision?mode=$mode")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<VisionDominanceResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
+    // ── 서렌더 분석 ──
+    suspend fun fetchSurrenderAnalysis(mode: String = "normal"): SurrenderAnalysisResult? {
+        return try {
+            val response: HttpResponse = client.get("$BASE_URL/stats/surrender?mode=$mode")
+            if (!response.status.isSuccess()) return null
+            val wrapper = json.decodeFromString<ApiResponse<SurrenderAnalysisResult>>(response.body<String>())
+            wrapper.data
+        } catch (_: Exception) { null }
+    }
+
     suspend fun postMatches(matches: List<JsonObject>): Pair<Int, Int> {
         val body = buildJsonObject {
             put("matches", JsonArray(matches))
