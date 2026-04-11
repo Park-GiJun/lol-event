@@ -19,15 +19,6 @@ class GetChampionStatsHandler(
     private val cache: StatsCachePort,
 ) : GetChampionStatsUseCase {
 
-    private fun resolvePosition(lane: String?, role: String?, neutralMinionsKilled: Int): String? = when {
-        lane == "TOP"                                                          -> "TOP"
-        lane == "JUNGLE" && neutralMinionsKilled >= 30                        -> "JUNGLE"
-        lane == "MID" || lane == "MIDDLE"                                     -> "MID"
-        lane == "BOTTOM" && (role == "DUO_SUPPORT" || role == "SUPPORT")      -> "SUPPORT"
-        lane == "BOTTOM"                                                       -> "BOTTOM"
-        else                                                                   -> null
-    }
-
     override fun getChampionStats(champion: String, mode: String): ChampionDetailStats = cache.getOrCompute("champion-stats:$champion:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
@@ -110,7 +101,7 @@ class GetChampionStatsHandler(
         val POSITION_ORDER = listOf("TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT")
         val laneStats = pairs
             .mapNotNull { (p, _) ->
-                val pos = resolvePosition(p.lane, p.role, p.neutralMinionsKilled) ?: return@mapNotNull null
+                val pos = PositionResolver.resolve(p) ?: return@mapNotNull null
                 pos to p
             }
             .groupBy { it.first }

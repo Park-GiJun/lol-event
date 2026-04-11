@@ -19,21 +19,6 @@ class GetPlayerStatsHandler(
     private val cache: StatsCachePort,
 ) : GetPlayerStatsUseCase {
 
-    /**
-     * LCU lane/role 필드는 커스텀 게임에서 부정확할 수 있습니다.
-     * - JUNGLE: neutralMinionsKilled >= 30 으로 실제 정글 여부를 추가 검증
-     * - SUPPORT: LCU는 "DUO_SUPPORT" 대신 "SUPPORT" 또는 "NONE" 사용
-     * - lane=JUNGLE & neutralMinionsKilled < 30: 오분류 탑라이너 → null(미분류) 처리
-     */
-    private fun resolvePosition(lane: String?, role: String?, neutralMinionsKilled: Int): String? = when {
-        lane == "TOP"                                                          -> "TOP"
-        lane == "JUNGLE" && neutralMinionsKilled >= 30                        -> "JUNGLE"
-        lane == "MID" || lane == "MIDDLE"                                     -> "MID"
-        lane == "BOTTOM" && (role == "DUO_SUPPORT" || role == "SUPPORT")      -> "SUPPORT"
-        lane == "BOTTOM"                                                       -> "BOTTOM"
-        else                                                                   -> null
-    }
-
     override fun getPlayerStats(riotId: String, mode: String, lane: String?): PlayerDetailStatsResult = cache.getOrCompute("player-stats:$riotId:$mode:$lane") {
         val allElos = eloPort.findAll().sortedByDescending { it.elo }
         val playerElo = allElos.firstOrNull { it.riotId == riotId }
@@ -61,7 +46,7 @@ class GetPlayerStatsHandler(
                         champion = p.champion, championId = p.championId, win = p.win,
                         kills = p.kills, deaths = p.deaths, assists = p.assists,
                         damage = p.damage, cs = p.cs, gold = p.gold, visionScore = p.visionScore,
-                        position = resolvePosition(p.lane, p.role, p.neutralMinionsKilled),
+                        position = PositionResolver.resolve(p),
                         damageTaken = p.totalDamageTaken,
                         objectiveDamage = p.damageDealtToObjectives,
                         wardsPlaced = p.wardsPlaced,

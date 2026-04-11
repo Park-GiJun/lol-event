@@ -15,15 +15,6 @@ class GetLaneLeaderboardHandler(
     private val cache: StatsCachePort,
 ) : GetLaneLeaderboardUseCase {
 
-    private fun resolvePosition(lane: String?, role: String?, neutralMinionsKilled: Int): String? = when {
-        lane == "TOP"                                                          -> "TOP"
-        lane == "JUNGLE" && neutralMinionsKilled >= 30                        -> "JUNGLE"
-        lane == "MID" || lane == "MIDDLE"                                     -> "MID"
-        lane == "BOTTOM" && (role == "DUO_SUPPORT" || role == "SUPPORT")      -> "SUPPORT"
-        lane == "BOTTOM"                                                       -> "BOTTOM"
-        else                                                                   -> null
-    }
-
     private fun r1(v: Double) = (v * 10).toInt() / 10.0
     private fun r2(v: Double) = (v * 100).toInt() / 100.0
     private fun kda(k: Int, d: Int, a: Int) = if (d > 0) r2((k + a).toDouble() / d) else (k + a).toDouble()
@@ -41,7 +32,7 @@ class GetLaneLeaderboardHandler(
 
         val entries = matches.flatMap { m ->
             m.participants.mapNotNull { p ->
-                val pos = resolvePosition(p.lane, p.role, p.neutralMinionsKilled)
+                val pos = PositionResolver.resolve(p)
                 if (pos != lane) return@mapNotNull null
                 Entry(
                     riotId = p.riotId, champion = p.champion, championId = p.championId, win = p.win,

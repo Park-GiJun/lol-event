@@ -26,7 +26,7 @@ class GetPositionChampionPoolHandler(
 
         for (match in matches) {
             for (p in match.participants) {
-                val pos = p.lane?.uppercase() ?: "UNKNOWN"
+                val pos = PositionResolver.resolve(p) ?: "UNKNOWN"
                 val key = "${p.riotId}|$pos"
                 val champMap = posAccMap.getOrPut(key) { mutableMapOf() }
                 val acc = champMap.getOrPut(p.champion) { ChampAcc().also { it.championId = p.championId } }
@@ -74,4 +74,5 @@ class GetPositionChampionPoolHandler(
 
         PositionChampionPoolResult(allPlayers = allPlayers)
     }
+
 }

@@ -15,15 +15,6 @@ class GetPositionBadgeHandler(
     private val cache: StatsCachePort,
 ) : GetPositionBadgeUseCase {
 
-    private fun resolvePosition(lane: String?, role: String?, neutralMinionsKilled: Int): String? = when {
-        lane == "TOP" -> "TOP"
-        neutralMinionsKilled >= 30 -> "JUNGLE"
-        lane == "MIDDLE" || lane == "MID" -> "MID"
-        lane == "BOTTOM" && (role?.contains("SUPPORT") == true || role == "DUO_SUPPORT") -> "SUPPORT"
-        lane == "BOTTOM" && role?.contains("CARRY") == true -> "BOTTOM"
-        else -> null
-    }
-
     private fun r2(v: Double) = (v * 100).toInt() / 100.0
 
     override fun getPositionBadge(mode: String): PositionBadgeResult = cache.getOrCompute("position-badge:$mode") {
@@ -47,7 +38,7 @@ class GetPositionBadgeHandler(
 
         for (match in matches) {
             for (p in match.participants) {
-                val pos = resolvePosition(p.lane, p.role, p.neutralMinionsKilled) ?: continue
+                val pos = PositionResolver.resolve(p) ?: continue
                 positionData[pos]?.add(
                     ParticipantRecord(
                         riotId = p.riotId,

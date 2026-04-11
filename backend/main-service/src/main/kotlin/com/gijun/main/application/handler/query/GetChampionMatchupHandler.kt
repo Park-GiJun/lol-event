@@ -31,8 +31,8 @@ class GetChampionMatchupHandler(
                 val enemies = m.participants.filter { it.teamId != myTeam.first().teamId }
                 myTeam.flatMap { me ->
                     val opponents = if (samePosition) {
-                        val myPos = normalizePosition(me.lane, me.role) ?: return@flatMap emptyList()
-                        enemies.filter { normalizePosition(it.lane, it.role) == myPos }
+                        val myPos = PositionResolver.resolve(me) ?: return@flatMap emptyList()
+                        enemies.filter { PositionResolver.resolve(it) == myPos }
                     } else {
                         enemies
                     }
@@ -84,14 +84,4 @@ class GetChampionMatchupHandler(
         }
     }
 
-    /** LCU lane/role → 정규화 포지션 (같은 라인 매칭용) */
-    private fun normalizePosition(lane: String?, role: String?): String? = when {
-        lane == "TOP"                                                         -> "TOP"
-        lane == "JUNGLE"                                                      -> "JUNGLE"
-        lane == "MIDDLE"                                                      -> "MID"
-        lane == "BOTTOM" && role in listOf("CARRY", "DUO_CARRY")             -> "BOT"
-        lane == "BOTTOM" && role in listOf("SUPPORT", "DUO_SUPPORT")         -> "SUP"
-        lane == "BOTTOM" && role == "SOLO"                                   -> "BOT"
-        else                                                                  -> null
-    }
 }
