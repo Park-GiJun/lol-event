@@ -21,7 +21,7 @@ export function MobileMorePage() {
             key={to}
             className="m-more-item"
             onClick={() => navigate(to)}
-            style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 12, padding: '20px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, cursor: 'pointer', transition: 'background 0.15s', width: '100%' }}
+            style={{ background: 'var(--bg-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '20px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, cursor: 'pointer', transition: 'background 0.15s', width: '100%' }}
           >
             <div className="m-more-item-icon">
               <Icon size={22} />

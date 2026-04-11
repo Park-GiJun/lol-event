@@ -341,7 +341,7 @@ function GrowthTab({ mode }: { mode: string }) {
       <div className="m-card" style={{ marginBottom: 12 }}>
         <div style={{ display: 'flex', gap: 8 }}>
           <input value={riotId} onChange={e => setRiotId(e.target.value)} placeholder="닉네임#태그"
-            style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--color-text-primary)', fontSize: 12 }} />
+            style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--bg-surface)', color: 'var(--color-text-primary)', fontSize: 12 }} />
           <button onClick={() => riotId && setQuery(riotId)}
             style={{ padding: '8px 16px', borderRadius: 8, background: 'var(--color-primary)', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer' }}>
             조회
@@ -379,7 +379,7 @@ function GrowthTab({ mode }: { mode: string }) {
           </div>
           <p className="m-section-title">최근 경기 기록</p>
           {data.entries.slice(-15).reverse().map((e, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--glass-border)' }}>
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0', borderBottom: '1px solid var(--color-border)' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: e.win ? 'var(--color-win)' : 'var(--color-loss)', flexShrink: 0 }} />
               <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', width: 40 }}>
                 {new Date(e.gameCreation).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' })}

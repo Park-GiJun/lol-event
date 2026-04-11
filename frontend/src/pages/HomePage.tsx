@@ -100,7 +100,7 @@ export function HomePage() {
       {(awards || mkHighlights) && (
         <div className="grid-16">
           {awards && (
-            <div className="col-span-8 card-glass" style={{ animation: 'fadeInUp 0.4s ease both' }}>
+            <div className="col-span-8 card" style={{ animation: 'fadeInUp 0.4s ease both' }}>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 fontWeight: 700, fontSize: 13, marginBottom: 12,
@@ -143,7 +143,7 @@ export function HomePage() {
           )}
 
           {mkHighlights && mkHighlights.pentaKillEvents.length > 0 && (
-            <div className="col-span-8 card-glass" style={{ animation: 'fadeInUp 0.4s 0.07s ease both' }}>
+            <div className="col-span-8 card" style={{ animation: 'fadeInUp 0.4s 0.07s ease both' }}>
               <div style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 fontWeight: 700, fontSize: 13, marginBottom: 12,

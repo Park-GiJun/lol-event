@@ -187,7 +187,7 @@ function StatRow({ label, v1, v2, higherIsBetter = true }: { label: string; v1: 
   const p1Better = higherIsBetter ? v1 > v2 : v1 < v2;
   const p2Better = higherIsBetter ? v2 > v1 : v2 < v1;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--glass-border)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--color-border)' }}>
       <span style={{ flex: 1, textAlign: 'right', fontWeight: p1Better ? 700 : 400, color: p1Better ? 'var(--color-win)' : 'inherit' }}>
         {v1 % 1 !== 0 ? v1.toFixed(2) : v1}
       </span>
@@ -216,9 +216,9 @@ function CompareTab({ mode }: { mode: string }) {
       <div className="m-card" style={{ marginBottom: 12 }}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
           <input value={p1} onChange={e => setP1(e.target.value)} placeholder="플레이어1 (닉네임#태그)"
-            style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--color-text-primary)', fontSize: 12 }} />
+            style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--bg-surface)', color: 'var(--color-text-primary)', fontSize: 12 }} />
           <input value={p2} onChange={e => setP2(e.target.value)} placeholder="플레이어2 (닉네임#태그)"
-            style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--color-text-primary)', fontSize: 12 }} />
+            style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--bg-surface)', color: 'var(--color-text-primary)', fontSize: 12 }} />
         </div>
         <button onClick={() => p1 && p2 && setQuery({ p1, p2 })}
           style={{ width: '100%', padding: '10px', borderRadius: 8, background: 'var(--color-primary)', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer' }}>

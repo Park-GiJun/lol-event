@@ -91,7 +91,7 @@ export function ChampionChartsSection({ laneStats }: Props) {
   };
 
   return (
-    <div className="card-glass" style={{ marginBottom: 16 }}>
+    <div className="card" style={{ marginBottom: 16 }}>
       <div style={{
         fontWeight: 700, fontSize: 'var(--font-size-sm)',
         marginBottom: 16, color: 'var(--color-text-primary)',

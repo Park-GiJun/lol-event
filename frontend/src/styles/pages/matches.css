@@ -1,8 +1,8 @@
 /* ================================================================
- * MATCHES PAGE — 매치 목록 및 상세 스타일
+ * MATCHES PAGE — Hextech Dark Theme
  * ================================================================ */
 
-/* ── Match List ───────────────────────────────────────────── */
+/* -- Match List -- */
 .matches-list {
   display: flex;
   flex-direction: column;
@@ -10,10 +10,8 @@
 }
 
 .match-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 1px solid var(--glass-border);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
   cursor: pointer;
@@ -22,17 +20,17 @@
 .match-card:hover {
   border-color: var(--color-border-light);
   box-shadow: var(--shadow-md);
-  background: var(--glass-bg-hover);
+  background: var(--color-bg-tertiary);
 }
 
-/* ── Card Header ── */
+/* -- Card Header -- */
 .match-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  border-bottom: 1px solid var(--glass-border);
-  background: rgba(255, 255, 255, 0.015);
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(240, 230, 210, 0.01);
 }
 
 .match-card-meta {
@@ -46,8 +44,8 @@
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--tracking-wider);
   color: var(--color-primary);
-  background: rgba(0, 180, 216, 0.1);
-  border: 1px solid rgba(0, 180, 216, 0.2);
+  background: rgba(200, 170, 110, 0.08);
+  border: 1px solid rgba(200, 170, 110, 0.15);
   border-radius: var(--radius-sm);
   padding: 2px 8px;
   text-transform: uppercase;
@@ -85,7 +83,7 @@
 }
 .match-delete-btn:hover {
   color: var(--color-error);
-  background: rgba(239, 68, 68, 0.08);
+  background: rgba(232, 64, 87, 0.06);
 }
 
 .match-arrow {
@@ -97,7 +95,7 @@
   transform: translateX(2px);
 }
 
-/* ── Teams Layout ── */
+/* -- Teams Layout -- */
 .match-teams {
   display: grid;
   grid-template-columns: 1fr 36px 1fr;
@@ -112,8 +110,8 @@
   font-weight: var(--font-weight-bold);
   color: var(--color-text-disabled);
   letter-spacing: var(--tracking-wider);
-  border-left: 1px solid var(--glass-border);
-  border-right: 1px solid var(--glass-border);
+  border-left: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
 }
 
 .match-team {
@@ -144,8 +142,8 @@
   padding: 1px 6px;
   border-radius: var(--radius-full);
 }
-.match-result-badge.win  { background: rgba(16, 185, 129, 0.12); color: var(--color-win); }
-.match-result-badge.loss { background: rgba(239, 68, 68, 0.1);  color: var(--color-loss); }
+.match-result-badge.win  { background: rgba(10, 200, 185, 0.1); color: var(--color-win); }
+.match-result-badge.loss { background: rgba(232, 64, 87, 0.08); color: var(--color-loss); }
 
 .match-players {
   display: flex;
@@ -163,13 +161,13 @@
   border-radius: 3px;
 }
 .match-player-ace {
-  background: rgba(200, 155, 60, 0.06);
+  background: rgba(200, 170, 110, 0.04);
 }
 .match-player-mvp {
-  background: rgba(16, 185, 129, 0.04);
+  background: rgba(10, 200, 185, 0.03);
 }
 
-/* ── MVP / ACE 배지 (카드용) ────────────────────────────── */
+/* -- MVP / ACE badges (card) -- */
 .match-mvp-badge {
   display: inline-flex;
   align-items: center;
@@ -182,17 +180,17 @@
   white-space: nowrap;
 }
 .match-mvp-badge--ace {
-  background: rgba(200, 155, 60, 0.15);
+  background: rgba(200, 170, 110, 0.12);
   color: var(--color-primary);
-  border: 1px solid rgba(200, 155, 60, 0.3);
+  border: 1px solid rgba(200, 170, 110, 0.25);
 }
 .match-mvp-badge--team {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(10, 200, 185, 0.08);
   color: var(--color-win);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(10, 200, 185, 0.2);
 }
 
-/* ── Scoreboard MVP 배지 ─────────────────────────────────── */
+/* -- Scoreboard MVP badges -- */
 .sb-mvp-badge {
   display: inline-flex;
   align-items: center;
@@ -204,20 +202,18 @@
   margin-left: 5px;
   vertical-align: middle;
 }
-.sb-mvp-badge--ace  { background: rgba(200,155,60,0.15); color: var(--color-primary); border: 1px solid rgba(200,155,60,0.3); }
-.sb-mvp-badge--team { background: rgba(16,185,129,0.1);  color: var(--color-win);     border: 1px solid rgba(16,185,129,0.2); }
-.sb-row-ace  { background: rgba(200, 155, 60, 0.04); }
-.sb-row-mvp  { background: rgba(16, 185, 129, 0.03); }
+.sb-mvp-badge--ace  { background: rgba(200, 170, 110, 0.12); color: var(--color-primary); border: 1px solid rgba(200, 170, 110, 0.25); }
+.sb-mvp-badge--team { background: rgba(10, 200, 185, 0.08);  color: var(--color-win);     border: 1px solid rgba(10, 200, 185, 0.2); }
+.sb-row-ace  { background: rgba(200, 170, 110, 0.03); }
+.sb-row-mvp  { background: rgba(10, 200, 185, 0.02); }
 
-/* ── Match Group (날짜별 묶음) ───────────────────────────── */
+/* -- Match Group (date grouping) -- */
 .match-group {
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
   margin-bottom: 10px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  background: var(--color-bg-secondary);
 }
 
 .match-group-header {
@@ -225,14 +221,14 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(240, 230, 210, 0.01);
   border: none;
   padding: 12px 16px;
   cursor: pointer;
   transition: background var(--transition-fast);
   text-align: left;
 }
-.match-group-header:hover { background: rgba(0, 180, 216, 0.04); }
+.match-group-header:hover { background: rgba(200, 170, 110, 0.03); }
 
 .match-group-header-left {
   display: flex;
@@ -248,8 +244,8 @@
 .match-group-count {
   font-size: 12px;
   color: var(--color-text-secondary);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--glass-border);
+  background: rgba(240, 230, 210, 0.03);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   padding: 1px 8px;
 }
@@ -265,7 +261,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.2);
 }
 .match-group-body .match-group { margin-bottom: 0; }
 .match-group-body .match-card  { margin-bottom: 0; }
@@ -292,13 +288,13 @@
   font-size: var(--font-size-2xs);
 }
 
-/* ── Detail Modal ─────────────────────────────────────────── */
+/* -- Detail Modal -- */
 .match-detail-meta {
   display: flex;
   align-items: center;
   gap: 16px;
   padding: 12px 0 16px;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--color-border);
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
@@ -316,12 +312,12 @@
   font-weight: var(--font-weight-semibold);
 }
 
-/* ── Tabs ── */
+/* -- Tabs -- */
 .match-tabs {
   display: flex;
   gap: 2px;
   margin-bottom: 16px;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--color-border);
   padding-bottom: 0;
 }
 
@@ -340,12 +336,13 @@
 
 .match-tab:hover { color: var(--color-text-primary); }
 
+/* Gold underline active */
 .match-tab.active {
   color: var(--color-primary);
   border-bottom-color: var(--color-primary);
 }
 
-/* ── Scoreboard ── */
+/* -- Scoreboard -- */
 .scoreboard-section {
   margin-bottom: 20px;
 }
@@ -360,12 +357,12 @@
 }
 
 .scoreboard-team-header.blue-team {
-  background: linear-gradient(90deg, rgba(59,158,255,0.1) 0%, transparent 100%);
+  background: linear-gradient(90deg, rgba(10, 200, 185, 0.08) 0%, transparent 100%);
   border-left: 3px solid var(--color-blue);
 }
 
 .scoreboard-team-header.red-team {
-  background: linear-gradient(90deg, rgba(239,68,68,0.08) 0%, transparent 100%);
+  background: linear-gradient(90deg, rgba(232, 64, 87, 0.06) 0%, transparent 100%);
   border-left: 3px solid var(--color-red);
 }
 
@@ -388,12 +385,12 @@
 
 .scoreboard-table th {
   padding: 7px 10px;
-  background: rgba(255, 255, 255, 0.02);
-  color: var(--color-text-secondary);
+  background: rgba(200, 170, 110, 0.02);
+  color: var(--color-primary);
   font-weight: var(--font-weight-semibold);
   letter-spacing: var(--tracking-wide);
   white-space: nowrap;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .scoreboard-table th:first-child { text-align: left; }
@@ -402,7 +399,7 @@
 
 .scoreboard-table td {
   padding: 8px 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(30, 35, 40, 0.6);
   vertical-align: middle;
   white-space: nowrap;
 }
@@ -410,7 +407,7 @@
 .scoreboard-table tbody tr {
   transition: background var(--transition-fast);
 }
-.scoreboard-table tbody tr:hover { background: rgba(0, 180, 216, 0.04); }
+.scoreboard-table tbody tr:hover { background: rgba(200, 170, 110, 0.03); }
 .scoreboard-table tbody tr:last-child td { border-bottom: none; }
 
 .scoreboard-table .td-num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -432,12 +429,12 @@
   font-size: var(--font-size-2xs);
   font-weight: var(--font-weight-bold);
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(240, 230, 210, 0.03);
   color: var(--color-text-secondary);
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--color-border);
 }
-.sb-champion-badge.blue { border-color: rgba(59,158,255,0.3); color: var(--color-blue); }
-.sb-champion-badge.red  { border-color: rgba(239,68,68,0.3);  color: var(--color-red); }
+.sb-champion-badge.blue { border-color: rgba(10, 200, 185, 0.3); color: var(--color-blue); }
+.sb-champion-badge.red  { border-color: rgba(232, 64, 87, 0.3);  color: var(--color-red); }
 
 .sb-player-info {}
 
@@ -491,7 +488,7 @@
 
 .sb-damage-bar-track {
   height: 5px;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(240, 230, 210, 0.03);
   border-radius: var(--radius-full);
   overflow: hidden;
 }
@@ -502,8 +499,8 @@
   transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.sb-damage-bar-fill.blue { background: linear-gradient(90deg, #3B9EFF, #5BB8FF); }
-.sb-damage-bar-fill.red  { background: linear-gradient(90deg, #E84040, #FF6B6B); }
+.sb-damage-bar-fill.blue { background: linear-gradient(90deg, #0AC8B9, #33D6C9); }
+.sb-damage-bar-fill.red  { background: linear-gradient(90deg, #E84057, #FF6B7F); }
 
 /* Result badge in table */
 .sb-result {
@@ -513,10 +510,10 @@
   padding: 2px 7px;
   border-radius: var(--radius-full);
 }
-.sb-result.win  { background: rgba(16,185,129,0.12); color: var(--color-win); }
-.sb-result.loss { background: rgba(239,68,68,0.1);  color: var(--color-loss); }
+.sb-result.win  { background: rgba(10, 200, 185, 0.1); color: var(--color-win); }
+.sb-result.loss { background: rgba(232, 64, 87, 0.08); color: var(--color-loss); }
 
-/* ── Detail Stats (other tabs) ── */
+/* -- Detail Stats (other tabs) -- */
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -528,7 +525,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 5px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid rgba(30, 35, 40, 0.4);
   font-size: var(--font-size-xs);
 }
 
@@ -541,11 +538,11 @@
 }
 
 .stat-player-block {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(240, 230, 210, 0.02);
   border-radius: var(--radius-md);
   padding: 10px 14px;
   margin-bottom: 8px;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--color-border);
 }
 
 .stat-player-header {
@@ -565,10 +562,10 @@
 }
 
 .team-info-block {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(240, 230, 210, 0.02);
   border-radius: var(--radius-md);
   overflow: hidden;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--color-border);
 }
 
 .team-info-header {
@@ -576,7 +573,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .team-info-stats {
@@ -590,7 +587,7 @@
   flex-direction: column;
   align-items: center;
   padding: 10px 8px;
-  border-right: 1px solid var(--glass-border);
+  border-right: 1px solid var(--color-border);
 }
 .team-info-stat:last-child { border-right: none; }
 
@@ -606,7 +603,7 @@
   margin-top: 2px;
 }
 
-/* ── Match card champion icon ── */
+/* -- Match card champion icon -- */
 .match-champion-cell {
   display: flex;
   align-items: center;
@@ -617,10 +614,10 @@
 .dragon-champ-img {
   flex-shrink: 0;
   object-fit: cover;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--color-border);
 }
 
-/* ── Scoreboard champion + spell column ── */
+/* -- Scoreboard champion + spell column -- */
 .sb-champ-spell-col {
   display: flex;
   flex-direction: column;
@@ -637,18 +634,18 @@
 .dragon-spell-img {
   border-radius: 2px;
   object-fit: cover;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--color-border);
 }
 
 .dragon-spell-empty {
   width: 16px;
   height: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(240, 230, 210, 0.02);
   border-radius: 2px;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--color-border);
 }
 
-/* ── Items row ── */
+/* -- Items row -- */
 .sb-items {
   display: flex;
   gap: 2px;
@@ -659,82 +656,82 @@
 .dragon-item-img {
   border-radius: 3px;
   object-fit: cover;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--color-border);
 }
 
 .dragon-item-empty {
   width: 22px;
   height: 22px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(240, 230, 210, 0.02);
   border-radius: 3px;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--color-border);
   opacity: 0.35;
 }
 
 /* ================================================================
- * REDESIGN ADDITIONS — glassmorphism, gradients, hover effects
+ * HEXTECH REDESIGN — Win/Loss borders, team colors, hover
  * ================================================================ */
 
-/* ── Match Card Win/Loss Left-Border Gradient ── */
+/* -- Match Card Win/Loss Left-Border -- */
 .match-card--win {
   border-left: 3px solid var(--color-win);
-  background: linear-gradient(90deg, rgba(16, 185, 129, 0.04) 0%, var(--glass-bg) 20%);
+  background: linear-gradient(90deg, rgba(10, 200, 185, 0.03) 0%, var(--color-bg-secondary) 20%);
 }
 .match-card--loss {
   border-left: 3px solid var(--color-loss);
-  background: linear-gradient(90deg, rgba(239, 68, 68, 0.04) 0%, var(--glass-bg) 20%);
+  background: linear-gradient(90deg, rgba(232, 64, 87, 0.03) 0%, var(--color-bg-secondary) 20%);
 }
 
-/* ── Date Group Header Gradient Line ── */
+/* -- Date Group Header Gradient Line -- */
 .match-group-date-line {
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, rgba(0, 180, 216, 0.3), transparent);
+  background: linear-gradient(90deg, rgba(200, 170, 110, 0.2), transparent);
   margin-left: 10px;
 }
 
-/* ── Scoreboard Row Hover ── */
+/* -- Scoreboard Row Hover -- */
 .scoreboard-table tbody tr:hover .sb-mvp-badge--ace {
-  box-shadow: 0 0 8px rgba(200, 155, 60, 0.4);
+  box-shadow: 0 0 8px rgba(200, 170, 110, 0.35);
 }
 .scoreboard-table tbody tr:hover .sb-mvp-badge--team {
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 8px rgba(10, 200, 185, 0.35);
 }
 
 /* ACE/MVP badge glow */
 .sb-row-ace .sb-mvp-badge--ace {
-  box-shadow: 0 0 6px rgba(200, 155, 60, 0.35);
+  box-shadow: 0 0 6px rgba(200, 170, 110, 0.3);
 }
 .sb-row-mvp .sb-mvp-badge--team {
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 6px rgba(10, 200, 185, 0.25);
 }
 
-/* ── Champion Icon Hover Scale ── */
+/* -- Champion Icon Hover Scale -- */
 .dragon-champ-img {
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 .dragon-champ-img:hover {
   transform: scale(1.12);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-/* ── Team Color Gradient Background ── */
+/* -- Team Color Gradient Background -- */
 .scoreboard-team-header.blue-team {
-  background: linear-gradient(90deg, rgba(59, 158, 255, 0.12) 0%, rgba(59, 158, 255, 0.03) 60%, transparent 100%);
+  background: linear-gradient(90deg, rgba(10, 200, 185, 0.1) 0%, rgba(10, 200, 185, 0.02) 60%, transparent 100%);
 }
 .scoreboard-team-header.red-team {
-  background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.02) 60%, transparent 100%);
+  background: linear-gradient(90deg, rgba(232, 64, 87, 0.08) 0%, rgba(232, 64, 87, 0.01) 60%, transparent 100%);
 }
 
-/* ── Match Team Area Gradient ── */
+/* -- Match Team Area Gradient -- */
 .match-team-blue {
-  background: linear-gradient(90deg, rgba(59, 158, 255, 0.03) 0%, transparent 50%);
+  background: linear-gradient(90deg, rgba(10, 200, 185, 0.02) 0%, transparent 50%);
 }
 .match-team-red {
-  background: linear-gradient(270deg, rgba(239, 68, 68, 0.03) 0%, transparent 50%);
+  background: linear-gradient(270deg, rgba(232, 64, 87, 0.02) 0%, transparent 50%);
 }
 
-/* ── Stats Tab Player Block Team Color ── */
+/* -- Stats Tab Player Block Team Color -- */
 .stat-team-label--blue {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
@@ -750,7 +747,7 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, rgba(59, 158, 255, 0.3), transparent);
+  background: linear-gradient(90deg, rgba(10, 200, 185, 0.25), transparent);
 }
 .stat-team-label--red {
   font-size: var(--font-size-xs);
@@ -767,33 +764,33 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, rgba(239, 68, 68, 0.3), transparent);
+  background: linear-gradient(90deg, rgba(232, 64, 87, 0.25), transparent);
 }
 
-/* ── Team-colored header row ── */
+/* -- Team-colored header row -- */
 .team-info-header.blue-team {
-  background: linear-gradient(90deg, rgba(59, 158, 255, 0.08) 0%, transparent 100%);
+  background: linear-gradient(90deg, rgba(10, 200, 185, 0.06) 0%, transparent 100%);
 }
 .team-info-header.red-team {
-  background: linear-gradient(90deg, rgba(239, 68, 68, 0.06) 0%, transparent 100%);
+  background: linear-gradient(90deg, rgba(232, 64, 87, 0.04) 0%, transparent 100%);
 }
 
-/* ── First-badge highlight ── */
+/* -- First-badge highlight -- */
 .team-info-first-badge {
   font-size: var(--font-size-xs);
-  background: rgba(200, 155, 60, 0.1);
-  border: 1px solid rgba(200, 155, 60, 0.25);
+  background: rgba(200, 170, 110, 0.08);
+  border: 1px solid rgba(200, 170, 110, 0.2);
   color: var(--color-primary);
   border-radius: var(--radius-sm);
   padding: 2px 8px;
 }
 
-/* ── Stat section team heading ── */
+/* -- Stat section team heading -- */
 .stat-section-heading {
   margin-bottom: 20px;
 }
 
-/* ── Match card: numeric data ── */
+/* -- Match card: numeric data -- */
 .match-kda,
 .sb-kda-nums,
 .sb-kda-ratio,

@@ -37,7 +37,7 @@ export default function PositionPoolTab({ mode }: { mode: string }) {
           </button>
         ))}
         <select onChange={e => setSelectedPlayer(e.target.value || null)} value={selectedPlayer ?? ''}
-          style={{ padding: '6px 10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--glass-border)', background: 'var(--glass-bg)', color: 'var(--color-text-primary)', cursor: 'pointer', fontSize: 12 }}>
+          style={{ padding: '6px 10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)', cursor: 'pointer', fontSize: 12 }}>
           <option value="">플레이어 선택</option>
           {(allRiotIds as string[]).map(id => <option key={id} value={id}>{id.split('#')[0]}</option>)}
         </select>
@@ -63,7 +63,7 @@ export default function PositionPoolTab({ mode }: { mode: string }) {
                   <td style={{ padding: '8px 12px' }}><PlayerLink riotId={p.riotId}><span style={{ fontWeight: 600 }}>{p.riotId.split('#')[0]}</span></PlayerLink></td>
                   <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-                      {c?.imageUrl && <img src={c.imageUrl} alt={c.nameKo} width={24} height={24} style={{ borderRadius: 4, border: '1px solid var(--glass-border)' }} />}
+                      {c?.imageUrl && <img src={c.imageUrl} alt={c.nameKo} width={24} height={24} style={{ borderRadius: 4, border: '1px solid var(--color-border)' }} />}
                       <span>{c?.nameKo ?? p.topChampion ?? '-'}</span>
                     </div>
                   </td>

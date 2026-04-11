@@ -71,9 +71,9 @@ export default function OverviewTab({ mode }: { mode: string }) {
   return (
     <>
       {/* ① 핵심 지표 배너 */}
-      <div className="overview-hero-row" style={{ background: 'linear-gradient(135deg, rgba(0,180,216,0.08) 0%, var(--glass-bg) 60%)', borderColor: 'rgba(0,180,216,0.2)', boxShadow: '0 0 32px rgba(0,180,216,0.06), inset 0 1px 0 rgba(0,180,216,0.15)' }}>
+      <div className="overview-hero-row">
         <div className="overview-hero-main">
-          <div className="overview-hero-number" style={{ background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', textShadow: 'none' }}>{data.matchCount}</div>
+          <div className="overview-hero-number text-gradient">{data.matchCount}</div>
           <div className="overview-hero-label">총 경기</div>
           <div className="overview-hero-sub">평균 {data.avgGameMinutes}분</div>
         </div>
@@ -106,7 +106,7 @@ export default function OverviewTab({ mode }: { mode: string }) {
             {stat ? (
               <>
                 <div className="overview-spotlight-name">{stat.riotId.split('#')[0]}</div>
-                <div className="overview-spotlight-value" style={{ background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>{stat.displayValue}</div>
+                <div className="overview-spotlight-value text-gradient">{stat.displayValue}</div>
                 <div className="overview-spotlight-games">{stat.games}판</div>
               </>
             ) : (
@@ -159,7 +159,7 @@ export default function OverviewTab({ mode }: { mode: string }) {
       </div>
 
       {/* ④ 명예의 전당 */}
-      <section className="stats-section card" style={{ background: 'linear-gradient(180deg, rgba(0,180,216,0.04) 0%, var(--glass-bg) 40%)' }}>
+      <section className="stats-section card">
         <h2 className="stats-section-title">🏅 명예의 전당</h2>
         <div className="hall-groups">
           {hallGroups.map(group => (

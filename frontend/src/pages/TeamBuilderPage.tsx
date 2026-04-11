@@ -332,7 +332,7 @@ export function TeamBuilderPage() {
               <div className="grid-16">
                 {[...duoData].sort((a, b) => b.winRate - a.winRate).slice(0, 20).map(d => (
                   <div key={`${d.player1}-${d.player2}`} className="duo-ref-card col-span-4"
-                    style={{ borderColor: d.winRate >= 60 ? 'rgba(16,185,129,0.3)' : d.winRate < 45 ? 'rgba(239,68,68,0.3)' : 'var(--glass-border)' }}>
+                    style={{ borderColor: d.winRate >= 60 ? 'rgba(16,185,129,0.3)' : d.winRate < 45 ? 'rgba(239,68,68,0.3)' : 'var(--color-border)' }}>
                     <div className="duo-ref-players">
                       <PlayerLink riotId={d.player1}>{d.player1.split('#')[0]}</PlayerLink>
                       <span className="text-secondary" style={{ margin: '0 4px' }}>+</span>

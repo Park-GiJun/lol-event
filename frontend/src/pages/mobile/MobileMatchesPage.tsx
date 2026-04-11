@@ -65,10 +65,8 @@ function MatchCard({ match }: { match: Match }) {
   return (
     <div
       style={{
-        background: 'var(--glass-bg)',
-        backdropFilter: 'blur(var(--glass-blur))',
-        WebkitBackdropFilter: 'blur(var(--glass-blur))',
-        border: '1px solid var(--glass-border)',
+        background: 'var(--bg-surface)',
+        border: '1px solid var(--color-border)',
         borderLeft: `3px solid ${borderColor}`,
         borderRadius: 12,
         marginBottom: 8,
@@ -81,7 +79,7 @@ function MatchCard({ match }: { match: Match }) {
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
           padding: '8px 12px', cursor: 'pointer',
-          borderBottom: '1px solid var(--glass-border)',
+          borderBottom: '1px solid var(--color-border)',
         }}
       >
         <span style={{
@@ -153,7 +151,7 @@ function MatchCard({ match }: { match: Match }) {
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
           gap: 4, padding: '5px 0', background: 'none', border: 'none',
-          borderTop: '1px solid var(--glass-border)',
+          borderTop: '1px solid var(--color-border)',
           fontSize: 11, color: 'var(--color-text-disabled)', cursor: 'pointer',
         }}
       >
@@ -162,7 +160,7 @@ function MatchCard({ match }: { match: Match }) {
 
       {/* ── 펼쳐진 플레이어 목록 ── */}
       {expanded && (
-        <div style={{ borderTop: '1px solid var(--glass-border)' }}>
+        <div style={{ borderTop: '1px solid var(--color-border)' }}>
           {/* 블루팀 */}
           <div style={{ padding: '6px 12px 2px', fontSize: 10, fontWeight: 700, color: 'var(--color-info)' }}>
             블루팀 {blueWin ? '✓ 승' : '패'}
@@ -199,7 +197,7 @@ function MatchCard({ match }: { match: Match }) {
           })}
 
           {/* 구분선 */}
-          <div style={{ height: 1, background: 'var(--glass-border)', margin: '2px 0' }} />
+          <div style={{ height: 1, background: 'var(--color-border)', margin: '2px 0' }} />
 
           {/* 레드팀 */}
           <div style={{ padding: '6px 12px 2px', fontSize: 10, fontWeight: 700, color: 'var(--color-loss)' }}>

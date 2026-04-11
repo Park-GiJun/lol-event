@@ -11,16 +11,11 @@ export interface InlineErrorProps {
 export const InlineError = memo(function InlineError({ message, onRetry, className = '' }: InlineErrorProps) {
   return (
     <div
-      className={`flex items-center gap-sm ${className}`}
-      style={{
-        color: 'var(--color-error)',
-        padding: 'var(--spacing-md)',
-        fontSize: 'var(--font-size-sm)',
-      }}
+      className={`inline-error ${className}`.trim()}
       role="alert"
     >
-      <AlertCircle size={16} aria-hidden="true" style={{ flexShrink: 0 }} />
-      <span style={{ flex: 1 }}>{message}</span>
+      <AlertCircle size={16} aria-hidden="true" className="inline-error-icon" />
+      <span className="inline-error-message">{message}</span>
       <Button variant="ghost" size="sm" onClick={onRetry} aria-label="다시 시도">
         다시 시도
       </Button>

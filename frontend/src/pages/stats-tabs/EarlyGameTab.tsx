@@ -24,7 +24,7 @@ export default function EarlyGameTab({ mode }: { mode: string }) {
   return (
     <div>
       <div className="grid-16" style={{ marginBottom: 20 }}>
-        <div className="card col-span-8" style={{ padding: '16px', textAlign: 'center', background: 'linear-gradient(135deg, rgba(255,215,0,0.06) 0%, var(--glass-bg) 100%)', borderColor: 'rgba(255,215,0,0.2)' }}>
+        <div className="card col-span-8" style={{ padding: '16px', textAlign: 'center', borderColor: 'rgba(255,215,0,0.2)' }}>
           <div style={{ fontSize: 28, marginBottom: 6, filter: 'drop-shadow(0 0 6px rgba(255,215,0,0.3))' }}>🗡️</div>
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-secondary)', letterSpacing: 'var(--tracking-wider)', textTransform: 'uppercase', marginBottom: 6 }}>퍼블킹</div>
           <div style={{ fontWeight: 800, fontSize: 16, color: '#FFD700' }}>{data.firstBloodKing?.split('#')[0] ?? '-'}</div>
@@ -32,7 +32,7 @@ export default function EarlyGameTab({ mode }: { mode: string }) {
             전체 퍼블 승률: <span style={{ fontWeight: 700, color: 'var(--color-primary)' }}>{data.overallFirstBloodWinRate.toFixed(1)}%</span>
           </div>
         </div>
-        <div className="card col-span-8" style={{ padding: '16px', textAlign: 'center', background: 'linear-gradient(135deg, rgba(96,165,250,0.06) 0%, var(--glass-bg) 100%)', borderColor: 'rgba(96,165,250,0.2)' }}>
+        <div className="card col-span-8" style={{ padding: '16px', textAlign: 'center', borderColor: 'rgba(96,165,250,0.2)' }}>
           <div style={{ fontSize: 28, marginBottom: 6, filter: 'drop-shadow(0 0 6px rgba(96,165,250,0.3))' }}>🏯</div>
           <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-secondary)', letterSpacing: 'var(--tracking-wider)', textTransform: 'uppercase', marginBottom: 6 }}>포탑 파괴자</div>
           <div style={{ fontWeight: 800, fontSize: 16, color: '#60a5fa' }}>{data.towerDestroyer?.split('#')[0] ?? '-'}</div>
@@ -42,7 +42,7 @@ export default function EarlyGameTab({ mode }: { mode: string }) {
         </div>
       </div>
 
-      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid var(--glass-border)', color: 'var(--color-text-primary)' }}>초반 지배력 랭킹</h3>
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}>초반 지배력 랭킹</h3>
       <div className="table-wrapper">
         <table className="table member-stats-table" style={{ fontSize: 12 }}>
           <thead>

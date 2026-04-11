@@ -17,7 +17,7 @@ export default function TimePatternTab({ mode }: { mode: string }) {
   return (
     <div className="grid-16" style={{ gap: 'var(--space-6)' }}>
       <div className="col-span-8">
-        <div style={{ fontWeight: 800, marginBottom: 12, fontSize: 14, paddingBottom: 8, borderBottom: '1px solid var(--glass-border)' }}>요일별 내전 횟수</div>
+        <div style={{ fontWeight: 800, marginBottom: 12, fontSize: 14, paddingBottom: 8, borderBottom: '1px solid var(--color-border)' }}>요일별 내전 횟수</div>
         {data.busiestDay && <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 10 }}>가장 활발한 요일: <strong style={{ color: 'var(--color-primary)' }}>{data.busiestDay}요일</strong></div>}
         {data.byDay.map((d: DayPatternEntry) => {
           const ratio = d.games / maxDayGames;
@@ -35,7 +35,7 @@ export default function TimePatternTab({ mode }: { mode: string }) {
         })}
       </div>
       <div className="col-span-8">
-        <div style={{ fontWeight: 800, marginBottom: 12, fontSize: 14, paddingBottom: 8, borderBottom: '1px solid var(--glass-border)' }}>시간대별 내전 횟수</div>
+        <div style={{ fontWeight: 800, marginBottom: 12, fontSize: 14, paddingBottom: 8, borderBottom: '1px solid var(--color-border)' }}>시간대별 내전 횟수</div>
         {data.busiestHour !== null && <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 10 }}>가장 활발한 시간: <strong style={{ color: 'var(--color-primary)' }}>{data.busiestHour}시</strong></div>}
         {data.byHour.map((h: HourPatternEntry) => {
           const ratio = h.games / maxHourGames;

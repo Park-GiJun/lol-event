@@ -23,7 +23,7 @@ export default function ChemistryTab({ mode }: { mode: string }) {
 
   const renderSection = (title: string, items: TeamChemistryEntry[]) => (
     <section style={{ marginBottom: 24 }}>
-      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: 'var(--color-text-primary)', paddingBottom: 8, borderBottom: '1px solid var(--glass-border)' }}>{title}</h3>
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: 'var(--color-text-primary)', paddingBottom: 8, borderBottom: '1px solid var(--color-border)' }}>{title}</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {items.slice(0, 5).map((entry, i) => (
           <div key={entry.players.join('-')} className="card" style={{ padding: '12px 16px', transition: 'border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast)' }}>

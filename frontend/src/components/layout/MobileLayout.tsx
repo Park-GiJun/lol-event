@@ -44,9 +44,9 @@ export function MobileLayout() {
           <button className="m-header-back" onClick={() => navigate(-1)}>
             <ChevronLeft size={22} />
           </button>
-        ) : <div style={{ width: 44 }} />}
+        ) : <div className="m-header-spacer" />}
         <span className="m-header-title">{getTitle(location.pathname)}</span>
-        <div style={{ width: 44 }} />
+        <div className="m-header-spacer" />
       </header>
 
       <main className="m-content page-enter">

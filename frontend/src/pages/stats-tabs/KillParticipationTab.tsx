@@ -15,7 +15,7 @@ export default function KillParticipationTab({ mode }: { mode: string }) {
   return (
     <div>
       {data.kpKing && (
-        <div style={{ padding: '10px 16px', borderRadius: 'var(--radius-md)', background: 'linear-gradient(135deg, rgba(0,180,216,0.08) 0%, var(--glass-bg) 100%)', border: '1px solid rgba(0,180,216,0.2)', marginBottom: 16, fontSize: 13 }}>
+        <div style={{ padding: '10px 16px', borderRadius: 'var(--radius-md)', border: '1px solid rgba(0,180,216,0.2)', marginBottom: 16, fontSize: 13 }}>
           ⚡ KP왕: <strong><PlayerLink riotId={data.kpKing}>{data.kpKing.split('#')[0]}</PlayerLink></strong>
         </div>
       )}

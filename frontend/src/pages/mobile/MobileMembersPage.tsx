@@ -74,7 +74,7 @@ export function MobileMembersPage() {
         </span>
         <button
           onClick={() => setShowBulk(true)}
-          style={{ fontSize: 12, color: 'var(--color-text-secondary)', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
+          style={{ fontSize: 12, color: 'var(--color-text-secondary)', background: 'var(--bg-surface)', border: '1px solid var(--color-border)', borderRadius: 8, padding: '6px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}
         >
           <Users size={13} /> 일괄 등록
         </button>
@@ -144,7 +144,7 @@ export function MobileMembersPage() {
                 onChange={e => setBulkInput(e.target.value)}
                 placeholder={'플레이어1#KR1\n플레이어2#KR2'}
                 rows={6}
-                style={{ width: '100%', background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: 'var(--color-text-primary)', outline: 'none', resize: 'none', fontFamily: 'var(--font-family)', marginBottom: 12 }}
+                style={{ width: '100%', background: 'var(--bg-surface)', border: '1px solid var(--color-border)', borderRadius: 10, padding: '10px 14px', fontSize: 13, color: 'var(--color-text-primary)', outline: 'none', resize: 'none', fontFamily: 'var(--font-family)', marginBottom: 12 }}
               />
               <button
                 className="m-admin-btn m-admin-btn-primary"
@@ -188,8 +188,6 @@ function BottomSheet({ title, onClose, children }: { title: string; onClose: () 
       <div
         style={{
           background: 'rgba(13,18,37,0.92)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
           borderTop: '1px solid rgba(255,255,255,0.08)',
           borderRadius: '16px 16px 0 0',
           padding: '20px 16px 32px',

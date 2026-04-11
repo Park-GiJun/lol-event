@@ -23,7 +23,7 @@ export default function RivalTab({ mode }: { mode: string }) {
   return (
     <div>
       {data.topRivalry && (
-        <div className="card" style={{ marginBottom: 20, padding: '16px 20px', borderLeft: '3px solid var(--color-primary)', background: 'linear-gradient(135deg, rgba(0,180,216,0.06) 0%, var(--glass-bg) 100%)', boxShadow: '0 0 20px rgba(0,180,216,0.06)' }}>
+        <div className="card" style={{ marginBottom: 20, padding: '16px 20px', borderLeft: '3px solid var(--color-primary)', boxShadow: '0 0 20px rgba(0,180,216,0.06)' }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-secondary)', letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase', marginBottom: 6 }}>🔥 최대 라이벌</div>
           <div style={{ fontWeight: 800, fontSize: 16 }}>
             {data.topRivalry.player1.split('#')[0]} <span style={{ color: 'var(--color-text-disabled)', fontWeight: 400 }}>vs</span> {data.topRivalry.player2.split('#')[0]}

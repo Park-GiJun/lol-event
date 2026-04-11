@@ -40,7 +40,7 @@ export default function GoldEffTab({ mode }: { mode: string }) {
         ))}
       </div>
 
-      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid var(--glass-border)', color: 'var(--color-text-primary)' }}>골드 효율 랭킹</h3>
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}>골드 효율 랭킹</h3>
       <div className="table-wrapper">
         <table className="table member-stats-table" style={{ fontSize: 12 }}>
           <thead>

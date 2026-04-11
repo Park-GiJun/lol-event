@@ -10,7 +10,7 @@ export const BreadcrumbNav = memo(function BreadcrumbNav({ items }: { items: Bre
   const navigate = useNavigate();
   return (
     <nav className="breadcrumb-nav" aria-label="breadcrumb">
-      <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', flexWrap: 'wrap' }}>
+      <ol className="breadcrumb-list">
         {items.map((item, i) => (
           <Fragment key={item.path ?? `current-${item.label}`}>
             <li>
@@ -23,7 +23,7 @@ export const BreadcrumbNav = memo(function BreadcrumbNav({ items }: { items: Bre
               )}
             </li>
             {i < items.length - 1 && (
-              <li aria-hidden="true" style={{ color: 'var(--color-text-disabled)', fontSize: 'var(--font-size-xs)', lineHeight: 1 }}>
+              <li aria-hidden="true" className="breadcrumb-separator">
                 /
               </li>
             )}

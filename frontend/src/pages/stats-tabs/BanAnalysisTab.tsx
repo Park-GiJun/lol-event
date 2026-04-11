@@ -37,7 +37,7 @@ export default function BanAnalysisTab({ mode }: { mode: string }) {
                   <td style={{ padding: '8px 12px', color: i < 3 ? 'var(--color-primary)' : 'var(--color-text-secondary)', fontSize: 12, fontWeight: i < 3 ? 700 : 400 }}>{i + 1}</td>
                   <td style={{ padding: '8px 12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {c?.imageUrl && <img src={c.imageUrl} alt={c.nameKo} width={28} height={28} style={{ borderRadius: 4, border: '1px solid var(--glass-border)' }} />}
+                      {c?.imageUrl && <img src={c.imageUrl} alt={c.nameKo} width={28} height={28} style={{ borderRadius: 4, border: '1px solid var(--color-border)' }} />}
                       <ChampionLink champion={e.champion} championId={e.championId}><span style={{ fontWeight: 600 }}>{c?.nameKo ?? e.champion}</span></ChampionLink>
                     </div>
                   </td>

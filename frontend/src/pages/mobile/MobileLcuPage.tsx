@@ -57,7 +57,7 @@ export function MobileLcuPage() {
         {FEATURES.map(({ icon: Icon, title, desc }) => (
           <div key={title} style={{
             display: 'flex', gap: 10, padding: '10px 0',
-            borderBottom: '1px solid var(--glass-border)',
+            borderBottom: '1px solid var(--color-border)',
           }}>
             <div style={{
               width: 32, height: 32, borderRadius: 8, flexShrink: 0,

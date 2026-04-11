@@ -29,16 +29,7 @@ export class ErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback;
       return (
-        <div
-          role="alert"
-          className="card"
-          style={{
-            padding: 'var(--spacing-md)',
-            color: 'var(--color-error)',
-            fontSize: 13,
-            textAlign: 'center',
-          }}
-        >
+        <div role="alert" className="card card--error">
           컴포넌트를 불러오는 중 오류가 발생했습니다.
         </div>
       );
@@ -66,19 +57,7 @@ export class ChartErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       if (this.props.fallback) return this.props.fallback;
       return (
-        <div
-          role="alert"
-          className="card"
-          style={{
-            height: 220,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--color-error)',
-            fontSize: 13,
-            marginBottom: 16,
-          }}
-        >
+        <div role="alert" className="card card--error card--chart-fallback">
           차트를 불러올 수 없습니다.
         </div>
       );

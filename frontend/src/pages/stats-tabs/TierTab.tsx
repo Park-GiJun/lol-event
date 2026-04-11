@@ -48,7 +48,7 @@ export default function TierTab({ mode }: { mode: string }) {
                 const nameKo = champions.get(c.championId)?.nameKo ?? c.champion;
                 return (
                   <ChampionLink key={c.champion} champion={c.champion} championId={c.championId} className="popup-trigger--card col-span-2">
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 8px', background: 'var(--glass-bg)', backdropFilter: 'blur(var(--glass-blur))', borderRadius: 8, border: `1px solid ${color}44`, cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s, transform 0.15s', boxShadow: `0 0 8px ${color}11` }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '10px 8px', borderRadius: 8, border: `1px solid ${color}44`, cursor: 'pointer', transition: 'border-color 0.15s, box-shadow 0.15s, transform 0.15s', boxShadow: `0 0 8px ${color}11` }}>
                       <ChampImg championId={c.championId} champion={c.champion} size={36} />
                       <div style={{ fontSize: 11, fontWeight: 600, textAlign: 'center', lineHeight: 1.2 }}>{nameKo}</div>
                       <div style={{ fontSize: 11, fontWeight: 700, color: c.winRate >= 60 ? 'var(--color-win)' : c.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)', fontVariantNumeric: 'tabular-nums' }}>

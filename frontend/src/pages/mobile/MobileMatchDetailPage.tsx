@@ -43,7 +43,7 @@ function PlayerCard({ p, aceId, mvpId, maxDmg }: { p: Participant; aceId: string
   return (
     <div style={{
       display: 'flex', gap: 10, padding: '10px 12px', alignItems: 'flex-start',
-      borderBottom: '1px solid var(--glass-border)',
+      borderBottom: '1px solid var(--color-border)',
       background: isAce ? 'rgba(255,215,0,0.05)' : isMvp ? 'rgba(59,158,255,0.05)' : 'transparent',
     }}>
       {/* 챔피언 아이콘 */}
@@ -110,7 +110,7 @@ function DamageTab({ team }: { team: Participant[] }) {
       {team.map((p, i) => {
         const nameKo = champions.get(p.championId)?.nameKo ?? p.champion;
         return (
-          <div key={i} style={{ padding: '8px 12px', borderBottom: '1px solid var(--glass-border)' }}>
+          <div key={i} style={{ padding: '8px 12px', borderBottom: '1px solid var(--color-border)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
               <ChampIcon p={p} size={28} />
               <span style={{ fontSize: 12, fontWeight: 600 }}>{nameKo}</span>
@@ -136,7 +136,7 @@ function EconomyTab({ team }: { team: Participant[] }) {
       {team.map((p, i) => {
         const nameKo = champions.get(p.championId)?.nameKo ?? p.champion;
         return (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderBottom: '1px solid var(--glass-border)' }}>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderBottom: '1px solid var(--color-border)' }}>
             <ChampIcon p={p} size={32} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 3 }}>{nameKo}</div>
@@ -146,7 +146,7 @@ function EconomyTab({ team }: { team: Participant[] }) {
                 <div><div style={{ fontSize: 13, fontWeight: 700 }}>{p.visionScore}</div><div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>시야</div></div>
               </div>
             </div>
-            <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', flexShrink: 0 }}>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', flexShrink: 0 }}>
               <div style={{ fontSize: 10, fontWeight: 800, color: 'var(--color-primary)' }}>{Math.round((p.gold / maxGold) * 100)}%</div>
             </div>
           </div>
@@ -190,7 +190,7 @@ function TeamInfoTab({ match }: { match: Match }) {
   return (
     <div style={{ padding: '12px 0' }}>
       {/* 팀 헤더 */}
-      <div className="grid-16" style={{ padding: '0 12px 12px', borderBottom: '1px solid var(--glass-border)' }}>
+      <div className="grid-16" style={{ padding: '0 12px 12px', borderBottom: '1px solid var(--color-border)' }}>
         <div className="col-span-7" style={{ textAlign: 'left' }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-info)' }}>블루팀</div>
           <div style={{ fontSize: 11, color: blueWin ? 'var(--color-win)' : 'var(--color-loss)' }}>{blueWin ? '승리' : '패배'}</div>
@@ -204,7 +204,7 @@ function TeamInfoTab({ match }: { match: Match }) {
 
       {/* 통계 행 */}
       {rows.map(r => (
-        <div key={r.label} className="grid-16" style={{ alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid var(--glass-border)' }}>
+        <div key={r.label} className="grid-16" style={{ alignItems: 'center', padding: '8px 12px', borderBottom: '1px solid var(--color-border)' }}>
           <div className="col-span-7" style={{ fontSize: 16, fontWeight: 800, color: r.blue > r.red ? 'var(--color-text-primary)' : 'var(--color-text-disabled)', textAlign: 'left' }}>
             {r.blue}
           </div>
@@ -264,7 +264,7 @@ function TeamSection({ match, side, tab, mvp }: {
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '8px 12px', background: 'rgba(255,255,255,0.03)',
-        borderBottom: '1px solid var(--glass-border)',
+        borderBottom: '1px solid var(--color-border)',
       }}>
         <span style={{ fontSize: 13, fontWeight: 800, color }}>{side === 'blue' ? '블루팀' : '레드팀'}</span>
         <span style={{
@@ -335,8 +335,6 @@ export function MobileMatchDetailPage() {
         padding: '12px 14px', borderRadius: 12, marginBottom: 12,
         background: blueWin ? 'rgba(59,158,255,0.08)' : 'rgba(232,64,64,0.08)',
         border: `1px solid ${blueWin ? 'rgba(59,158,255,0.2)' : 'rgba(232,64,64,0.2)'}`,
-        backdropFilter: 'blur(var(--glass-blur))',
-        WebkitBackdropFilter: 'blur(var(--glass-blur))',
       }}>
         <div>
           <div style={{ fontSize: 14, fontWeight: 800, color: blueWin ? 'var(--color-info)' : 'var(--color-loss)' }}>
@@ -366,10 +364,8 @@ export function MobileMatchDetailPage() {
       {/* 본문 */}
       <div style={{
         borderRadius: 12, overflow: 'hidden',
-        border: '1px solid var(--glass-border)',
-        background: 'var(--glass-bg)',
-        backdropFilter: 'blur(var(--glass-blur))',
-        WebkitBackdropFilter: 'blur(var(--glass-blur))',
+        border: '1px solid var(--color-border)',
+        background: 'var(--bg-surface)',
       }}>
         {tab === '팀정보' ? (
           <TeamInfoTab match={data} />

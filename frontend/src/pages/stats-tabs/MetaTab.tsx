@@ -23,7 +23,7 @@ export default function MetaTab({ mode }: { mode: string }) {
 
   const renderChampList = (title: string, list: MetaShiftChampion[], trendColor: string) => (
     <section style={{ marginBottom: 24 }}>
-      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid var(--glass-border)', color: 'var(--color-text-primary)' }}>{title}</h3>
+      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}>{title}</h3>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
         {list.map((c: MetaShiftChampion) => {
           const nameKo = champions.get(c.championId)?.nameKo ?? c.champion;

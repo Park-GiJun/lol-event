@@ -1,9 +1,9 @@
 /* ================================================================
- * SPINNER — 로딩 인디케이터
+ * SPINNER — Gold spinning ring
  * ================================================================ */
 .spinner {
   display: inline-block;
-  border: 2px solid rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(200, 170, 110, 0.1);
   border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
@@ -22,7 +22,7 @@
 }
 
 /* ================================================================
- * SKELETON — 쉬머 로딩
+ * SKELETON — Gold-tinted shimmer
  * ================================================================ */
 @keyframes skeleton-shimmer {
   0%   { background-position: -200% 0; }
@@ -32,9 +32,9 @@
 .skeleton {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.06) 50%,
-    rgba(255, 255, 255, 0.03) 75%
+    rgba(200, 170, 110, 0.03) 25%,
+    rgba(200, 170, 110, 0.07) 50%,
+    rgba(200, 170, 110, 0.03) 75%
   );
   background-size: 200% 100%;
   border-radius: var(--radius-sm);

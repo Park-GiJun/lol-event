@@ -128,7 +128,7 @@ export function PlayerChartsSection({ eloHistory, championStats }: Props) {
   };
 
   return (
-    <div className="card-glass" style={{ marginBottom: 20 }}>
+    <div className="card" style={{ marginBottom: 20 }}>
       <div style={{
         fontWeight: 700, fontSize: 'var(--font-size-sm)',
         marginBottom: 16, color: 'var(--color-text-primary)',

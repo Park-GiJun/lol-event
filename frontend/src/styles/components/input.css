@@ -1,5 +1,5 @@
 /* ================================================================
- * INPUT — 글래스모피즘 폼 컨트롤
+ * INPUT — Hextech Form Controls
  * ================================================================ */
 .input-wrapper { display: flex; flex-direction: column; gap: 6px; }
 
@@ -13,8 +13,8 @@
 .input {
   width: 100%;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--glass-border);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
@@ -28,19 +28,19 @@
 
 .input:hover:not(:focus) {
   border-color: var(--color-border-light);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-bg-hover);
 }
 
 .input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1), var(--shadow-teal);
-  background: rgba(0, 180, 216, 0.03);
+  box-shadow: 0 0 0 2px rgba(200, 170, 110, 0.1), 0 0 12px rgba(200, 170, 110, 0.06);
+  background: var(--color-bg-tertiary);
 }
 
 .input::placeholder { color: var(--color-text-disabled); }
 
 .input-error { border-color: var(--color-error) !important; }
-.input-error:focus { box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12), 0 0 12px rgba(239, 68, 68, 0.08); }
+.input-error:focus { box-shadow: 0 0 0 2px rgba(232, 64, 87, 0.12), 0 0 12px rgba(232, 64, 87, 0.06); }
 .input-error-msg { font-size: var(--font-size-xs); color: var(--color-error); margin-top: 2px; }
 
 .textarea { resize: vertical; min-height: 100px; }

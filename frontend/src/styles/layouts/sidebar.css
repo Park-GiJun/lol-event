@@ -1,21 +1,21 @@
 /* ================================================================
- * SIDEBAR — 그라데이션 배경 + 글로우 효과
+ * SIDEBAR — Hextech Dark Sidebar with Gold Accents
  * ================================================================ */
 
-/* ── Desktop Layout ───────────────────────────────────────── */
+/* -- Desktop Layout -- */
 .layout { display: flex; height: 100vh; overflow: hidden; }
 
 .sidebar {
   width: var(--sidebar-width);
-  background: linear-gradient(180deg, rgba(13, 18, 37, 0.95) 0%, rgba(10, 14, 26, 1) 100%);
-  border-right: 1px solid var(--glass-border);
+  background: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   position: relative;
 }
 
-/* 사이드바 우측 글로우 라인 */
+/* Sidebar right gold glow line */
 .sidebar::after {
   content: '';
   position: absolute;
@@ -23,20 +23,20 @@
   right: 0;
   bottom: 0;
   width: 1px;
-  background: linear-gradient(180deg, rgba(0, 180, 216, 0.15) 0%, transparent 50%, rgba(0, 180, 216, 0.08) 100%);
+  background: linear-gradient(180deg, rgba(200, 170, 110, 0.1) 0%, transparent 50%, rgba(200, 170, 110, 0.05) 100%);
   pointer-events: none;
 }
 
 .sidebar-logo {
   padding: var(--spacing-lg) var(--spacing-md);
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
   position: relative;
 }
 
-/* 로고 하단 글로우 */
+/* Logo bottom gold glow */
 .sidebar-logo::after {
   content: '';
   position: absolute;
@@ -44,7 +44,7 @@
   left: 20%;
   right: 20%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0, 180, 216, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.15), transparent);
   pointer-events: none;
 }
 
@@ -52,19 +52,20 @@
   width: 34px;
   height: 34px;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, rgba(0, 180, 216, 0.2) 0%, rgba(0, 144, 173, 0.1) 100%);
-  border: 1px solid rgba(0, 180, 216, 0.25);
+  background: linear-gradient(135deg, rgba(200, 170, 110, 0.15) 0%, rgba(120, 90, 40, 0.08) 100%);
+  border: 1px solid rgba(200, 170, 110, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--color-primary);
   flex-shrink: 0;
-  box-shadow: 0 0 12px rgba(0, 180, 216, 0.15);
+  box-shadow: 0 0 12px rgba(200, 170, 110, 0.1);
 }
 
 .sidebar-logo-text {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-display);
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -85,7 +86,7 @@
 }
 .sidebar-close-btn:hover {
   color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(240, 230, 210, 0.04);
 }
 
 .sidebar-nav {
@@ -100,7 +101,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--color-text-disabled);
+  color: var(--color-primary);
 }
 
 .sidebar-item {
@@ -141,30 +142,31 @@
 
 .sidebar-item:hover {
   color: var(--color-text-primary);
-  background: rgba(255, 255, 255, 0.03);
-  border-left-color: rgba(255, 255, 255, 0.08);
+  background: rgba(240, 230, 210, 0.02);
+  border-left-color: rgba(200, 170, 110, 0.1);
 }
 
 .sidebar-item:hover .sidebar-item-icon {
-  background: rgba(0, 180, 216, 0.08);
-  color: var(--color-primary-light);
-  box-shadow: 0 0 10px rgba(0, 180, 216, 0.12);
+  background: rgba(200, 170, 110, 0.06);
+  color: var(--color-primary);
+  box-shadow: 0 0 10px rgba(200, 170, 110, 0.08);
 }
 
+/* Active: gold left border + background tint */
 .sidebar-item.active {
   color: var(--color-primary);
   border-left-color: var(--color-primary);
-  background: rgba(0, 180, 216, 0.07);
+  background: rgba(200, 170, 110, 0.06);
   font-weight: var(--font-weight-semibold);
 }
 
 .sidebar-item.active .sidebar-item-icon {
-  background: rgba(0, 180, 216, 0.15);
+  background: rgba(200, 170, 110, 0.12);
   color: var(--color-primary);
-  box-shadow: 0 0 12px rgba(0, 180, 216, 0.25);
+  box-shadow: 0 0 12px rgba(200, 170, 110, 0.2);
 }
 
-/* 활성 아이템 그라데이션 인디케이터 */
+/* Active item gold gradient indicator */
 .sidebar-item.active::before {
   content: '';
   position: absolute;
@@ -174,22 +176,23 @@
   width: 3px;
   background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   border-radius: 0 3px 3px 0;
-  box-shadow: 0 0 10px rgba(0, 180, 216, 0.5);
+  box-shadow: 0 0 10px rgba(200, 170, 110, 0.4);
 }
 
 .sidebar-item:active {
-  background: rgba(0, 180, 216, 0.1);
+  background: rgba(200, 170, 110, 0.08);
 }
 
-/* ── Main Content ─────────────────────────────────────────── */
+/* -- Main Content -- */
 .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .page-content { flex: 1; overflow-y: auto; padding: var(--spacing-lg); }
 
-/* ── Page Header ──────────────────────────────────────────── */
+/* -- Page Header -- */
 .page-header { margin-bottom: var(--spacing-lg); }
 .page-title {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-display);
   color: var(--color-text-primary);
   letter-spacing: var(--tracking-tight);
 }
@@ -199,12 +202,12 @@
   margin-top: 4px;
 }
 
-/* ── Mobile elements (hidden on desktop) ─────────────────── */
+/* -- Mobile elements (hidden on desktop) -- */
 .mobile-header { display: none; }
 .bottom-nav    { display: none; }
 .sidebar-overlay { display: none; }
 
-/* ── Mobile Layout ────────────────────────────────────────── */
+/* -- Mobile Layout -- */
 @media (max-width: 768px) {
   .layout {
     flex-direction: column;
@@ -232,9 +235,7 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.7);
     z-index: 1000;
     animation: fadeIn 0.25s ease;
   }
@@ -245,10 +246,8 @@
     height: var(--header-height);
     padding: 0 var(--spacing-md);
     gap: var(--spacing-sm);
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur-heavy));
-    -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
-    border-bottom: 1px solid var(--glass-border);
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
     z-index: 100;
   }
@@ -264,8 +263,8 @@
     width: 30px;
     height: 30px;
     border-radius: var(--radius-md);
-    background: linear-gradient(135deg, rgba(0, 180, 216, 0.2) 0%, rgba(0, 144, 173, 0.1) 100%);
-    border: 1px solid rgba(0, 180, 216, 0.25);
+    background: linear-gradient(135deg, rgba(200, 170, 110, 0.15) 0%, rgba(120, 90, 40, 0.08) 100%);
+    border: 1px solid rgba(200, 170, 110, 0.2);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -276,6 +275,7 @@
   .mobile-header-title {
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-bold);
+    font-family: var(--font-family-display);
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -288,8 +288,8 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--glass-border);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-full);
     padding: 5px 12px;
     max-width: 240px;
@@ -297,8 +297,8 @@
   }
 
   .mobile-header-search:focus-within {
-    border-color: rgba(0, 180, 216, 0.3);
-    background: rgba(0, 180, 216, 0.04);
+    border-color: rgba(200, 170, 110, 0.3);
+    background: rgba(200, 170, 110, 0.04);
   }
 
   .mobile-search-icon {
@@ -321,8 +321,8 @@
   }
 
   .mobile-hamburger {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--glass-border);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
     color: var(--color-text-secondary);
     width: 34px;
     height: 34px;
@@ -336,8 +336,8 @@
   .mobile-hamburger:hover,
   .mobile-hamburger.active {
     color: var(--color-primary);
-    background: rgba(0, 180, 216, 0.08);
-    border-color: rgba(0, 180, 216, 0.25);
+    background: rgba(200, 170, 110, 0.06);
+    border-color: rgba(200, 170, 110, 0.2);
   }
 
   .main-content {
@@ -351,7 +351,7 @@
     padding-bottom: calc(64px + var(--spacing-sm));
   }
 
-  /* ── Bottom Navigation ────────────────────────────────── */
+  /* -- Bottom Navigation -- */
   .bottom-nav {
     display: flex;
     align-items: stretch;
@@ -360,10 +360,8 @@
     left: 0;
     right: 0;
     height: 60px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur-heavy));
-    -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
-    border-top: 1px solid var(--glass-border);
+    background: var(--color-bg-secondary);
+    border-top: 1px solid var(--color-border);
     z-index: 100;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -407,7 +405,7 @@
     height: 4px;
     border-radius: 50%;
     background: var(--color-primary);
-    box-shadow: 0 0 6px rgba(0, 180, 216, 0.7);
+    box-shadow: 0 0 6px rgba(200, 170, 110, 0.6);
     animation: fadeIn 0.2s ease both;
   }
 

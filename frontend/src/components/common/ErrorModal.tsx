@@ -14,19 +14,9 @@ export const ErrorModal = memo(function ErrorModal({ isOpen, title, message, onC
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm"
       footer={<Button variant="danger" onClick={onClose} aria-label="오류 확인 후 닫기">확인</Button>}>
-      <div
-        className="flex items-center gap-md"
-        style={{
-          color: 'var(--color-error)',
-          padding: 'var(--spacing-sm)',
-          background: 'rgba(239, 68, 68, 0.06)',
-          border: '1px solid rgba(239, 68, 68, 0.15)',
-          borderRadius: 'var(--radius-md)',
-        }}
-        role="alert"
-      >
-        <AlertCircle size={20} aria-hidden="true" style={{ flexShrink: 0 }} />
-        <span style={{ fontSize: 'var(--font-size-sm)', lineHeight: 'var(--line-height-normal)' }}>{message}</span>
+      <div className="error-alert" role="alert">
+        <AlertCircle size={20} aria-hidden="true" className="error-alert-icon" />
+        <span className="error-alert-message">{message}</span>
       </div>
     </Modal>
   );

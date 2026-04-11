@@ -1,6 +1,6 @@
-/* ═══════════════════════════════════════════════════════
-   Popup Panel — 공통 패널 (PlayerLink / ChampionLink)
-   ═══════════════════════════════════════════════════════ */
+/* ================================================================
+   Popup Panel — Hextech Dark Card Tooltip
+   ================================================================ */
 
 .popup-trigger {
   cursor: pointer;
@@ -12,7 +12,6 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-/* 카드/이미지 래퍼에는 텍스트 효과 제거 */
 .popup-trigger--card {
   display: inline-block;
   text-decoration: none !important;
@@ -29,7 +28,7 @@
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-radius: 10px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(200, 170, 110, 0.08);
   overflow: hidden;
   pointer-events: auto;
   animation: popup-fade-in 0.12s ease;
@@ -69,7 +68,7 @@
   color: var(--color-text-disabled);
   text-align: center;
   border-top: 1px solid var(--color-border);
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .popup-section-title {
@@ -77,13 +76,13 @@
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-primary);
   margin-bottom: 6px;
 }
 
-/* ═══════════════════════════════════════════════════════
+/* ================================================================
    Player Popup
-   ═══════════════════════════════════════════════════════ */
+   ================================================================ */
 
 .popup-player {
   cursor: pointer;
@@ -114,7 +113,7 @@
   color: var(--color-text-secondary);
 }
 
-/* 승률 바 */
+/* Win rate bar */
 .popup-wr-row {
   display: flex;
   align-items: center;
@@ -151,7 +150,7 @@
   font-family: var(--font-family-mono);
 }
 
-/* 핵심 스탯 */
+/* Stats row */
 .popup-stats-row {
   display: flex;
   gap: 0;
@@ -180,7 +179,7 @@
   text-transform: uppercase;
 }
 
-/* 주요 챔피언 */
+/* Champion icons */
 .popup-champs {
   display: flex;
   gap: 6px;
@@ -223,9 +222,9 @@
   font-family: var(--font-family-mono);
 }
 
-/* ═══════════════════════════════════════════════════════
+/* ================================================================
    Champion Popup
-   ═══════════════════════════════════════════════════════ */
+   ================================================================ */
 
 .popup-champ {
   cursor: pointer;
@@ -237,7 +236,7 @@
   gap: 10px;
   padding: 12px 14px 10px;
   border-bottom: 1px solid var(--color-border);
-  background: linear-gradient(135deg, rgba(200, 155, 60, 0.05) 0%, transparent 60%);
+  background: linear-gradient(135deg, rgba(200, 170, 110, 0.04) 0%, transparent 60%);
 }
 
 .popup-champ-hero-img {
@@ -266,7 +265,7 @@
   color: var(--color-text-secondary);
 }
 
-/* 장인 랭킹 */
+/* Master ranking */
 .popup-masters {
   padding: 8px 12px;
   border-bottom: 1px solid var(--color-border);
@@ -309,7 +308,7 @@
   font-family: var(--font-family-mono);
 }
 
-/* 인기 아이템 */
+/* Popular items */
 .popup-items {
   padding: 8px 12px;
   border-bottom: 1px solid var(--color-border);
@@ -349,7 +348,7 @@
   font-weight: 700;
 }
 
-/* 모바일에서 팝업 숨기기 (hover 없음) */
+/* Hide popup on mobile */
 @media (max-width: 768px) {
   .popup-panel { display: none !important; }
 }

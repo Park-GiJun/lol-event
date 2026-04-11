@@ -22,7 +22,7 @@ export function LcuPage() {
       </div>
 
       {/* 다운로드 섹션 */}
-      <div className="card-glass" style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-lg)' }}>
+      <div className="card" style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-lg)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
           <div style={{
             width: 44, height: 44, borderRadius: 12,
@@ -64,7 +64,7 @@ export function LcuPage() {
           {FEATURES.map(({ icon: Icon, title, desc }) => (
             <div key={title} className="col-span-8" style={{
               display: 'flex', gap: 12, padding: '12px 0',
-              borderBottom: '1px solid var(--glass-border)',
+              borderBottom: '1px solid var(--color-border)',
             }}>
               <div style={{
                 width: 36, height: 36, borderRadius: 10, flexShrink: 0,

@@ -569,7 +569,7 @@ export function AdminPage() {
             {duoData.slice(0, 20).map(duo => (
               <div key={`${duo.player1}-${duo.player2}`}
                 className="duo-ref-card col-span-4"
-                style={{ borderColor: duo.winRate >= 60 ? 'rgba(16,185,129,0.3)' : duo.winRate < 45 ? 'rgba(239,68,68,0.3)' : 'var(--glass-border)' }}>
+                style={{ borderColor: duo.winRate >= 60 ? 'rgba(16,185,129,0.3)' : duo.winRate < 45 ? 'rgba(239,68,68,0.3)' : 'var(--color-border)' }}>
                 <div className="duo-ref-players">
                   {duo.player1} <span className="text-secondary">+</span> {duo.player2}
                 </div>
