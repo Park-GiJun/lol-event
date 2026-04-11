@@ -97,13 +97,27 @@ object Build : BuildType({
                 equals("build.lcu", "true")
             }
         }
-        gradle {
+        script {
             id = "desktop_build"
-            name = "Desktop Collector - Package MSI"
-            tasks = "packageMsi"
-            workingDir = "desktop-collector"
-            gradleWrapperPath = ""
-            jdkHome = "%env.JAVA_HOME%"
+            name = "Desktop Collector - Package MSI (Windows only)"
+            scriptContent = """
+                #!/bin/bash
+                echo "=== Desktop Collector MSI 빌드 ==="
+                # MSI 패키징은 Windows 전용 (jpackage + WiX 필요)
+                # Linux CI에서는 스킵하고, 로컬 빌드된 MSI가 있으면 그대로 사용
+                if ls desktop-collector/build/compose/binaries/main/msi/*.msi 1>/dev/null 2>&1; then
+                    echo "기존 MSI 파일 발견 — 빌드 스킵"
+                    ls -lh desktop-collector/build/compose/binaries/main/msi/*.msi
+                else
+                    echo "MSI 파일 없음 — Windows에서 로컬 빌드 후 커밋하세요:"
+                    echo "  cd desktop-collector"
+                    echo "  set JAVA_HOME=C:\\Users\\tpgj9\\.jdks\\ms-25.0.2"
+                    echo "  gradlew.bat packageMsi"
+                    echo "  git add build/compose/binaries/main/msi/"
+                    echo ""
+                    echo "또는 installer/ 디렉토리에 미리 빌드된 MSI를 배치하세요"
+                fi
+            """.trimIndent()
             conditions {
                 equals("build.desktop", "true")
             }
@@ -146,13 +160,20 @@ object Build : BuildType({
                     cp -r frontend/dist ${'$'}DEPLOY_DIR/frontend-dist
                     mkdir -p ${'$'}DEPLOY_DIR/frontend-dist/downloads
 
-                    # Desktop Collector MSI → 프론트엔드 다운로드 경로
+                    # Desktop Collector MSI → 프론트엔드 다운로드 경로 (빌드 결과 또는 installer/ 폴백)
+                    MSI_SOURCE=""
                     if ls desktop-collector/build/compose/binaries/main/msi/*.msi 1>/dev/null 2>&1; then
-                        cp desktop-collector/build/compose/binaries/main/msi/*.msi ${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi
+                        MSI_SOURCE=${'$'}(ls desktop-collector/build/compose/binaries/main/msi/*.msi | head -1)
+                    elif [ -f "${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi" ]; then
+                        echo "기존 배포된 MSI 파일 재사용"
+                        MSI_SOURCE=""
+                    fi
+
+                    if [ -n "${'$'}MSI_SOURCE" ]; then
+                        cp "${'$'}MSI_SOURCE" ${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi
 
                         # Generate desktop-latest.json for auto-updater
-                        MSI_FILE=${'$'}(ls desktop-collector/build/compose/binaries/main/msi/*.msi | head -1)
-                        MSI_VERSION=${'$'}(echo "${'$'}MSI_FILE" | grep -oP '\d+\.\d+\.\d+')
+                        MSI_VERSION=${'$'}(echo "${'$'}MSI_SOURCE" | grep -oP '\d+\.\d+\.\d+' || echo "1.0.1")
                         cat > ${'$'}DEPLOY_DIR/frontend-dist/downloads/desktop-latest.json <<EOJSON
 {
   "version": "${'$'}MSI_VERSION",
