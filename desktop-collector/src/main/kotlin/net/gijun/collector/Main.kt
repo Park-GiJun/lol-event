@@ -29,7 +29,7 @@ import java.net.ServerSocket
 import java.net.URI
 import javax.swing.JOptionPane
 
-private const val APP_VERSION = "1.0.5"
+private const val APP_VERSION = "1.0.6"
 private const val SINGLE_INSTANCE_PORT = 47632
 
 fun main() {
@@ -129,6 +129,26 @@ private fun App(
         }
     }
 
+    // ── 게임 시작 감지 → LIVE 페이지 자동 전환 (게임당 1회) ──
+    var lastGamePhase by remember { mutableStateOf("") }
+    var autoSwitchedThisGame by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        while (isActive) {
+            val phase = try { LcuClient.getGamePhase() ?: "" } catch (_: Exception) { "" }
+            // InProgress로 막 진입한 순간이면서 이번 게임에 아직 자동 전환 안 했으면 LIVE로 이동
+            if (phase == "InProgress" && lastGamePhase != "InProgress" && !autoSwitchedThisGame) {
+                currentPage = Page.LIVE
+                autoSwitchedThisGame = true
+            }
+            // 게임 종료(EndOfGame/PreEndOfGame/Lobby/None 등)면 다음 게임을 위해 트리거 리셋
+            if (phase != "InProgress" && phase != "GameStart") {
+                autoSwitchedThisGame = false
+            }
+            lastGamePhase = phase
+            delay(5_000)
+        }
+    }
+
     // ── 게임 페이즈 모니터 ──
     val monitorScope = rememberCoroutineScope()
     var dodgeCount by remember { mutableStateOf(0) }
@@ -164,6 +184,7 @@ private fun App(
             Box(Modifier.colSpan(13).fillMaxHeight().background(LolColors.BgPrimary)) {
                 when (currentPage) {
                     Page.DASHBOARD -> DashboardPage()
+                    Page.LIVE -> LiveGamePage()
                     Page.MATCHES -> MatchHistoryPage()
                     Page.COLLECT -> CollectPage(
                         lcuStatus = lcuStatus,
