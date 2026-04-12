@@ -37,7 +37,7 @@ import java.net.ServerSocket
 import java.net.URI
 import javax.swing.JOptionPane
 
-private const val APP_VERSION = "1.0.4"
+private const val APP_VERSION = "1.0.5"
 private const val SINGLE_INSTANCE_PORT = 47632
 
 fun main() {
