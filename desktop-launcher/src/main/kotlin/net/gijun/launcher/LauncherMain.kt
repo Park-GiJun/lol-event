@@ -39,7 +39,7 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.file.Files
 
-private const val LAUNCHER_VERSION = "1.0.1"
+private const val LAUNCHER_VERSION = "1.0.2"
 private const val GITHUB_RELEASES_URL = "https://api.github.com/repos/Park-GiJun/lol-event/releases"
 private const val MAIN_APP_DISPLAY_NAME = "LoL-Collector"
 private const val MAIN_APP_EXE = "LoL-Collector.exe"
@@ -288,7 +288,18 @@ private suspend fun downloadMsi(
 }
 
 private fun runMsiInstall(msi: File): Int {
-    val proc = ProcessBuilder("msiexec", "/i", msi.absolutePath, "/qn", "/norestart")
+    // PowerShell Start-Process -Verb RunAs를 통해 UAC 프롬프트와 함께 msiexec를 elevated 권한으로 실행한다.
+    // /qb는 기본 진행률 UI를 띄워 사용자가 설치 진행을 볼 수 있게 한다 (/qn으로는 권한 부족 시 1603 에러).
+    val msiPath = msi.absolutePath.replace("'", "''")
+    val psCommand = buildString {
+        append("\$p = Start-Process msiexec ")
+        append("-ArgumentList '/i','\"")
+        append(msiPath)
+        append("\"','/qb','/norestart' ")
+        append("-Verb RunAs -Wait -PassThru; ")
+        append("exit \$p.ExitCode")
+    }
+    val proc = ProcessBuilder("powershell", "-NoProfile", "-Command", psCommand)
         .redirectErrorStream(true)
         .start()
     return proc.waitFor()
