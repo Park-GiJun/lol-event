@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Layers
+import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Whatshot
@@ -27,6 +28,7 @@ import net.gijun.collector.ui.theme.LolColors
 
 enum class Page(val label: String, val icon: ImageVector) {
     DASHBOARD("내전 대시보드", Icons.Default.Layers),
+    LIVE("실시간 분석", Icons.Default.RadioButtonChecked),
     MATCHES("경기 기록", Icons.Default.History),
     COLLECT("매치 수집", Icons.Default.Layers),
     CUSTOM("내전 분석", Icons.Default.Layers),       // Swords 아이콘 대체
