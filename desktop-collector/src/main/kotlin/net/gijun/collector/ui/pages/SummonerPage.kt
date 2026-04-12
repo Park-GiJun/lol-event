@@ -457,16 +457,16 @@ private fun TeamRow(p: MatchParticipant, searchedRiotId: String) {
 // ── Riot API 프로필 ──────────────────────────────
 
 private val TIER_COLOR = mapOf(
-    "IRON" to Color(0xFF6B5B5B),
-    "BRONZE" to Color(0xFFCD7F32),
-    "SILVER" to Color(0xFFC0C0C0),
-    "GOLD" to Color(0xFFFFD700),
-    "PLATINUM" to Color(0xFF0BC4B4),
-    "EMERALD" to Color(0xFF50C878),
-    "DIAMOND" to Color(0xFF6FA3EF),
-    "MASTER" to Color(0xFF9B59B6),
-    "GRANDMASTER" to Color(0xFFE84040),
-    "CHALLENGER" to Color(0xFFF5C542),
+    "IRON" to Color(0xFF5B5A56),
+    "BRONZE" to LolColors.PrimaryDark,
+    "SILVER" to Color(0xFFA09B8C),
+    "GOLD" to LolColors.Primary,
+    "PLATINUM" to LolColors.Win,
+    "EMERALD" to LolColors.Win,
+    "DIAMOND" to LolColors.Info,
+    "MASTER" to Color(0xFF9B6FDB),
+    "GRANDMASTER" to LolColors.Loss,
+    "CHALLENGER" to LolColors.PrimaryLight,
 )
 
 @Composable

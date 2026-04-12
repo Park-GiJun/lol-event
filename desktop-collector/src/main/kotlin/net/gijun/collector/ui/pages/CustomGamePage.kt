@@ -321,9 +321,9 @@ private fun PlayerRankingCard(allPlayers: List<PlayerData>) {
             ranked.forEachIndexed { index, p ->
                 val stats = p.fullStats!!
                 val rankColor = when (index) {
-                    0 -> Color(0xFFFFD700)
-                    1 -> Color(0xFFC0C0C0)
-                    2 -> Color(0xFFCD7F32)
+                    0 -> LolColors.PrimaryLight
+                    1 -> Color(0xFFA09B8C)
+                    2 -> LolColors.PrimaryDark
                     else -> LolColors.TextPrimary
                 }
                 Row(
@@ -350,9 +350,9 @@ private fun PlayerRankingCard(allPlayers: List<PlayerData>) {
                         fontSize = 10.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = when (soloRank?.tier?.uppercase()) {
-                            "CHALLENGER", "GRANDMASTER", "MASTER" -> Color(0xFFFFD700)
-                            "DIAMOND", "EMERALD" -> Color(0xFF48CAE4)
-                            "PLATINUM", "GOLD" -> Color(0xFFC89B3C)
+                            "CHALLENGER", "GRANDMASTER", "MASTER" -> LolColors.PrimaryLight
+                            "DIAMOND", "EMERALD" -> LolColors.Info
+                            "PLATINUM", "GOLD" -> LolColors.Primary
                             else -> LolColors.TextSecondary
                         },
                         modifier = Modifier.width(70.dp),

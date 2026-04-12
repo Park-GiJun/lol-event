@@ -361,7 +361,7 @@ fun LiveGamePage() {
                             val (label, color) = when (event.eventName) {
                                 "ChampionKill" -> "킬" to LolColors.Error
                                 "DragonKill" -> "드래곤" to LolColors.Warning
-                                "BaronKill" -> "바론" to Color(0xFFAA44FF)
+                                "BaronKill" -> "바론" to Color(0xFF9B6FDB)
                                 "HeraldKill" -> "전령" to LolColors.Info
                                 "TurretKilled" -> "포탑 파괴" to LolColors.TextSecondary
                                 "InhibKilled" -> "억제기 파괴" to LolColors.Win

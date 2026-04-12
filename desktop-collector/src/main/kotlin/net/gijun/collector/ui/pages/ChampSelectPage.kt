@@ -1105,10 +1105,10 @@ private fun ChampionTierSection(data: ChampionTierResult?) {
                 }
                 data.tiers.take(20).forEach { entry ->
                     val tierColor = when (entry.tier.uppercase()) {
-                        "S" -> Color(0xFFFFD700)
-                        "A" -> Color(0xFF4CAF50)
-                        "B" -> LolColors.Info
-                        "C" -> LolColors.TextSecondary
+                        "S" -> LolColors.PrimaryLight
+                        "A" -> LolColors.Win
+                        "B" -> Color(0xFF5B5A56)
+                        "C" -> Color(0xFF3C3C41)
                         else -> LolColors.TextDisabled
                     }
                     Row(

@@ -11,40 +11,46 @@ import androidx.compose.ui.unit.sp
 // ── LoL 스타일 색상 팔레트 ──────────────────────────
 
 object LolColors {
-    val Primary = Color(0xFFC89B3C)        // 골드
-    val PrimaryLight = Color(0xFFD4AF5A)
-    val PrimaryDark = Color(0xFFA07830)
-    val PrimaryHover = Color(0xFFB8882C)
+    // Hextech Gold
+    val Primary = Color(0xFFC8AA6E)
+    val PrimaryLight = Color(0xFFF0E6D2)
+    val PrimaryDark = Color(0xFF785A28)
+    val PrimaryHover = Color(0xFFD4B87A)
 
-    val BgPrimary = Color(0xFF0A1428)
-    val BgSecondary = Color(0xFF091428)
-    val BgTertiary = Color(0xFF0E1C34)
-    val BgCard = Color(0xFF0D1B2E)
-    val BgHover = Color(0xFF152035)
+    // Obsidian Backgrounds
+    val BgPrimary = Color(0xFF06080C)
+    val BgSecondary = Color(0xFF0C0F16)
+    val BgTertiary = Color(0xFF12151F)
+    val BgCard = Color(0xFF0C0F16)
+    val BgHover = Color(0xFF1A1D26)
 
-    val TextPrimary = Color(0xFFF0E6D3)
-    val TextSecondary = Color(0xFFA0A8B0)
+    // Warm Text
+    val TextPrimary = Color(0xFFF0E6D2)
+    val TextSecondary = Color(0xFFA09B8C)
     val TextDisabled = Color(0xFF5B5A56)
-    val TextInverse = Color(0xFF0A1428)
+    val TextInverse = Color(0xFF06080C)
 
-    val Border = Color(0xFF1E2D40)
-    val BorderLight = Color(0xFF243547)
+    // Borders
+    val Border = Color(0xFF1E2328)
+    val BorderLight = Color(0xFF32281E)
 
-    val Win = Color(0xFF0BC4B4)
-    val Loss = Color(0xFFE84040)
-    val Info = Color(0xFF3B9EFF)
-    val Warning = Color(0xFFFFD166)
-    val Success = Color(0xFF0BC4B4)
-    val Error = Color(0xFFE84040)
+    // Semantic
+    val Win = Color(0xFF0AC8B9)
+    val Loss = Color(0xFFE84057)
+    val Info = Color(0xFF0AC8B9)
+    val Warning = Color(0xFFC8AA6E)
+    val Success = Color(0xFF0AC8B9)
+    val Error = Color(0xFFE84057)
 
-    val Blue = Color(0xFF4A90D9)
-    val Red = Color(0xFFD94A4A)
+    // Team Colors
+    val Blue = Color(0xFF0AC8B9)
+    val Red = Color(0xFFE84057)
 }
 
 fun winRateColor(wr: Double): Color = when {
-    wr >= 60 -> Color(0xFFFF4E50)
-    wr >= 55 -> Color(0xFFFFB347)
-    wr >= 50 -> Color(0xFF4CAF50)
+    wr >= 60 -> LolColors.Loss
+    wr >= 55 -> LolColors.Primary
+    wr >= 50 -> LolColors.Win
     else -> LolColors.TextSecondary
 }
 
@@ -52,11 +58,13 @@ private val DarkColorScheme = darkColorScheme(
     primary = LolColors.Primary,
     onPrimary = LolColors.TextInverse,
     primaryContainer = LolColors.PrimaryDark,
+    onPrimaryContainer = LolColors.PrimaryLight,
     secondary = LolColors.Info,
+    onSecondary = LolColors.TextInverse,
     background = LolColors.BgPrimary,
+    onBackground = LolColors.TextPrimary,
     surface = LolColors.BgCard,
     surfaceVariant = LolColors.BgSecondary,
-    onBackground = LolColors.TextPrimary,
     onSurface = LolColors.TextPrimary,
     onSurfaceVariant = LolColors.TextSecondary,
     outline = LolColors.Border,

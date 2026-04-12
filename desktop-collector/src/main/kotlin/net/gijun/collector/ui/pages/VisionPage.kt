@@ -129,9 +129,9 @@ fun VisionPage() {
 
                 entries.forEachIndexed { index, entry ->
                     val rankColor = when (index) {
-                        0 -> Color(0xFFFFD700)
-                        1 -> Color(0xFFC0C0C0)
-                        2 -> Color(0xFFCD7F32)
+                        0 -> LolColors.PrimaryLight
+                        1 -> Color(0xFFA09B8C)
+                        2 -> LolColors.PrimaryDark
                         else -> LolColors.TextPrimary
                     }
                     val visionColor = when {

@@ -158,7 +158,7 @@ private fun OverviewSection(overview: OverviewResult?) {
                     OverviewStatBox(Modifier.colSpan(3), "총 경기", "${overview.matchCount}", LolColors.Primary)
                     OverviewStatBox(Modifier.colSpan(3), "평균 시간", "${String.format("%.1f", overview.avgGameMinutes)}분", LolColors.Info)
                     OverviewStatBox(Modifier.colSpan(3), "드래곤", "${overview.totalDragonKills}", LolColors.Warning)
-                    OverviewStatBox(Modifier.colSpan(3), "바론", "${overview.totalBaronKills}", Color(0xFFAA6FDB))
+                    OverviewStatBox(Modifier.colSpan(3), "바론", "${overview.totalBaronKills}", Color(0xFF9B6FDB))
                     OverviewStatBox(Modifier.colSpan(4), "포탑", "${overview.totalTowerKills}", LolColors.Error)
                     OverviewStatBox(Modifier.colSpan(4), "총 CS", "${overview.totalCs}", LolColors.Win)
                 }
@@ -201,9 +201,9 @@ private fun EloLeaderboardSection(data: EloLeaderboardResult?) {
             } else {
                 data.players.take(10).forEachIndexed { index, entry ->
                     val rankColor = when (index) {
-                        0 -> Color(0xFFFFD700)
-                        1 -> Color(0xFFC0C0C0)
-                        2 -> Color(0xFFCD7F32)
+                        0 -> LolColors.PrimaryLight
+                        1 -> Color(0xFFA09B8C)
+                        2 -> LolColors.PrimaryDark
                         else -> LolColors.TextSecondary
                     }
                     val eloColor = when {
@@ -317,7 +317,7 @@ private fun MultikillSection(data: MultikillHighlightsResult?) {
                 Text("멀티킬 기록 없음", fontSize = 13.sp, color = LolColors.TextSecondary)
             } else {
                 if (data.pentaKillEvents.isNotEmpty()) {
-                    Text("펜타킬", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFFD700))
+                    Text("펜타킬", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = LolColors.PrimaryLight)
                     Spacer(Modifier.height(4.dp))
                     data.pentaKillEvents.take(5).forEach { event ->
                         MultikillRow(event, "PENTA")
@@ -435,7 +435,7 @@ private fun ChampionTierSection(data: ChampionTierResult?) {
                 listOf("S", "A", "B", "C").forEach { tier ->
                     val champions = tierGroups[tier] ?: return@forEach
                     val tierColor = when (tier) {
-                        "S" -> Color(0xFFFFD700)
+                        "S" -> LolColors.PrimaryLight
                         "A" -> LolColors.Win
                         "B" -> LolColors.Info
                         else -> LolColors.TextSecondary
@@ -498,9 +498,9 @@ private fun DuoSynergySection(data: DuoSynergyResult?) {
             } else {
                 data.duos.take(5).forEachIndexed { index, duo ->
                     val rankColor = when (index) {
-                        0 -> Color(0xFFFFD700)
-                        1 -> Color(0xFFC0C0C0)
-                        2 -> Color(0xFFCD7F32)
+                        0 -> LolColors.PrimaryLight
+                        1 -> Color(0xFFA09B8C)
+                        2 -> LolColors.PrimaryDark
                         else -> LolColors.TextSecondary
                     }
                     Row(
@@ -543,7 +543,7 @@ private fun PlayerStreakSection(streaks: Map<String, PlayerStreakResult>) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.Whatshot, contentDescription = null, modifier = Modifier.size(14.dp), tint = Color(0xFFFF6B35))
+                Icon(Icons.Default.Whatshot, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Loss)
                 Text("플레이어 스트릭", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
             }
             Spacer(Modifier.height(12.dp))
@@ -644,9 +644,9 @@ private fun MvpSection(data: MvpRankingResult?) {
             } else {
                 data.rankings.take(5).forEachIndexed { index, entry ->
                     val rankColor = when (index) {
-                        0 -> Color(0xFFFFD700)
-                        1 -> Color(0xFFC0C0C0)
-                        2 -> Color(0xFFCD7F32)
+                        0 -> LolColors.PrimaryLight
+                        1 -> Color(0xFFA09B8C)
+                        2 -> LolColors.PrimaryDark
                         else -> LolColors.TextSecondary
                     }
                     Row(

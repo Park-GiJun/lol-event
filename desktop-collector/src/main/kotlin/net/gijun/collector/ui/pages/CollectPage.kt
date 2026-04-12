@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -23,7 +22,7 @@ import net.gijun.collector.ui.theme.LolColors
 data class LogLine(val type: String, val message: String)
 
 private val typeColors = mapOf(
-    "info" to Color(0xFF7EB8F7),
+    "info" to LolColors.Info,
     "warn" to LolColors.Warning,
     "error" to LolColors.Error,
     "done" to LolColors.Win,
@@ -195,7 +194,7 @@ fun CollectPage(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .background(Color(0xFF050D18), RoundedCornerShape(6.dp))
+                        .background(LolColors.BgPrimary, RoundedCornerShape(6.dp))
                         .border(1.dp, LolColors.Border, RoundedCornerShape(6.dp))
                         .padding(16.dp)
                 ) {
@@ -214,7 +213,7 @@ fun CollectPage(
                                     log.message,
                                     fontSize = 11.sp,
                                     fontFamily = FontFamily.Monospace,
-                                    color = typeColors[log.type] ?: Color(0xFF7EB8F7),
+                                    color = typeColors[log.type] ?: LolColors.Info,
                                     fontWeight = if (log.type == "done") FontWeight.SemiBold else FontWeight.Normal,
                                     modifier = Modifier.padding(vertical = 1.dp),
                                 )

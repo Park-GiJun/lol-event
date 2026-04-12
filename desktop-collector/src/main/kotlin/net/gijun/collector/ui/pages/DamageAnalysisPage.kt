@@ -117,10 +117,10 @@ private fun DamagePlayerCard(entry: DamagePlayerEntry) {
     val trueFrac = if (totalDmg > 0) (entry.avgTrueDmg / totalDmg).toFloat() else 0f
 
     val profileColor = when (entry.damageProfile.uppercase()) {
-        "AD" -> Color(0xFFE8A020)
-        "AP" -> Color(0xFF4A90D9)
-        "HYBRID" -> Color(0xFF9B59B6)
-        "TANK" -> Color(0xFF2ECC71)
+        "AD" -> LolColors.Primary
+        "AP" -> LolColors.Info
+        "HYBRID" -> Color(0xFF9B6FDB)
+        "TANK" -> LolColors.Win
         else -> LolColors.TextSecondary
     }
 
@@ -165,9 +165,9 @@ private fun DamagePlayerCard(entry: DamagePlayerEntry) {
 
             // 딜 비율 바
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                DamageBarRow("물리 딜", physFrac, entry.physicalPct, entry.avgPhysicalDmg, Color(0xFFE8A020))
-                DamageBarRow("마법 딜", magicFrac, entry.magicPct, entry.avgMagicDmg, Color(0xFF4A90D9))
-                DamageBarRow("트루 딜", trueFrac, entry.truePct, entry.avgTrueDmg, Color(0xFFF0E6D3))
+                DamageBarRow("물리 딜", physFrac, entry.physicalPct, entry.avgPhysicalDmg, LolColors.Primary)
+                DamageBarRow("마법 딜", magicFrac, entry.magicPct, entry.avgMagicDmg, LolColors.Info)
+                DamageBarRow("트루 딜", trueFrac, entry.truePct, entry.avgTrueDmg, LolColors.PrimaryLight)
             }
 
             Spacer(Modifier.height(10.dp))
