@@ -24,7 +24,7 @@ powershell -NoProfile -Command "(Get-Content -Encoding UTF8 src\main\kotlin\net\
 
 REM Git commit the version bump
 cd ..
-git add desktop-collector/build.gradle.kts desktop-collector/src/main/kotlin/net/gijun/collector/Main.kt
+git add desktop-collector/build.gradle.kts desktop-collector/src/
 git commit -m "release(desktop): v%NEW_VER%"
 git push origin master
 cd desktop-collector

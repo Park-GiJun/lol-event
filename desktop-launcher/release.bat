@@ -24,7 +24,7 @@ powershell -NoProfile -Command "(Get-Content -Encoding UTF8 src\main\kotlin\net\
 
 REM Git commit the version bump
 cd ..
-git add desktop-launcher/build.gradle.kts desktop-launcher/src/main/kotlin/net/gijun/launcher/LauncherMain.kt
+git add desktop-launcher/build.gradle.kts desktop-launcher/src/
 git commit -m "release(launcher): v%NEW_VER%"
 git push origin master
 cd desktop-launcher
