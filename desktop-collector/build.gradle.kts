@@ -60,8 +60,12 @@ compose.desktop {
                 iconFile.set(project.file("src/main/resources/icon.ico"))
                 dirChooser = true
                 menuGroup = "LoL-Collector"
-                shortcut = true          // 바탕?�면 바로가�??�성
-                upgradeUuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"  // MSI ?�그?�이??UUID (고정)
+                // 본체는 바로가기/시작메뉴 항목을 만들지 않는다.
+                // 사용자가 보는 진입점은 항상 런처(LoL-Collector-Launcher)이며,
+                // 본체 exe는 런처가 ProcessBuilder로 직접 실행한다.
+                shortcut = false
+                menu = false
+                upgradeUuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
             }
         }
     }

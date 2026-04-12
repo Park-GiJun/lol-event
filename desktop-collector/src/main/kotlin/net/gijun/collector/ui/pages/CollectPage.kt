@@ -14,9 +14,6 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import net.gijun.collector.lcu.LcuStatus
 import net.gijun.collector.service.CollectService
-import net.gijun.collector.service.UpdateState
-import net.gijun.collector.ui.components.Grid16
-import net.gijun.collector.ui.components.colSpan
 import net.gijun.collector.ui.theme.LolColors
 
 data class LogLine(val type: String, val message: String)
@@ -33,13 +30,6 @@ private val typeColors = mapOf(
 fun CollectPage(
     lcuStatus: LcuStatus,
     autoStatus: String,
-    updateState: UpdateState = UpdateState.IDLE,
-    updateVersion: String = "",
-    currentVersion: String = "",
-    downloadProgress: Int = 0,
-    updateErrorMessage: String? = null,
-    onInstallUpdate: () -> Unit = {},
-    onRetryUpdate: () -> Unit = {},
     dodgeCount: Int = 0,
 ) {
     val logs = remember { mutableStateListOf<LogLine>() }
@@ -53,62 +43,6 @@ fun CollectPage(
         Spacer(Modifier.height(4.dp))
         Text("LCU에서 내전 데이터를 수집해 서버로 전송합니다", fontSize = 13.sp, color = LolColors.TextSecondary)
         Spacer(Modifier.height(24.dp))
-
-        // 업데이트 배너
-        if (updateState == UpdateState.READY || updateState == UpdateState.DOWNLOADING || updateState == UpdateState.AVAILABLE || updateState == UpdateState.ERROR) {
-            val bannerColor = if (updateState == UpdateState.ERROR) LolColors.Error else LolColors.Win
-            val bannerText = when (updateState) {
-                UpdateState.READY -> "v$updateVersion 업데이트 준비 완료 (현재: v$currentVersion)"
-                UpdateState.DOWNLOADING -> "v$updateVersion 다운로드 중... ${downloadProgress}% (현재: v$currentVersion)"
-                UpdateState.ERROR -> updateErrorMessage ?: "업데이트 오류 발생"
-                else -> "v$updateVersion 업데이트 발견 (현재: v$currentVersion)"
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(bannerColor.copy(alpha = 0.08f), RoundedCornerShape(6.dp))
-                    .border(1.dp, bannerColor.copy(alpha = 0.3f), RoundedCornerShape(6.dp))
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(bannerText, fontSize = 13.sp, color = bannerColor, modifier = Modifier.weight(1f))
-                    if (updateState == UpdateState.READY) {
-                        Button(
-                            onClick = onInstallUpdate,
-                            colors = ButtonDefaults.buttonColors(containerColor = LolColors.Primary, contentColor = LolColors.TextInverse),
-                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
-                            shape = RoundedCornerShape(6.dp),
-                        ) {
-                            Text("지금 설치", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                        }
-                    }
-                    if (updateState == UpdateState.ERROR) {
-                        Button(
-                            onClick = onRetryUpdate,
-                            colors = ButtonDefaults.buttonColors(containerColor = LolColors.Warning, contentColor = LolColors.TextInverse),
-                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
-                            shape = RoundedCornerShape(6.dp),
-                        ) {
-                            Text("다시 시도", fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
-                        }
-                    }
-                }
-                if (updateState == UpdateState.DOWNLOADING) {
-                    Spacer(Modifier.height(6.dp))
-                    LinearProgressIndicator(
-                        progress = { downloadProgress / 100f },
-                        modifier = Modifier.fillMaxWidth().height(4.dp),
-                        color = LolColors.Win,
-                        trackColor = LolColors.Win.copy(alpha = 0.2f),
-                    )
-                }
-            }
-            Spacer(Modifier.height(16.dp))
-        }
 
         // 자동 수집 상태
         if (autoStatus.isNotEmpty()) {

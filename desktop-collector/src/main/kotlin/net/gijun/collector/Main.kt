@@ -1,21 +1,13 @@
 ﻿package net.gijun.collector
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.*
 import kotlinx.coroutines.*
 import net.gijun.collector.lcu.LcuClient
@@ -129,23 +121,6 @@ private fun App(
     var autoStatus by remember { mutableStateOf("") }
     val autoLogs = remember { mutableStateListOf<LogLine>() }
 
-    // ── 자동 업데이트 ──
-    val updateScope = rememberCoroutineScope()
-    val updateService = remember { UpdateService(APP_VERSION, updateScope) }
-    var updateState by remember { mutableStateOf(UpdateState.IDLE) }
-    var updateProgress by remember { mutableStateOf(0) }
-    var updateVersion by remember { mutableStateOf("") }
-
-    LaunchedEffect(Unit) {
-        updateService.onStateChanged = {
-            updateState = updateService.state
-            updateProgress = updateService.downloadProgress
-            updateVersion = updateService.updateInfo?.version ?: ""
-        }
-        // 시작 시 업데이트 확인
-        updateService.checkForUpdates()
-    }
-
     // ── LCU 상태 폴링 ──
     LaunchedEffect(Unit) {
         while (isActive) {
@@ -176,78 +151,31 @@ private fun App(
         }
     }
 
-    Box(Modifier.fillMaxSize()) {
-        // 메인 UI
-        Column(
-            modifier = Modifier.fillMaxSize().background(LolColors.BgPrimary),
-        ) {
-            with(windowScope) {
-                Titlebar(version = APP_VERSION, lcuStatus = lcuStatus, onMinimize = onMinimize, onClose = onClose)
-            }
-            HorizontalDivider(thickness = 1.dp, color = LolColors.Border)
-
-            Grid16(Modifier.fillMaxSize(), gap = 0.dp) {
-                Sidebar(currentPage = currentPage, onPageChange = { currentPage = it }, modifier = Modifier.colSpan(3))
-                Box(Modifier.colSpan(13).fillMaxHeight().background(LolColors.BgPrimary)) {
-                    when (currentPage) {
-                        Page.DASHBOARD -> DashboardPage()
-                        Page.MATCHES -> MatchHistoryPage()
-                        Page.COLLECT -> CollectPage(
-                            lcuStatus = lcuStatus,
-                            autoStatus = autoStatus,
-                            updateState = updateState,
-                            updateVersion = updateVersion,
-                            currentVersion = APP_VERSION,
-                            downloadProgress = updateProgress,
-                            updateErrorMessage = updateService.errorMessage,
-                            onInstallUpdate = { updateService.installUpdate() },
-                            onRetryUpdate = { updateService.retryDownload() },
-                            dodgeCount = dodgeCount,
-                        )
-                        Page.CUSTOM -> CustomGamePage()
-                        Page.SUMMONER -> SummonerPage()
-                        Page.DAMAGE_ANALYSIS -> DamageAnalysisPage()
-                        Page.VISION -> VisionPage()
-                        Page.SURRENDER -> SurrenderPage()
-                    }
-                }
-            }
-        }
-
-        // 업데이트 오버레이 (다운로드 중 / 설치 중 전체 화면)
-        AnimatedVisibility(
-            visible = updateState == UpdateState.CHECKING || updateState == UpdateState.INSTALLING,
-            enter = fadeIn(),
-            exit = fadeOut(),
-        ) {
-            UpdateOverlay(updateState, updateProgress)
-        }
-    }
-}
-
-@Composable
-private fun UpdateOverlay(state: UpdateState, progress: Int) {
-    val message = when (state) {
-        UpdateState.CHECKING -> "업데이트 확인 중..."
-        UpdateState.INSTALLING -> "업데이트 설치 중... 잠시 후 재시작됩니다"
-        else -> ""
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(LolColors.BgPrimary),
-        contentAlignment = Alignment.Center,
+    Column(
+        modifier = Modifier.fillMaxSize().background(LolColors.BgPrimary),
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(20.dp)) {
-            Text("LoL 수집기", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = LolColors.Primary, letterSpacing = 1.sp)
-            Text(message, fontSize = 13.sp, color = LolColors.TextSecondary)
-            if (state == UpdateState.CHECKING) {
-                LinearProgressIndicator(
-                    modifier = Modifier.width(240.dp).height(4.dp),
-                    color = LolColors.Primary,
-                    trackColor = LolColors.BgTertiary,
-                )
+        with(windowScope) {
+            Titlebar(version = APP_VERSION, lcuStatus = lcuStatus, onMinimize = onMinimize, onClose = onClose)
+        }
+        HorizontalDivider(thickness = 1.dp, color = LolColors.Border)
+
+        Grid16(Modifier.fillMaxSize(), gap = 0.dp) {
+            Sidebar(currentPage = currentPage, onPageChange = { currentPage = it }, modifier = Modifier.colSpan(3))
+            Box(Modifier.colSpan(13).fillMaxHeight().background(LolColors.BgPrimary)) {
+                when (currentPage) {
+                    Page.DASHBOARD -> DashboardPage()
+                    Page.MATCHES -> MatchHistoryPage()
+                    Page.COLLECT -> CollectPage(
+                        lcuStatus = lcuStatus,
+                        autoStatus = autoStatus,
+                        dodgeCount = dodgeCount,
+                    )
+                    Page.CUSTOM -> CustomGamePage()
+                    Page.SUMMONER -> SummonerPage()
+                    Page.DAMAGE_ANALYSIS -> DamageAnalysisPage()
+                    Page.VISION -> VisionPage()
+                    Page.SURRENDER -> SurrenderPage()
+                }
             }
         }
     }

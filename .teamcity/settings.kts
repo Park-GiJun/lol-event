@@ -167,53 +167,37 @@ object Build : BuildType({
                     cp -r frontend/dist ${'$'}DEPLOY_DIR/frontend-dist
                     mkdir -p ${'$'}DEPLOY_DIR/frontend-dist/downloads
 
-                    # Desktop Collector MSI → GitHub Releases에서 다운로드 또는 기존 파일 재사용
+                    # 사용자가 다운받는 진입점은 항상 런처(launcher-v*) MSI다.
+                    # 본체(desktop-v*) MSI는 런처가 GitHub Releases에서 직접 받으므로 웹사이트에 둘 필요 없다.
+                    # 파일명은 frontend(LcuPage.tsx)와의 호환을 위해 lol-collector.msi 그대로 유지한다.
                     MSI_DEPLOYED=false
 
-                    # 1순위: GitHub Releases에서 최신 MSI 다운로드
-                    echo "GitHub Releases에서 최신 Desktop Collector MSI 확인 중..."
-                    GH_MSI_URL=${'$'}(curl -s https://api.github.com/repos/Park-GiJun/lol-event/releases \
-                        | grep -o '"browser_download_url": *"[^"]*\.msi"' \
+                    echo "GitHub Releases에서 최신 Launcher MSI 확인 중 (launcher-v* 태그)..."
+                    # GitHub의 download URL은 항상 releases/download/<tag>/<asset> 형식.
+                    # URL에 /launcher-v 가 들어간 .msi만 필터링하면 본체(desktop-v*)와 안 섞인다.
+                    # API는 published 내림차순이라 head -1이 가장 최신 launcher 릴리즈.
+                    LAUNCHER_MSI_URL=${'$'}(curl -s https://api.github.com/repos/Park-GiJun/lol-event/releases \
+                        | grep -o '"browser_download_url": *"[^"]*\/launcher-v[^"]*\.msi"' \
                         | head -1 | cut -d'"' -f4)
 
-                    if [ -n "${'$'}GH_MSI_URL" ]; then
-                        echo "GitHub Release MSI 발견: ${'$'}GH_MSI_URL"
-                        curl -sL "${'$'}GH_MSI_URL" -o ${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi
+                    if [ -n "${'$'}LAUNCHER_MSI_URL" ]; then
+                        echo "Launcher MSI 발견: ${'$'}LAUNCHER_MSI_URL"
+                        curl -sL "${'$'}LAUNCHER_MSI_URL" -o ${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi
                         if [ ${'$'}? -eq 0 ] && [ -s "${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi" ]; then
                             MSI_DEPLOYED=true
-                            MSI_VERSION=${'$'}(echo "${'$'}GH_MSI_URL" | grep -oP '\d+\.\d+\.\d+' | head -1 || echo "1.0.1")
-                            echo "GitHub Release MSI 다운로드 완료 (v${'$'}MSI_VERSION)"
+                            MSI_VERSION=${'$'}(echo "${'$'}LAUNCHER_MSI_URL" | grep -oP '\d+\.\d+\.\d+' | head -1 || echo "unknown")
+                            echo "Launcher MSI 다운로드 완료 (v${'$'}MSI_VERSION)"
                         fi
                     fi
 
-                    # 2순위: 로컬 빌드 결과
-                    if [ "${'$'}MSI_DEPLOYED" = "false" ] && ls desktop-collector/build/compose/binaries/main/msi/*.msi 1>/dev/null 2>&1; then
-                        MSI_SOURCE=${'$'}(ls desktop-collector/build/compose/binaries/main/msi/*.msi | head -1)
-                        cp "${'$'}MSI_SOURCE" ${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi
-                        MSI_DEPLOYED=true
-                        MSI_VERSION=${'$'}(echo "${'$'}MSI_SOURCE" | grep -oP '\d+\.\d+\.\d+' | head -1 || echo "1.0.1")
-                        echo "로컬 빌드 MSI 복사 완료 (v${'$'}MSI_VERSION)"
-                    fi
-
-                    # 3순위: 기존 배포된 파일 재사용
+                    # 폴백: 기존 배포된 파일 재사용
                     if [ "${'$'}MSI_DEPLOYED" = "false" ] && [ -f "${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi" ]; then
-                        echo "기존 배포된 MSI 파일 재사용"
+                        echo "기존 배포된 MSI 파일 재사용 (launcher-v* 릴리즈를 못 찾음)"
                         MSI_DEPLOYED=true
-                        MSI_VERSION="1.0.1"
                     fi
 
-                    # desktop-latest.json 생성 (auto-updater용)
-                    if [ "${'$'}MSI_DEPLOYED" = "true" ]; then
-                        cat > ${'$'}DEPLOY_DIR/frontend-dist/downloads/desktop-latest.json <<EOJSON
-{
-  "version": "${'$'}MSI_VERSION",
-  "url": "https://gijun.net/downloads/lol-collector.msi",
-  "notes": "자동 업데이트 v${'$'}MSI_VERSION"
-}
-EOJSON
-                        echo "desktop-latest.json 생성 완료 (v${'$'}MSI_VERSION)"
-                    elif [ "${'$'}DEPLOY_DESKTOP" = "true" ]; then
-                        echo "WARNING: MSI 파일을 찾을 수 없음 — release.bat으로 GitHub Release에 업로드하세요"
+                    if [ "${'$'}MSI_DEPLOYED" = "false" ]; then
+                        echo "WARNING: Launcher MSI를 찾을 수 없음 — desktop-launcher/release.bat을 먼저 실행해 launcher-v* 릴리즈를 만드세요"
                     fi
 
                     echo "Frontend dist 복사 완료"
