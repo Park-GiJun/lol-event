@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { api } from '../../lib/api/api';
-import type { Match } from '../../lib/types/match';
+import type { Match, Participant } from '../../lib/types/match';
 import { useDragon } from '../../context/DragonContext';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { fmt, calcMvp, MODES } from '../../lib/lol';
@@ -46,10 +46,36 @@ function ChampIcon({ championId, champion, size = 26, className }: { championId:
   );
 }
 
+function PlayerLine({ p, accent, mvpBg, isAce, isMvp }: { p: Participant; accent: string; mvpBg: string; isAce: boolean; isMvp: boolean }) {
+  const { champions } = useDragon();
+  const nameKo = champions.get(p.championId)?.nameKo ?? p.champion;
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 5,
+      padding: '3px 5px', borderRadius: 6,
+      background: isAce ? 'rgba(255,215,0,0.08)' : isMvp ? mvpBg : 'transparent',
+    }}>
+      <ChampIcon championId={p.championId} champion={p.champion} size={22} />
+      <span style={{
+        flex: 1, minWidth: 0, fontSize: 10, color: 'var(--color-text-secondary)',
+        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+      }}>
+        {nameKo}
+        {isAce && <span style={{ marginLeft: 3, fontSize: 8, fontWeight: 700, color: '#FFD700' }}>ACE</span>}
+        {isMvp && <span style={{ marginLeft: 3, fontSize: 8, fontWeight: 700, color: accent }}>MVP</span>}
+      </span>
+      <span style={{ fontSize: 10, fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap', color: 'var(--color-text-primary)' }}>
+        {p.kills}<span style={{ color: 'var(--color-text-disabled)', fontWeight: 400 }}>/</span>
+        <span style={{ color: 'var(--color-loss)' }}>{p.deaths}</span>
+        <span style={{ color: 'var(--color-text-disabled)', fontWeight: 400 }}>/</span>
+        {p.assists}
+      </span>
+    </div>
+  );
+}
+
 function MatchCard({ match }: { match: Match }) {
   const navigate = useNavigate();
-  const { champions } = useDragon();
-  const [expanded, setExpanded] = useState(false);
 
   const blue = match.participants.filter(p => p.team === 'blue');
   const red  = match.participants.filter(p => p.team === 'red');
@@ -57,6 +83,8 @@ function MatchCard({ match }: { match: Match }) {
   const blueTeam = match.teams?.find(t => t.teamId === 100);
   const redTeam  = match.teams?.find(t => t.teamId === 200);
   const mvp = calcMvp(match);
+  const blueKills = blue.reduce((s, p) => s + p.kills, 0);
+  const redKills = red.reduce((s, p) => s + p.kills, 0);
   const timeStr = new Date(match.gameCreation).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
   const modeLabel = QUEUE_LABEL[match.queueId] ?? String(match.queueId);
 
@@ -99,143 +127,44 @@ function MatchCard({ match }: { match: Match }) {
         </svg>
       </div>
 
-      {/* ── 챔피언 아이콘 행 ── */}
-      <div style={{ padding: '8px 12px' }}>
-        <div className="grid-16" style={{ alignItems: 'center' }}>
-          {/* 블루팀 */}
-          <div className="col-span-7">
-            <div className="grid-16" style={{ marginBottom: 4 }}>
-              {blue.map((p, i) => <ChampIcon key={i} championId={p.championId} champion={p.champion} size={28} className="col-span-3" />)}
-            </div>
-            <div style={{ display: 'flex', gap: 6, fontSize: 10, color: 'var(--color-text-disabled)' }}>
-              {blueTeam && (
-                <>
-                  <span>🐉{blueTeam.dragonKills}</span>
-                  <span>🏰{blueTeam.towerKills}</span>
-                  {blueTeam.baronKills > 0 && <span>🟣{blueTeam.baronKills}</span>}
-                </>
-              )}
-              <span style={{ marginLeft: 'auto', color: blueWin ? 'var(--color-win)' : 'var(--color-loss)', fontWeight: 700 }}>
-                {blue.reduce((s, p) => s + p.kills, 0)}킬
+      {/* ── 양 팀 로스터 (한눈에) ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, padding: '8px 10px' }}>
+        {/* 블루팀 */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3, padding: '0 5px' }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-info)' }}>블루 {blueWin ? '승' : '패'}</span>
+            {blueTeam && (
+              <span style={{ fontSize: 9, color: 'var(--color-text-disabled)' }}>
+                🐉{blueTeam.dragonKills} 🏰{blueTeam.towerKills}{blueTeam.baronKills > 0 ? ` 🟣${blueTeam.baronKills}` : ''}
               </span>
-            </div>
+            )}
+            <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, color: blueWin ? 'var(--color-win)' : 'var(--color-loss)' }}>{blueKills}킬</span>
           </div>
+          {blue.map((p, i) => (
+            <PlayerLine key={i} p={p} accent="var(--color-info)" mvpBg="rgba(59,158,255,0.10)"
+              isAce={p.riotId === mvp.aceId}
+              isMvp={p.riotId !== mvp.aceId && p.riotId === mvp.blueMvpId} />
+          ))}
+        </div>
 
-          {/* VS */}
-          <div className="col-span-2" style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-disabled)', textAlign: 'center' }}>VS</div>
-
-          {/* 레드팀 */}
-          <div className="col-span-7">
-            <div className="grid-16" style={{ marginBottom: 4 }}>
-              {red.map((p, i) => <ChampIcon key={i} championId={p.championId} champion={p.champion} size={28} className="col-span-3" />)}
-            </div>
-            <div style={{ display: 'flex', gap: 6, fontSize: 10, color: 'var(--color-text-disabled)', justifyContent: 'flex-end' }}>
-              <span style={{ marginRight: 'auto', color: blueWin ? 'var(--color-loss)' : 'var(--color-win)', fontWeight: 700 }}>
-                {red.reduce((s, p) => s + p.kills, 0)}킬
+        {/* 레드팀 */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3, padding: '0 5px' }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-loss)' }}>레드 {!blueWin ? '승' : '패'}</span>
+            {redTeam && (
+              <span style={{ fontSize: 9, color: 'var(--color-text-disabled)' }}>
+                🐉{redTeam.dragonKills} 🏰{redTeam.towerKills}{redTeam.baronKills > 0 ? ` 🟣${redTeam.baronKills}` : ''}
               </span>
-              {redTeam && (
-                <>
-                  {redTeam.baronKills > 0 && <span>🟣{redTeam.baronKills}</span>}
-                  <span>🏰{redTeam.towerKills}</span>
-                  <span>🐉{redTeam.dragonKills}</span>
-                </>
-              )}
-            </div>
+            )}
+            <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, color: !blueWin ? 'var(--color-win)' : 'var(--color-loss)' }}>{redKills}킬</span>
           </div>
+          {red.map((p, i) => (
+            <PlayerLine key={i} p={p} accent="var(--color-loss)" mvpBg="rgba(232,64,64,0.10)"
+              isAce={p.riotId === mvp.aceId}
+              isMvp={p.riotId !== mvp.aceId && p.riotId === mvp.redMvpId} />
+          ))}
         </div>
       </div>
-
-      {/* ── 플레이어 펼치기 버튼 ── */}
-      <button
-        onClick={() => setExpanded(e => !e)}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          gap: 4, padding: '5px 0', background: 'none', border: 'none',
-          borderTop: '1px solid var(--color-border)',
-          fontSize: 11, color: 'var(--color-text-disabled)', cursor: 'pointer',
-        }}
-      >
-        {expanded ? <><ChevronUp size={12} />접기</> : <><ChevronDown size={12} />플레이어 보기</>}
-      </button>
-
-      {/* ── 펼쳐진 플레이어 목록 ── */}
-      {expanded && (
-        <div style={{ borderTop: '1px solid var(--color-border)' }}>
-          {/* 블루팀 */}
-          <div style={{ padding: '6px 12px 2px', fontSize: 10, fontWeight: 700, color: 'var(--color-info)' }}>
-            블루팀 {blueWin ? '✓ 승' : '패'}
-          </div>
-          {blue.map((p, i) => {
-            const nameKo = champions.get(p.championId)?.nameKo ?? p.champion;
-            const isAce = p.riotId === mvp.aceId;
-            const isMvp = !isAce && p.riotId === mvp.blueMvpId;
-            return (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '5px 12px',
-                background: isAce ? 'rgba(255,215,0,0.05)' : isMvp ? 'rgba(59,158,255,0.05)' : 'transparent',
-              }}>
-                <ChampIcon championId={p.championId} champion={p.champion} size={26} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {nameKo}
-                  </div>
-                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {p.riotId.split('#')[0]}
-                  </div>
-                </div>
-                {isAce && <span style={{ fontSize: 9, fontWeight: 700, color: '#FFD700', background: 'rgba(255,215,0,0.15)', padding: '1px 5px', borderRadius: 4 }}>ACE</span>}
-                {isMvp && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-info)', background: 'rgba(59,158,255,0.15)', padding: '1px 5px', borderRadius: 4 }}>MVP</span>}
-                <span style={{ fontSize: 12, fontWeight: 700, flexShrink: 0, color: 'var(--color-text-primary)' }}>
-                  {p.kills}<span style={{ color: 'var(--color-text-disabled)', fontWeight: 400 }}>/</span>
-                  <span style={{ color: 'var(--color-loss)' }}>{p.deaths}</span>
-                  <span style={{ color: 'var(--color-text-disabled)', fontWeight: 400 }}>/</span>
-                  {p.assists}
-                </span>
-              </div>
-            );
-          })}
-
-          {/* 구분선 */}
-          <div style={{ height: 1, background: 'var(--color-border)', margin: '2px 0' }} />
-
-          {/* 레드팀 */}
-          <div style={{ padding: '6px 12px 2px', fontSize: 10, fontWeight: 700, color: 'var(--color-loss)' }}>
-            레드팀 {!blueWin ? '✓ 승' : '패'}
-          </div>
-          {red.map((p, i) => {
-            const nameKo = champions.get(p.championId)?.nameKo ?? p.champion;
-            const isAce = p.riotId === mvp.aceId;
-            const isMvp = !isAce && p.riotId === mvp.redMvpId;
-            return (
-              <div key={i} style={{
-                display: 'flex', alignItems: 'center', gap: 8,
-                padding: '5px 12px',
-                background: isAce ? 'rgba(255,215,0,0.05)' : isMvp ? 'rgba(232,64,64,0.05)' : 'transparent',
-              }}>
-                <ChampIcon championId={p.championId} champion={p.champion} size={26} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {nameKo}
-                  </div>
-                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {p.riotId.split('#')[0]}
-                  </div>
-                </div>
-                {isAce && <span style={{ fontSize: 9, fontWeight: 700, color: '#FFD700', background: 'rgba(255,215,0,0.15)', padding: '1px 5px', borderRadius: 4 }}>ACE</span>}
-                {isMvp && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-loss)', background: 'rgba(232,64,64,0.15)', padding: '1px 5px', borderRadius: 4 }}>MVP</span>}
-                <span style={{ fontSize: 12, fontWeight: 700, flexShrink: 0, color: 'var(--color-text-primary)' }}>
-                  {p.kills}<span style={{ color: 'var(--color-text-disabled)', fontWeight: 400 }}>/</span>
-                  <span style={{ color: 'var(--color-loss)' }}>{p.deaths}</span>
-                  <span style={{ color: 'var(--color-text-disabled)', fontWeight: 400 }}>/</span>
-                  {p.assists}
-                </span>
-              </div>
-            );
-          })}
-          <div style={{ height: 8 }} />
-        </div>
-      )}
     </div>
   );
 }
