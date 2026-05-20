@@ -9,8 +9,6 @@ import com.gijun.main.domain.model.elo.PlayerElo
 import com.gijun.main.domain.model.elo.PlayerEloHistory
 import com.gijun.main.domain.model.match.Match
 import com.gijun.main.domain.model.match.MatchParticipant
-import com.gijun.main.domain.model.match.Position
-import com.gijun.main.domain.service.PositionDetector
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -32,14 +30,19 @@ class EloCommandHandler(
         private const val ARAM_QUEUE_ID = 3270
 
         // ═══════════════════════════════════════════════════
-        // K-Factor: 게임 수 기반 변동폭 (배치 → 정착)
+        // 고정 K값 (게임 수와 무관한 일정 변동폭, 표준 Elo)
         // ═══════════════════════════════════════════════════
-        fun kFactor(games: Int): Double = when {
-            games < 10  -> 64.0
-            games < 25  -> 48.0
-            games < 50  -> 36.0
-            else        -> 28.0
-        }
+        private const val K_FACTOR = 32.0
+
+        // ═══════════════════════════════════════════════════
+        // 이변 배율: 팀 평균 ELO 차이가 클수록, 약팀이 이기면 보너스
+        //   diff <= THRESHOLD          → 1.0 (배율 없음)
+        //   diff  > THRESHOLD          → 1.0 + (diff - THRESHOLD) * SLOPE, 상한 MAX
+        //   (약 30 ~ 116 구간에서 1.0 → 1.3 으로 스케일)
+        // ═══════════════════════════════════════════════════
+        private const val UPSET_THRESHOLD = 30.0
+        private const val UPSET_SLOPE     = 0.0035
+        private const val UPSET_MAX       = 1.3
 
         // ═══════════════════════════════════════════════════
         // 연승/연패 배율
@@ -91,7 +94,7 @@ class EloCommandHandler(
     }
 
     // ═══════════════════════════════════════════════════════════
-    //  핵심 계산 — 고도화된 Elo 시스템 v2
+    //  핵심 계산 — 순수 Elo (승패 + 이변배율 + 연승/연패)
     // ═══════════════════════════════════════════════════════════
 
     private fun processMatch(match: Match) {
@@ -133,25 +136,20 @@ class EloCommandHandler(
             )
         }
         eloHistoryPort.saveAll(histories)
-        log.debug("Elo v2 업데이트 — matchId=${match.matchId}, 대상=${updated.size}명")
+        log.debug("Elo 업데이트 — matchId=${match.matchId}, 대상=${updated.size}명")
     }
 
     private fun processMatchInMemory(
         match: Match, eloCache: MutableMap<String, PlayerElo>,
         allHistories: MutableList<PlayerEloHistory>,
     ) {
-        val participants = if (match.participants.any { it.assignedPosition.isBlank() }) {
-            PositionDetector.assignPositionsToAll(match.participants)
-        } else {
-            match.participants
-        }
+        val participants = match.participants
         if (participants.size < 2) return
-        val correctedMatch = match.copy(participants = participants.toMutableList())
         val currentElos = participants
             .mapNotNull { it.riotId.takeIf { r -> r.isNotBlank() } }
             .associateWith { eloCache[it] }.filterValues { it != null }.mapValues { it.value!! }.toMutableMap()
 
-        val changes = calcEloChanges(correctedMatch, currentElos)
+        val changes = calcEloChanges(match, currentElos)
         val now = LocalDateTime.now()
 
         changes.forEach { (riotId, delta) ->
@@ -192,240 +190,25 @@ class EloCommandHandler(
         val eB = 1.0 - eA
         val aWon = teamA.any { it.win }
 
-        // 포지션 배정
-        val positionsA = PositionDetector.assignPositions(teamA)
-        val positionsB = PositionDetector.assignPositions(teamB)
-        val allPositions = positionsA + positionsB
-
-        // 라인 상대 매핑 (같은 포지션끼리 매칭)
-        val laneOpponents = buildLaneOpponentMap(teamA, teamB, positionsA, positionsB)
-
-        // 이변 배율: 낮은 팀이 이기면 보너스
+        // 이변 배율: 약팀이 이긴 경우에만 적용
         val eloDiff = kotlin.math.abs(avgEloA - avgEloB)
-        val upsetMult = if (eloDiff > 100) 1.0 + (eloDiff - 100) * 0.001 else 1.0 // 최대 ~1.3
+        val upsetMult = if (eloDiff > UPSET_THRESHOLD)
+            (1.0 + (eloDiff - UPSET_THRESHOLD) * UPSET_SLOPE).coerceAtMost(UPSET_MAX)
+        else 1.0
 
         val result = mutableMapOf<String, Double>()
 
-        fun calcForPlayer(p: MatchParticipant, team: List<MatchParticipant>, enemyTeam: List<MatchParticipant>,
-                          expected: Double, won: Boolean) {
+        fun calcForPlayer(p: MatchParticipant, expected: Double, won: Boolean) {
             val prev = eloMap[p.riotId]
-            val k = kFactor(prev?.games ?: 0)
             val mult = streakMultiplier(prev?.winStreak ?: 0, prev?.lossStreak ?: 0, won)
-            val pos = allPositions[p.riotId] ?: Position.MID
+            // 약팀(expected < 0.5)이 이겼을 때만 이변 배율 부여
+            val upset = if (won && expected < 0.5) upsetMult else 1.0
 
-            // 1) 퍼포먼스 점수 (팀 내 기여도) — 0~1
-            val perfScore = calcPerformanceScore(p, team, pos).coerceIn(0.05, 0.95)
-
-            // 2) 라인전 점수 (상대 라이너와 직접 비교) — 0~1
-            val opponent = laneOpponents[p.riotId]
-            val laneScore = if (opponent != null) calcLaneScore(p, opponent, pos).coerceIn(0.05, 0.95) else 0.5
-
-            // 3) 캐리/앵커 보너스
-            val carryBonus = calcCarryBonus(p, team, enemyTeam, won)
-
-            // 4) 멀티킬 보너스
-            val multikillBonus = calcMultikillBonus(p)
-
-            // 5) 목표 기여 보너스
-            val objectiveBonus = calcObjectiveBonus(p, team)
-
-            // ── 최종 공식 ──
-            val baseChange = k * ((if (won) 1.0 else 0.0) - expected) * mult *
-                (if ((won && expected < 0.4) || (!won && expected > 0.6)) upsetMult else 1.0)
-
-            val perfAdj = 36.0 * (perfScore - 0.5)
-            val laneAdj = 20.0 * (laneScore - 0.5)
-
-            val totalDelta = baseChange + perfAdj + laneAdj + carryBonus + multikillBonus + objectiveBonus
-            result[p.riotId] = totalDelta
+            result[p.riotId] = K_FACTOR * ((if (won) 1.0 else 0.0) - expected) * mult * upset
         }
 
-        teamA.forEach { calcForPlayer(it, teamA, teamB, eA, aWon) }
-        teamB.forEach { calcForPlayer(it, teamB, teamA, eB, !aWon) }
+        teamA.forEach { calcForPlayer(it, eA, aWon) }
+        teamB.forEach { calcForPlayer(it, eB, !aWon) }
         return result
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    //  퍼포먼스 점수 (팀 내 상대적 기여도) — 고도화 v2
-    // ═══════════════════════════════════════════════════════════
-
-    private fun calcPerformanceScore(p: MatchParticipant, team: List<MatchParticipant>, pos: Position): Double {
-        val teamKills   = team.sumOf { it.kills }.coerceAtLeast(1)
-        val teamDamage  = team.sumOf { it.damage }.coerceAtLeast(1)
-        val teamGold    = team.sumOf { it.gold }.coerceAtLeast(1)
-        val teamVision  = team.sumOf { it.visionScore }.coerceAtLeast(1)
-        val teamObjDmg  = team.sumOf { it.damageDealtToObjectives }.coerceAtLeast(1)
-        val teamCC      = team.sumOf { it.timeCCingOthers }.coerceAtLeast(1)
-        val teamTankDmg = team.sumOf { it.totalDamageTaken }.coerceAtLeast(1)
-        val teamHeal    = team.sumOf { it.totalHeal }.coerceAtLeast(1)
-        val teamWards   = team.sumOf { it.wardsPlaced + it.wardsKilled }.coerceAtLeast(1)
-
-        val kda = (p.kills + p.assists).toDouble() / maxOf(1, p.deaths)
-        val teamKdas = team.map { (it.kills + it.assists).toDouble() / maxOf(1, it.deaths) }
-        val kdaRank = normalizeInTeam(kda, teamKdas)
-
-        val kp          = (p.kills + p.assists).toDouble() / teamKills
-        val dmgShare    = p.damage.toDouble() / teamDamage
-        val goldShare   = p.gold.toDouble() / teamGold
-        val visionShare = p.visionScore.toDouble() / teamVision
-        val objDmgShare = p.damageDealtToObjectives.toDouble() / teamObjDmg
-        val ccShare     = p.timeCCingOthers.toDouble() / teamCC
-
-        val tankShare   = p.totalDamageTaken.toDouble() / teamTankDmg
-        val healShare   = p.totalHeal.toDouble() / teamHeal
-        val wardShare   = (p.wardsPlaced + p.wardsKilled).toDouble() / teamWards
-
-        val goldEff = p.damage.toDouble() / maxOf(1, p.gold)
-        val teamGoldEffs = team.map { it.damage.toDouble() / maxOf(1, it.gold) }
-        val goldEffRank = normalizeInTeam(goldEff, teamGoldEffs)
-
-        val deathControl = 1.0 - (p.deaths.toDouble() / maxOf(1, team.maxOf { it.deaths }))
-
-        return when (pos) {
-            Position.TOP -> {
-                0.20 * kdaRank + 0.15 * kp + 0.15 * dmgShare + 0.10 * goldShare +
-                0.15 * tankShare + 0.08 * objDmgShare + 0.07 * goldEffRank + 0.05 * deathControl + 0.05 * ccShare
-            }
-            Position.JUNGLE -> {
-                0.18 * kdaRank + 0.20 * kp + 0.10 * dmgShare + 0.05 * goldShare +
-                0.22 * objDmgShare + 0.08 * wardShare + 0.07 * goldEffRank + 0.05 * deathControl + 0.05 * ccShare
-            }
-            Position.MID -> {
-                0.20 * kdaRank + 0.18 * kp + 0.22 * dmgShare + 0.10 * goldShare +
-                0.08 * goldEffRank + 0.07 * deathControl + 0.05 * objDmgShare + 0.05 * ccShare + 0.05 * visionShare
-            }
-            Position.ADC -> {
-                0.15 * kdaRank + 0.12 * kp + 0.28 * dmgShare + 0.15 * goldShare +
-                0.12 * goldEffRank + 0.08 * deathControl + 0.05 * objDmgShare + 0.05 * visionShare
-            }
-            Position.SUPPORT -> {
-                0.12 * kdaRank + 0.18 * kp + 0.03 * dmgShare + 0.05 * goldShare +
-                0.25 * wardShare + 0.15 * ccShare + 0.08 * healShare + 0.07 * deathControl + 0.07 * tankShare
-            }
-            Position.UNKNOWN -> {
-                0.20 * kdaRank + 0.18 * kp + 0.22 * dmgShare + 0.10 * goldShare +
-                0.08 * goldEffRank + 0.07 * deathControl + 0.05 * objDmgShare + 0.05 * ccShare + 0.05 * visionShare
-            }
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    //  라인전 점수 — 같은 포지션 상대와 직접 비교
-    // ═══════════════════════════════════════════════════════════
-
-    private fun calcLaneScore(me: MatchParticipant, opp: MatchParticipant, pos: Position): Double {
-        fun compareMetric(myVal: Double, oppVal: Double): Double {
-            val total = myVal + oppVal
-            return if (total <= 0) 0.5 else myVal / total
-        }
-
-        val csAdv     = compareMetric(me.cs.toDouble(), opp.cs.toDouble())
-        val goldAdv   = compareMetric(me.gold.toDouble(), opp.gold.toDouble())
-        val dmgAdv    = compareMetric(me.damage.toDouble(), opp.damage.toDouble())
-        val kdaMe     = (me.kills + me.assists).toDouble() / maxOf(1, me.deaths)
-        val kdaOpp    = (opp.kills + opp.assists).toDouble() / maxOf(1, opp.deaths)
-        val kdaAdv    = compareMetric(kdaMe, kdaOpp)
-        val visionAdv = compareMetric(me.visionScore.toDouble(), opp.visionScore.toDouble())
-        val objAdv    = compareMetric(me.damageDealtToObjectives.toDouble(), opp.damageDealtToObjectives.toDouble())
-        val tankAdv   = compareMetric(me.totalDamageTaken.toDouble(), opp.totalDamageTaken.toDouble())
-
-        return when (pos) {
-            Position.TOP     -> 0.20 * kdaAdv + 0.20 * csAdv + 0.15 * goldAdv + 0.15 * dmgAdv + 0.20 * tankAdv + 0.10 * objAdv
-            Position.JUNGLE  -> 0.25 * kdaAdv + 0.10 * csAdv + 0.15 * goldAdv + 0.10 * dmgAdv + 0.30 * objAdv + 0.10 * visionAdv
-            Position.MID     -> 0.25 * kdaAdv + 0.20 * csAdv + 0.15 * goldAdv + 0.25 * dmgAdv + 0.10 * visionAdv + 0.05 * objAdv
-            Position.ADC     -> 0.20 * kdaAdv + 0.20 * csAdv + 0.20 * goldAdv + 0.30 * dmgAdv + 0.10 * objAdv
-            Position.SUPPORT -> 0.25 * kdaAdv + 0.05 * csAdv + 0.10 * goldAdv + 0.05 * dmgAdv + 0.30 * visionAdv + 0.15 * tankAdv + 0.10 * objAdv
-            Position.UNKNOWN -> 0.25 * kdaAdv + 0.20 * csAdv + 0.15 * goldAdv + 0.25 * dmgAdv + 0.10 * visionAdv + 0.05 * objAdv
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    //  캐리/앵커 보너스
-    // ═══════════════════════════════════════════════════════════
-
-    private fun calcCarryBonus(p: MatchParticipant, team: List<MatchParticipant>,
-                               enemyTeam: List<MatchParticipant>, won: Boolean): Double {
-        val teamDmg = team.sumOf { it.damage }.coerceAtLeast(1)
-        val teamDeaths = team.sumOf { it.deaths }.coerceAtLeast(1)
-        val teamKills = team.sumOf { it.kills }.coerceAtLeast(1)
-        val dmgShare = p.damage.toDouble() / teamDmg
-        val deathShare = p.deaths.toDouble() / teamDeaths
-        val killShare = p.kills.toDouble() / teamKills
-
-        var bonus = 0.0
-
-        if (won) {
-            if (dmgShare >= 0.40) bonus += 4.0
-            if (dmgShare >= 0.50) bonus += 4.0
-            if (killShare >= 0.45) bonus += 2.0
-            if (p.deaths == 0 && p.kills + p.assists >= 5) bonus += 2.0
-        } else {
-            if (deathShare >= 0.40) bonus -= 3.0
-            if (deathShare >= 0.50) bonus -= 3.0
-            if (dmgShare >= 0.35) bonus += 2.0
-        }
-
-        return bonus
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    //  멀티킬 보너스
-    // ═══════════════════════════════════════════════════════════
-
-    private fun calcMultikillBonus(p: MatchParticipant): Double {
-        var bonus = 0.0
-        bonus += p.pentaKills * 4.0
-        bonus += p.quadraKills * 2.0
-        bonus += p.tripleKills * 1.0
-        if (p.largestKillingSpree >= 8) bonus += 2.0
-        else if (p.largestKillingSpree >= 5) bonus += 1.0
-        return bonus.coerceAtMost(6.0)
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    //  목표 기여 보너스
-    // ═══════════════════════════════════════════════════════════
-
-    private fun calcObjectiveBonus(p: MatchParticipant, team: List<MatchParticipant>): Double {
-        var bonus = 0.0
-        if (p.firstBloodKill) bonus += 1.5
-        if (p.firstBloodAssist) bonus += 0.5
-        if (p.firstTowerKill) bonus += 1.0
-        if (p.firstTowerAssist) bonus += 0.3
-        bonus += p.inhibitorKills * 0.5
-        return bonus.coerceAtMost(4.0)
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    //  라인 상대 매핑
-    // ═══════════════════════════════════════════════════════════
-
-    private fun buildLaneOpponentMap(
-        teamA: List<MatchParticipant>, teamB: List<MatchParticipant>,
-        posA: Map<String, Position>, posB: Map<String, Position>,
-    ): Map<String, MatchParticipant> {
-        val result = mutableMapOf<String, MatchParticipant>()
-        val posToA = posA.entries.groupBy({ it.value }, { it.key })
-        val posToB = posB.entries.groupBy({ it.value }, { it.key })
-
-        for (pos in Position.entries) {
-            val aIds = posToA[pos] ?: continue
-            val bIds = posToB[pos] ?: continue
-            val aPlayer = teamA.firstOrNull { it.riotId in aIds } ?: continue
-            val bPlayer = teamB.firstOrNull { it.riotId in bIds } ?: continue
-            result[aPlayer.riotId] = bPlayer
-            result[bPlayer.riotId] = aPlayer
-        }
-        return result
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    //  유틸리티
-    // ═══════════════════════════════════════════════════════════
-
-    private fun normalizeInTeam(value: Double, allValues: List<Double>): Double {
-        val min = allValues.min()
-        val max = allValues.max()
-        return if (max == min) 0.5 else (value - min) / (max - min)
     }
 }
