@@ -6,11 +6,15 @@ import com.gijun.main.infrastructure.adapter.out.persistence.match.entity.MatchE
 import com.gijun.main.infrastructure.adapter.out.persistence.match.entity.MatchParticipantEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.match.entity.MatchTeamEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.match.repository.MatchJpaRepository
+import com.gijun.main.infrastructure.adapter.out.persistence.match.repository.MatchParticipantJpaRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Component
-class MatchPersistenceAdapter(private val repo: MatchJpaRepository) : MatchPersistencePort {
+class MatchPersistenceAdapter(
+    private val repo: MatchJpaRepository,
+    private val participantRepo: MatchParticipantJpaRepository,
+) : MatchPersistencePort {
 
     @Transactional
     override fun save(match: Match): Match {
@@ -36,4 +40,9 @@ class MatchPersistenceAdapter(private val repo: MatchJpaRepository) : MatchPersi
 
     override fun findAllOrderedByGameCreation(): List<Match> =
         repo.findAllWithParticipantsOrderedByGameCreation().map { it.toDomain() }
+
+    @Transactional
+    override fun updateAssignedPositions(updates: Map<Long, String>) {
+        updates.forEach { (id, pos) -> participantRepo.updateAssignedPosition(id, pos) }
+    }
 }

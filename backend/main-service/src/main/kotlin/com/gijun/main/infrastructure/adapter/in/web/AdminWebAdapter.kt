@@ -2,6 +2,8 @@ package com.gijun.main.infrastructure.adapter.`in`.web
 
 import com.gijun.common.response.CommonApiResponse
 import com.gijun.main.application.port.`in`.GetEloUseCase
+import com.gijun.main.application.port.`in`.ReassignPositionsResult
+import com.gijun.main.application.port.`in`.ReassignPositionsUseCase
 import com.gijun.main.application.port.`in`.ResetAndRecalculateEloUseCase
 import com.gijun.main.domain.model.elo.PlayerElo
 import io.swagger.v3.oas.annotations.Operation
@@ -14,7 +16,17 @@ import org.springframework.web.bind.annotation.*
 class AdminWebAdapter(
     private val resetAndRecalculateEloUseCase: ResetAndRecalculateEloUseCase,
     private val getEloUseCase: GetEloUseCase,
+    private val reassignPositionsUseCase: ReassignPositionsUseCase,
 ) {
+
+    @Operation(
+        summary = "포지션 재배정 백필",
+        description = "저장된 모든 매치를 스캔해, 한 팀에 TOP/JUNGLE/MID/ADC/SUPPORT 가 정확히 하나씩 " +
+            "들어있지 않은 깨진 팀만 재배정합니다. 정상 팀과 칼바람은 제외. 완료 후 /elo/reset 권장."
+    )
+    @PostMapping("/positions/reassign")
+    fun reassignPositions(): CommonApiResponse<ReassignPositionsResult> =
+        CommonApiResponse.success(reassignPositionsUseCase.reassignAll())
     @Operation(summary = "Elo 전체 초기화 및 재집계", description = "모든 Elo 데이터를 초기화하고 전체 매치를 시간순으로 재집계합니다.")
     @PostMapping("/elo/reset")
     fun resetElo(): CommonApiResponse<String> {

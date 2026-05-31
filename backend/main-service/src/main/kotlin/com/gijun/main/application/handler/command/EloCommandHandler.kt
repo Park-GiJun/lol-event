@@ -196,6 +196,18 @@ class EloCommandHandler(
             (1.0 + (eloDiff - UPSET_THRESHOLD) * UPSET_SLOPE).coerceAtMost(UPSET_MAX)
         else 1.0
 
+        // ── 항복/조기항복 보정 ──
+        // 항복으로 끝난 경기는 온전히 진행되지 않아 결과의 확정성이 낮으므로 Elo 변동폭을 축소한다.
+        //   - 조기항복(FF15·리메이크급): 사실상 미완 경기 → 강하게 감쇠.
+        //   - 일반 항복: 후반이 잘린 경기 → 완만히 감쇠.
+        val earlySurrender = match.participants.any { it.gameEndedInEarlySurrender }
+        val anySurrender   = match.participants.any { it.gameEndedInSurrender }
+        val baseMult = when {
+            earlySurrender -> 0.75
+            anySurrender   -> 0.90
+            else           -> 1.0
+        }
+
         val result = mutableMapOf<String, Double>()
 
         fun calcForPlayer(p: MatchParticipant, expected: Double, won: Boolean) {
@@ -204,7 +216,7 @@ class EloCommandHandler(
             // 약팀(expected < 0.5)이 이겼을 때만 이변 배율 부여
             val upset = if (won && expected < 0.5) upsetMult else 1.0
 
-            result[p.riotId] = K_FACTOR * ((if (won) 1.0 else 0.0) - expected) * mult * upset
+            result[p.riotId] = baseMult * K_FACTOR * ((if (won) 1.0 else 0.0) - expected) * mult * upset
         }
 
         teamA.forEach { calcForPlayer(it, eA, aWon) }
