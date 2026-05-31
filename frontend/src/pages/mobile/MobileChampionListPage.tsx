@@ -27,7 +27,7 @@ interface ChampionRowProps {
 
 function ChampionRow({ entry, displayName, imgUrl, onNavigate }: ChampionRowProps) {
   const [imgError, setImgError] = useState(false);
-  const wrColor = entry.winRate >= 50 ? '#10B981' : '#EF4444';
+  const wrColor = entry.winRate >= 50 ? 'var(--color-win)' : 'var(--color-loss)';
   const wrLabel = entry.winRate >= 50 ? '승' : '패';
   const showFallback = !imgUrl || imgError;
 
@@ -44,7 +44,7 @@ function ChampionRow({ entry, displayName, imgUrl, onNavigate }: ChampionRowProp
         {showFallback ? (
           <div style={{
             width: 32, height: 32, borderRadius: 4,
-            background: 'rgba(255,255,255,0.05)',
+            background: 'var(--color-bg-tertiary)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 10, color: 'var(--color-text-secondary)', flexShrink: 0,
           }}>

@@ -33,7 +33,7 @@ export function MatchDetailPage() {
   return (
     <div>
       <div className="page-header flex items-center justify-between">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="flex items-center" style={{ gap: 'var(--spacing-md)' }}>
           <button className="back-btn" onClick={() => navigate('/matches')}>
             <ChevronLeft size={18} />
           </button>
@@ -42,7 +42,7 @@ export function MatchDetailPage() {
               {data ? (QUEUE_LABEL[data.queueId] ?? data.queueId) : '경기 상세'}
             </h1>
             {data && (
-              <p className="page-subtitle" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <p className="page-subtitle flex items-center gap-sm">
                 <Clock size={11} />{fmt(data.gameDuration)}
                 <Calendar size={11} />{new Date(data.gameCreation).toLocaleDateString('ko-KR')}
                 {data.gameVersion && <span>v{data.gameVersion.split('.').slice(0, 2).join('.')}</span>}
@@ -55,7 +55,7 @@ export function MatchDetailPage() {
       {loading ? (
         <LoadingCenter />
       ) : !data ? (
-        <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-text-secondary)' }}>
+        <div style={{ textAlign: 'center', padding: 'var(--spacing-3xl) 0', color: 'var(--color-text-secondary)' }}>
           경기 데이터를 불러올 수 없습니다.
         </div>
       ) : (

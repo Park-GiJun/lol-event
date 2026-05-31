@@ -99,9 +99,8 @@ export default function OverviewTab({ mode }: { mode: string }) {
           <div key={label}
             className={`col-span-4 overview-spotlight-card${stat ? ' clickable' : ''}`}
             onClick={stat ? () => navigate(`/player-stats/${encodeURIComponent(stat.riotId)}`) : undefined}
-            style={{ boxShadow: stat ? '0 0 0 1px transparent' : undefined }}
           >
-            <div className="overview-spotlight-emoji" style={{ filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.3))' }}>{emoji}</div>
+            <div className="overview-spotlight-emoji">{emoji}</div>
             <div className="overview-spotlight-label">{label}</div>
             {stat ? (
               <>

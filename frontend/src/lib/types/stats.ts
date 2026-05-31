@@ -765,18 +765,19 @@ export interface VisionDominanceResult {
 export interface SurrenderPlayerEntry {
   riotId: string;
   games: number;
-  surrenderCount: number;
+  surrenderGames: number;
+  earlySurrenderGames: number;
+  causedEarlySurrenderGames: number;
   surrenderRate: number;
-  earlySurrenderCount: number;
   earlySurrenderRate: number;
-  surrenderWinRate: number;
 }
 export interface SurrenderAnalysisResult {
+  totalGames: number;
+  surrenderGames: number;
+  earlySurrenderGames: number;
   overallSurrenderRate: number;
-  earlyOverallSurrenderRate: number;
-  rankings: SurrenderPlayerEntry[];
-  surrenderTrigger: string | null;
-  neverGiveUpKing: string | null;
+  overallEarlySurrenderRate: number;
+  players: SurrenderPlayerEntry[];
 }
 
 // 후반 지배

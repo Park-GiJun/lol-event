@@ -37,21 +37,38 @@ export default function ChaosTab({ mode }: { mode: string }) {
   const renderCard = (entry: ChaosMatchEntry) => {
     const tagColor = chaosTagColor(entry.gameTypeTag);
     return (
-      <div key={entry.matchId} className="card" style={{ padding: '14px 16px', borderLeft: `3px solid ${tagColor}88`, transition: 'border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ fontWeight: 800, fontSize: 22, color: tagColor, fontVariantNumeric: 'tabular-nums', textShadow: `0 0 12px ${tagColor}44` }}>
+      <div
+        key={entry.matchId}
+        className="card"
+        style={{
+          padding: 'var(--spacing-md)',
+          borderLeft: `3px solid ${tagColor}88`,
+        }}
+      >
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          marginBottom: 'var(--spacing-sm)',
+        }}>
+          <span style={{
+            fontWeight: 'var(--font-weight-extrabold)', fontSize: 'var(--font-size-2xl)',
+            color: tagColor, fontVariantNumeric: 'tabular-nums', textShadow: `0 0 12px ${tagColor}44`,
+          }}>
             {entry.chaosIndex.toFixed(1)}
           </span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: tagColor,
-            background: tagColor + '22', border: `1px solid ${tagColor}44`,
-            borderRadius: 4, padding: '2px 8px' }}>
+          <span
+            className="badge badge-sm"
+            style={{ color: tagColor, background: tagColor + '22', borderColor: tagColor + '44' }}
+          >
             {entry.gameTypeTag}
           </span>
         </div>
-        <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>
+        <div style={{
+          fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)',
+          marginBottom: 4,
+        }}>
           킬 {entry.totalKills} · {formatDuration(entry.gameDurationMin)}
         </div>
-        <div style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>
+        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)' }}>
           {entry.participants.slice(0, 5).map(p => p.split('#')[0]).join(', ')}
         </div>
       </div>
@@ -60,11 +77,22 @@ export default function ChaosTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
-        평균 혼돈 지수: <span style={{ fontWeight: 700, color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>{data.avgChaosIndex.toFixed(1)}</span>
-      </p>
-      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 8, color: 'var(--color-text-primary)' }}>🔥 최고 혼돈 경기 TOP 10</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10, marginBottom: 20 }}>
+      <div className="stat-card" style={{ marginBottom: 'var(--spacing-lg)', maxWidth: 220 }}>
+        <span className="stat-card-label">평균 혼돈 지수</span>
+        <span className="stat-card-value">{data.avgChaosIndex.toFixed(1)}</span>
+      </div>
+
+      <div className="section-head">
+        <span className="icon-chip">🔥</span>
+        <span className="section-head-title">최고 혼돈 경기 TOP 10</span>
+      </div>
+
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+        gap: 'var(--spacing-sm)',
+        marginBottom: 'var(--spacing-lg)',
+      }}>
         {data.topChaosMatches.map(renderCard)}
       </div>
     </div>

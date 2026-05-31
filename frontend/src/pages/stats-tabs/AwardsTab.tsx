@@ -35,24 +35,29 @@ export default function AwardsTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
-        내전 어워즈 — 명예(?)의 전당
-      </p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 12 }}>
+      <div className="hero-banner" style={{ marginBottom: 'var(--spacing-lg)' }}>
+        <div className="hero-eyebrow">Weekly Awards</div>
+        <h2 className="hero-title">내전 어워즈</h2>
+        <p className="hero-subtitle">명예(?)의 전당</p>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 'var(--spacing-md)' }}>
         {entries.map(([key, label]) => {
           const entry = data[key];
           return (
-            <div key={key} className="card" style={{ padding: '14px 16px', transition: 'border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast)', cursor: entry ? 'pointer' : 'default' }}
-              onClick={entry ? () => navigate(`/player-stats/${encodeURIComponent(entry.riotId)}`) : undefined}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-secondary)', letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase', marginBottom: 8 }}>{label}</div>
+            <div
+              key={key}
+              className={entry ? 'card clickable' : 'card'}
+              onClick={entry ? () => navigate(`/player-stats/${encodeURIComponent(entry.riotId)}`) : undefined}
+            >
+              <div className="stat-card-label" style={{ marginBottom: 'var(--spacing-sm)' }}>{label}</div>
               {entry ? (
                 <>
-                  <div style={{ fontWeight: 700, fontSize: 15 }}>{entry.riotId.split('#')[0]}</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--color-primary)', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{entry.displayValue}</div>
-                  <div style={{ fontSize: 11, color: 'var(--color-text-disabled)', marginTop: 2 }}>{entry.games}판</div>
+                  <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-md)', color: 'var(--color-text-primary)' }}>{entry.riotId.split('#')[0]}</div>
+                  <div className="stat-card-value" style={{ fontSize: 'var(--font-size-xl)', marginTop: 'var(--spacing-xs)' }}>{entry.displayValue}</div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)', marginTop: '2px' }}>{entry.games}판</div>
                 </>
               ) : (
-                <div style={{ color: 'var(--color-text-disabled)', fontSize: 12, marginTop: 4 }}>데이터 없음</div>
+                <div style={{ color: 'var(--color-text-disabled)', fontSize: 'var(--font-size-sm)', marginTop: 'var(--spacing-xs)' }}>데이터 없음</div>
               )}
             </div>
           );

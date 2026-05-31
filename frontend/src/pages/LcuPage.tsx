@@ -16,24 +16,25 @@ const FEATURES = [
 export function LcuPage() {
   return (
     <div>
-      <div className="page-header">
-        <h1 className="page-title">데스크톱 수집기</h1>
-        <p className="page-subtitle">LoL 클라이언트 연동 · 자동 수집 · 실시간 분석</p>
+      <div className="hero-banner" style={{ marginBottom: 'var(--spacing-lg)' }}>
+        <div className="hero-eyebrow">Desktop Collector</div>
+        <h1 className="hero-title">데스크톱 수집기</h1>
+        <p className="hero-subtitle">LoL 클라이언트 연동 · 자동 수집 · 실시간 분석</p>
       </div>
 
       {/* 다운로드 섹션 */}
       <div className="card" style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-lg)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
           <div style={{
-            width: 44, height: 44, borderRadius: 12,
+            width: 44, height: 44, borderRadius: 'var(--radius-lg)',
             background: 'var(--gradient-primary)', display: 'flex',
-            alignItems: 'center', justifyContent: 'center',
+            alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             boxShadow: 'var(--shadow-teal-md)',
           }}>
             <Monitor size={22} color="#fff" />
           </div>
           <div>
-            <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700 }}>
+            <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
               LoL 내전 수집기 <span style={{ color: 'var(--color-primary)' }}>v1.0.0</span>
             </div>
             <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
@@ -57,25 +58,19 @@ export function LcuPage() {
 
       {/* 주요 기능 */}
       <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <div className="card-header">
-          <span className="card-title">주요 기능</span>
+        <div className="section-head">
+          <span className="icon-chip"><Zap size={15} /></span>
+          <span className="section-head-title">주요 기능</span>
         </div>
         <div className="grid-16">
           {FEATURES.map(({ icon: Icon, title, desc }) => (
             <div key={title} className="col-span-8" style={{
-              display: 'flex', gap: 12, padding: '12px 0',
+              display: 'flex', gap: 'var(--spacing-sm)', padding: 'var(--spacing-sm) 0',
               borderBottom: '1px solid var(--color-border)',
             }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                background: 'rgba(0, 180, 216, 0.08)',
-                border: '1px solid rgba(0, 180, 216, 0.15)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Icon size={16} color="var(--color-primary)" />
-              </div>
+              <span className="icon-chip"><Icon size={15} /></span>
               <div>
-                <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 600, marginBottom: 2 }}>{title}</div>
+                <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--color-text-primary)', marginBottom: 2 }}>{title}</div>
                 <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>{desc}</div>
               </div>
             </div>
@@ -85,8 +80,9 @@ export function LcuPage() {
 
       {/* 설치 방법 */}
       <div className="card">
-        <div className="card-header">
-          <span className="card-title">설치 및 사용</span>
+        <div className="section-head">
+          <span className="icon-chip"><Download size={15} /></span>
+          <span className="section-head-title">설치 및 사용</span>
         </div>
         <ol className="lcu-step-list">
           <li>위 버튼으로 <strong className="lcu-step-highlight">.msi 설치 파일</strong> 다운로드</li>
@@ -102,8 +98,8 @@ export function LcuPage() {
 
         <div style={{
           marginTop: 'var(--spacing-md)', padding: 'var(--spacing-sm) var(--spacing-md)',
-          background: 'rgba(0, 180, 216, 0.06)', borderRadius: 'var(--radius-md)',
-          border: '1px solid rgba(0, 180, 216, 0.12)',
+          background: 'rgba(200, 170, 110, 0.06)', borderRadius: 'var(--radius-md)',
+          border: '1px solid rgba(200, 170, 110, 0.18)',
           fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', lineHeight: 1.6,
         }}>
           💡 <strong style={{ color: 'var(--color-primary)' }}>Tip</strong>: 수집기를 실행한 상태로 LoL을

@@ -24,15 +24,15 @@ export default function VisionDominanceTab({ mode }: { mode: string }) {
   return (
     <div>
       {data.visionKing && (
-        <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8, background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.25)', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 22 }}>👁️</span>
+        <div className="card-glass" style={{ marginBottom: 'var(--spacing-md)', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+          <span className="icon-chip">👁️</span>
           <div>
-            <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>시야 지배왕</div>
-            <div style={{ fontWeight: 800, fontSize: 14, color: '#60a5fa' }}>{data.visionKing.split('#')[0]}</div>
+            <div className="hero-eyebrow" style={{ marginBottom: 2 }}>시야 지배왕</div>
+            <div style={{ fontWeight: 'var(--font-weight-extrabold)', fontSize: 'var(--font-size-md)', color: 'var(--color-primary)' }}>{data.visionKing.split('#')[0]}</div>
           </div>
         </div>
       )}
-      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+      <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-md)' }}>
         시야 지수 = 평균 시야 점수 / 게임 수 기준 정규화
       </p>
       <div className="table-wrapper">
@@ -55,15 +55,15 @@ export default function VisionDominanceTab({ mode }: { mode: string }) {
                 onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
                 <td><RankBadge rank={i + 1} /></td>
                 <td>
-                  <div style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</div>
-                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</div>
+                  <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>{p.riotId.split('#')[0]}</div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</div>
                 </td>
                 <td className="table-number">{p.games}</td>
                 <td className="table-number">{p.avgVisionScore.toFixed(1)}</td>
                 <td className="table-number">{p.avgWardsPlaced.toFixed(1)}</td>
                 <td className="table-number">{p.avgWardsKilled.toFixed(1)}</td>
                 <td className="table-number">{p.avgControlWardsBought.toFixed(1)}</td>
-                <td className="table-number" style={{ fontWeight: 700, color: '#60a5fa' }}>
+                <td className="table-number" style={{ fontWeight: 'var(--font-weight-bold)', color: 'var(--color-primary)' }}>
                   {p.visionIndex.toFixed(2)}
                 </td>
               </tr>

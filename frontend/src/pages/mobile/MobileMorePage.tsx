@@ -21,14 +21,14 @@ export function MobileMorePage() {
             key={to}
             className="m-more-item"
             onClick={() => navigate(to)}
-            style={{ background: 'var(--bg-surface)', border: '1px solid var(--color-border)', borderRadius: 12, padding: '20px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, cursor: 'pointer', transition: 'background 0.15s', width: '100%' }}
+            style={{ width: '100%' }}
           >
             <div className="m-more-item-icon">
               <Icon size={22} />
             </div>
             <div style={{ textAlign: 'center' }}>
               <div className="m-more-item-label">{label}</div>
-              <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 2 }}>{desc}</div>
+              <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-secondary)', marginTop: 2 }}>{desc}</div>
             </div>
           </button>
         ))}

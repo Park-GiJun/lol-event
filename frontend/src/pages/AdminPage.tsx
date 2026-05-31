@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Lock, RefreshCw, Play, Users, Trophy, Zap, X, Trash2, BarChart2 } from 'lucide-react';
+import { Shield, Lock, RefreshCw, Play, Users, Trophy, Zap, X, Trash2, BarChart2, MapPin } from 'lucide-react';
 import { api } from '../lib/api/api';
 import type {
   StatsResponse,
@@ -11,6 +11,7 @@ import type {
   PlayerDetailStats,
   LaneStat,
 } from '../lib/types/stats';
+import type { ReassignPositionsResult } from '../lib/types/member';
 import { PlayerLink } from '../components/common/PlayerLink';
 import '../styles/pages/monitoring.css';
 import '../styles/pages/stats.css';
@@ -87,6 +88,8 @@ export function AdminPage() {
   // elo reset
   const [eloResetting, setEloResetting] = useState(false);
   const [eloResetMsg, setEloResetMsg] = useState('');
+  const [posReassigning, setPosReassigning] = useState(false);
+  const [posReassignMsg, setPosReassignMsg] = useState('');
   const [eloLeaderboard, setEloLeaderboard] = useState<{ rank: number; riotId: string; elo: number; games: number }[]>([]);
   const [eloLoading, setEloLoading] = useState(false);
 
@@ -150,6 +153,24 @@ export function AdminPage() {
       setEloResetMsg('Elo 재집계에 실패했습니다.');
     } finally {
       setEloResetting(false);
+    }
+  }
+
+  async function reassignPositions() {
+    if (!window.confirm('저장된 모든 매치를 스캔해 포지션이 깨진 팀만 재배정합니다.\n완료 후 Elo 재집계를 권장합니다. 계속하시겠습니까?')) return;
+    setPosReassigning(true);
+    setPosReassignMsg('');
+    try {
+      const r = await api.post<ReassignPositionsResult>('/admin/positions/reassign', {});
+      setPosReassignMsg(
+        `완료: ${r.teamsFixed}개 팀 수정 / 참가자 ${r.participantsUpdated}명 갱신 ` +
+        `(스캔 매치 ${r.matchesScanned}, 칼바람 제외 ${r.matchesSkippedAram}, 정상 팀 ${r.teamsAlreadyValid}). ` +
+        `이제 Elo 재집계를 권장합니다.`,
+      );
+    } catch {
+      setPosReassignMsg('포지션 재배정에 실패했습니다.');
+    } finally {
+      setPosReassigning(false);
     }
   }
 
@@ -259,16 +280,18 @@ export function AdminPage() {
           <Shield size={20} color="var(--color-primary)" />
           <h1>어드민</h1>
         </div>
-        <button className="btn btn-secondary"
-          onClick={() => { sessionStorage.removeItem(SESSION_KEY); setAuthed(false); }}
-          style={{ fontSize: '0.78rem' }}>잠금</button>
+        <button className="btn btn-secondary btn-sm"
+          onClick={() => { sessionStorage.removeItem(SESSION_KEY); setAuthed(false); }}>
+          <Lock size={13} />잠금
+        </button>
       </div>
 
       {/* ── 1. 배치 스케쥴러 ──────────────────────── */}
-      <section className="stats-section card" style={{ marginBottom: 20 }}>
-        <div className="admin-section-title">
-          <RefreshCw size={16} />통계 배치 스케쥴러
-          <span className="admin-section-sub">매일 04:00 자동 실행 | Kafka 이벤트 수신 시 자동 실행</span>
+      <section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+        <div className="section-head">
+          <span className="icon-chip"><RefreshCw size={15} /></span>
+          <span className="section-head-title">통계 배치 스케쥴러</span>
+          <span className="admin-section-sub text-secondary text-xs">매일 04:00 자동 실행 | Kafka 이벤트 수신 시 자동 실행</span>
         </div>
         <div className="admin-action-row">
           <button className="btn btn-primary" onClick={triggerBatch} disabled={triggering}>
@@ -322,17 +345,20 @@ export function AdminPage() {
       </section>
 
       {/* ── 2. Elo 관리 ──────────────────────────── */}
-      <section className="stats-section card" style={{ marginBottom: 20 }}>
-        <div className="admin-section-title">
-          <BarChart2 size={16} />Elo 관리
-          <span className="admin-section-sub">전체 초기화 후 매치 시간순 재집계</span>
-          <button className="btn btn-secondary btn-sm" onClick={loadEloLeaderboard} disabled={eloLoading}
-            style={{ marginLeft: 'auto' }}>
+      <section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+        <div className="section-head">
+          <span className="icon-chip"><BarChart2 size={15} /></span>
+          <span className="section-head-title">Elo 관리</span>
+          <span className="admin-section-sub text-secondary text-xs">전체 초기화 후 매치 시간순 재집계</span>
+          <button className="btn btn-secondary btn-sm section-head-action" onClick={loadEloLeaderboard} disabled={eloLoading}>
             <RefreshCw size={12} />{eloLoading ? '로딩 중...' : '새로고침'}
           </button>
         </div>
 
         <div className="admin-action-row">
+          <button className="btn btn-secondary" onClick={reassignPositions} disabled={posReassigning}>
+            <MapPin size={14} />{posReassigning ? '재배정 중...' : '포지션 재배정 백필'}
+          </button>
           <button className="btn btn-danger" onClick={resetElo} disabled={eloResetting}>
             <Trash2 size={14} />{eloResetting ? '재집계 중...' : 'Elo 전체 초기화 및 재집계'}
           </button>
@@ -342,16 +368,23 @@ export function AdminPage() {
             </span>
           )}
         </div>
+        {posReassignMsg && (
+          <div className="admin-action-row">
+            <span className={`admin-msg ${posReassignMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}>
+              {posReassignMsg}
+            </span>
+          </div>
+        )}
 
         {eloLeaderboard.length > 0 && (
-          <div style={{ overflowX: 'auto' }}>
-            <table className="elo-table">
+          <div className="table-wrapper">
+            <table className="table elo-table">
               <thead>
                 <tr>
                   <th>순위</th>
                   <th>플레이어</th>
-                  <th>Elo</th>
-                  <th>판수</th>
+                  <th className="table-number">Elo</th>
+                  <th className="table-number">판수</th>
                 </tr>
               </thead>
               <tbody>
@@ -361,10 +394,10 @@ export function AdminPage() {
                       #{entry.rank}
                     </td>
                     <td style={{ fontWeight: 600 }}><PlayerLink riotId={entry.riotId}>{entry.riotId}</PlayerLink></td>
-                    <td className={entry.elo >= 1100 ? 'elo-score--high' : entry.elo < 900 ? 'elo-score--low' : 'elo-score--mid'}>
+                    <td className={`table-number ${entry.elo >= 1100 ? 'elo-score--high' : entry.elo < 900 ? 'elo-score--low' : 'elo-score--mid'}`}>
                       {entry.elo.toFixed(1)}
                     </td>
-                    <td className="text-secondary">{entry.games}판</td>
+                    <td className="table-number text-secondary">{entry.games}판</td>
                   </tr>
                 ))}
               </tbody>
@@ -372,32 +405,33 @@ export function AdminPage() {
           </div>
         )}
         {!eloLoading && eloLeaderboard.length === 0 && (
-          <p className="text-secondary" style={{ fontSize: 13, margin: '12px 0' }}>
+          <p className="text-secondary text-sm" style={{ margin: 'var(--spacing-sm) 0' }}>
             Elo 데이터가 없습니다. [Elo 전체 초기화 및 재집계] 버튼을 눌러 집계하세요.
           </p>
         )}
       </section>
 
       {/* ── 3. 포지션별 승리기여도 ────────────────── */}
-      <section className="stats-section card" style={{ marginBottom: 20 }}>
-        <div className="admin-section-title">
-          <Trophy size={16} />포지션별 승리기여도
-          <span className="admin-section-sub">KDA · 승률 · 비전 · CS 종합 기여 점수</span>
+      <section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+        <div className="section-head">
+          <span className="icon-chip"><Trophy size={15} /></span>
+          <span className="section-head-title">포지션별 승리기여도</span>
+          <span className="admin-section-sub text-secondary text-xs">KDA · 승률 · 비전 · CS 종합 기여 점수</span>
           {!posLoaded && (
-            <button className="btn btn-secondary btn-sm" onClick={loadPositions}
-              disabled={posLoading || !allStats.length} style={{ marginLeft: 'auto' }}>
+            <button className="btn btn-secondary btn-sm section-head-action" onClick={loadPositions}
+              disabled={posLoading || !allStats.length}>
               {posLoading ? '로딩 중...' : '통계 불러오기'}
             </button>
           )}
         </div>
         {posLoaded ? (
-          <div style={{ overflowX: 'auto' }}>
-            <table className="pos-table">
+          <div className="table-wrapper">
+            <table className="table pos-table">
               <thead>
                 <tr>
                   <th>플레이어</th>
-                  <th>MVP점수</th>
-                  {POS_ORDER.map(pos => <th key={pos}>{POS_LABELS[pos]}</th>)}
+                  <th className="table-number">MVP점수</th>
+                  {POS_ORDER.map(pos => <th key={pos} className="table-number">{POS_LABELS[pos]}</th>)}
                 </tr>
               </thead>
               <tbody>
@@ -407,21 +441,21 @@ export function AdminPage() {
                   return (
                     <tr key={player.riotId}>
                       <td><PlayerLink riotId={player.riotId}><span style={{ fontWeight: 600 }}>{player.riotId}</span></PlayerLink></td>
-                      <td style={{ color: 'var(--color-primary)', fontWeight: 700 }}>
+                      <td className="table-number" style={{ color: 'var(--color-primary)', fontWeight: 700 }}>
                         {mvp ? mvp.avgMvpScore.toFixed(1) : '-'}
                         {mvp && mvp.mvpCount > 0 && (
-                          <span className="text-secondary" style={{ fontSize: 10, marginLeft: 4 }}>
+                          <span className="text-secondary text-xs" style={{ marginLeft: 'var(--spacing-xs)' }}>
                             ({mvp.mvpCount}MVP)
                           </span>
                         )}
                       </td>
                       {POS_ORDER.map(pos => {
                         const lane = lanes.find(l => l.position === pos);
-                        if (!lane) return <td key={pos} className="pos-empty">—</td>;
+                        if (!lane) return <td key={pos} className="table-number pos-empty">—</td>;
                         const score = calcPosScore(lane);
                         const col = lane.winRate >= 60 ? 'var(--color-win)' : lane.winRate < 45 ? 'var(--color-loss)' : 'var(--color-text-primary)';
                         return (
-                          <td key={pos}>
+                          <td key={pos} className="table-number">
                             <div className="pos-score" style={{ color: col }}>{score}</div>
                             <div className="pos-meta">{lane.winRate.toFixed(0)}% · {lane.games}판</div>
                           </td>
@@ -434,18 +468,19 @@ export function AdminPage() {
             </table>
           </div>
         ) : (
-          <p className="text-secondary" style={{ fontSize: 13, margin: '12px 0' }}>
+          <p className="text-secondary text-sm" style={{ margin: 'var(--spacing-sm) 0' }}>
             [통계 불러오기] 버튼을 눌러 포지션별 데이터를 로드하세요.
           </p>
         )}
       </section>
 
       {/* ── 4. 팀 빌더 (Drag & Drop 4팀) ─────────── */}
-      <section className="stats-section card" style={{ marginBottom: 20 }}>
-        <div className="admin-section-title">
-          <Users size={16} />팀 빌더 · 예상 승률
-          <span className="admin-section-sub">드래그 &amp; 드롭으로 4팀 구성 · 각 팀 최대 5명</span>
-          <button className="btn btn-secondary btn-sm" onClick={resetTeams} style={{ marginLeft: 'auto' }}>초기화</button>
+      <section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+        <div className="section-head">
+          <span className="icon-chip"><Users size={15} /></span>
+          <span className="section-head-title">팀 빌더 · 예상 승률</span>
+          <span className="admin-section-sub text-secondary text-xs">드래그 &amp; 드롭으로 4팀 구성 · 각 팀 최대 5명</span>
+          <button className="btn btn-secondary btn-sm section-head-action" onClick={resetTeams}>초기화</button>
         </div>
 
         {/* 플레이어 풀 */}
@@ -455,7 +490,7 @@ export function AdminPage() {
           onDragOverChange={setDragOver}
           onDrop={onDrop}
           className={`team-pool-zone${dragOver === 'pool' ? ' drag-active' : ''}`}
-          style={{ marginBottom: 20 }}
+          style={{ marginBottom: 'var(--spacing-lg)' }}
         >
           <div className="team-pool-label">
             미배정 플레이어 ({teams.pool.length}명)
@@ -517,7 +552,7 @@ export function AdminPage() {
                 )}
 
                 {/* 플레이어 칩 */}
-                <div className="grid-16" style={{ minHeight: 36 }}>
+                <div className="grid-16" style={{ minHeight: '36px' }}>
                   {members.length === 0 && (
                     <span className="col-span-16 team-drop-hint">여기에 드롭</span>
                   )}
@@ -536,7 +571,7 @@ export function AdminPage() {
                 {teamDuos.length > 0 && (
                   <div className="team-duo-section" style={{ borderTop: `1px solid ${meta.border}` }}>
                     <div className="team-duo-title">듀오 시너지</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
                       {teamDuos.map(d => (
                         <div key={`${d.player1}-${d.player2}`} className="team-duo-item">
                           <span className="team-duo-names">{d.player1} + {d.player2}</span>
@@ -558,18 +593,19 @@ export function AdminPage() {
 
       {/* ── 5. 전체 듀오 시너지 Top ───────────────── */}
       <section className="stats-section card">
-        <div className="admin-section-title">
-          <Zap size={16} />듀오 시너지 전체
-          <span className="admin-section-sub">승률 순 정렬</span>
+        <div className="section-head">
+          <span className="icon-chip"><Zap size={15} /></span>
+          <span className="section-head-title">듀오 시너지 전체</span>
+          <span className="admin-section-sub text-secondary text-xs">승률 순 정렬</span>
         </div>
         {duoData.length === 0 ? (
-          <p className="text-secondary" style={{ fontSize: 13 }}>듀오 데이터가 없습니다.</p>
+          <p className="text-secondary text-sm">듀오 데이터가 없습니다.</p>
         ) : (
           <div className="grid-16">
             {duoData.slice(0, 20).map(duo => (
               <div key={`${duo.player1}-${duo.player2}`}
                 className="duo-ref-card col-span-4"
-                style={{ borderColor: duo.winRate >= 60 ? 'rgba(16,185,129,0.3)' : duo.winRate < 45 ? 'rgba(239,68,68,0.3)' : 'var(--color-border)' }}>
+                style={{ borderColor: duo.winRate >= 60 ? 'var(--color-win)' : duo.winRate < 45 ? 'var(--color-loss)' : 'var(--color-border)' }}>
                 <div className="duo-ref-players">
                   {duo.player1} <span className="text-secondary">+</span> {duo.player2}
                 </div>

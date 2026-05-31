@@ -45,12 +45,12 @@ export default function SupportTab({ mode }: { mode: string }) {
                 onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
                 <td><RankBadge rank={i + 1} /></td>
                 <td>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    <span style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2xs)' }}>
+                    <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm, 13px)', color: 'var(--color-text-primary)' }}>{p.riotId.split('#')[0]}</span>
                     {p.topChampion && p.topChampionId && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
                         <ChampImg championId={p.topChampionId} champion={p.topChampion} size={16} />
-                        <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>
+                        <span style={{ fontSize: 'var(--font-size-xs, 10px)', color: 'var(--color-text-disabled)' }}>
                           {champions.get(p.topChampionId)?.nameKo ?? p.topChampion}
                         </span>
                       </div>
@@ -58,15 +58,13 @@ export default function SupportTab({ mode }: { mode: string }) {
                   </div>
                 </td>
                 <td>
-                  <span style={{ fontSize: 11, background: 'var(--color-bg-hover)', borderRadius: 4, padding: '2px 6px' }}>
-                    {p.roleTag}
-                  </span>
+                  <span className="badge badge-normal badge-sm">{p.roleTag}</span>
                 </td>
                 <td className="table-number">{p.games}</td>
                 <td className="table-number">{(p.avgHealShare * 100).toFixed(1)}%</td>
                 <td className="table-number">{(p.avgCcShare * 100).toFixed(1)}%</td>
                 <td className="table-number">{(p.avgVisionShare * 100).toFixed(1)}%</td>
-                <td className="table-number" style={{ fontWeight: 700, color: '#4CAF50' }}>
+                <td className="table-number" style={{ fontWeight: 700, color: 'var(--color-primary)' }}>
                   {p.supportImpact.toFixed(1)}
                 </td>
               </tr>

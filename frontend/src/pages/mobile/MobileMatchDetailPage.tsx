@@ -16,18 +16,18 @@ function ChampIcon({ p, size = 40 }: { p: Participant; size?: number }) {
     return <img src={data.imageUrl} alt={p.champion} style={{ width: size, height: size, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }}
       onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />;
   }
-  return <div style={{ width: size, height: size, borderRadius: 6, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--color-text-disabled)', flexShrink: 0 }}>{p.champion.slice(0, 2)}</div>;
+  return <div style={{ width: size, height: size, borderRadius: 6, background: 'var(--color-bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: 'var(--color-text-disabled)', flexShrink: 0 }}>{p.champion.slice(0, 2)}</div>;
 }
 
 function ItemIcon({ itemId }: { itemId: number }) {
   const { items } = useDragon();
-  if (!itemId) return <div style={{ width: 20, height: 20, borderRadius: 3, background: 'rgba(255,255,255,0.05)' }} />;
+  if (!itemId) return <div style={{ width: 20, height: 20, borderRadius: 3, background: 'var(--color-bg-tertiary)' }} />;
   const data = items.get(itemId);
   if (data?.imageUrl) {
     return <img src={data.imageUrl} alt="" style={{ width: 20, height: 20, borderRadius: 3, objectFit: 'cover' }}
       onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />;
   }
-  return <div style={{ width: 20, height: 20, borderRadius: 3, background: 'rgba(255,255,255,0.05)' }} />;
+  return <div style={{ width: 20, height: 20, borderRadius: 3, background: 'var(--color-bg-tertiary)' }} />;
 }
 
 // ── 요약 탭: 플레이어 카드 ──
@@ -44,7 +44,7 @@ function PlayerCard({ p, aceId, mvpId, maxDmg }: { p: Participant; aceId: string
     <div style={{
       display: 'flex', gap: 10, padding: '10px 12px', alignItems: 'flex-start',
       borderBottom: '1px solid var(--color-border)',
-      background: isAce ? 'rgba(255,215,0,0.05)' : isMvp ? 'rgba(59,158,255,0.05)' : 'transparent',
+      background: isAce ? 'color-mix(in srgb, var(--color-primary) 8%, transparent)' : isMvp ? 'color-mix(in srgb, var(--color-info) 7%, transparent)' : 'transparent',
     }}>
       {/* 챔피언 아이콘 */}
       <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -64,8 +64,8 @@ function PlayerCard({ p, aceId, mvpId, maxDmg }: { p: Participant; aceId: string
           <span style={{ fontSize: 10, color: 'var(--color-text-disabled)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
             {p.riotId.split('#')[0]}
           </span>
-          {isAce && <span style={{ fontSize: 9, fontWeight: 700, color: '#FFD700', background: 'rgba(255,215,0,0.15)', padding: '1px 5px', borderRadius: 4, flexShrink: 0 }}>ACE</span>}
-          {isMvp && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-info)', background: 'rgba(59,158,255,0.15)', padding: '1px 5px', borderRadius: 4, flexShrink: 0 }}>MVP</span>}
+          {isAce && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-primary)', background: 'color-mix(in srgb, var(--color-primary) 18%, transparent)', padding: '1px 5px', borderRadius: 4, flexShrink: 0 }}>ACE</span>}
+          {isMvp && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--color-info)', background: 'color-mix(in srgb, var(--color-info) 18%, transparent)', padding: '1px 5px', borderRadius: 4, flexShrink: 0 }}>MVP</span>}
         </div>
 
         {/* KDA + CS + 골드 */}
@@ -85,7 +85,7 @@ function PlayerCard({ p, aceId, mvpId, maxDmg }: { p: Participant; aceId: string
 
         {/* 딜량 바 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{ flex: 1, height: 4, background: 'var(--color-bg-tertiary)', borderRadius: 2, overflow: 'hidden' }}>
             <div style={{
               width: `${dmgPct}%`, height: '100%', borderRadius: 2,
               background: p.team === 'blue' ? 'var(--color-info)' : 'var(--color-loss)',
@@ -161,7 +161,7 @@ function StatBar({ label, value, max, color }: { label: string; value: number; m
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <span style={{ fontSize: 10, color: 'var(--color-text-disabled)', width: 48, flexShrink: 0 }}>{label}</span>
-      <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.06)', borderRadius: 3, overflow: 'hidden' }}>
+      <div style={{ flex: 1, height: 6, background: 'var(--color-bg-tertiary)', borderRadius: 3, overflow: 'hidden' }}>
         <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: 3 }} />
       </div>
       <span style={{ fontSize: 10, color: 'var(--color-text-secondary)', width: 38, textAlign: 'right', flexShrink: 0 }}>
@@ -235,7 +235,7 @@ function Badge({ label, team }: { label: string; team: 'blue' | 'red' }) {
   return (
     <span style={{
       fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 20,
-      background: team === 'blue' ? 'rgba(59,158,255,0.1)' : 'rgba(232,64,64,0.1)',
+      background: team === 'blue' ? 'color-mix(in srgb, var(--color-info) 10%, transparent)' : 'color-mix(in srgb, var(--color-loss) 10%, transparent)',
       border: `1px solid ${color}`, color,
     }}>
       {team === 'blue' ? '🔵' : '🔴'} {label}
@@ -263,13 +263,13 @@ function TeamSection({ match, side, tab, mvp }: {
       {/* 팀 헤더 */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 8,
-        padding: '8px 12px', background: 'rgba(255,255,255,0.03)',
+        padding: '8px 12px', background: 'var(--color-bg-secondary)',
         borderBottom: '1px solid var(--color-border)',
       }}>
         <span style={{ fontSize: 13, fontWeight: 800, color }}>{side === 'blue' ? '블루팀' : '레드팀'}</span>
         <span style={{
           fontSize: 11, fontWeight: 700, padding: '1px 7px', borderRadius: 4,
-          background: win ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.1)',
+          background: win ? 'color-mix(in srgb, var(--color-win) 15%, transparent)' : 'color-mix(in srgb, var(--color-loss) 10%, transparent)',
           color: win ? 'var(--color-win)' : 'var(--color-loss)',
         }}>{win ? '승리' : '패배'}</span>
         <span style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginLeft: 2 }}>
@@ -333,8 +333,8 @@ export function MobileMatchDetailPage() {
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         padding: '12px 14px', borderRadius: 12, marginBottom: 12,
-        background: blueWin ? 'rgba(59,158,255,0.08)' : 'rgba(232,64,64,0.08)',
-        border: `1px solid ${blueWin ? 'rgba(59,158,255,0.2)' : 'rgba(232,64,64,0.2)'}`,
+        background: blueWin ? 'color-mix(in srgb, var(--color-info) 8%, transparent)' : 'color-mix(in srgb, var(--color-loss) 8%, transparent)',
+        border: `1px solid ${blueWin ? 'color-mix(in srgb, var(--color-info) 20%, transparent)' : 'color-mix(in srgb, var(--color-loss) 20%, transparent)'}`,
       }}>
         <div>
           <div style={{ fontSize: 14, fontWeight: 800, color: blueWin ? 'var(--color-info)' : 'var(--color-loss)' }}>

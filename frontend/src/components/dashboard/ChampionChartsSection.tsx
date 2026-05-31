@@ -36,8 +36,8 @@ export function ChampionChartsSection({ laneStats }: Props) {
   const labels = laneStats.map(l => LANE_LABELS[l.position] ?? l.position);
 
   const axisStyle = {
-    grid: { color: 'rgba(255,255,255,0.04)' },
-    ticks: { color: '#7B8DB5', font: { size: 11 } },
+    grid: { color: 'rgba(200,170,110,0.06)' },
+    ticks: { color: '#A09B8C', font: { size: 11 } },
   };
 
   const chartOptions: ChartOptions<'bar'> = {
@@ -64,14 +64,14 @@ export function ChampionChartsSection({ laneStats }: Props) {
       label: '승률 (%)',
       data: laneStats.map(l => l.winRate),
       backgroundColor: laneStats.map(l =>
-        l.winRate >= 60 ? 'rgba(16,185,129,0.65)'
-          : l.winRate >= 50 ? 'rgba(0,180,216,0.65)'
-          : 'rgba(239,68,68,0.65)'
+        l.winRate >= 60 ? 'rgba(10,200,185,0.65)'
+          : l.winRate >= 50 ? 'rgba(200,170,110,0.65)'
+          : 'rgba(232,64,87,0.65)'
       ),
       borderColor: laneStats.map(l =>
-        l.winRate >= 60 ? 'rgba(16,185,129,0.9)'
-          : l.winRate >= 50 ? 'rgba(0,180,216,0.9)'
-          : 'rgba(239,68,68,0.9)'
+        l.winRate >= 60 ? 'rgba(10,200,185,0.9)'
+          : l.winRate >= 50 ? 'rgba(200,170,110,0.9)'
+          : 'rgba(232,64,87,0.9)'
       ),
       borderWidth: 1,
       borderRadius: 5,
@@ -83,32 +83,36 @@ export function ChampionChartsSection({ laneStats }: Props) {
     datasets: [{
       label: 'KDA',
       data: laneStats.map(l => l.kda),
-      backgroundColor: 'rgba(0,180,216,0.55)',
-      borderColor: 'rgba(0,180,216,0.9)',
+      backgroundColor: 'rgba(200,170,110,0.55)',
+      borderColor: 'rgba(200,170,110,0.9)',
       borderWidth: 1,
       borderRadius: 5,
     }],
   };
 
   return (
-    <div className="card" style={{ marginBottom: 16 }}>
-      <div style={{
-        fontWeight: 700, fontSize: 'var(--font-size-sm)',
-        marginBottom: 16, color: 'var(--color-text-primary)',
-        display: 'flex', alignItems: 'center', gap: 8,
-      }}>
-        <span style={{ color: 'var(--color-primary)' }}>📊</span>
-        포지션별 통계 차트
+    <div className="card" style={{ marginBottom: 'var(--spacing-md)' }}>
+      <div className="section-head">
+        <span className="icon-chip">📊</span>
+        <span className="section-head-title">포지션별 통계 차트</span>
       </div>
       <div className="grid-16">
         <div className="col-span-8" style={{ height: '220px' }}>
-          <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+          <div style={{
+            fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)',
+            marginBottom: 'var(--spacing-sm)', textTransform: 'uppercase',
+            letterSpacing: 'var(--tracking-wide)', fontWeight: 'var(--font-weight-bold)',
+          }}>
             승률
           </div>
           <Bar data={winRateData} options={chartOptions} />
         </div>
         <div className="col-span-8" style={{ height: '220px' }}>
-          <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+          <div style={{
+            fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)',
+            marginBottom: 'var(--spacing-sm)', textTransform: 'uppercase',
+            letterSpacing: 'var(--tracking-wide)', fontWeight: 'var(--font-weight-bold)',
+          }}>
             KDA
           </div>
           <Bar data={kdaData} options={chartOptions} />

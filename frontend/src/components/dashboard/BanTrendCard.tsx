@@ -45,7 +45,7 @@ export function BanTrendCard() {
               <tr key={i}>
                 <td><Skeleton className="h-4 w-6" /></td>
                 <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
                     <Skeleton className="h-8 w-8 rounded" />
                     <Skeleton className="h-4 w-20" />
                   </div>
@@ -107,38 +107,38 @@ export function BanTrendCard() {
             const displayName = dragon?.nameKo ?? entry.champion;
             const imgUrl = dragon?.imageUrl ?? null;
             const barPct = (entry.banRate / maxBanRate) * 100;
-            const barColor = barPct >= 80 ? '#EF4444' : barPct >= 50 ? '#F97316' : 'var(--color-primary)';
+            const barColor = barPct >= 80 ? 'var(--color-error)' : barPct >= 50 ? '#F97316' : 'var(--color-primary)';
 
             return (
               <tr key={entry.championId} className="member-stats-row">
-                <td style={{ color: 'var(--color-text-disabled)', fontSize: 12 }}>{idx + 1}</td>
+                <td style={{ color: 'var(--color-text-disabled)', fontSize: 'var(--font-size-xs)' }}>{idx + 1}</td>
                 <td>
                   <ChampionLink champion={entry.champion} championId={entry.championId}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
                       {imgUrl ? (
                         <img src={imgUrl} alt={displayName} width={32} height={32}
-                          style={{ borderRadius: 4, border: '1px solid var(--color-border)', objectFit: 'cover' }}
+                          style={{ borderRadius: 'var(--radius-xs)', border: '1px solid var(--color-border)', objectFit: 'cover' }}
                           onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                       ) : (
                         <div style={{
                           width: 32, height: 32, background: 'var(--color-bg-hover)',
-                          borderRadius: 4, display: 'flex', alignItems: 'center',
-                          justifyContent: 'center', fontSize: 10, color: 'var(--color-text-secondary)',
+                          borderRadius: 'var(--radius-xs)', display: 'flex', alignItems: 'center',
+                          justifyContent: 'center', fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-secondary)',
                         }}>
                           {displayName.slice(0, 2)}
                         </div>
                       )}
-                      <span style={{ fontWeight: 600, fontSize: 13 }}>{displayName}</span>
+                      <span style={{ fontWeight: 600, fontSize: 'var(--font-size-sm)' }}>{displayName}</span>
                     </div>
                   </ChampionLink>
                 </td>
                 <td className="table-number">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
-                    <div style={{ width: 64, height: 4, background: 'var(--color-bg-hover)', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', justifyContent: 'flex-end' }}>
+                    <div style={{ width: 64, height: 4, background: 'var(--color-bg-hover)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
                       <div style={{
                         width: `${barPct}%`, height: '100%',
                         background: barColor,
-                        borderRadius: 2,
+                        borderRadius: 'var(--radius-full)',
                         transition: 'width 0.4s ease',
                       }} />
                     </div>

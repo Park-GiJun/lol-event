@@ -54,8 +54,11 @@ function ChampionMatchupSection({ champion, mode }: { champion: string; mode: st
   }, [champion, mode]);
 
   if (loading) return (
-    <div className="card" style={{ marginBottom: 16 }}>
-      <div style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', marginBottom: 12 }}>같은 라인 상대 챔피언 승률</div>
+    <div className="card" style={{ marginBottom: 'var(--spacing-md)' }}>
+      <div className="section-head">
+        <span className="icon-chip" aria-hidden>⚔️</span>
+        <span className="section-head-title">같은 라인 상대 챔피언 승률</span>
+      </div>
       <div style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>불러오는 중...</div>
     </div>
   );
@@ -63,10 +66,11 @@ function ChampionMatchupSection({ champion, mode }: { champion: string; mode: st
   const matchups = data?.matchups ?? [];
 
   return (
-    <div className="card" style={{ marginBottom: 16 }}>
-      <div className="section-title-with-line">
-        같은 라인 상대 챔피언 승률
-        <span style={{ fontSize: 10, fontWeight: 400, color: 'var(--color-text-secondary)' }}>
+    <div className="card" style={{ marginBottom: 'var(--spacing-md)' }}>
+      <div className="section-head">
+        <span className="icon-chip" aria-hidden>⚔️</span>
+        <span className="section-head-title">같은 라인 상대 챔피언 승률</span>
+        <span className="section-head-action" style={{ fontSize: 'var(--font-size-2xs)', fontWeight: 'var(--font-weight-normal)', color: 'var(--color-text-secondary)' }}>
           동일 포지션 기준 · 2판 이상
         </span>
       </div>
@@ -123,8 +127,11 @@ function ChampionLaneStats({ laneStats }: { laneStats: ChampionLaneStat[] }) {
   const wrColor = (wr: number) => wr >= 60 ? 'var(--color-win)' : wr >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
 
   return (
-    <div className="card" style={{ marginBottom: 16 }}>
-      <div className="section-title-with-line">포지션별 통계</div>
+    <div className="card" style={{ marginBottom: 'var(--spacing-md)' }}>
+      <div className="section-head">
+        <span className="icon-chip" aria-hidden>🧭</span>
+        <span className="section-head-title">포지션별 통계</span>
+      </div>
       <div className="grid-16" style={{ marginBottom: 14 }}>
         {laneStats.map(s => {
           const m = LANE_META[s.position] ?? { label: s.position, emoji: '' };
@@ -353,9 +360,11 @@ export function ChampionStatsPage() {
         <>
         {/* 인기 아이템 */}
         {data && data.itemStats.length > 0 && (
-          <div className="card" style={{ marginBottom: 16 }}>
-            <div className="section-title-with-line">
-              인기 아이템 <span style={{ fontSize: 11, fontWeight: 400, color: 'var(--color-text-secondary)' }}>픽률 기준</span>
+          <div className="card" style={{ marginBottom: 'var(--spacing-md)' }}>
+            <div className="section-head">
+              <span className="icon-chip" aria-hidden>🛒</span>
+              <span className="section-head-title">인기 아이템</span>
+              <span className="section-head-action" style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-normal)', color: 'var(--color-text-secondary)' }}>픽률 기준</span>
             </div>
             <div className="grid-16" style={{ alignItems: 'flex-end' }}>
               {data.itemStats.map((item, idx) => {
@@ -367,12 +376,12 @@ export function ChampionStatsPage() {
                       {idx === 0 && (
                         <div style={{
                           position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
-                          fontSize: 9, fontWeight: 700, color: '#FFD700', whiteSpace: 'nowrap',
+                          fontSize: 9, fontWeight: 700, color: 'var(--color-primary)', whiteSpace: 'nowrap',
                         }}>1위</div>
                       )}
                       {itemData?.imageUrl
                         ? <img src={itemData.imageUrl} alt={itemData.nameKo}
-                            style={{ width: 44, height: 44, borderRadius: 6, border: `2px solid ${idx === 0 ? '#FFD700' : 'var(--color-border)'}`, objectFit: 'cover' }}
+                            style={{ width: 44, height: 44, borderRadius: 'var(--radius-sm)', border: `2px solid ${idx === 0 ? 'var(--color-primary)' : 'var(--color-border)'}`, objectFit: 'cover' }}
                             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                         : <div style={{ width: 44, height: 44, borderRadius: 6, background: 'var(--color-bg-hover)', border: '2px solid var(--color-border)' }} />
                       }

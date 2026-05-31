@@ -333,7 +333,7 @@ export function Scoreboard({ match }: { match: Match }) {
                       </td>
                       <td className="td-num">
                         <div>{p.cs}</div>
-                        <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>
+                        <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
                           {(p.cs / Math.max(match.gameDuration / 60, 1)).toFixed(1)}/분
                         </div>
                       </td>
@@ -562,10 +562,11 @@ export function MatchesPage() {
 
   return (
     <div>
-      <div className="page-header flex items-center justify-between">
+      <div className="hero-banner flex items-center justify-between" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div>
-          <h1 className="page-title">경기 목록</h1>
-          <p className="page-subtitle">{matches.length}건 · {groups.length}일</p>
+          <div className="hero-eyebrow">Match History</div>
+          <h1 className="hero-title">경기 목록</h1>
+          <p className="hero-subtitle">{matches.length}건 · {groups.length}일</p>
         </div>
         <div className="flex gap-sm">
           {MODES.map(m => (
@@ -632,7 +633,7 @@ export function MatchesPage() {
       ) : (
         <div className="matches-list">
           {groups.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--color-text-secondary)' }}>
+            <div style={{ textAlign: 'center', padding: 'var(--spacing-3xl) 0', color: 'var(--color-text-secondary)' }}>
               경기 데이터가 없습니다
             </div>
           )}

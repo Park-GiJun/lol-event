@@ -28,7 +28,7 @@ export function MobileLcuPage() {
             background: 'var(--gradient-primary)', display: 'flex',
             alignItems: 'center', justifyContent: 'center',
           }}>
-            <Monitor size={18} color="#fff" />
+            <Monitor size={18} color="var(--color-bg-primary)" />
           </div>
           <div>
             <div style={{ fontSize: 15, fontWeight: 700 }}>
@@ -61,7 +61,7 @@ export function MobileLcuPage() {
           }}>
             <div style={{
               width: 32, height: 32, borderRadius: 8, flexShrink: 0,
-              background: 'rgba(0,180,216,0.08)', border: '1px solid rgba(0,180,216,0.15)',
+              background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <Icon size={14} color="var(--color-primary)" />

@@ -54,11 +54,11 @@ export function MobileHomePage() {
             key={p.riotId}
             riotId={p.riotId}
             rank={p.rank}
-            subText={<span style={{ fontSize: 11, color: tier.color }}>{tier.label}</span>}
+            subText={<span style={{ fontSize: 'var(--font-size-xs)', color: tier.color }}>{tier.label}</span>}
             rightSlot={
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 18, fontWeight: 800, color: tier.color }}>{p.elo.toFixed(1)}</div>
-                <div style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{p.games}게임</div>
+                <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 800, color: tier.color }}>{p.elo.toFixed(1)}</div>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>{p.games}게임</div>
               </div>
             }
             highlight={isSelf}

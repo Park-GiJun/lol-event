@@ -27,7 +27,11 @@ export default function MvpTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+      <div className="section-head">
+        <span className="icon-chip">🏆</span>
+        <span className="section-head-title">MVP 랭킹</span>
+      </div>
+      <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-md)', lineHeight: 'var(--line-height-relaxed)' }}>
         총 {data.totalGames}경기 · MVP 점수 = KDA기여 + 팀데미지기여(최대40) + 시야/분 + CS/분 + 승리보너스(+20)
       </p>
       <div className="table-wrapper">
@@ -51,35 +55,35 @@ export default function MvpTab({ mode }: { mode: string }) {
                 <td>
                   <PlayerLink riotId={p.riotId} mode={mode}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <span style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</span>
-                      <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</span>
+                      <span style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>{p.riotId.split('#')[0]}</span>
+                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</span>
                     </div>
                   </PlayerLink>
                 </td>
                 <td className="table-number">{p.games}</td>
                 <td className="table-number">
-                  <span style={{ fontWeight: 700, color: 'var(--color-primary)', fontSize: 14 }}>{p.mvpCount}</span>
-                  <span style={{ fontSize: 10, color: 'var(--color-text-disabled)', marginLeft: 2 }}>회</span>
+                  <span style={{ fontWeight: 'var(--font-weight-bold)', color: 'var(--color-primary)', fontSize: 'var(--font-size-md)' }}>{p.mvpCount}</span>
+                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)', marginLeft: 2 }}>회</span>
                 </td>
                 <td className="table-number">
-                  <span style={{ fontWeight: 700, color: 'var(--color-win)', fontSize: 14 }}>{p.aceCount}</span>
-                  <span style={{ fontSize: 10, color: 'var(--color-text-disabled)', marginLeft: 2 }}>회</span>
+                  <span style={{ fontWeight: 'var(--font-weight-bold)', color: 'var(--color-win)', fontSize: 'var(--font-size-md)' }}>{p.aceCount}</span>
+                  <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)', marginLeft: 2 }}>회</span>
                 </td>
                 <td>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <span style={{ fontWeight: 700, fontSize: 13, color: p.mvpRate >= 50 ? 'var(--color-win)' : 'var(--color-primary)' }}>{p.mvpRate}%</span>
-                    <div style={{ height: 4, background: 'var(--color-bg-hover)', borderRadius: 2, overflow: 'hidden', minWidth: 80 }}>
-                      <div style={{ width: `${Math.min(p.mvpRate, 100)}%`, height: '100%', background: p.mvpRate >= 50 ? 'var(--color-win)' : 'var(--color-primary)', borderRadius: 2 }} />
+                    <span style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-sm)', color: p.mvpRate >= 50 ? 'var(--color-win)' : 'var(--color-primary)' }}>{p.mvpRate}%</span>
+                    <div style={{ height: 4, background: 'var(--color-bg-hover)', borderRadius: 'var(--radius-xs)', overflow: 'hidden', minWidth: 80 }}>
+                      <div style={{ width: `${Math.min(p.mvpRate, 100)}%`, height: '100%', background: p.mvpRate >= 50 ? 'var(--color-win)' : 'var(--color-primary)', borderRadius: 'var(--radius-xs)' }} />
                     </div>
                   </div>
                 </td>
-                <td className="table-number" style={{ fontWeight: 700 }}>{p.avgMvpScore.toFixed(2)}</td>
+                <td className="table-number" style={{ fontWeight: 'var(--font-weight-bold)' }}>{p.avgMvpScore.toFixed(2)}</td>
                 <td>
                   {p.topChampion && p.topChampionId ? (
                     <ChampionLink champion={p.topChampion} championId={p.topChampionId} mode={mode}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
                         <ChampImg championId={p.topChampionId} champion={p.topChampion} size={24} />
-                        <span style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>
+                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
                           {champions.get(p.topChampionId)?.nameKo ?? p.topChampion}
                         </span>
                       </div>

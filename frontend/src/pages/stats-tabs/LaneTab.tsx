@@ -37,15 +37,14 @@ export default function LaneTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div className="grid-16" style={{ marginBottom: 16 }}>
+      <div className="tab-bar" style={{ marginBottom: 'var(--spacing-md)' }}>
         {LANES.map(lane => {
           const m = LANE_META[lane];
           return (
             <button key={lane}
-              className={`member-sort-tab col-span-3 ${selectedLane === lane ? 'active' : ''}`}
-              onClick={() => setSelectedLane(lane)}
-              style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 14px' }}>
-              <span>{m.emoji}</span>
+              className={`tab-bar-item ${selectedLane === lane ? 'active' : ''}`}
+              onClick={() => setSelectedLane(lane)}>
+              <span className="icon-chip-sm">{m.emoji}</span>
               <span>{m.label}</span>
             </button>
           );
@@ -79,8 +78,8 @@ export default function LaneTab({ mode }: { mode: string }) {
                     <td>
                       <PlayerLink riotId={p.riotId} mode={mode}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                          <span style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</span>
-                          <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</span>
+                          <span style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-sm)' }}>{p.riotId.split('#')[0]}</span>
+                          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</span>
                         </div>
                       </PlayerLink>
                     </td>
@@ -89,7 +88,7 @@ export default function LaneTab({ mode }: { mode: string }) {
                         <ChampionLink champion={champName} championId={p.topChampionId} mode={mode}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                             <ChampImg championId={p.topChampionId} champion={champName} size={24} />
-                            <span style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>{nameKo}</span>
+                            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>{nameKo}</span>
                           </div>
                         </ChampionLink>
                       ) : <span style={{ color: 'var(--color-text-disabled)' }}>—</span>}
@@ -99,7 +98,7 @@ export default function LaneTab({ mode }: { mode: string }) {
                     <td className="table-number" style={{ fontWeight: 700, color: p.kda >= 5 ? 'var(--color-win)' : p.kda >= 3 ? 'var(--color-primary)' : undefined }}>
                       {p.kda.toFixed(2)}
                     </td>
-                    <td className="table-number" style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>
+                    <td className="table-number" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
                       {p.avgKills.toFixed(1)} / <span style={{ color: 'var(--color-error)' }}>{p.avgDeaths.toFixed(1)}</span> / {p.avgAssists.toFixed(1)}
                     </td>
                     <td className="table-number">{p.avgDamage.toLocaleString()}</td>
@@ -108,7 +107,7 @@ export default function LaneTab({ mode }: { mode: string }) {
                 );
               })}
               {data.players.length === 0 && (
-                <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
+                <tr><td colSpan={9} style={{ textAlign: 'center', padding: 'var(--spacing-2xl) 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
               )}
             </tbody>
           </table>

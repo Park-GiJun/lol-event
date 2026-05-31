@@ -52,7 +52,7 @@ export function MobilePlayerCard({
       className="m-player-card"
       style={{
         minHeight: 44,
-        ...(highlight ? { background: 'rgba(11,196,180,0.08)', borderColor: 'var(--color-primary)' } : {}),
+        ...(highlight ? { background: 'var(--color-bg-hover)', borderColor: 'var(--color-primary)' } : {}),
         ...style,
       }}
       onClick={onClick}

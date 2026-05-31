@@ -45,12 +45,12 @@ export default function JungleTab({ mode }: { mode: string }) {
                 onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
                 <td><RankBadge rank={i + 1} /></td>
                 <td>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    <span style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <span style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-sm)' }}>{p.riotId.split('#')[0]}</span>
                     {p.topChampion && p.topChampionId && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         <ChampImg championId={p.topChampionId} champion={p.topChampion} size={16} />
-                        <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>
+                        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)' }}>
                           {champions.get(p.topChampionId)?.nameKo ?? p.topChampion}
                         </span>
                       </div>
@@ -58,9 +58,7 @@ export default function JungleTab({ mode }: { mode: string }) {
                   </div>
                 </td>
                 <td>
-                  <span style={{ fontSize: 11, background: 'var(--color-bg-hover)', borderRadius: 4, padding: '2px 6px' }}>
-                    {p.playStyleTag}
-                  </span>
+                  <span className="badge badge-primary badge-sm">{p.playStyleTag}</span>
                 </td>
                 <td className="table-number">{p.games}</td>
                 <td className="table-number">{(p.avgInvadeRatio * 100).toFixed(1)}%</td>
@@ -72,7 +70,7 @@ export default function JungleTab({ mode }: { mode: string }) {
               </tr>
             ))}
             {!data.rankings.length && (
-              <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 'var(--spacing-2xl) 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
             )}
           </tbody>
         </table>

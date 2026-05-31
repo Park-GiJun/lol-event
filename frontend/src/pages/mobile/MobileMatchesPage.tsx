@@ -38,7 +38,7 @@ function ChampIcon({ championId, champion, size = 26, className }: { championId:
   return (
     <div style={{
       width: size, height: size, borderRadius: 4,
-      background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center',
+      background: 'var(--color-bg-hover)', display: 'flex', alignItems: 'center',
       justifyContent: 'center', fontSize: 9, color: 'var(--color-text-disabled)', flexShrink: 0,
     }}>
       {champion.slice(0, 2)}
@@ -53,7 +53,7 @@ function PlayerLine({ p, accent, mvpBg, isAce, isMvp }: { p: Participant; accent
     <div style={{
       display: 'flex', alignItems: 'center', gap: 5,
       padding: '3px 5px', borderRadius: 6,
-      background: isAce ? 'rgba(255,215,0,0.08)' : isMvp ? mvpBg : 'transparent',
+      background: isAce ? 'rgba(200,170,110,0.10)' : isMvp ? mvpBg : 'transparent',
     }}>
       <ChampIcon championId={p.championId} champion={p.champion} size={22} />
       <span style={{
@@ -61,7 +61,7 @@ function PlayerLine({ p, accent, mvpBg, isAce, isMvp }: { p: Participant; accent
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
       }}>
         {nameKo}
-        {isAce && <span style={{ marginLeft: 3, fontSize: 8, fontWeight: 700, color: '#FFD700' }}>ACE</span>}
+        {isAce && <span style={{ marginLeft: 3, fontSize: 8, fontWeight: 700, color: 'var(--color-primary)' }}>ACE</span>}
         {isMvp && <span style={{ marginLeft: 3, fontSize: 8, fontWeight: 700, color: accent }}>MVP</span>}
       </span>
       <span style={{ fontSize: 10, fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap', color: 'var(--color-text-primary)' }}>

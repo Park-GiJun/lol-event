@@ -25,12 +25,22 @@ export default function SynergyTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-        <p style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+      <div className="section-head">
+        <span className="icon-chip">🤝</span>
+        <span className="section-head-title">챔피언 시너지</span>
+        <p style={{
+          fontSize: 'var(--font-size-xs)',
+          color: 'var(--color-text-secondary)',
+          margin: 0,
+        }}>
           총 {data.totalGames}경기 · 같은 팀에 함께 픽된 챔피언 조합의 승률
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
-          <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>최소 게임수</span>
+        <div className="section-head-action" style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--spacing-xs)',
+        }}>
+          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>최소 게임수</span>
           {[2, 3, 5].map(n => (
             <button key={n} className={`member-sort-tab ${minGames === n ? 'active' : ''}`}
               onClick={() => setMinGames(n)}>{n}+</button>
@@ -56,26 +66,26 @@ export default function SynergyTab({ mode }: { mode: string }) {
               <tr key={`${s.champion1}-${s.champion2}`} className="member-stats-row">
                 <td><RankBadge rank={i + 1} /></td>
                 <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
                     <ChampImg championId={s.champion1Id} champion={s.champion1} size={28} />
                     <ChampionLink champion={s.champion1} championId={s.champion1Id} mode={mode}>
-                      <span style={{ fontWeight: 700, fontSize: 12 }}>{ko1}</span>
+                      <span style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-xs)' }}>{ko1}</span>
                     </ChampionLink>
-                    <span style={{ color: 'var(--color-text-disabled)', fontSize: 16, fontWeight: 300 }}>+</span>
+                    <span style={{ color: 'var(--color-primary)', fontSize: 'var(--font-size-md)', fontWeight: 300 }}>+</span>
                     <ChampImg championId={s.champion2Id} champion={s.champion2} size={28} />
                     <ChampionLink champion={s.champion2} championId={s.champion2Id} mode={mode}>
-                      <span style={{ fontWeight: 700, fontSize: 12 }}>{ko2}</span>
+                      <span style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-xs)' }}>{ko2}</span>
                     </ChampionLink>
                   </div>
                 </td>
                 <td className="table-number">{s.games}</td>
                 <td><WinRateBar winRate={s.winRate} wins={s.wins} losses={s.games - s.wins} /></td>
-                <td className="table-number" style={{ fontWeight: 600 }}>{s.avgCombinedKills.toFixed(1)}</td>
+                <td className="table-number" style={{ fontWeight: 'var(--font-weight-semibold)' }}>{s.avgCombinedKills.toFixed(1)}</td>
               </tr>
               );
             })}
             {!data.synergies.length && (
-              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-secondary)' }}>
+              <tr><td colSpan={5} style={{ textAlign: 'center', padding: 'var(--spacing-2xl) 0', color: 'var(--color-text-secondary)' }}>
                 데이터 없음 (최소 {minGames}게임 이상 조합 없음)
               </td></tr>
             )}

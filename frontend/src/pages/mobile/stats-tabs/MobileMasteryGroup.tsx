@@ -35,9 +35,9 @@ function PositionBadgeTab({ mode }: { mode: string }) {
         {data.topPositions.map(p => (
           <div key={p.position} className="m-leader-row"
             onClick={() => navigate(`/m/player/${encodeURIComponent(p.riotId)}`)}>
-            <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', width: 50 }}>{POS_LABEL[p.position] ?? p.position}</span>
-            <span style={{ fontWeight: 700, flex: 1 }}>{p.riotId.split('#')[0]}</span>
-            <span style={{ fontSize: 12 }}>{p.games}게임 {p.winRate.toFixed(0)}%</span>
+            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', width: 50 }}>{POS_LABEL[p.position] ?? p.position}</span>
+            <span style={{ fontWeight: 700, flex: 1, color: 'var(--color-text-primary)' }}>{p.riotId.split('#')[0]}</span>
+            <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>{p.games}게임 {p.winRate.toFixed(0)}%</span>
           </div>
         ))}
       </div>
@@ -96,11 +96,11 @@ function ChampCertTab({ mode }: { mode: string }) {
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                 <button onClick={() => navigate(`/m/player/${encodeURIComponent(e.riotId)}`)}
-                  style={{ fontWeight: 700, fontSize: 13, background: 'none', border: 'none', color: 'var(--color-text-primary)', cursor: 'pointer', padding: 0 }}>
+                  style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', background: 'none', border: 'none', color: 'var(--color-text-primary)', cursor: 'pointer', padding: 0 }}>
                   {name}
                 </button>
-                {tag && <span style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>#{tag}</span>}
-                <span style={{ fontSize: 11, color: '#FFD700', marginLeft: 'auto' }}>★ {c?.nameKo ?? e.champion}</span>
+                {tag && <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-secondary)' }}>#{tag}</span>}
+                <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-primary)', marginLeft: 'auto' }}>★ {c?.nameKo ?? e.champion}</span>
               </div>
               <div className="m-stat-chips">
                 <span className="m-stat-chip">{e.games}게임</span>
@@ -133,7 +133,7 @@ function ChampTierTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 8 }}>
+      <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-secondary)', marginBottom: 8 }}>
         총 {data.totalMatches}게임 분석 (3게임 이상 챔피언)
       </div>
       {tierOrder.map(tier => {
@@ -176,7 +176,7 @@ function MetaChampRow({ e, arrow, color, champMap }: {
     <div className="m-synergy-card">
       <ChampImg championId={e.championId} champion={e.champion} size={36} style={{ borderRadius: 6, border: 'none', flexShrink: 0 }} />
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 2 }}>{c?.nameKo ?? e.champion}</div>
+        <div style={{ fontSize: 'var(--font-size-xs)', fontWeight: 600, marginBottom: 2, color: 'var(--color-text-primary)' }}>{c?.nameKo ?? e.champion}</div>
         <div className="m-stat-chips">
           <span className="m-stat-chip" style={{ color }}>{arrow} {(e.trend * 100).toFixed(1)}%p</span>
           <span className="m-stat-chip">{e.totalGames}게임</span>
@@ -200,7 +200,7 @@ function MetaShiftTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 8 }}>
+      <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-secondary)', marginBottom: 8 }}>
         {data.totalMatchesAnalyzed}게임 분석
       </div>
       {data.risingChampions.length > 0 && (

@@ -164,9 +164,9 @@ export function ChampionTierTable() {
               </span>
               <span style={{
                 fontSize: 11, color: 'var(--color-text-disabled)',
-                background: 'rgba(255,255,255,0.04)',
+                background: 'var(--color-bg-tertiary)',
                 borderRadius: 10, padding: '1px 7px',
-                border: '1px solid rgba(255,255,255,0.06)',
+                border: '1px solid var(--color-border)',
               }}>
                 {champions.length}개
               </span>

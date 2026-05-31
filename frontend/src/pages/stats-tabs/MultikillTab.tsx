@@ -21,26 +21,34 @@ export default function MultikillTab({ mode }: { mode: string }) {
   if (loading) return <LoadingCenter />;
   if (!data) return null;
 
+  // 멀티킬 등급 색상 — 희귀도 스케일(의미있는 등급 색이라 유지). 펜타는 골드 액센트.
   const MULTIKILL_COLORS: Record<string, string> = {
-    PENTA: '#FFD700',
+    PENTA: 'var(--color-primary)',
     QUADRA: '#AA47BC',
     TRIPLE: '#4a9eff',
-    DOUBLE: '#888',
+    DOUBLE: 'var(--color-text-disabled)',
   };
 
   return (
     <div>
       {data.pentaKillEvents.length > 0 && (
-        <section style={{ marginBottom: 24 }}>
-          <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, color: 'var(--color-text-primary)' }}>⭐ 펜타킬 명예의 전당</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+        <section style={{ marginBottom: 'var(--spacing-lg)' }}>
+          <div className="section-head">
+            <span className="icon-chip">⭐</span>
+            <span className="section-head-title">펜타킬 명예의 전당</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--spacing-sm)' }}>
             {data.pentaKillEvents.map((ev: MultiKillEvent) => {
               const nameKo = ev.championId ? (champions.get(ev.championId)?.nameKo ?? ev.champion) : ev.champion;
               return (
-                <div key={`${ev.matchId}-${ev.riotId}`} className="card" style={{ padding: '12px 14px', borderLeft: '3px solid #FFD700', boxShadow: '0 0 16px rgba(255,215,0,0.08)' }}>
-                  <div style={{ fontWeight: 800, fontSize: 13, color: '#FFD700', marginBottom: 6, letterSpacing: 'var(--tracking-wide)', textShadow: '0 0 8px rgba(255,215,0,0.4)' }}>PENTA KILL</div>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{ev.riotId.split('#')[0]}</div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+                <div
+                  key={`${ev.matchId}-${ev.riotId}`}
+                  className="card"
+                  style={{ padding: '12px 14px', borderLeft: '3px solid var(--color-primary)' }}
+                >
+                  <div className="badge badge-gold badge-sm" style={{ marginBottom: 'var(--spacing-xs)', letterSpacing: 'var(--tracking-wide)' }}>PENTA KILL</div>
+                  <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-md)', color: 'var(--color-text-primary)' }}>{ev.riotId.split('#')[0]}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: 4 }}>
                     <ChampImg championId={ev.championId} champion={ev.champion} size={18} />
                     <span>{nameKo}</span>
                   </div>
@@ -51,16 +59,19 @@ export default function MultikillTab({ mode }: { mode: string }) {
         </section>
       )}
 
-      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>📊 플레이어 멀티킬 랭킹</h3>
+      <div className="section-head">
+        <span className="icon-chip">📊</span>
+        <span className="section-head-title">플레이어 멀티킬 랭킹</span>
+      </div>
       <div className="table-wrapper">
         <table className="table member-stats-table">
           <thead>
             <tr>
               <th style={{ width: 36 }}>#</th>
               <th>플레이어</th>
-              <th className="table-number" style={{ color: '#FFD700' }}>펜타</th>
-              <th className="table-number" style={{ color: '#AA47BC' }}>쿼드라</th>
-              <th className="table-number" style={{ color: '#4a9eff' }}>트리플</th>
+              <th className="table-number" style={{ color: MULTIKILL_COLORS.PENTA }}>펜타</th>
+              <th className="table-number" style={{ color: MULTIKILL_COLORS.QUADRA }}>쿼드라</th>
+              <th className="table-number" style={{ color: MULTIKILL_COLORS.TRIPLE }}>트리플</th>
               <th className="table-number">더블</th>
             </tr>
           </thead>
@@ -69,16 +80,16 @@ export default function MultikillTab({ mode }: { mode: string }) {
               <tr key={p.riotId} className="member-stats-row">
                 <td><RankBadge rank={i + 1} /></td>
                 <td>
-                  <div style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</div>
+                  <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>{p.riotId.split('#')[0]}</div>
                 </td>
-                <td className="table-number" style={{ fontWeight: 700, color: MULTIKILL_COLORS.PENTA }}>{p.pentaKills}</td>
-                <td className="table-number" style={{ fontWeight: 700, color: MULTIKILL_COLORS.QUADRA }}>{p.quadraKills}</td>
-                <td className="table-number" style={{ fontWeight: 700, color: MULTIKILL_COLORS.TRIPLE }}>{p.tripleKills}</td>
+                <td className="table-number" style={{ fontWeight: 'var(--font-weight-bold)', color: MULTIKILL_COLORS.PENTA }}>{p.pentaKills}</td>
+                <td className="table-number" style={{ fontWeight: 'var(--font-weight-bold)', color: MULTIKILL_COLORS.QUADRA }}>{p.quadraKills}</td>
+                <td className="table-number" style={{ fontWeight: 'var(--font-weight-bold)', color: MULTIKILL_COLORS.TRIPLE }}>{p.tripleKills}</td>
                 <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>{p.doubleKills}</td>
               </tr>
             ))}
             {!data.playerRankings.length && (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: 'center', padding: 'var(--spacing-2xl) 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
             )}
           </tbody>
         </table>

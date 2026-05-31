@@ -24,6 +24,14 @@ interface Props {
   championStats: ChampionStat[];
 }
 
+// Hextech 테마 색 (Chart.js는 리터럴 색이 필요하므로 CSS 변수와 동일한 값을 사용)
+const THEME = {
+  win: '#0AC8B9',      // var(--color-win)
+  loss: '#E84057',     // var(--color-loss)
+  grid: 'rgba(200, 170, 110, 0.06)',
+  tick: '#A09B8C',     // var(--color-text-secondary)
+} as const;
+
 export function PlayerChartsSection({ eloHistory, championStats }: Props) {
   const { champions } = useDragon();
 
@@ -48,13 +56,13 @@ export function PlayerChartsSection({ eloHistory, championStats }: Props) {
     },
     scales: {
       x: {
-        grid: { color: 'rgba(255,255,255,0.04)' },
-        ticks: { color: '#7B8DB5', font: { size: 11 } },
+        grid: { color: THEME.grid },
+        ticks: { color: THEME.tick, font: { size: 11 } },
       },
       y: {
         beginAtZero: false,
-        grid: { color: 'rgba(255,255,255,0.04)' },
-        ticks: { color: '#7B8DB5', font: { size: 11 } },
+        grid: { color: THEME.grid },
+        ticks: { color: THEME.tick, font: { size: 11 } },
       },
     },
     elements: {
@@ -68,15 +76,15 @@ export function PlayerChartsSection({ eloHistory, championStats }: Props) {
       label: 'Elo',
       data: eloValues,
       borderWidth: 2,
-      borderColor: '#10B981',
+      borderColor: THEME.win,
       pointRadius: 3,
       fill: false,
       segment: {
         borderColor: (ctx: ScriptableLineSegmentContext) =>
-          (ctx.p1.parsed.y ?? 0) >= (ctx.p0.parsed.y ?? 0) ? '#10B981' : '#EF4444',
+          (ctx.p1.parsed.y ?? 0) >= (ctx.p0.parsed.y ?? 0) ? THEME.win : THEME.loss,
       },
       pointBackgroundColor: eloValues.map((v, i) =>
-        i === 0 ? '#10B981' : v >= eloValues[i - 1] ? '#10B981' : '#EF4444'
+        i === 0 ? THEME.win : v >= eloValues[i - 1] ? THEME.win : THEME.loss
       ),
     }],
   };
@@ -99,14 +107,14 @@ export function PlayerChartsSection({ eloHistory, championStats }: Props) {
     },
     scales: {
       x: {
-        grid: { color: 'rgba(255,255,255,0.04)' },
-        ticks: { color: '#7B8DB5', font: { size: 11 } },
+        grid: { color: THEME.grid },
+        ticks: { color: THEME.tick, font: { size: 11 } },
       },
       y: {
         beginAtZero: true,
         max: 100,
-        grid: { color: 'rgba(255,255,255,0.04)' },
-        ticks: { color: '#7B8DB5', font: { size: 11 } },
+        grid: { color: THEME.grid },
+        ticks: { color: THEME.tick, font: { size: 11 } },
       },
     },
   };
@@ -117,10 +125,10 @@ export function PlayerChartsSection({ eloHistory, championStats }: Props) {
       label: '승률 (%)',
       data: topChamps.map(c => c.winRate),
       backgroundColor: topChamps.map(c =>
-        c.winRate >= 50 ? 'rgba(16,185,129,0.6)' : 'rgba(239,68,68,0.6)'
+        c.winRate >= 50 ? 'rgba(10,200,185,0.6)' : 'rgba(232,64,87,0.6)'
       ),
       borderColor: topChamps.map(c =>
-        c.winRate >= 50 ? 'rgba(16,185,129,0.9)' : 'rgba(239,68,68,0.9)'
+        c.winRate >= 50 ? 'rgba(10,200,185,0.9)' : 'rgba(232,64,87,0.9)'
       ),
       borderWidth: 1,
       borderRadius: 4,
@@ -128,19 +136,15 @@ export function PlayerChartsSection({ eloHistory, championStats }: Props) {
   };
 
   return (
-    <div className="card" style={{ marginBottom: 20 }}>
-      <div style={{
-        fontWeight: 700, fontSize: 'var(--font-size-sm)',
-        marginBottom: 16, color: 'var(--color-text-primary)',
-        display: 'flex', alignItems: 'center', gap: 8,
-      }}>
-        <span style={{ color: 'var(--color-primary)' }}>📈</span>
-        통계 차트
+    <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+      <div className="section-head">
+        <span className="icon-chip">📈</span>
+        <span className="section-head-title">통계 차트</span>
       </div>
       <div className="grid-16">
         {hasElo && (
           <div className="col-span-8" style={{ height: '220px' }}>
-            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+            <div className="hero-eyebrow" style={{ marginBottom: 'var(--spacing-sm)' }}>
               Elo 추이
             </div>
             <Line data={eloData} options={eloOptions} />
@@ -148,7 +152,7 @@ export function PlayerChartsSection({ eloHistory, championStats }: Props) {
         )}
         {hasChamp && (
           <div className="col-span-8" style={{ height: '220px' }}>
-            <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+            <div className="hero-eyebrow" style={{ marginBottom: 'var(--spacing-sm)' }}>
               챔피언별 승률
             </div>
             <Bar data={champData} options={champOptions} />

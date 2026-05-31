@@ -30,17 +30,20 @@ export default function GoldEffTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div className="grid-16" style={{ marginBottom: 20 }}>
+      <div className="grid-16" style={{ marginBottom: 'var(--spacing-lg)' }}>
         {kings.map(k => (
-          <div key={k.label} className="card col-span-8" style={{ padding: '14px 12px', textAlign: 'center', transition: 'border-color var(--transition-fast), background var(--transition-fast)' }}>
-            <div style={{ fontSize: 24, marginBottom: 6, filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.2))' }}>{k.emoji}</div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-secondary)', letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase', marginBottom: 5 }}>{k.label}</div>
-            <div style={{ fontWeight: 800, fontSize: 14, color: '#FFD700', textShadow: '0 0 8px rgba(255,215,0,0.3)' }}>{k.name?.split('#')[0] ?? '-'}</div>
+          <div key={k.label} className="stat-card col-span-8" style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 24, marginBottom: 'var(--spacing-xs)', filter: 'drop-shadow(0 0 6px rgba(200, 170, 110, 0.35))' }}>{k.emoji}</div>
+            <div className="stat-card-label" style={{ marginBottom: 5 }}>{k.label}</div>
+            <div className="stat-card-value" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)', textShadow: '0 0 8px rgba(200, 170, 110, 0.3)' }}>{k.name?.split('#')[0] ?? '-'}</div>
           </div>
         ))}
       </div>
 
-      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}>골드 효율 랭킹</h3>
+      <div className="section-head">
+        <span className="icon-chip">💰</span>
+        <span className="section-head-title">골드 효율 랭킹</span>
+      </div>
       <div className="table-wrapper">
         <table className="table member-stats-table" style={{ fontSize: 12 }}>
           <thead>
@@ -74,7 +77,7 @@ export default function GoldEffTab({ mode }: { mode: string }) {
                 <td style={{ padding: '8px 12px' }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                     {e.tags.map((t: string) => (
-                      <span key={t} style={{ fontSize: 10, padding: '2px 6px', borderRadius: 10, background: 'rgba(0,180,216,0.12)', color: 'var(--color-primary)', fontWeight: 600 }}>{t}</span>
+                      <span key={t} className="badge badge-primary badge-sm">{t}</span>
                     ))}
                   </div>
                 </td>

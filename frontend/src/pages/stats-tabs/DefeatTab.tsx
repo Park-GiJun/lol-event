@@ -23,9 +23,13 @@ export default function DefeatTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
-        패배 기여도 — 높을수록 팀을 더 힘들게 합니다
-      </p>
+      <div className="section-head">
+        <span className="icon-chip">💀</span>
+        <span className="section-head-title">패배 기여도</span>
+        <span className="section-head-action" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', fontWeight: 'normal' }}>
+          높을수록 팀을 더 힘들게 합니다
+        </span>
+      </div>
       <div className="table-wrapper">
         <table className="table member-stats-table">
           <thead>
@@ -44,19 +48,19 @@ export default function DefeatTab({ mode }: { mode: string }) {
                 onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
                 <td><RankBadge rank={i + 1} /></td>
                 <td>
-                  <div style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</div>
-                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</div>
+                  <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-sm)' }}>{p.riotId.split('#')[0]}</div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</div>
                 </td>
                 <td className="table-number">{p.games}</td>
-                <td className="table-number" style={{ color: 'var(--color-loss)', fontWeight: 700 }}>{p.losses}</td>
-                <td className="table-number" style={{ fontWeight: 700, color: 'var(--color-error)' }}>
+                <td className="table-number" style={{ color: 'var(--color-loss)', fontWeight: 'var(--font-weight-bold)' }}>{p.losses}</td>
+                <td className="table-number" style={{ fontWeight: 'var(--font-weight-bold)', color: 'var(--color-error)' }}>
                   {p.avgDefeatScore.toFixed(1)}
                 </td>
                 <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>{p.avgDeaths.toFixed(1)}</td>
               </tr>
             ))}
             {!data.rankings.length && (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: 'center', padding: 'var(--spacing-2xl) 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
             )}
           </tbody>
         </table>

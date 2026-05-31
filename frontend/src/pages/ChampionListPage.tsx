@@ -30,7 +30,7 @@ function WrBar({ winRate }: { winRate: number }) {
   const fillClass = winRate >= 60 ? 'wr-bar-fill--high' : winRate >= 50 ? 'wr-bar-fill--mid' : 'wr-bar-fill--low';
   return (
     <div className="tabular-nums" style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <span style={{ fontWeight: 700, fontSize: 13, color }}>{winRate.toFixed(1)}%</span>
+      <span style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-sm)', color }}>{winRate.toFixed(1)}%</span>
       <div className="wr-bar-track" style={{ width: 60 }}>
         <div className={`wr-bar-fill ${fillClass}`} style={{ width: `${winRate}%` }} />
       </div>
@@ -70,7 +70,10 @@ export function ChampionListPage() {
   if (isLoading) {
     return (
       <div>
-        <h1 className="page-title" style={{ marginBottom: 'var(--spacing-md)' }}>챔피언 목록</h1>
+        <div className="hero-banner" style={{ marginBottom: 'var(--spacing-md)' }}>
+          <div className="hero-eyebrow">CHAMPIONS</div>
+          <h1 className="hero-title">챔피언 목록</h1>
+        </div>
         <div className="card">
           <div className="table-wrapper">
             <table className="table member-stats-table">
@@ -122,7 +125,10 @@ export function ChampionListPage() {
   if (!data || displayed.length === 0) {
     return (
       <div>
-        <h1 className="page-title" style={{ marginBottom: 'var(--spacing-md)' }}>챔피언 목록</h1>
+        <div className="hero-banner" style={{ marginBottom: 'var(--spacing-md)' }}>
+          <div className="hero-eyebrow">CHAMPIONS</div>
+          <h1 className="hero-title">챔피언 목록</h1>
+        </div>
         <p className="text-sm p-4" style={{ color: 'var(--color-text-secondary)' }}>챔피언 데이터가 없습니다.</p>
       </div>
     );
@@ -130,11 +136,10 @@ export function ChampionListPage() {
 
   return (
     <div>
-      <div className="page-header flex items-center justify-between">
-        <div>
-          <h1 className="page-title">챔피언 목록</h1>
-          <p className="page-subtitle">총 {data.matchCount}경기 · {displayed.length}개 챔피언</p>
-        </div>
+      <div className="hero-banner" style={{ marginBottom: 'var(--spacing-lg)' }}>
+        <div className="hero-eyebrow">CHAMPIONS</div>
+        <h1 className="hero-title">챔피언 목록</h1>
+        <p className="hero-subtitle">총 {data.matchCount}경기 · {displayed.length}개 챔피언</p>
       </div>
       <div className="card">
         <div className="table-wrapper">
@@ -171,21 +176,21 @@ export function ChampionListPage() {
                           ) : (
                             <div style={{
                               width: 32, height: 32, background: 'var(--color-bg-hover)',
-                              borderRadius: 4, display: 'flex', alignItems: 'center',
-                              justifyContent: 'center', fontSize: 10, color: 'var(--color-text-secondary)',
+                              borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center',
+                              justifyContent: 'center', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)',
                             }}>
                               {displayName.slice(0, 2)}
                             </div>
                           )}
-                          <span style={{ fontWeight: 600, fontSize: 13 }}>{displayName}</span>
+                          <span style={{ fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>{displayName}</span>
                         </div>
                       </ChampionLink>
                     </td>
                     <td className="table-number"><WrBar winRate={entry.winRate} /></td>
-                    <td className="table-number" style={{ color: 'var(--color-win)', fontWeight: 600 }}>
+                    <td className="table-number" style={{ color: 'var(--color-win)', fontWeight: 'var(--font-weight-semibold)' }}>
                       {entry.wins}
                     </td>
-                    <td className="table-number" style={{ color: 'var(--color-loss)', fontWeight: 600 }}>
+                    <td className="table-number" style={{ color: 'var(--color-loss)', fontWeight: 'var(--font-weight-semibold)' }}>
                       {entry.losses}
                     </td>
                     <td className="table-number">
@@ -194,18 +199,18 @@ export function ChampionListPage() {
                         const color = kda >= 5 ? 'var(--color-win)' : kda >= 3 ? 'var(--color-primary)' : 'var(--color-text-primary)';
                         return (
                           <div className="tabular-nums" style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            <span style={{ fontWeight: 700, fontSize: 12, color }}>{kda.toFixed(2)}</span>
-                            <span style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>
+                            <span style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-xs)', color }}>{kda.toFixed(2)}</span>
+                            <span style={{ fontSize: 'var(--font-size-2xs, 10px)', color: 'var(--color-text-secondary)' }}>
                               {(entry.avgKills ?? 0).toFixed(1)} / <span style={{ color: 'var(--color-error)' }}>{(entry.avgDeaths ?? 0).toFixed(1)}</span> / {(entry.avgAssists ?? 0).toFixed(1)}
                             </span>
                           </div>
                         );
                       })()}
                     </td>
-                    <td className="table-number" style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+                    <td className="table-number" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
                       {(entry.avgDamage ?? 0).toLocaleString()}
                     </td>
-                    <td className="table-number" style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+                    <td className="table-number" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
                       {(entry.avgCs ?? 0).toFixed(1)}
                     </td>
                     <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>

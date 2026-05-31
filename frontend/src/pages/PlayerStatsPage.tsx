@@ -50,8 +50,11 @@ function ChampionTable({ stats }: { stats: ChampionStat[] }) {
   const maxDmg = Math.max(...stats.map(s => s.avgDamage), 1);
   const { champions } = useDragon();
   return (
-    <div className="card" style={{ marginBottom: 20 }}>
-      <div className="section-title-with-line">챔피언별 통계</div>
+    <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+      <div className="section-head">
+        <span className="icon-chip">🏆</span>
+        <span className="section-head-title">챔피언별 통계</span>
+      </div>
       <div className="table-wrapper">
         <table className="table">
           <thead>
@@ -166,20 +169,23 @@ function LaneStatSection({ laneStats }: { laneStats: LaneStat[] }) {
   const wrColor = (wr: number) => wr >= 60 ? 'var(--color-win)' : wr >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
 
   return (
-    <div className="card" style={{ marginBottom: 20 }}>
-      <div className="section-title-with-line">포지션별 통계</div>
+    <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+      <div className="section-head">
+        <span className="icon-chip">🎯</span>
+        <span className="section-head-title">포지션별 통계</span>
+      </div>
 
       {/* 탭 */}
-      <div className="lane-tabs">
+      <div className="tab-bar" style={{ marginBottom: 'var(--spacing-md)' }}>
         {laneStats.map(s => {
           const m = POSITION_META[s.position];
           return (
             <button key={s.position}
-              className={`lane-tab ${selected === s.position ? 'active' : ''}`}
+              className={`tab-bar-item ${selected === s.position ? 'active' : ''}`}
               onClick={() => setSelected(s.position)}>
-              <span className="lane-tab-emoji">{m?.emoji}</span>
-              <span className="lane-tab-label">{m?.label ?? s.position}</span>
-              <span className="lane-tab-games">{s.games}판</span>
+              <span>{m?.emoji}</span>
+              <span>{m?.label ?? s.position}</span>
+              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)' }}>{s.games}판</span>
             </button>
           );
         })}
@@ -318,14 +324,13 @@ export function PlayerStatsPage() {
         { label: '플레이어', path: '/player-stats' },
         { label: riotId?.split('#')[0] ?? '' },
       ]} />
-      <div className="page-header flex items-center justify-between">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div>
-            <h1 className="page-title">{riotId.split('#')[0]}</h1>
-            <p className="page-subtitle" style={{ fontFamily: 'monospace' }}>#{riotId.split('#')[1]}</p>
-          </div>
+      <div className="hero-banner flex items-center justify-between" style={{ marginBottom: 'var(--spacing-lg)', gap: 'var(--spacing-md)' }}>
+        <div>
+          <div className="hero-eyebrow">플레이어 전적</div>
+          <h1 className="hero-title">{riotId.split('#')[0]}</h1>
+          <p className="hero-subtitle" style={{ fontFamily: 'monospace' }}>#{riotId.split('#')[1]}</p>
         </div>
-        <div className="flex gap-sm">
+        <div className="flex gap-sm" style={{ flexShrink: 0 }}>
           {MODES.map(m => (
             <Button key={m.value} variant={mode === m.value ? 'primary' : 'secondary'}
               size="sm" onClick={() => setMode(m.value)}>{m.label}</Button>
@@ -338,7 +343,7 @@ export function PlayerStatsPage() {
       ) : (
         <>
           {/* 요약 */}
-          <div className="player-summary-card card" style={{ marginBottom: 20 }}>
+          <div className="player-summary-card card" style={{ marginBottom: 'var(--spacing-lg)' }}>
             <div className="player-summary-header">
               <div className="player-wr-ring" style={{ '--wr-color': winColor(data.winRate) } as React.CSSProperties}>
                 <span style={{ fontSize: 18, fontWeight: 700, color: winColor(data.winRate) }}>{data.winRate}%</span>
@@ -364,7 +369,7 @@ export function PlayerStatsPage() {
               <StatCard icon={<Eye size={14} />} label="평균 시야" value={data.avgVisionScore.toFixed(1)} />
             </div>
             {topChampion && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)', paddingTop: 'var(--spacing-md)', borderTop: '1px solid var(--color-border)' }}>
                 <ChampImg championId={topChampion.championId} champion={topChampion.champion} size={36} />
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 700 }}>{champions.get(topChampion.championId)?.nameKo ?? topChampion.champion}</div>
@@ -385,12 +390,13 @@ export function PlayerStatsPage() {
 
           {/* Elo 카드 + 히스토리 */}
           {eloHistory && (
-            <div className="card" style={{ marginBottom: 20 }}>
-              <div className="section-title-with-line">
-                <TrendingUp size={15} color="var(--color-primary)" />Elo 레이팅
+            <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+              <div className="section-head">
+                <span className="icon-chip"><TrendingUp size={15} /></span>
+                <span className="section-head-title">Elo 레이팅</span>
               </div>
               {/* 현재 Elo 요약 */}
-              <div className="grid-16" style={{ alignItems: 'center', marginBottom: 16 }}>
+              <div className="grid-16" style={{ alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
                 <div className="col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {(() => {
                     const tier = eloTier(eloHistory.currentElo);
@@ -499,9 +505,12 @@ export function PlayerStatsPage() {
           {/* 최근 경기 */}
           {data.recentMatches.length > 0 && (
             <div className="card">
-              <div className="section-title-with-line">최근 경기</div>
+              <div className="section-head">
+                <span className="icon-chip">🕒</span>
+                <span className="section-head-title">최근 경기</span>
+              </div>
               {modalLoading && (
-                <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>경기 불러오는 중…</div>
+                <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-sm)' }}>경기 불러오는 중…</div>
               )}
               <div className="recent-matches-list">
                 {data.recentMatches.map(m => (

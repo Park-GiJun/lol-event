@@ -68,10 +68,10 @@ export function MonitoringPage() {
           <h1>서비스 모니터링</h1>
         </div>
         <button
-          className="btn btn-secondary monitoring-open-btn"
+          className="btn btn-secondary btn-sm monitoring-open-btn"
           onClick={() => sessionStorage.removeItem(SESSION_KEY)}
-          style={{ fontSize: '0.78rem' }}
         >
+          <Lock size={13} />
           잠금
         </button>
       </div>
@@ -87,7 +87,7 @@ export function MonitoringPage() {
           <div>
             <div className="monitoring-link-title">
               Grafana 대시보드
-              <ExternalLink size={12} style={{ marginLeft: '0.3rem', verticalAlign: 'middle' }} />
+              <ExternalLink size={12} style={{ marginLeft: 'var(--spacing-xs)', verticalAlign: 'middle' }} />
             </div>
             <div className="monitoring-link-desc">
               HTTP 요청 처리량 · 에러율 · JVM 메모리 · DB 커넥션
@@ -105,7 +105,7 @@ export function MonitoringPage() {
           <div>
             <div className="monitoring-link-title">
               Prometheus
-              <ExternalLink size={12} style={{ marginLeft: '0.3rem', verticalAlign: 'middle' }} />
+              <ExternalLink size={12} style={{ marginLeft: 'var(--spacing-xs)', verticalAlign: 'middle' }} />
             </div>
             <div className="monitoring-link-desc">
               메트릭 수집 · PromQL 쿼리 · 타겟 상태 확인

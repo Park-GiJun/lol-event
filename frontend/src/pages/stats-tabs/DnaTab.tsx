@@ -31,18 +31,14 @@ export default function DnaTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
         {data.players.map((p: PlaystyleDnaEntry) => (
-          <div key={p.riotId} className="card" style={{ padding: '14px 18px', cursor: 'pointer', transition: 'border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast)' }}
+          <div key={p.riotId} className="card" style={{ padding: 'var(--spacing-md) var(--spacing-lg)', cursor: 'pointer', transition: 'border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast)' }}
             onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-              <span style={{ fontWeight: 800, fontSize: 14 }}>{p.riotId.split('#')[0]}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, background: 'var(--color-primary)22',
-                color: 'var(--color-primary)', borderRadius: 4, padding: '2px 10px',
-                border: '1px solid var(--color-primary)44', letterSpacing: '0.03em' }}>
-                {p.styleTag}
-              </span>
-              <span style={{ fontSize: 11, color: 'var(--color-text-disabled)', marginLeft: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
+              <span style={{ fontWeight: 'var(--font-weight-extrabold)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>{p.riotId.split('#')[0]}</span>
+              <span className="badge badge-primary badge-sm">{p.styleTag}</span>
+              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)', marginLeft: 'auto' }}>
                 {p.games}판
               </span>
             </div>
@@ -51,11 +47,11 @@ export default function DnaTab({ mode }: { mode: string }) {
                 const val = p[key] as number;
                 return (
                   <div key={key} className="col-span-2">
-                    <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginBottom: 3 }}>{label}</div>
-                    <div style={{ height: 5, background: 'var(--color-bg-hover)', borderRadius: 3, overflow: 'hidden', marginBottom: 3 }}>
-                      <div style={{ width: `${Math.min(val * 100, 100)}%`, height: '100%', background: color, borderRadius: 3, boxShadow: `0 0 4px ${color}66` }} />
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 3 }}>{label}</div>
+                    <div style={{ height: 5, background: 'var(--color-bg-hover)', borderRadius: 'var(--radius-sm)', overflow: 'hidden', marginBottom: 3 }}>
+                      <div style={{ width: `${Math.min(val * 100, 100)}%`, height: '100%', background: color, borderRadius: 'var(--radius-sm)', boxShadow: `0 0 4px ${color}66` }} />
                     </div>
-                    <div style={{ fontSize: 10, color, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{(val * 100).toFixed(0)}</div>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color, fontWeight: 'var(--font-weight-bold)', fontVariantNumeric: 'tabular-nums' }}>{(val * 100).toFixed(0)}</div>
                   </div>
                 );
               })}
@@ -63,7 +59,7 @@ export default function DnaTab({ mode }: { mode: string }) {
           </div>
         ))}
         {!data.players.length && (
-          <p style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>데이터 없음</p>
+          <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>데이터 없음</p>
         )}
       </div>
     </div>

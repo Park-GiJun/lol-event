@@ -99,7 +99,7 @@ export function MobileMembersPage() {
               </div>
               <button
                 onClick={() => handleDelete(m.puuid, m.riotId)}
-                style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(232,64,64,0.1)', border: '1px solid rgba(232,64,64,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
+                style={{ width: 32, height: 32, borderRadius: 8, background: 'color-mix(in srgb, var(--color-error) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--color-error) 20%, transparent)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}
               >
                 <Trash2 size={14} color="var(--color-error)" />
               </button>
@@ -158,7 +158,7 @@ export function MobileMembersPage() {
             <>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 240, overflowY: 'auto', marginBottom: 12 }}>
                 {bulkResult.results.map((r, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--color-text-primary)' }}>
                     <div className={`m-status-dot ${r.status}`} />
                     <span style={{ flex: 1 }}>{r.riotId}</span>
                     <span style={{ fontSize: 11, color: r.status === 'ok' ? 'var(--color-win)' : r.status === 'error' ? 'var(--color-error)' : 'var(--color-text-disabled)' }}>
@@ -187,8 +187,8 @@ function BottomSheet({ title, onClose, children }: { title: string; onClose: () 
       onClick={onClose}>
       <div
         style={{
-          background: 'rgba(13,18,37,0.92)',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
+          background: 'var(--color-bg-secondary)',
+          borderTop: '1px solid var(--color-border)',
           borderRadius: '16px 16px 0 0',
           padding: '20px 16px 32px',
           maxHeight: '80vh',
@@ -197,7 +197,7 @@ function BottomSheet({ title, onClose, children }: { title: string; onClose: () 
         onClick={e => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <span style={{ fontWeight: 700, fontSize: 16 }}>{title}</span>
+          <span style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-text-primary)' }}>{title}</span>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--color-text-secondary)', fontSize: 20, cursor: 'pointer', lineHeight: 1 }}>×</button>
         </div>
         {children}

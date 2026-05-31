@@ -24,11 +24,11 @@ export default function MobileSynergyTab({ mode }: { mode: string }) {
           <div key={i} className="m-synergy-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
               <ChampImg championId={s.champion1Id} champion={s.champion1} size={36} style={{ borderRadius: 6, border: 'none' }} />
-              <span style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>+</span>
+              <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)' }}>+</span>
               <ChampImg championId={s.champion2Id} champion={s.champion2} size={36} style={{ borderRadius: 6, border: 'none' }} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 600 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-primary)' }}>
                 {c1?.nameKo ?? s.champion1} + {c2?.nameKo ?? s.champion2}
               </div>
               <div className="m-stat-chips" style={{ marginTop: 4 }}>

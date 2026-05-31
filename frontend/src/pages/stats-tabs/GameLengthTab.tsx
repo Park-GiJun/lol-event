@@ -22,7 +22,10 @@ export default function GameLengthTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 12, paddingBottom: 8, borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}>플레이어별 게임 길이 성향</h3>
+      <div className="section-head">
+        <span className="icon-chip">⏱️</span>
+        <span className="section-head-title">플레이어별 게임 길이 성향</span>
+      </div>
       <div className="table-wrapper">
         <table className="table member-stats-table" style={{ fontSize: 12 }}>
           <thead>
@@ -50,7 +53,7 @@ export default function GameLengthTab({ mode }: { mode: string }) {
                     <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', marginTop: 1 }}>{p.totalGames}게임</div>
                   </td>
                   <td style={{ padding: '8px 12px', textAlign: 'center' }}>
-                    <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 10, background: 'rgba(0,180,216,0.12)', color: 'var(--color-primary)', fontWeight: 700 }}>{p.tendency}</span>
+                    <span className="badge badge-primary badge-sm">{p.tendency}</span>
                   </td>
                   <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                     {p.shortGame.games > 0 ? <span style={wrStyle(p.shortGame.winRate)}>{p.shortGame.winRate.toFixed(1)}%</span> : <span style={{ color: 'var(--color-text-disabled)' }}>-</span>}

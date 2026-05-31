@@ -169,7 +169,7 @@ function SessionTab({ mode }: { mode: string }) {
             {s.sessionMvp && <span className="m-stat-chip">MVP: {s.sessionMvp.split('#')[0]} ({s.sessionMvpKda.toFixed(2)})</span>}
             <span className="m-stat-chip">팀100: {s.team100Wins}승</span>
             <span className="m-stat-chip">팀200: {s.team200Wins}승</span>
-            {s.pentaKills > 0 && <span className="m-stat-chip" style={{ color: '#FFD700' }}>펜타킬 {s.pentaKills}회</span>}
+            {s.pentaKills > 0 && <span className="m-stat-chip" style={{ color: 'var(--color-primary)' }}>펜타킬 {s.pentaKills}회</span>}
           </div>
           {s.participants.length > 0 && (
             <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 4 }}>
@@ -216,12 +216,12 @@ function CompareTab({ mode }: { mode: string }) {
       <div className="m-card" style={{ marginBottom: 12 }}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
           <input value={p1} onChange={e => setP1(e.target.value)} placeholder="플레이어1 (닉네임#태그)"
-            style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--bg-surface)', color: 'var(--color-text-primary)', fontSize: 12 }} />
+            style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', background: 'var(--bg-surface)', color: 'var(--color-text-primary)', fontSize: 12 }} />
           <input value={p2} onChange={e => setP2(e.target.value)} placeholder="플레이어2 (닉네임#태그)"
-            style={{ flex: 1, padding: '8px 10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--bg-surface)', color: 'var(--color-text-primary)', fontSize: 12 }} />
+            style={{ flex: 1, padding: '8px 10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', background: 'var(--bg-surface)', color: 'var(--color-text-primary)', fontSize: 12 }} />
         </div>
         <button onClick={() => p1 && p2 && setQuery({ p1, p2 })}
-          style={{ width: '100%', padding: '10px', borderRadius: 8, background: 'var(--color-primary)', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer' }}>
+          style={{ width: '100%', padding: '10px', borderRadius: 'var(--radius-md)', background: 'var(--color-primary)', color: '#fff', border: 'none', fontWeight: 700, cursor: 'pointer' }}>
           비교하기
         </button>
       </div>
@@ -231,12 +231,12 @@ function CompareTab({ mode }: { mode: string }) {
         <>
           <div style={{ display: 'flex', gap: 8, marginBottom: 4, justifyContent: 'space-between', padding: '0 8px' }}>
             <button onClick={() => navigate(`/m/player/${encodeURIComponent(data.player1)}`)}
-              style={{ fontWeight: 700, fontSize: 14, color: '#4A9EFF', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-blue)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               {data.player1.split('#')[0]}
             </button>
             <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>vs</span>
             <button onClick={() => navigate(`/m/player/${encodeURIComponent(data.player2)}`)}
-              style={{ fontWeight: 700, fontSize: 14, color: '#FF6B6B', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+              style={{ fontWeight: 700, fontSize: 14, color: 'var(--color-red)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
               {data.player2.split('#')[0]}
             </button>
           </div>
@@ -265,7 +265,7 @@ function CompareTab({ mode }: { mode: string }) {
               <p className="m-section-title">상대전 ({data.versusGames}게임)</p>
               <div className="m-card">
                 <div style={{ textAlign: 'center', padding: '6px 0', fontSize: 13 }}>
-                  <span style={{ fontWeight: 700, color: '#4A9EFF' }}>{data.player1.split('#')[0]}</span>
+                  <span style={{ fontWeight: 700, color: 'var(--color-blue)' }}>{data.player1.split('#')[0]}</span>
                   <span style={{ margin: '0 8px', color: 'var(--color-text-secondary)' }}>{data.player1VsWinRate.toFixed(1)}%</span>
                   <span style={{ color: 'var(--color-text-secondary)' }}>승률</span>
                 </div>

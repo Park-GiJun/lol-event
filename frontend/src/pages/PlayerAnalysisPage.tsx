@@ -3,6 +3,7 @@ import { Button } from '../components/common/Button';
 import { LoadingCenter } from '../components/common/Spinner';
 import { MODES } from '../lib/lol';
 import '../styles/pages/stats.css';
+import '../styles/components/patterns.css';
 
 const LaneTab = lazy(() => import('./stats-tabs/LaneTab'));
 const PositionTab = lazy(() => import('./stats-tabs/PositionTab'));
@@ -28,10 +29,11 @@ export function PlayerAnalysisPage() {
 
   return (
     <div>
-      <div className="page-header flex items-center justify-between">
+      <div className="hero-banner flex items-center justify-between" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div>
-          <h1 className="page-title">플레이어 분석</h1>
-          <p className="page-subtitle">플레이어별 심층 분석</p>
+          <div className="hero-eyebrow">Player Analysis</div>
+          <h1 className="hero-title">플레이어 분석</h1>
+          <p className="hero-subtitle">플레이어별 심층 분석</p>
         </div>
         <div className="flex gap-sm">
           {MODES.map(m => (
@@ -41,23 +43,23 @@ export function PlayerAnalysisPage() {
         </div>
       </div>
 
-      <div className="stats-tab-bar" style={{ overflowX: 'auto', display: 'flex', flexWrap: 'nowrap', borderRadius: 'var(--radius-lg)', padding: '4px', marginBottom: 20, border: '1px solid var(--color-border)', borderBottomColor: 'var(--color-border)' }}>
+      <div className="tab-bar" style={{ marginBottom: 'var(--spacing-lg)' }}>
         {TABS.map(t => (
-          <button key={t.key} className={`stats-tab-btn ${tab === t.key ? 'active' : ''}`}
-            onClick={() => setTab(t.key)} style={{ flexShrink: 0 }}>
+          <button key={t.key} className={`tab-bar-item ${tab === t.key ? 'active' : ''}`}
+            onClick={() => setTab(t.key)}>
             {t.label}
           </button>
         ))}
       </div>
 
       <Suspense fallback={<LoadingCenter />}>
-        {tab === 'lane'     && <div className="card" style={{ marginTop: 4 }}><LaneTab mode={mode} /></div>}
-        {tab === 'position' && <div className="card" style={{ marginTop: 4 }}><PositionTab mode={mode} /></div>}
-        {tab === 'pospool'  && <div className="card" style={{ marginTop: 4 }}><PositionPoolTab mode={mode} /></div>}
-        {tab === 'duo'      && <div className="card" style={{ marginTop: 4 }}><DuoTab mode={mode} /></div>}
-        {tab === 'rival'    && <div className="card" style={{ marginTop: 4 }}><RivalTab mode={mode} /></div>}
-        {tab === 'compare'  && <div className="card" style={{ marginTop: 4 }}><CompareTab mode={mode} /></div>}
-        {tab === 'dna'      && <div className="card" style={{ marginTop: 4 }}><DnaTab mode={mode} /></div>}
+        {tab === 'lane'     && <div className="card"><LaneTab mode={mode} /></div>}
+        {tab === 'position' && <div className="card"><PositionTab mode={mode} /></div>}
+        {tab === 'pospool'  && <div className="card"><PositionPoolTab mode={mode} /></div>}
+        {tab === 'duo'      && <div className="card"><DuoTab mode={mode} /></div>}
+        {tab === 'rival'    && <div className="card"><RivalTab mode={mode} /></div>}
+        {tab === 'compare'  && <div className="card"><CompareTab mode={mode} /></div>}
+        {tab === 'dna'      && <div className="card"><DnaTab mode={mode} /></div>}
       </Suspense>
     </div>
   );

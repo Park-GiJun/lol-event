@@ -48,10 +48,11 @@ export function SyncPage() {
 
   return (
     <div>
-      <div className="page-header">
+      <div className="hero-banner" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--spacing-lg)', flexWrap: 'wrap', marginBottom: 'var(--spacing-lg)' }}>
         <div>
-          <h1 className="page-title">DataDragon 동기화</h1>
-          <p className="page-subtitle">Riot DataDragon에서 최신 챔피언·아이템·스펠 데이터를 받아 DB에 저장하고 캐시를 갱신합니다</p>
+          <div className="hero-eyebrow">DataDragon</div>
+          <h1 className="hero-title">DataDragon 동기화</h1>
+          <p className="hero-subtitle">Riot DataDragon에서 최신 챔피언·아이템·스펠 데이터를 받아 DB에 저장하고 캐시를 갱신합니다</p>
         </div>
         <button className="btn btn-primary" onClick={handleSync} disabled={syncing}>
           {syncing ? <Spinner size="sm" /> : <RefreshCw size={16} />}
@@ -60,24 +61,26 @@ export function SyncPage() {
       </div>
 
       {syncResult && (
-        <div className="card sync-result-banner">
-          <div className="sync-result-header">
-            <CheckCircle size={18} />
-            <strong>동기화 완료</strong>
-            <span className="sync-result-version">버전: {syncResult.version}</span>
+        <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+          <div className="section-head">
+            <span className="icon-chip"><CheckCircle size={16} /></span>
+            <span className="section-head-title">동기화 완료</span>
+            <span className="section-head-action">
+              <span className="badge badge-gold">버전 {syncResult.version}</span>
+            </span>
           </div>
-          <div className="sync-result-stats">
-            <SyncStat icon={<Swords size={14} />} label="챔피언" value={syncResult.champions} />
-            <SyncStat icon={<Database size={14} />} label="아이템" value={syncResult.items} />
-            <SyncStat icon={<Zap size={14} />} label="소환사 스펠" value={syncResult.spells} />
+          <div className="grid-16">
+            <div className="col-span-5"><SyncStat icon={<Swords size={16} />} label="챔피언" value={syncResult.champions} /></div>
+            <div className="col-span-5"><SyncStat icon={<Database size={16} />} label="아이템" value={syncResult.items} /></div>
+            <div className="col-span-6"><SyncStat icon={<Zap size={16} />} label="소환사 스펠" value={syncResult.spells} /></div>
           </div>
         </div>
       )}
 
       <div className="card">
-        <div className="sync-tab-bar">
+        <div className="tab-bar" style={{ marginBottom: 'var(--spacing-md)' }}>
           {(['champions', 'items', 'spells'] as Tab[]).map(t => (
-            <button key={t} className={`btn ${tab === t ? 'btn-primary' : 'btn-secondary'}`}
+            <button key={t} className={`tab-bar-item ${tab === t ? 'active' : ''}`}
               onClick={() => setTab(t)}>
               {t === 'champions' ? `챔피언 (${champions.length})` : t === 'items' ? `아이템 (${items.length})` : `스펠 (${spells.length})`}
             </button>
@@ -100,10 +103,12 @@ export function SyncPage() {
 
 function SyncStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: number }) {
   return (
-    <div className="sync-stat-item">
-      {icon}
-      <span>{label}:</span>
-      <strong className="sync-stat-value">{value}</strong>
+    <div className="stat-card">
+      <div className="stat-card-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+        <span className="icon-chip icon-chip-sm">{icon}</span>
+        {label}
+      </div>
+      <div className="stat-card-value">{value.toLocaleString()}</div>
     </div>
   );
 }
@@ -119,12 +124,12 @@ function ChampionTable({ data }: { data: DragonChampion[] }) {
         <tbody>
           {data.map(c => (
             <tr key={c.championId}>
-              <td>{c.imageUrl && <img src={c.imageUrl} alt={c.nameKo} width={32} height={32} style={{ borderRadius: 4 }} />}</td>
+              <td>{c.imageUrl && <img src={c.imageUrl} alt={c.nameKo} width={32} height={32} style={{ borderRadius: 'var(--radius-sm)' }} />}</td>
               <td>{c.championId}</td>
               <td><code>{c.championKey}</code></td>
               <td><strong>{c.nameKo}</strong></td>
               <td className="text-secondary">{c.titleKo}</td>
-              <td><span className="badge">{c.version}</span></td>
+              <td><span className="badge badge-normal badge-sm">{c.version}</span></td>
             </tr>
           ))}
         </tbody>
@@ -144,11 +149,11 @@ function ItemTable({ data }: { data: DragonItem[] }) {
         <tbody>
           {data.map(item => (
             <tr key={item.itemId}>
-              <td>{item.imageUrl && <img src={item.imageUrl} alt={item.nameKo} width={32} height={32} style={{ borderRadius: 4 }} />}</td>
+              <td>{item.imageUrl && <img src={item.imageUrl} alt={item.nameKo} width={32} height={32} style={{ borderRadius: 'var(--radius-sm)' }} />}</td>
               <td>{item.itemId}</td>
               <td><strong>{item.nameKo}</strong></td>
-              <td>{item.goldTotal > 0 ? `${item.goldTotal.toLocaleString()}g` : '-'}</td>
-              <td><span className="badge">{item.version}</span></td>
+              <td className="table-number">{item.goldTotal > 0 ? <span className="badge badge-gold badge-sm">{item.goldTotal.toLocaleString()}g</span> : <span className="text-disabled">-</span>}</td>
+              <td><span className="badge badge-normal badge-sm">{item.version}</span></td>
             </tr>
           ))}
         </tbody>
@@ -168,11 +173,11 @@ function SpellTable({ data }: { data: DragonSummonerSpell[] }) {
         <tbody>
           {data.map(s => (
             <tr key={s.spellId}>
-              <td>{s.imageUrl && <img src={s.imageUrl} alt={s.nameKo} width={32} height={32} style={{ borderRadius: 4 }} />}</td>
+              <td>{s.imageUrl && <img src={s.imageUrl} alt={s.nameKo} width={32} height={32} style={{ borderRadius: 'var(--radius-sm)' }} />}</td>
               <td>{s.spellId}</td>
               <td><code>{s.spellKey}</code></td>
               <td><strong>{s.nameKo}</strong></td>
-              <td><span className="badge">{s.version}</span></td>
+              <td><span className="badge badge-normal badge-sm">{s.version}</span></td>
             </tr>
           ))}
         </tbody>

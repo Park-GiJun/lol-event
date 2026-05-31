@@ -26,23 +26,24 @@ export default function ComebackTab({ mode }: { mode: string }) {
   return (
     <div>
       {(data.comebackKing || kings.length > 0) && (
-        <div style={{ marginBottom: 20 }}>
-          <div className="card" style={{ padding: '18px', textAlign: 'center', borderColor: 'rgba(16,185,129,0.2)', boxShadow: '0 0 20px rgba(16,185,129,0.06)' }}>
-            <div style={{ fontSize: 28, marginBottom: 6, filter: 'drop-shadow(0 0 6px rgba(16,185,129,0.3))' }}>🔄</div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-text-secondary)', letterSpacing: 'var(--tracking-wider)', textTransform: 'uppercase', marginBottom: 6 }}>컴백킹</div>
-            <div style={{ fontWeight: 800, fontSize: 18, color: '#FFD700', textShadow: '0 0 12px rgba(255,215,0,0.3)' }}>
-              {data.comebackKing ? data.comebackKing.split('#')[0] : kings[0]?.riotId.split('#')[0] ?? '-'}
-            </div>
-            {kings[0] && (
-              <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 8, fontVariantNumeric: 'tabular-nums' }}>
-                접전 승률 <span style={{ fontWeight: 700, color: 'var(--color-win)' }}>{kings[0].contestWinRate.toFixed(1)}%</span> &middot; 접전 {kings[0].contestGames}게임
-              </div>
-            )}
+        <div className="hero-banner" style={{ textAlign: 'center', marginBottom: 'var(--spacing-lg)' }}>
+          <div style={{ fontSize: 28, marginBottom: 'var(--spacing-xs)' }}>🔄</div>
+          <div className="hero-eyebrow" style={{ marginBottom: 'var(--spacing-xs)' }}>컴백킹</div>
+          <div className="hero-title" style={{ fontSize: 'var(--font-size-lg)', color: 'var(--color-primary)' }}>
+            {data.comebackKing ? data.comebackKing.split('#')[0] : kings[0]?.riotId.split('#')[0] ?? '-'}
           </div>
+          {kings[0] && (
+            <div className="hero-subtitle" style={{ fontVariantNumeric: 'tabular-nums' }}>
+              접전 승률 <span style={{ fontWeight: 700, color: 'var(--color-win)' }}>{kings[0].contestWinRate.toFixed(1)}%</span> &middot; 접전 {kings[0].contestGames}게임
+            </div>
+          )}
         </div>
       )}
 
-      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}>접전 vs 압도 경기 승률</h3>
+      <div className="section-head">
+        <span className="icon-chip">⚔️</span>
+        <span className="section-head-title">접전 vs 압도 경기 승률</span>
+      </div>
       <div className="table-wrapper">
         <table className="table member-stats-table" style={{ fontSize: 12 }}>
           <thead>
@@ -56,7 +57,7 @@ export default function ComebackTab({ mode }: { mode: string }) {
           </thead>
           <tbody>
             {data.rankings.map((e: ComebackIndexEntry, i: number) => (
-              <tr key={e.riotId} className="member-stats-row" style={{ background: e.isKing ? 'rgba(16,185,129,0.05)' : undefined }}>
+              <tr key={e.riotId} className="member-stats-row" style={{ background: e.isKing ? 'rgba(200,170,110,0.07)' : undefined }}>
                 <td style={{ padding: '8px 12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <RankBadge rank={i + 1} />

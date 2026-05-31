@@ -32,10 +32,11 @@ export function MatchAnalysisPage() {
 
   return (
     <div>
-      <div className="page-header flex items-center justify-between">
+      <div className="hero-banner flex items-center justify-between" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div>
-          <h1 className="page-title">경기 분석</h1>
-          <p className="page-subtitle">경기 트렌드와 패턴 분석</p>
+          <div className="hero-eyebrow">Match Analysis</div>
+          <h1 className="hero-title">경기 분석</h1>
+          <p className="hero-subtitle">경기 트렌드와 패턴 분석</p>
         </div>
         <div className="flex gap-sm">
           {MODES.map(m => (
@@ -45,25 +46,25 @@ export function MatchAnalysisPage() {
         </div>
       </div>
 
-      <div className="stats-tab-bar" style={{ overflowX: 'auto', display: 'flex', flexWrap: 'nowrap', borderRadius: 'var(--radius-lg)', padding: '4px', marginBottom: 20, border: '1px solid var(--color-border)', borderBottomColor: 'var(--color-border)' }}>
+      <div className="tab-bar" style={{ marginBottom: 'var(--spacing-lg)' }}>
         {TABS.map(t => (
-          <button key={t.key} className={`stats-tab-btn ${tab === t.key ? 'active' : ''}`}
-            onClick={() => setTab(t.key)} style={{ flexShrink: 0 }}>
+          <button key={t.key} className={`tab-bar-item ${tab === t.key ? 'active' : ''}`}
+            onClick={() => setTab(t.key)}>
             {t.label}
           </button>
         ))}
       </div>
 
       <Suspense fallback={<LoadingCenter />}>
-        {tab === 'awards'      && <div className="card" style={{ marginTop: 4 }}><AwardsTab mode={mode} /></div>}
-        {tab === 'multikill'   && <div className="card" style={{ marginTop: 4 }}><MultikillTab mode={mode} /></div>}
-        {tab === 'chaos'       && <div className="card" style={{ marginTop: 4 }}><ChaosTab mode={mode} /></div>}
-        {tab === 'defeat'      && <div className="card" style={{ marginTop: 4 }}><DefeatTab mode={mode} /></div>}
-        {tab === 'comeback'    && <div className="card" style={{ marginTop: 4 }}><ComebackTab mode={mode} /></div>}
-        {tab === 'earlygame'   && <div className="card" style={{ marginTop: 4 }}><EarlyGameTab mode={mode} /></div>}
-        {tab === 'gamelength'  && <div className="card" style={{ marginTop: 4 }}><GameLengthTab mode={mode} /></div>}
-        {tab === 'timepattern' && <div className="card" style={{ marginTop: 4 }}><TimePatternTab mode={mode} /></div>}
-        {tab === 'sessions'    && <div className="card" style={{ marginTop: 4 }}><SessionsTab mode={mode} /></div>}
+        {tab === 'awards'      && <div className="card"><AwardsTab mode={mode} /></div>}
+        {tab === 'multikill'   && <div className="card"><MultikillTab mode={mode} /></div>}
+        {tab === 'chaos'       && <div className="card"><ChaosTab mode={mode} /></div>}
+        {tab === 'defeat'      && <div className="card"><DefeatTab mode={mode} /></div>}
+        {tab === 'comeback'    && <div className="card"><ComebackTab mode={mode} /></div>}
+        {tab === 'earlygame'   && <div className="card"><EarlyGameTab mode={mode} /></div>}
+        {tab === 'gamelength'  && <div className="card"><GameLengthTab mode={mode} /></div>}
+        {tab === 'timepattern' && <div className="card"><TimePatternTab mode={mode} /></div>}
+        {tab === 'sessions'    && <div className="card"><SessionsTab mode={mode} /></div>}
       </Suspense>
     </div>
   );

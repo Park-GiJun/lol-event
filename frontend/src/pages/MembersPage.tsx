@@ -53,10 +53,11 @@ export function MembersPage() {
 
   return (
     <div>
-      <div className="page-header flex items-center justify-between">
+      <div className="hero-banner page-header flex items-center justify-between">
         <div>
-          <h1 className="page-title">멤버 관리</h1>
-          <p className="page-subtitle">등록된 멤버 {members.length}명</p>
+          <div className="hero-eyebrow">Member Roster</div>
+          <h1 className="hero-title">멤버 관리</h1>
+          <p className="hero-subtitle">등록된 멤버 {members.length}명</p>
         </div>
         <div className="flex gap-sm">
           <Button variant="secondary" size="sm" onClick={() => setShowBulk(true)}>
@@ -87,7 +88,11 @@ export function MembersPage() {
                   </tr>
                 ))}
                 {!members.length && (
-                  <tr className="members-empty-row"><td colSpan={4}>등록된 멤버 없음</td></tr>
+                  <tr>
+                    <td colSpan={4} className="text-secondary" style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}>
+                      등록된 멤버 없음
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
@@ -105,11 +110,11 @@ export function MembersPage() {
         {!bulkResult ? (
           <Textarea label="Riot ID 목록 (줄 구분)" value={bulkInput} onChange={setBulkInput} placeholder={"플레이어1#KR1\n플레이어2#KR2"} rows={8} />
         ) : (
-          <div className="bulk-result-list">
+          <div>
             {bulkResult.results.map((r, i) => (
-              <div key={i} className="bulk-result-item">
-                <span>{r.riotId}</span>
-                <span className={`badge ${r.status === 'ok' ? 'badge-win' : r.status === 'error' ? 'badge-loss' : 'badge-normal'}`}>
+              <div key={i} className="pill-row">
+                <span className="pill-row-name">{r.riotId}</span>
+                <span className={`badge pill-row-value ${r.status === 'ok' ? 'badge-win' : r.status === 'error' ? 'badge-loss' : 'badge-normal'}`}>
                   {r.status === 'ok' ? '등록' : r.status === 'skip' ? `스킵: ${r.reason}` : `오류: ${r.reason}`}
                 </span>
               </div>

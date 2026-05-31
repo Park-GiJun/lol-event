@@ -37,7 +37,7 @@ function MvpTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+      <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-md)' }}>
         총 {data.totalGames}경기 · MVP 점수 = KDA기여 + 팀데미지기여(최대40) + 시야/분 + CS/분 + 승리보너스(+20)
       </p>
       <div className="table-wrapper">
@@ -60,29 +60,29 @@ function MvpTab({ mode }: { mode: string }) {
                 <td><RankBadge rank={i + 1} /></td>
                 <td>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    <span style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</span>
-                    <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</span>
+                    <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)' }}>{p.riotId.split('#')[0]}</span>
+                    <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</span>
                   </div>
                 </td>
                 <td className="table-number">{p.games}</td>
                 <td className="table-number">
-                  <span style={{ fontWeight: 700, color: 'var(--color-primary)', fontSize: 14 }}>{p.mvpCount}</span>
-                  <span style={{ fontSize: 10, color: 'var(--color-text-disabled)', marginLeft: 2 }}>회</span>
+                  <span style={{ fontWeight: 700, color: 'var(--color-primary)', fontSize: 'var(--font-size-md)' }}>{p.mvpCount}</span>
+                  <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-disabled)', marginLeft: 2 }}>회</span>
                 </td>
                 <td className="table-number">
-                  <span style={{ fontWeight: 700, color: 'var(--color-win)', fontSize: 14 }}>{p.aceCount}</span>
-                  <span style={{ fontSize: 10, color: 'var(--color-text-disabled)', marginLeft: 2 }}>회</span>
+                  <span style={{ fontWeight: 700, color: 'var(--color-win)', fontSize: 'var(--font-size-md)' }}>{p.aceCount}</span>
+                  <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-disabled)', marginLeft: 2 }}>회</span>
                 </td>
                 <td>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <span style={{ fontWeight: 700, fontSize: 13, color: p.mvpRate >= 50 ? 'var(--color-win)' : 'var(--color-primary)' }}>{p.mvpRate}%</span>
-                    <div style={{ height: 4, background: 'var(--color-bg-hover)', borderRadius: 2, overflow: 'hidden', minWidth: 80 }}>
-                      <div style={{ width: `${Math.min(p.mvpRate, 100)}%`, height: '100%', background: p.mvpRate >= 50 ? 'var(--color-win)' : 'var(--color-primary)', borderRadius: 2 }} />
+                    <span style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', color: p.mvpRate >= 50 ? 'var(--color-win)' : 'var(--color-primary)' }}>{p.mvpRate}%</span>
+                    <div style={{ height: 4, background: 'var(--color-bg-hover)', borderRadius: 'var(--radius-sm)', overflow: 'hidden', minWidth: 80 }}>
+                      <div style={{ width: `${Math.min(p.mvpRate, 100)}%`, height: '100%', background: p.mvpRate >= 50 ? 'var(--color-win)' : 'var(--color-primary)', borderRadius: 'var(--radius-sm)' }} />
                     </div>
                   </div>
                 </td>
                 <td className="table-number" style={{ fontWeight: 700 }}>{p.avgMvpScore.toFixed(2)}</td>
-                <td style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{p.topChampion ?? '—'}</td>
+                <td style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>{p.topChampion ?? '—'}</td>
               </tr>
             ))}
             {!data.rankings.length && (
@@ -114,12 +114,12 @@ function SynergyTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-        <p style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
+        <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
           총 {data.totalGames}경기 · 같은 팀에 함께 픽된 챔피언 조합의 승률
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
-          <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>최소 게임수</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginLeft: 'auto' }}>
+          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>최소 게임수</span>
           {[2, 3, 5].map(n => (
             <button key={n}
               className={`member-sort-tab ${minGames === n ? 'active' : ''}`}
@@ -143,15 +143,15 @@ function SynergyTab({ mode }: { mode: string }) {
               <tr key={`${s.champion1}-${s.champion2}`} className="member-stats-row">
                 <td><RankBadge rank={i + 1} /></td>
                 <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
                     <ChampImg championId={s.champion1Id} champion={s.champion1} size={28} />
                     <div>
-                      <span style={{ fontWeight: 700, fontSize: 12 }}>{s.champion1}</span>
+                      <span style={{ fontWeight: 700, fontSize: 'var(--font-size-xs)' }}>{s.champion1}</span>
                     </div>
-                    <span style={{ color: 'var(--color-text-disabled)', fontSize: 14, fontWeight: 300 }}>+</span>
+                    <span style={{ color: 'var(--color-text-disabled)', fontSize: 'var(--font-size-md)', fontWeight: 300 }}>+</span>
                     <ChampImg championId={s.champion2Id} champion={s.champion2} size={28} />
                     <div>
-                      <span style={{ fontWeight: 700, fontSize: 12 }}>{s.champion2}</span>
+                      <span style={{ fontWeight: 700, fontSize: 'var(--font-size-xs)' }}>{s.champion2}</span>
                     </div>
                   </div>
                 </td>
@@ -190,12 +190,12 @@ function DuoTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-        <p style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
+        <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
           같은 팀에서 함께 플레이한 멤버 조합의 시너지
         </p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto' }}>
-          <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>최소 게임수</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)', marginLeft: 'auto' }}>
+          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>최소 게임수</span>
           {[2, 3, 5].map(n => (
             <button key={n}
               className={`member-sort-tab ${minGames === n ? 'active' : ''}`}
@@ -220,11 +220,11 @@ function DuoTab({ mode }: { mode: string }) {
               <tr key={`${d.player1}-${d.player2}`} className="member-stats-row">
                 <td><RankBadge rank={i + 1} /></td>
                 <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
                     <button className="player-name-btn" onClick={e => { e.stopPropagation(); navigate(`/player-stats/${encodeURIComponent(d.player1)}`); }}>
                       {d.player1.split('#')[0]}
                     </button>
-                    <span style={{ color: 'var(--color-text-disabled)', fontSize: 12 }}>+</span>
+                    <span style={{ color: 'var(--color-text-disabled)', fontSize: 'var(--font-size-xs)' }}>+</span>
                     <button className="player-name-btn" onClick={e => { e.stopPropagation(); navigate(`/player-stats/${encodeURIComponent(d.player2)}`); }}>
                       {d.player2.split('#')[0]}
                     </button>
@@ -235,7 +235,7 @@ function DuoTab({ mode }: { mode: string }) {
                 <td className="table-number" style={{ fontWeight: 700, color: d.kda >= 5 ? 'var(--color-win)' : d.kda >= 3 ? 'var(--color-primary)' : 'var(--color-text-primary)' }}>
                   {d.kda.toFixed(2)}
                 </td>
-                <td className="table-number" style={{ fontSize: 11, color: 'var(--color-text-secondary)' }}>
+                <td className="table-number" style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-secondary)' }}>
                   {d.avgKills.toFixed(1)} / <span style={{ color: 'var(--color-error)' }}>{d.avgDeaths.toFixed(1)}</span> / {d.avgAssists.toFixed(1)}
                 </td>
               </tr>
@@ -258,10 +258,11 @@ export function AdvancedStatsPage() {
   return (
     <div>
       {/* 헤더 */}
-      <div className="page-header flex items-center justify-between">
+      <div className="hero-banner flex items-center justify-between" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div>
-          <h1 className="page-title">고급 통계</h1>
-          <p className="page-subtitle">MVP 랭킹 · 챔피언 시너지 · 듀오 시너지</p>
+          <div className="hero-eyebrow">ADVANCED STATS</div>
+          <h1 className="hero-title">고급 통계</h1>
+          <p className="hero-subtitle">MVP 랭킹 · 챔피언 시너지 · 듀오 시너지</p>
         </div>
         <div className="flex gap-sm">
           {MODES.map(m => (
@@ -272,11 +273,11 @@ export function AdvancedStatsPage() {
       </div>
 
       {/* 탭 선택 */}
-      <div className="adv-tab-header">
+      <div className="tab-bar" style={{ marginBottom: 'var(--spacing-md)' }}>
         {TABS.map(t => (
           <button key={t.key}
             onClick={() => setTab(t.key)}
-            className={`adv-tab-btn${tab === t.key ? ' active' : ''}`}>
+            className={`tab-bar-item${tab === t.key ? ' active' : ''}`}>
             {t.label}
           </button>
         ))}

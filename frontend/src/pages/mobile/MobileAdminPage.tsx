@@ -19,12 +19,12 @@ export function MobileAdminPage() {
 
   if (!authed) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 16px' }}>
-        <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(var(--color-primary-rgb),0.08)', border: '1px solid rgba(var(--color-primary-rgb),0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 'var(--spacing-2xl) var(--spacing-md)' }}>
+        <div style={{ width: 56, height: 56, borderRadius: 'var(--radius-xl)', background: 'rgba(var(--color-primary-rgb),0.08)', border: '1px solid rgba(var(--color-primary-rgb),0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 'var(--spacing-lg)' }}>
           <Shield size={26} color="var(--color-primary)" />
         </div>
-        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>관리자 인증</div>
-        <div style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 24 }}>비밀번호를 입력해주세요</div>
+        <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 'var(--spacing-sm)' }}>관리자 인증</div>
+        <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-lg)' }}>비밀번호를 입력해주세요</div>
         <input
           className="m-pw-input"
           type="password"
@@ -119,10 +119,10 @@ function AdminContent() {
     <div>
       {/* Batch Section */}
       <p className="m-section-title">배치 작업</p>
-      <div className="m-card" style={{ marginBottom: 12 }}>
+      <div className="m-card" style={{ marginBottom: 'var(--spacing-sm)' }}>
         {batchStatus && (
-          <div style={{ marginBottom: 12 }}>
-            <div className="grid-16" style={{ marginBottom: 8 }}>
+          <div style={{ marginBottom: 'var(--spacing-sm)' }}>
+            <div className="grid-16" style={{ marginBottom: 'var(--spacing-sm)' }}>
               {[
                 { label: '플레이어 스냅샷', value: batchStatus.playerSnapshotCount },
                 { label: '챔피언 스냅샷', value: batchStatus.championSnapshotCount },
@@ -134,7 +134,7 @@ function AdminContent() {
               ))}
             </div>
             {batchStatus.lastAggregatedAt && (
-              <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', textAlign: 'center' }}>
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', textAlign: 'center' }}>
                 마지막 집계: {new Date(batchStatus.lastAggregatedAt).toLocaleString('ko-KR')}
               </div>
             )}
@@ -142,7 +142,7 @@ function AdminContent() {
         )}
 
         {batchMsg && (
-          <div style={{ fontSize: 13, color: 'var(--color-win)', marginBottom: 10, textAlign: 'center' }}>
+          <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-win)', marginBottom: 'var(--spacing-sm)', textAlign: 'center' }}>
             {batchMsg}
           </div>
         )}
@@ -169,8 +169,8 @@ function AdminContent() {
 
       {/* Elo Section */}
       <p className="m-section-title">Elo 관리</p>
-      <div className="m-card" style={{ marginBottom: 12 }}>
-        <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginBottom: 12, lineHeight: 1.6 }}>
+      <div className="m-card" style={{ marginBottom: 'var(--spacing-sm)' }}>
+        <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-sm)', lineHeight: 1.6 }}>
           전체 경기를 다시 순회하여 Elo를 재집계합니다. 기존 Elo 기록이 초기화되고 재계산됩니다.
         </p>
         <button

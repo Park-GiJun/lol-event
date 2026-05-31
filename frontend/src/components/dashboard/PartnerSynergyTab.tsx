@@ -46,7 +46,7 @@ export function PartnerSynergyTab() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12, gap: 6 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--spacing-md)', gap: 'var(--spacing-sm)' }}>
         {MODES.map(m => (
           <Button key={m.value} variant={mode === m.value ? 'primary' : 'secondary'} size="sm" onClick={() => setMode(m.value)}>
             {m.label}
@@ -111,11 +111,7 @@ export function PartnerSynergyTab() {
                         <PlayerLink riotId={d.player1} mode="all">
                           <span style={{ fontWeight: 700, fontSize: 13 }}>{d.player1.split('#')[0]}</span>
                         </PlayerLink>
-                        <span style={{
-                          color: 'var(--color-primary)', fontSize: 11, fontWeight: 700,
-                          background: 'rgba(0,180,216,0.1)', borderRadius: 3,
-                          padding: '1px 4px', border: '1px solid rgba(0,180,216,0.2)',
-                        }}>+</span>
+                        <span className="badge badge-gold badge-sm">+</span>
                         <PlayerLink riotId={d.player2} mode="all">
                           <span style={{ fontWeight: 700, fontSize: 13 }}>{d.player2.split('#')[0]}</span>
                         </PlayerLink>

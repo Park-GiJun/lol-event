@@ -24,10 +24,11 @@ export function RankingsPage() {
 
   return (
     <div>
-      <div className="page-header flex items-center justify-between">
+      <div className="hero-banner flex items-center justify-between" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div>
-          <h1 className="page-title">랭킹</h1>
-          <p className="page-subtitle">순위와 등급 한눈에 보기</p>
+          <div className="hero-eyebrow">RANKINGS</div>
+          <h1 className="hero-title">랭킹</h1>
+          <p className="hero-subtitle">순위와 등급 한눈에 보기</p>
         </div>
         <div className="flex gap-sm">
           {MODES.map(m => (
@@ -37,10 +38,10 @@ export function RankingsPage() {
         </div>
       </div>
 
-      <div className="stats-tab-bar" style={{ overflowX: 'auto', display: 'flex', flexWrap: 'nowrap', borderRadius: 'var(--radius-lg)', padding: '4px', marginBottom: 20, border: '1px solid var(--color-border)', borderBottomColor: 'var(--color-border)' }}>
+      <div className="tab-bar" style={{ marginBottom: 'var(--spacing-lg)' }}>
         {TABS.map(t => (
-          <button key={t.key} className={`stats-tab-btn ${tab === t.key ? 'active' : ''}`}
-            onClick={() => setTab(t.key)} style={{ flexShrink: 0 }}>
+          <button key={t.key} className={`tab-bar-item ${tab === t.key ? 'active' : ''}`}
+            onClick={() => setTab(t.key)}>
             {t.label}
           </button>
         ))}
@@ -48,10 +49,10 @@ export function RankingsPage() {
 
       <Suspense fallback={<LoadingCenter />}>
         {tab === 'overview'  && <OverviewTab mode={mode} />}
-        {tab === 'elo'       && <div className="card" style={{ marginTop: 4 }}><EloTab /></div>}
-        {tab === 'mvp'       && <div className="card" style={{ marginTop: 4 }}><MvpTab mode={mode} /></div>}
-        {tab === 'tier'      && <div className="card" style={{ marginTop: 4 }}><TierTab mode={mode} /></div>}
-        {tab === 'kp'        && <div className="card" style={{ marginTop: 4 }}><KillParticipationTab mode={mode} /></div>}
+        {tab === 'elo'       && <div className="card" style={{ marginTop: 'var(--spacing-xs)' }}><EloTab /></div>}
+        {tab === 'mvp'       && <div className="card" style={{ marginTop: 'var(--spacing-xs)' }}><MvpTab mode={mode} /></div>}
+        {tab === 'tier'      && <div className="card" style={{ marginTop: 'var(--spacing-xs)' }}><TierTab mode={mode} /></div>}
+        {tab === 'kp'        && <div className="card" style={{ marginTop: 'var(--spacing-xs)' }}><KillParticipationTab mode={mode} /></div>}
       </Suspense>
     </div>
   );

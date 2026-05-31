@@ -66,13 +66,13 @@ function GoldEffTab({ mode }: { mode: string }) {
                 <span className="m-player-name">{name}</span>
                 {tag && <span className="m-player-tag"> #{tag}</span>}
               </div>
-              <span style={{ fontSize: 16, fontWeight: 800, color: '#FFD700', fontVariantNumeric: 'tabular-nums' }}>{p.goldEfficiencyScore.toFixed(1)}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>{p.goldEfficiencyScore.toFixed(1)}</span>
             </div>
             <div className="m-stat-chips">
               <span className="m-stat-chip">{p.games}게임</span>
               <span className="m-stat-chip">딜/골드 {p.avgDmgPerGold.toFixed(2)}</span>
               <span className="m-stat-chip">CS/골드 {p.avgCsPerGold.toFixed(2)}</span>
-              {p.tags.map(t => <span key={t} className="m-stat-chip" style={{ color: '#FFD700', fontSize: 10 }}>{t}</span>)}
+              {p.tags.map(t => <span key={t} className="m-stat-chip" style={{ color: 'var(--color-primary)', fontSize: 10 }}>{t}</span>)}
             </div>
           </div>
         );
@@ -106,7 +106,7 @@ function SurvivalTab({ mode }: { mode: string }) {
                 <span className="m-player-name">{name}</span>
                 {tag && <span className="m-player-tag"> #{tag}</span>}
               </div>
-              <span style={{ fontSize: 16, fontWeight: 800, color: '#2196F3', fontVariantNumeric: 'tabular-nums' }}>{p.survivalIndex.toFixed(1)}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-primary)', fontVariantNumeric: 'tabular-nums' }}>{p.survivalIndex.toFixed(1)}</span>
             </div>
             <div className="m-stat-chips">
               <span className="m-stat-chip">{p.games}게임</span>
@@ -144,7 +144,7 @@ function BanTab({ mode }: { mode: string }) {
             </div>
             <div className="m-stat-chips">
               <span className="m-stat-chip">{e.banCount}회 밴</span>
-              <span className="m-stat-chip" style={{ color: e.banRate >= 50 ? '#FF4757' : e.banRate >= 30 ? '#FF6B2B' : 'inherit', fontVariantNumeric: 'tabular-nums' }}>
+              <span className="m-stat-chip" style={{ color: e.banRate >= 50 ? 'var(--color-error)' : e.banRate >= 30 ? 'var(--color-warning)' : 'inherit', fontVariantNumeric: 'tabular-nums' }}>
                 밴율 {e.banRate.toFixed(1)}%
               </span>
             </div>

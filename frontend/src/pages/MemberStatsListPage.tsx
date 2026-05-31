@@ -16,10 +16,10 @@ function WinRatePill({ winRate, wins, losses }: { winRate: number; wins: number;
   const color = winRate >= 60 ? 'var(--color-win)' : winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
   const fillClass = winRate >= 60 ? 'wr-bar-fill--high' : winRate >= 50 ? 'wr-bar-fill--mid' : 'wr-bar-fill--low';
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-        <span className="tabular-nums" style={{ fontWeight: 700, fontSize: 13, color, minWidth: 34 }}>{winRate}%</span>
-        <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2xs)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+        <span className="tabular-nums" style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-sm)', color, minWidth: 34 }}>{winRate}%</span>
+        <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-disabled)' }}>
           <span style={{ color: 'var(--color-win)' }}>{wins}W</span>
           {' '}<span style={{ color: 'var(--color-loss)' }}>{losses}L</span>
         </span>
@@ -35,8 +35,8 @@ function KdaDisplay({ kda, kills, deaths, assists }: { kda: number; kills: numbe
   const color = kda >= 5 ? 'var(--color-win)' : kda >= 3 ? 'var(--color-primary)' : 'var(--color-text-primary)';
   return (
     <div className="tabular-nums" style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-      <span style={{ fontWeight: 700, fontSize: 13, color }}>{kda.toFixed(2)}</span>
-      <span style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>
+      <span style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-sm)', color }}>{kda.toFixed(2)}</span>
+      <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-secondary)' }}>
         {kills.toFixed(1)} / <span style={{ color: 'var(--color-error)' }}>{deaths.toFixed(1)}</span> / {assists.toFixed(1)}
       </span>
     </div>
@@ -55,9 +55,9 @@ function ChampBadges({ champions }: { champions: PlayerStats['topChampions'] }) 
               ? <img src={found.imageUrl} alt={c.champ} width={26} height={26}
                   className="champ-list-img"
                   onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-              : <div style={{ width: 26, height: 26, background: 'var(--color-bg-hover)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: 'var(--color-text-secondary)' }}>{c.champ.slice(0, 2)}</div>
+              : <div style={{ width: 26, height: 26, background: 'var(--color-bg-hover)', borderRadius: 'var(--radius-xs)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, color: 'var(--color-text-secondary)' }}>{c.champ.slice(0, 2)}</div>
             }
-            <span style={{ position: 'absolute', bottom: -2, right: -2, background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', borderRadius: 3, fontSize: 8, padding: '0 2px', lineHeight: '12px' }}>{c.count}</span>
+            <span style={{ position: 'absolute', bottom: -2, right: -2, background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)', borderRadius: 3, fontSize: 8, padding: '0 2px', lineHeight: '12px', color: 'var(--color-text-primary)' }}>{c.count}</span>
           </div>
         );
       })}
@@ -115,10 +115,11 @@ export function MemberStatsListPage() {
 
   return (
     <div>
-      <div className="page-header flex items-center justify-between">
+      <div className="hero-banner flex items-center justify-between" style={{ marginBottom: 'var(--spacing-lg)', gap: 'var(--spacing-md)', flexWrap: 'wrap' }}>
         <div>
-          <h1 className="page-title">멤버 통계</h1>
-          <p className="page-subtitle">총 {data?.matchCount ?? 0}경기 · {displayed.length}명</p>
+          <div className="hero-eyebrow">MEMBER STATS</div>
+          <h1 className="hero-title">멤버 통계</h1>
+          <p className="hero-subtitle">총 {data?.matchCount ?? 0}경기 · {displayed.length}명</p>
         </div>
         <div className="flex gap-sm">
           {MODES.map(m => (
@@ -168,7 +169,7 @@ export function MemberStatsListPage() {
                 ))
               ) : displayed.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '48px 0', color: 'var(--color-text-secondary)' }}>
+                  <td colSpan={10} style={{ textAlign: 'center', padding: 'var(--spacing-2xl) 0', color: 'var(--color-text-secondary)' }}>
                     데이터 없음
                   </td>
                 </tr>
@@ -181,14 +182,14 @@ export function MemberStatsListPage() {
                     <td>
                       <PlayerLink riotId={s.riotId} mode={mode}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                          <span style={{ fontWeight: 700, fontSize: 13 }}>{s.riotId.split('#')[0]}</span>
-                          <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>#{s.riotId.split('#')[1]}</span>
+                          <span style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>{s.riotId.split('#')[0]}</span>
+                          <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-disabled)' }}>#{s.riotId.split('#')[1]}</span>
                         </div>
                       </PlayerLink>
                     </td>
                     <td>
-                      <span style={{ fontWeight: 600, fontSize: 14 }}>{s.games}</span>
-                      <span style={{ fontSize: 10, color: 'var(--color-text-disabled)', marginLeft: 2 }}>판</span>
+                      <span style={{ fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>{s.games}</span>
+                      <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-disabled)', marginLeft: 'var(--spacing-2xs)' }}>판</span>
                     </td>
                     <td><WinRatePill winRate={s.winRate} wins={s.wins} losses={s.losses} /></td>
                     <td><KdaDisplay kda={s.kda} kills={s.avgKills} deaths={s.avgDeaths} assists={s.avgAssists} /></td>

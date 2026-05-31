@@ -24,12 +24,13 @@ export function ChampionAnalysisPage() {
 
   return (
     <div>
-      <div className="page-header flex items-center justify-between">
+      <div className="hero-banner flex items-center justify-between" style={{ gap: 'var(--spacing-md)', flexWrap: 'wrap', marginBottom: 'var(--spacing-lg)' }}>
         <div>
-          <h1 className="page-title">챔피언 분석</h1>
-          <p className="page-subtitle">챔피언 시너지와 메타 분석</p>
+          <div className="hero-eyebrow">Champion Analysis</div>
+          <h1 className="hero-title">챔피언 분석</h1>
+          <p className="hero-subtitle">챔피언 시너지와 메타 분석</p>
         </div>
-        <div className="flex gap-sm">
+        <div className="flex gap-sm" style={{ position: 'relative', zIndex: 1 }}>
           {MODES.map(m => (
             <Button key={m.value} variant={mode === m.value ? 'primary' : 'secondary'}
               size="sm" onClick={() => setMode(m.value)}>{m.label}</Button>
@@ -37,21 +38,21 @@ export function ChampionAnalysisPage() {
         </div>
       </div>
 
-      <div className="stats-tab-bar" style={{ overflowX: 'auto', display: 'flex', flexWrap: 'nowrap', borderRadius: 'var(--radius-lg)', padding: '4px', marginBottom: 20, border: '1px solid var(--color-border)', borderBottomColor: 'var(--color-border)' }}>
+      <div className="tab-bar" style={{ marginBottom: 'var(--spacing-lg)' }}>
         {TABS.map(t => (
-          <button key={t.key} className={`stats-tab-btn ${tab === t.key ? 'active' : ''}`}
-            onClick={() => setTab(t.key)} style={{ flexShrink: 0 }}>
+          <button key={t.key} className={`tab-bar-item ${tab === t.key ? 'active' : ''}`}
+            onClick={() => setTab(t.key)}>
             {t.label}
           </button>
         ))}
       </div>
 
       <Suspense fallback={<LoadingCenter />}>
-        {tab === 'synergy'     && <div className="card" style={{ marginTop: 4 }}><SynergyTab mode={mode} /></div>}
-        {tab === 'chemistry'   && <div className="card" style={{ marginTop: 4 }}><ChemistryTab mode={mode} /></div>}
-        {tab === 'ban'         && <div className="card" style={{ marginTop: 4 }}><BanAnalysisTab mode={mode} /></div>}
-        {tab === 'certificate' && <div className="card" style={{ marginTop: 4 }}><CertificateTab mode={mode} /></div>}
-        {tab === 'meta'        && <div className="card" style={{ marginTop: 4 }}><MetaTab mode={mode} /></div>}
+        {tab === 'synergy'     && <div className="card"><SynergyTab mode={mode} /></div>}
+        {tab === 'chemistry'   && <div className="card"><ChemistryTab mode={mode} /></div>}
+        {tab === 'ban'         && <div className="card"><BanAnalysisTab mode={mode} /></div>}
+        {tab === 'certificate' && <div className="card"><CertificateTab mode={mode} /></div>}
+        {tab === 'meta'        && <div className="card"><MetaTab mode={mode} /></div>}
       </Suspense>
     </div>
   );

@@ -21,27 +21,41 @@ export default function SurrenderTab({ mode }: { mode: string }) {
   if (loading) return <LoadingCenter />;
   if (!data) return null;
 
+  const players = data.players ?? [];
+  const eligible = players.filter(p => p.games > 0);
+  // 백엔드가 별도 펀카드 값을 주지 않으므로 players 에서 파생
+  const surrenderKing = eligible.reduce<SurrenderPlayerEntry | null>(
+    (best, p) => (!best || p.surrenderRate > best.surrenderRate ? p : best), null);
+  const neverGiveUpKing = eligible.reduce<SurrenderPlayerEntry | null>(
+    (best, p) => (!best || p.surrenderRate < best.surrenderRate ? p : best), null);
+
   const funCards = [
-    { emoji: '🏳️', label: '서렌더 유발왕', name: data.surrenderTrigger, color: '#f87171' },
-    { emoji: '💪', label: '끝까지 안포기왕', name: data.neverGiveUpKing, color: '#4ade80' },
+    { emoji: '🏳️', label: '서렌더왕', name: surrenderKing?.riotId, color: 'var(--color-loss)' },
+    { emoji: '💪', label: '끝까지 안포기왕', name: neverGiveUpKing?.riotId, color: 'var(--color-win)' },
   ];
 
   return (
     <div>
-      <div className="grid-16" style={{ marginBottom: 20 }}>
-        <div className="card col-span-8" style={{ padding: '14px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', fontWeight: 700, marginBottom: 4 }}>전체 서렌더율</div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: '#f87171' }}>{(data.overallSurrenderRate * 100).toFixed(1)}%</div>
+      <div className="grid-16" style={{ marginBottom: 'var(--spacing-lg)' }}>
+        <div className="stat-card col-span-8" style={{ textAlign: 'center' }}>
+          <div className="stat-card-label">전체 서렌더율</div>
+          <div className="stat-card-value" style={{ color: 'var(--color-loss)' }}>
+            {(data.overallSurrenderRate * 100).toFixed(1)}%
+          </div>
         </div>
-        <div className="card col-span-8" style={{ padding: '14px 12px', textAlign: 'center' }}>
-          <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', fontWeight: 700, marginBottom: 4 }}>조기 서렌더율</div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: '#fb923c' }}>{(data.earlyOverallSurrenderRate * 100).toFixed(1)}%</div>
+        <div className="stat-card col-span-8" style={{ textAlign: 'center' }}>
+          <div className="stat-card-label">조기 서렌더율</div>
+          <div className="stat-card-value" style={{ color: 'var(--color-warning)' }}>
+            {(data.overallEarlySurrenderRate * 100).toFixed(1)}%
+          </div>
         </div>
         {funCards.map(c => (
-          <div key={c.label} className="card col-span-8" style={{ padding: '14px 12px', textAlign: 'center' }}>
-            <div style={{ fontSize: 22, marginBottom: 4 }}>{c.emoji}</div>
-            <div style={{ fontSize: 10, color: 'var(--color-text-secondary)', fontWeight: 700, marginBottom: 4 }}>{c.label}</div>
-            <div style={{ fontWeight: 800, fontSize: 14, color: c.color }}>{c.name?.split('#')[0] ?? '-'}</div>
+          <div key={c.label} className="stat-card col-span-8" style={{ textAlign: 'center', alignItems: 'center' }}>
+            <div className="icon-chip" style={{ marginBottom: 'var(--spacing-xs)' }}>{c.emoji}</div>
+            <div className="stat-card-label">{c.label}</div>
+            <div className="stat-card-value" style={{ fontSize: 'var(--font-size-md)', color: c.color }}>
+              {c.name?.split('#')[0] ?? '-'}
+            </div>
           </div>
         ))}
       </div>
@@ -57,32 +71,32 @@ export default function SurrenderTab({ mode }: { mode: string }) {
               <th className="table-number">서렌더율</th>
               <th className="table-number">조기 서렌더</th>
               <th className="table-number">조기 서렌더율</th>
-              <th className="table-number">서렌더 후 승률</th>
+              <th className="table-number">조기 서렌더 유발</th>
             </tr>
           </thead>
           <tbody>
-            {data.rankings.map((p: SurrenderPlayerEntry, i) => (
+            {players.map((p: SurrenderPlayerEntry, i) => (
               <tr key={p.riotId} className="member-stats-row"
                 onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
                 <td><RankBadge rank={i + 1} /></td>
                 <td>
-                  <div style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</div>
-                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</div>
+                  <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-sm)' }}>{p.riotId.split('#')[0]}</div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]}</div>
                 </td>
                 <td className="table-number">{p.games}</td>
-                <td className="table-number">{p.surrenderCount}</td>
-                <td className="table-number" style={{ color: p.surrenderRate > 0.5 ? '#f87171' : 'inherit', fontWeight: p.surrenderRate > 0.5 ? 700 : 400 }}>
+                <td className="table-number">{p.surrenderGames}</td>
+                <td className="table-number" style={{ color: p.surrenderRate > 0.5 ? 'var(--color-loss)' : 'inherit', fontWeight: p.surrenderRate > 0.5 ? 'var(--font-weight-bold)' : 'var(--font-weight-normal)' }}>
                   {(p.surrenderRate * 100).toFixed(1)}%
                 </td>
-                <td className="table-number">{p.earlySurrenderCount}</td>
-                <td className="table-number" style={{ color: p.earlySurrenderRate > 0.3 ? '#fb923c' : 'inherit' }}>
+                <td className="table-number">{p.earlySurrenderGames}</td>
+                <td className="table-number" style={{ color: p.earlySurrenderRate > 0.3 ? 'var(--color-warning)' : 'inherit' }}>
                   {(p.earlySurrenderRate * 100).toFixed(1)}%
                 </td>
-                <td className="table-number">{(p.surrenderWinRate * 100).toFixed(1)}%</td>
+                <td className="table-number">{p.causedEarlySurrenderGames}</td>
               </tr>
             ))}
-            {!data.rankings.length && (
-              <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
+            {!players.length && (
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 'var(--spacing-2xl) 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
             )}
           </tbody>
         </table>

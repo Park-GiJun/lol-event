@@ -21,47 +21,54 @@ export default function MetaTab({ mode }: { mode: string }) {
   if (loading) return <LoadingCenter />;
   if (!data) return null;
 
-  const renderChampList = (title: string, list: MetaShiftChampion[], trendColor: string) => (
-    <section style={{ marginBottom: 24 }}>
-      <h3 style={{ fontSize: 13, fontWeight: 700, marginBottom: 10, paddingBottom: 8, borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}>{title}</h3>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
+  const renderChampList = (icon: string, title: string, list: MetaShiftChampion[], trendColor: string) => (
+    <section style={{ marginBottom: 'var(--spacing-xl)' }}>
+      <div className="section-head">
+        <span className="icon-chip">{icon}</span>
+        <span className="section-head-title">{title}</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 'var(--spacing-sm)' }}>
         {list.map((c: MetaShiftChampion) => {
           const nameKo = champions.get(c.championId)?.nameKo ?? c.champion;
           const trendSign = c.trend >= 0 ? '+' : '';
           return (
-            <div key={c.champion} className="card" style={{ padding: '12px 14px', transition: 'border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <div key={c.champion} className="card" style={{ padding: 'var(--spacing-md)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)' }}>
                 <ChampImg championId={c.championId} champion={c.champion} size={32} />
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 13 }}>{nameKo}</div>
-                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', marginTop: 1 }}>{c.metaTag}</div>
+                  <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-primary)' }}>{nameKo}</div>
+                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)', marginTop: 1 }}>{c.metaTag}</div>
                 </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontVariantNumeric: 'tabular-nums' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--font-size-sm)', fontVariantNumeric: 'tabular-nums' }}>
                 <span style={{ color: 'var(--color-text-secondary)' }}>픽률 {(c.pickRate * 100).toFixed(1)}%</span>
-                <span style={{ fontWeight: 800, color: trendColor, fontSize: 13 }}>
+                <span style={{ fontWeight: 'var(--font-weight-extrabold)', color: trendColor, fontSize: 'var(--font-size-sm)' }}>
                   {trendSign}{(c.trend * 100).toFixed(1)}%
                 </span>
               </div>
-              <div style={{ fontSize: 11, color: 'var(--color-text-secondary)', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
-                승률 <span style={{ fontWeight: 700, color: c.winRate >= 55 ? 'var(--color-win)' : c.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)' }}>{c.winRate.toFixed(1)}%</span>
+              <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: 'var(--spacing-xs)', fontVariantNumeric: 'tabular-nums' }}>
+                승률 <span style={{ fontWeight: 'var(--font-weight-bold)', color: c.winRate >= 55 ? 'var(--color-win)' : c.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)' }}>{c.winRate.toFixed(1)}%</span>
               </div>
             </div>
           );
         })}
-        {!list.length && <p style={{ fontSize: 12, color: 'var(--color-text-disabled)' }}>데이터 없음</p>}
+        {!list.length && <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-disabled)' }}>데이터 없음</p>}
       </div>
     </section>
   );
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
-        총 {data.totalMatchesAnalyzed}경기 분석 — 최근 vs 이전 기간 픽률 변화
-      </p>
-      {renderChampList('📈 급상승 챔피언', data.risingChampions, 'var(--color-win)')}
-      {renderChampList('📉 급하락 챔피언', data.fallingChampions, 'var(--color-loss)')}
-      {renderChampList('📊 안정 메타 챔피언', data.stableTopChampions, 'var(--color-text-secondary)')}
+      <div className="hero-banner" style={{ marginBottom: 'var(--spacing-lg)' }}>
+        <div className="hero-eyebrow">META SHIFT</div>
+        <h2 className="hero-title">메타 변화</h2>
+        <p className="hero-subtitle">
+          총 {data.totalMatchesAnalyzed}경기 분석 — 최근 vs 이전 기간 픽률 변화
+        </p>
+      </div>
+      {renderChampList('📈', '급상승 챔피언', data.risingChampions, 'var(--color-win)')}
+      {renderChampList('📉', '급하락 챔피언', data.fallingChampions, 'var(--color-loss)')}
+      {renderChampList('📊', '안정 메타 챔피언', data.stableTopChampions, 'var(--color-text-secondary)')}
     </div>
   );
 }

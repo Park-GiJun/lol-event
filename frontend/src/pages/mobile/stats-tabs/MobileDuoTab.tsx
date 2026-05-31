@@ -22,17 +22,17 @@ export default function MobileDuoTab({ mode }: { mode: string }) {
         return (
           <div key={i} className="m-synergy-card">
             <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4 }}>
+              <div style={{ display: 'flex', gap: 'var(--spacing-2xs)', alignItems: 'center', marginBottom: 'var(--spacing-2xs)' }}>
                 <button
                   onClick={() => navigate(`/m/player/${encodeURIComponent(d.player1)}`)}
-                  style={{ fontWeight: 700, fontSize: 13, background: 'none', border: 'none', color: 'var(--color-text-primary)', cursor: 'pointer', padding: 0 }}
+                  style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', background: 'none', border: 'none', color: 'var(--color-text-primary)', cursor: 'pointer', padding: 0 }}
                 >
                   {name1}
                 </button>
-                <span style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>+</span>
+                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)' }}>+</span>
                 <button
                   onClick={() => navigate(`/m/player/${encodeURIComponent(d.player2)}`)}
-                  style={{ fontWeight: 700, fontSize: 13, background: 'none', border: 'none', color: 'var(--color-text-primary)', cursor: 'pointer', padding: 0 }}
+                  style={{ fontWeight: 700, fontSize: 'var(--font-size-sm)', background: 'none', border: 'none', color: 'var(--color-text-primary)', cursor: 'pointer', padding: 0 }}
                 >
                   {name2}
                 </button>

@@ -26,7 +26,7 @@ export function MobileSubTabShell<T extends string>({
       </div>
       <div className="m-tab-bar" style={{ overflowX: 'auto', scrollbarWidth: 'none', flexWrap: 'nowrap' }}>
         {tabs.map(t => (
-          <button key={t} className={`m-tab${sub === t ? ' active' : ''}`} onClick={() => setSub(t)} style={{ flexShrink: 0, fontSize: 12 }}>
+          <button key={t} className={`m-tab${sub === t ? ' active' : ''}`} onClick={() => setSub(t)} style={{ flexShrink: 0, fontSize: 'var(--font-size-xs)' }}>
             {t}
           </button>
         ))}

@@ -192,14 +192,14 @@ export function EloLeaderboard({ currentRiotId }: EloLeaderboardProps) {
                 className="member-stats-row"
                 style={{
                   background: isCurrentUser
-                    ? 'rgba(0, 180, 216, 0.06)'
+                    ? 'rgba(var(--color-primary-rgb), 0.08)'
                     : rankMeta
                     ? `${rankMeta.color}05`
                     : undefined,
                   boxShadow: rankMeta
                     ? `inset 3px 0 0 ${rankMeta.color}55`
                     : isCurrentUser
-                    ? 'inset 3px 0 0 rgba(0,180,216,0.4)'
+                    ? 'inset 3px 0 0 rgba(var(--color-primary-rgb), 0.5)'
                     : undefined,
                 }}
               >

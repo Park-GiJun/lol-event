@@ -46,7 +46,7 @@ function SurvivalTab({ mode }: { mode: string }) {
                 <span className="m-player-name">{name}</span>
                 {tag && <span className="m-player-tag"> #{tag}</span>}
               </div>
-              <span style={{ fontSize: 16, fontWeight: 800, color: '#2196F3' }}>{p.survivalIndex.toFixed(1)}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-primary)' }}>{p.survivalIndex.toFixed(1)}</span>
             </div>
             <div className="m-stat-chips">
               <span className="m-stat-chip">{p.games}게임</span>
@@ -92,7 +92,7 @@ function JungleTab({ mode }: { mode: string }) {
                   <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>{p.playStyleTag}</div>
                 </div>
               </div>
-              <span style={{ fontSize: 16, fontWeight: 800, color: '#4CAF50' }}>{p.avgJungleDominance.toFixed(1)}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-primary)' }}>{p.avgJungleDominance.toFixed(1)}</span>
             </div>
             <div className="m-stat-chips">
               <span className="m-stat-chip">{p.games}게임</span>
@@ -138,7 +138,7 @@ function SupportTab({ mode }: { mode: string }) {
                   <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>{p.roleTag}</div>
                 </div>
               </div>
-              <span style={{ fontSize: 16, fontWeight: 800, color: '#E91E8A' }}>{p.supportImpact.toFixed(1)}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-primary)' }}>{p.supportImpact.toFixed(1)}</span>
             </div>
             <div className="m-stat-chips">
               <span className="m-stat-chip">{p.games}게임</span>
@@ -161,7 +161,7 @@ function DnaBar({ label, value, color }: { label: string; value: number; color: 
         <span style={{ color: 'var(--color-text-secondary)' }}>{label}</span>
         <span style={{ color }}>{value.toFixed(0)}</span>
       </div>
-      <div style={{ height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.06)' }}>
+      <div style={{ height: 4, borderRadius: 2, background: 'var(--color-bg-tertiary)' }}>
         <div style={{ height: '100%', borderRadius: 2, background: color, width: `${Math.min(value, 100)}%` }} />
       </div>
     </div>
@@ -306,13 +306,13 @@ function GoldEffTab({ mode }: { mode: string }) {
                 <span className="m-player-name">{name}</span>
                 {tag && <span className="m-player-tag"> #{tag}</span>}
               </div>
-              <span style={{ fontSize: 16, fontWeight: 800, color: '#FFD700' }}>{p.goldEfficiencyScore.toFixed(1)}</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--color-primary)' }}>{p.goldEfficiencyScore.toFixed(1)}</span>
             </div>
             <div className="m-stat-chips">
               <span className="m-stat-chip">{p.games}게임</span>
               <span className="m-stat-chip">딜/골드 {p.avgDmgPerGold.toFixed(2)}</span>
               <span className="m-stat-chip">CS/골드 {p.avgCsPerGold.toFixed(2)}</span>
-              {p.tags.map(t => <span key={t} className="m-stat-chip" style={{ color: '#FFD700', fontSize: 10 }}>{t}</span>)}
+              {p.tags.map(t => <span key={t} className="m-stat-chip" style={{ color: 'var(--color-primary)', fontSize: 10 }}>{t}</span>)}
             </div>
           </div>
         );
@@ -333,7 +333,7 @@ function GrowthTab({ mode }: { mode: string }) {
     enabled: !!query,
   });
 
-  const TREND_COLOR = { IMPROVING: '#4CAF50', DECLINING: '#FF4757', STABLE: '#9E9E9E' };
+  const TREND_COLOR = { IMPROVING: 'var(--color-win)', DECLINING: 'var(--color-loss)', STABLE: 'var(--color-text-disabled)' };
   const TREND_LABEL = { IMPROVING: '상승 중', DECLINING: '하락 중', STABLE: '안정적' };
 
   return (
@@ -430,7 +430,7 @@ function MobileKpTab({ mode }: { mode: string }) {
                 <span className="m-player-name">{name}</span>
                 {tag && <span className="m-player-tag"> #{tag}</span>}
               </div>
-              <span style={{ fontSize: 16, fontWeight: 800, color: p.avgKp >= 70 ? '#4CAF50' : 'var(--color-primary)' }}>{p.avgKp.toFixed(1)}%</span>
+              <span style={{ fontSize: 16, fontWeight: 800, color: p.avgKp >= 70 ? 'var(--color-win)' : 'var(--color-primary)' }}>{p.avgKp.toFixed(1)}%</span>
             </div>
             <div className="m-stat-chips">
               <span className="m-stat-chip">{p.games}게임</span>

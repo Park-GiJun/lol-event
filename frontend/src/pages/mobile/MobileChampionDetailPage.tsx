@@ -62,13 +62,13 @@ export function MobileChampionDetailPage() {
         {champInfo?.imageUrl ? (
           <img src={champInfo.imageUrl} alt={champInfo.nameKo} width={64} height={64} style={{ borderRadius: 12, objectFit: 'cover', flexShrink: 0 }} />
         ) : (
-          <div style={{ width: 64, height: 64, borderRadius: 12, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+          <div style={{ width: 64, height: 64, borderRadius: 12, background: 'var(--color-bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--font-size-lg)', color: 'var(--color-text-secondary)', flexShrink: 0 }}>
             {data.champion.slice(0, 2)}
           </div>
         )}
         <div>
-          <div style={{ fontWeight: 800, fontSize: 20 }}>{champInfo?.nameKo ?? data.champion}</div>
-          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginTop: 2 }}>
+          <div style={{ fontWeight: 800, fontSize: 'var(--font-size-xl)', color: 'var(--color-text-primary)' }}>{champInfo?.nameKo ?? data.champion}</div>
+          <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: 2 }}>
             {data.totalGames}게임 · 승률 {data.winRate.toFixed(1)}%
           </div>
         </div>
@@ -162,10 +162,10 @@ export function MobileChampionDetailPage() {
                   {itemInfo?.imageUrl ? (
                     <img src={itemInfo.imageUrl} alt={itemInfo.nameKo} width={44} height={44} style={{ borderRadius: 8 }} title={itemInfo.nameKo} />
                   ) : (
-                    <div style={{ width: 44, height: 44, borderRadius: 8, background: 'rgba(255,255,255,0.05)' }} />
+                    <div style={{ width: 44, height: 44, borderRadius: 8, background: 'var(--color-bg-tertiary)' }} />
                   )}
-                  <div style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>{it.picks}회</div>
-                  <div style={{ fontSize: 10, color: 'var(--color-win)' }}>{it.winRate.toFixed(0)}%</div>
+                  <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-secondary)' }}>{it.picks}회</div>
+                  <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-win)' }}>{it.winRate.toFixed(0)}%</div>
                 </div>
               );
             })}

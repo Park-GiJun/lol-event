@@ -5,21 +5,35 @@ import type { DamageAnalysisResult, DamagePlayerEntry } from '../../lib/types/st
 import { LoadingCenter } from '../../components/common/Spinner';
 import { RankBadge } from './shared';
 
+// 데미지 유형/프로필 구분색 — 의미상 고정된 분류 색이라 유지한다.
+const DMG_PHYSICAL = '#f97316';
+const DMG_MAGIC = '#60a5fa';
+const DMG_TRUE = 'var(--color-text-primary)';
+
 const PROFILE_COLORS: Record<string, string> = {
-  AD: '#f97316',
-  AP: '#60a5fa',
+  AD: DMG_PHYSICAL,
+  AP: DMG_MAGIC,
   Hybrid: '#a78bfa',
-  Tank: '#6b7280',
+  Tank: 'var(--color-text-disabled)',
   Unknown: 'var(--color-text-disabled)',
 };
 
 function DamageBar({ physical, magic, trueVal }: { physical: number; magic: number; trueVal: number }) {
   return (
-    <div style={{ display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden', minWidth: 80, gap: 1 }}>
-      <div style={{ width: `${physical * 100}%`, background: '#f97316', borderRadius: '4px 0 0 4px', transition: 'width 0.3s' }} />
-      <div style={{ width: `${magic * 100}%`, background: '#60a5fa', transition: 'width 0.3s' }} />
-      <div style={{ width: `${trueVal * 100}%`, background: '#f1f5f9', borderRadius: '0 4px 4px 0', transition: 'width 0.3s' }} />
+    <div style={{ display: 'flex', height: 8, borderRadius: 'var(--radius-xs)', overflow: 'hidden', minWidth: 80, gap: 1 }}>
+      <div style={{ width: `${physical * 100}%`, background: DMG_PHYSICAL, borderRadius: 'var(--radius-xs) 0 0 var(--radius-xs)', transition: 'width 0.3s' }} />
+      <div style={{ width: `${magic * 100}%`, background: DMG_MAGIC, transition: 'width 0.3s' }} />
+      <div style={{ width: `${trueVal * 100}%`, background: DMG_TRUE, borderRadius: '0 var(--radius-xs) var(--radius-xs) 0', transition: 'width 0.3s' }} />
     </div>
+  );
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+      <span style={{ width: 9, height: 9, borderRadius: 'var(--radius-xs)', background: color, flexShrink: 0 }} />
+      {label}
+    </span>
   );
 }
 
@@ -41,13 +55,14 @@ export default function DamageAnalysisTab({ mode }: { mode: string }) {
 
   return (
     <div>
-      <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>
-        데미지 유형 분포 — 물리(주황) / 마법(파랑) / 트루(흰색)
-      </p>
-      <div style={{ display: 'flex', gap: 16, fontSize: 11, color: 'var(--color-text-secondary)', marginBottom: 16 }}>
-        <span><span style={{ color: '#f97316', fontWeight: 700 }}>■</span> 물리</span>
-        <span><span style={{ color: '#60a5fa', fontWeight: 700 }}>■</span> 마법</span>
-        <span><span style={{ color: '#f1f5f9', fontWeight: 700 }}>■</span> 트루</span>
+      <div className="section-head">
+        <span className="icon-chip">⚔️</span>
+        <span className="section-head-title">데미지 유형 분포</span>
+        <div className="section-head-action" style={{ display: 'flex', gap: 'var(--spacing-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+          <LegendDot color={DMG_PHYSICAL} label="물리" />
+          <LegendDot color={DMG_MAGIC} label="마법" />
+          <LegendDot color={DMG_TRUE} label="트루" />
+        </div>
       </div>
       <div className="table-wrapper">
         <table className="table member-stats-table">
@@ -71,29 +86,29 @@ export default function DamageAnalysisTab({ mode }: { mode: string }) {
                 onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
                 <td><RankBadge rank={i + 1} /></td>
                 <td>
-                  <div style={{ fontWeight: 700, fontSize: 13 }}>{p.riotId.split('#')[0]}</div>
-                  <div style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]} · {p.games}판</div>
+                  <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-sm)' }}>{p.riotId.split('#')[0]}</div>
+                  <div style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-disabled)' }}>#{p.riotId.split('#')[1]} · {p.games}판</div>
                 </td>
                 <td className="table-number">
-                  <span style={{ fontSize: 11, fontWeight: 700, color: PROFILE_COLORS[p.damageProfile] ?? 'inherit', padding: '2px 6px', borderRadius: 8, background: (PROFILE_COLORS[p.damageProfile] ?? '#888') + '22' }}>
+                  <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 'var(--font-weight-bold)', color: PROFILE_COLORS[p.damageProfile] ?? 'var(--color-text-secondary)', padding: '2px 6px', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)' }}>
                     {p.damageProfile}
                   </span>
                 </td>
-                <td className="table-number" style={{ fontWeight: 700, color: 'var(--color-primary)' }}>
+                <td className="table-number" style={{ fontWeight: 'var(--font-weight-bold)', color: 'var(--color-primary)' }}>
                   {(p.avgTotalDamage / 1000).toFixed(1)}k
                 </td>
-                <td style={{ paddingTop: 8, paddingBottom: 8 }}>
+                <td style={{ paddingTop: 'var(--spacing-sm)', paddingBottom: 'var(--spacing-sm)' }}>
                   <DamageBar physical={p.physicalRatio} magic={p.magicRatio} trueVal={p.trueRatio} />
                 </td>
-                <td className="table-number" style={{ color: '#f97316' }}>{(p.physicalRatio * 100).toFixed(1)}%</td>
-                <td className="table-number" style={{ color: '#60a5fa' }}>{(p.magicRatio * 100).toFixed(1)}%</td>
-                <td className="table-number" style={{ color: '#e2e8f0' }}>{(p.trueRatio * 100).toFixed(1)}%</td>
+                <td className="table-number" style={{ color: DMG_PHYSICAL }}>{(p.physicalRatio * 100).toFixed(1)}%</td>
+                <td className="table-number" style={{ color: DMG_MAGIC }}>{(p.magicRatio * 100).toFixed(1)}%</td>
+                <td className="table-number" style={{ color: DMG_TRUE }}>{(p.trueRatio * 100).toFixed(1)}%</td>
                 <td className="table-number">{(p.avgDamageTaken / 1000).toFixed(1)}k</td>
                 <td className="table-number">{(p.avgTurretDamage / 1000).toFixed(1)}k</td>
               </tr>
             ))}
             {!data.rankings.length && (
-              <tr><td colSpan={10} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
+              <tr><td colSpan={10} style={{ textAlign: 'center', padding: 'var(--spacing-2xl) 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
             )}
           </tbody>
         </table>

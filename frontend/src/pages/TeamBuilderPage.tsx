@@ -196,24 +196,25 @@ export function TeamBuilderPage() {
 
   return (
     <div>
-      <div className="page-header flex items-center justify-between">
+      <div className="hero-banner flex items-center justify-between" style={{ marginBottom: 'var(--spacing-md)' }}>
         <div>
-          <h1 className="page-title">팀 빌더</h1>
-          <p className="page-subtitle">드래그&드롭으로 4팀 구성 · 예상 승률 = WR + Elo + KDA + 듀오시너지</p>
+          <div className="hero-eyebrow">Team Builder</div>
+          <h1 className="hero-title">팀 빌더</h1>
+          <p className="hero-subtitle">드래그&드롭으로 4팀 구성 · 예상 승률 = WR + Elo + KDA + 듀오시너지</p>
         </div>
-        <button className="btn btn-secondary" onClick={resetTeams} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <button className="btn btn-secondary btn-sm" onClick={resetTeams}>
           <RefreshCw size={14} />초기화
         </button>
       </div>
 
       {loading ? (
-        <div className="card" style={{ padding: 32, textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+        <div className="card" style={{ padding: 'var(--spacing-xl)', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
           데이터 로딩 중...
         </div>
       ) : (
         <>
           {/* 플레이어 풀 */}
-          <div className="card" style={{ marginBottom: 16 }}>
+          <div className="card" style={{ marginBottom: 'var(--spacing-md)' }}>
             <DropZone
               teamKey="pool" dragOver={dragOver}
               onDragOverChange={setDragOver} onDrop={onDrop}
@@ -285,7 +286,7 @@ export function TeamBuilderPage() {
                   )}
 
                   {/* 플레이어 칩 */}
-                  <div className="grid-16" style={{ minHeight: 36 }}>
+                  <div className="grid-16" style={{ minHeight: 'var(--spacing-xl)' }}>
                     {members.length === 0 && (
                       <span className="col-span-16 team-drop-hint">여기에 드롭</span>
                     )}
@@ -301,7 +302,7 @@ export function TeamBuilderPage() {
                   {teamDuos.length > 0 && (
                     <div className="team-duo-section" style={{ borderTop: `1px solid ${meta.border}` }}>
                       <div className="team-duo-title">듀오 시너지</div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2xs)' }}>
                         {teamDuos.map(d => (
                           <div key={`${d.player1}-${d.player2}`} className="team-duo-item">
                             <span className="team-duo-names">
@@ -324,22 +325,22 @@ export function TeamBuilderPage() {
 
           {/* 전체 듀오 시너지 참고 */}
           {duoData.length > 0 && (
-            <div className="card" style={{ marginTop: 16 }}>
-              <div className="stats-section-title" style={{ marginBottom: 12 }}>
-                <Users size={14} />
-                듀오 시너지 전체 참고
+            <div className="card" style={{ marginTop: 'var(--spacing-md)' }}>
+              <div className="section-head">
+                <span className="icon-chip"><Users size={14} /></span>
+                <span className="section-head-title">듀오 시너지 전체 참고</span>
               </div>
               <div className="grid-16">
                 {[...duoData].sort((a, b) => b.winRate - a.winRate).slice(0, 20).map(d => (
                   <div key={`${d.player1}-${d.player2}`} className="duo-ref-card col-span-4"
-                    style={{ borderColor: d.winRate >= 60 ? 'rgba(16,185,129,0.3)' : d.winRate < 45 ? 'rgba(239,68,68,0.3)' : 'var(--color-border)' }}>
+                    style={{ borderColor: d.winRate >= 60 ? 'var(--color-win)' : d.winRate < 45 ? 'var(--color-loss)' : 'var(--color-border)' }}>
                     <div className="duo-ref-players">
                       <PlayerLink riotId={d.player1}>{d.player1.split('#')[0]}</PlayerLink>
-                      <span className="text-secondary" style={{ margin: '0 4px' }}>+</span>
+                      <span className="text-secondary" style={{ margin: '0 var(--spacing-xs)' }}>+</span>
                       <PlayerLink riotId={d.player2}>{d.player2.split('#')[0]}</PlayerLink>
                     </div>
                     <div className="duo-ref-stats">
-                      <span style={{ fontWeight: 700, color: d.winRate >= 60 ? 'var(--color-win)' : d.winRate < 45 ? 'var(--color-loss)' : 'var(--color-text-primary)' }}>
+                      <span style={{ fontWeight: 'var(--font-weight-bold)', color: d.winRate >= 60 ? 'var(--color-win)' : d.winRate < 45 ? 'var(--color-loss)' : 'var(--color-text-primary)' }}>
                         {d.winRate.toFixed(1)}%
                       </span>
                       <span className="text-disabled">{d.games}판</span>

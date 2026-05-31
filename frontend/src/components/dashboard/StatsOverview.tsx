@@ -29,13 +29,13 @@ function LeaderCard({ icon, label, leader, isLoading, accent = 'var(--color-prim
     <div
       className="col-span-4"
       style={{
-        background: 'rgba(13, 18, 37, 0.5)',
-        border: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--color-bg-tertiary)',
+        border: '1px solid var(--color-border)',
         borderRadius: 'var(--radius-md)',
         padding: '10px 12px',
         display: 'flex',
         alignItems: 'center',
-        gap: 10,
+        gap: 'var(--spacing-sm)',
         minWidth: 0,
         overflow: 'hidden',
         transition: 'all var(--transition-fast)',
@@ -44,15 +44,15 @@ function LeaderCard({ icon, label, leader, isLoading, accent = 'var(--color-prim
       }}
       onMouseEnter={e => {
         const el = e.currentTarget as HTMLElement;
-        el.style.background = 'rgba(13, 18, 37, 0.75)';
+        el.style.background = 'var(--color-bg-hover)';
         el.style.borderColor = accent + '40';
         el.style.boxShadow = `0 0 14px ${accent}18`;
         el.style.transform = 'translateY(-1px)';
       }}
       onMouseLeave={e => {
         const el = e.currentTarget as HTMLElement;
-        el.style.background = 'rgba(13, 18, 37, 0.5)';
-        el.style.borderColor = 'rgba(255,255,255,0.06)';
+        el.style.background = 'var(--color-bg-tertiary)';
+        el.style.borderColor = 'var(--color-border)';
         el.style.boxShadow = 'none';
         el.style.transform = 'translateY(0)';
       }}
@@ -72,7 +72,7 @@ function LeaderCard({ icon, label, leader, isLoading, accent = 'var(--color-prim
       {/* 텍스트 */}
       <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
         <div style={{
-          fontSize: 10, color: 'var(--color-text-disabled)',
+          fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-disabled)',
           fontWeight: 600, letterSpacing: 'var(--tracking-wider)',
           textTransform: 'uppercase', marginBottom: 2,
         }}>
@@ -87,7 +87,7 @@ function LeaderCard({ icon, label, leader, isLoading, accent = 'var(--color-prim
           <>
             <PlayerLink riotId={leader.riotId} mode="all">
               <span style={{
-                fontWeight: 700, fontSize: 13,
+                fontWeight: 700, fontSize: 'var(--font-size-sm)',
                 color: 'var(--color-text-primary)',
                 overflow: 'hidden', textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap', display: 'block',
@@ -96,16 +96,16 @@ function LeaderCard({ icon, label, leader, isLoading, accent = 'var(--color-prim
               </span>
             </PlayerLink>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
-              <span style={{ fontSize: 12, color: accent, fontWeight: 700 }}>
+              <span style={{ fontSize: 'var(--font-size-xs)', color: accent, fontWeight: 700 }}>
                 {leader.displayValue}
               </span>
-              <span style={{ fontSize: 10, color: 'var(--color-text-disabled)' }}>
+              <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-disabled)' }}>
                 {leader.games}G
               </span>
             </div>
           </>
         ) : (
-          <span style={{ fontSize: 11, color: 'var(--color-text-disabled)' }}>데이터 없음</span>
+          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-disabled)' }}>데이터 없음</span>
         )}
       </div>
     </div>
@@ -126,11 +126,11 @@ function laneLeader(
 
 // ── 전체 통계 요약 바 ──────────────────────────────────
 function Divider() {
-  return <span style={{ color: 'var(--color-border)', fontSize: 14 }}>|</span>;
+  return <span style={{ color: 'var(--color-border-light)', fontSize: 'var(--font-size-sm)' }}>|</span>;
 }
 function Stat({ label, value, color }: { label: string; value: string | number; color?: string }) {
   return (
-    <span style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
+    <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
       {label}{' '}
       <strong style={{ color: color ?? 'var(--color-text-primary)', fontWeight: 700 }}>{value}</strong>
     </span>
@@ -160,10 +160,10 @@ function OverallCards() {
     <>
       {ov && (
         <div className="grid-16" style={{
-          marginBottom: 12, padding: '8px 12px',
-          background: 'rgba(255,255,255,0.02)',
+          marginBottom: 'var(--spacing-sm)', padding: '8px 12px',
+          background: 'var(--color-bg-secondary)',
           borderRadius: 'var(--radius-sm)',
-          border: '1px solid rgba(255,255,255,0.04)',
+          border: '1px solid var(--color-border)',
           alignItems: 'center',
         }}>
           <span className="col-span-3"><Stat label="총 경기" value={`${ov.matchCount}게임`} /></span>
@@ -220,17 +220,10 @@ export function StatsOverview() {
   return (
     <div className="card">
       {/* 헤더 + 레인 필터 */}
-      <div className="grid-16" style={{ alignItems: 'center', marginBottom: 14 }}>
-        <div className="col-span-8" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{
-            width: 24, height: 24, borderRadius: 6,
-            background: 'linear-gradient(135deg, rgba(200,155,60,0.3), rgba(200,155,60,0.1))',
-            border: '1px solid rgba(200,155,60,0.3)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12,
-          }}>👑</div>
-          <h3 style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--color-text-primary)', letterSpacing: 'var(--tracking-wide)' }}>
-            명예의 전당
-          </h3>
+      <div className="grid-16" style={{ alignItems: 'center', marginBottom: 'var(--spacing-md)' }}>
+        <div className="section-head col-span-8" style={{ marginBottom: 0 }}>
+          <span className="icon-chip icon-chip-sm">👑</span>
+          <span className="section-head-title">명예의 전당</span>
         </div>
 
         <div className="col-span-8" style={{ display: 'flex', gap: 3, justifyContent: 'flex-end' }}>
@@ -242,15 +235,15 @@ export function StatsOverview() {
                 background: lane === l.key
                   ? 'linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))'
                   : 'transparent',
-                border: `1px solid ${lane === l.key ? 'var(--color-primary)' : 'rgba(255,255,255,0.08)'}`,
+                border: `1px solid ${lane === l.key ? 'var(--color-primary)' : 'var(--color-border)'}`,
                 borderRadius: 'var(--radius-xs)',
                 padding: '4px 9px',
-                fontSize: 11,
+                fontSize: 'var(--font-size-xs)',
                 fontWeight: lane === l.key ? 700 : 500,
-                color: lane === l.key ? '#fff' : 'var(--color-text-secondary)',
+                color: lane === l.key ? 'var(--color-text-inverse)' : 'var(--color-text-secondary)',
                 cursor: 'pointer',
                 transition: 'all var(--transition-fast)',
-                boxShadow: lane === l.key ? '0 0 10px rgba(0,180,216,0.25)' : 'none',
+                boxShadow: lane === l.key ? '0 0 10px color-mix(in srgb, var(--color-primary) 25%, transparent)' : 'none',
               }}
             >
               {l.label}

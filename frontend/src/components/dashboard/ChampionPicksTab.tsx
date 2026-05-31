@@ -54,7 +54,7 @@ export function ChampionPicksTab() {
               <tr key={i}>
                 <td><Skeleton className="h-4 w-6" /></td>
                 <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
                     <Skeleton className="h-8 w-8 rounded" />
                     <Skeleton className="h-4 w-20" />
                   </div>
@@ -80,7 +80,7 @@ export function ChampionPicksTab() {
   }
 
   if (!data || data.topPickedChampions.length === 0) {
-    return <p style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>챔피언 데이터가 없습니다.</p>;
+    return <p style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--font-size-sm)' }}>챔피언 데이터가 없습니다.</p>;
   }
 
   const enriched = data.topPickedChampions.map(c => ({
@@ -129,40 +129,40 @@ export function ChampionPicksTab() {
             const wrColor = entry.winRate >= 60 ? 'var(--color-win)' : entry.winRate >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
             return (
               <tr key={entry.championId} className="member-stats-row">
-                <td style={{ color: 'var(--color-text-disabled)', fontSize: 12 }}>{idx + 1}</td>
+                <td style={{ color: 'var(--color-text-disabled)', fontSize: 'var(--font-size-xs)' }}>{idx + 1}</td>
                 <td>
                   <ChampionLink champion={entry.champion} championId={entry.championId}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
                       {imgUrl ? (
                         <img src={imgUrl} alt={displayName} width={32} height={32}
-                          style={{ borderRadius: 4, border: '1px solid var(--color-border)', objectFit: 'cover' }}
+                          style={{ borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)', objectFit: 'cover' }}
                           onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
                       ) : (
-                        <div style={{ width: 32, height: 32, background: 'var(--color-bg-hover)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'var(--color-text-secondary)' }}>
+                        <div style={{ width: 32, height: 32, background: 'var(--color-bg-hover)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: 'var(--color-text-secondary)' }}>
                           {displayName.slice(0, 2)}
                         </div>
                       )}
-                      <span style={{ fontWeight: 600, fontSize: 13 }}>{displayName}</span>
+                      <span style={{ fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>{displayName}</span>
                     </div>
                   </ChampionLink>
                 </td>
                 <td className="table-number">
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2, alignItems: 'flex-end' }}>
-                    <span style={{ fontWeight: 700, color: wrColor }}>{entry.winRate.toFixed(1)}%</span>
+                    <span style={{ fontWeight: 'var(--font-weight-bold)', color: wrColor }}>{entry.winRate.toFixed(1)}%</span>
                     <div style={{ height: 3, width: 50, background: 'var(--color-bg-hover)', borderRadius: 2, overflow: 'hidden' }}>
                       <div style={{ width: `${entry.winRate}%`, height: '100%', background: wrColor, borderRadius: 2 }} />
                     </div>
                   </div>
                 </td>
-                <td className="table-number" style={{ color: 'var(--color-win)', fontWeight: 600 }}>{entry.wins}</td>
-                <td className="table-number" style={{ color: 'var(--color-loss)', fontWeight: 600 }}>{entry.losses}</td>
+                <td className="table-number" style={{ color: 'var(--color-win)', fontWeight: 'var(--font-weight-semibold)' }}>{entry.wins}</td>
+                <td className="table-number" style={{ color: 'var(--color-loss)', fontWeight: 'var(--font-weight-semibold)' }}>{entry.losses}</td>
                 <td className="table-number">
                   {(() => {
                     const kda = entry.kda ?? 0;
                     const kdaColor = kda >= 5 ? 'var(--color-win)' : kda >= 3 ? 'var(--color-primary)' : 'var(--color-text-primary)';
                     return (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'flex-end' }}>
-                        <span style={{ fontWeight: 700, fontSize: 12, color: kdaColor }}>{kda.toFixed(2)}</span>
+                        <span style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-xs)', color: kdaColor }}>{kda.toFixed(2)}</span>
                         <span style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>
                           {(entry.avgKills ?? 0).toFixed(1)} / <span style={{ color: 'var(--color-error)' }}>{(entry.avgDeaths ?? 0).toFixed(1)}</span> / {(entry.avgAssists ?? 0).toFixed(1)}
                         </span>
@@ -170,8 +170,8 @@ export function ChampionPicksTab() {
                     );
                   })()}
                 </td>
-                <td className="table-number" style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{(entry.avgDamage ?? 0).toLocaleString()}</td>
-                <td className="table-number" style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>{(entry.avgCs ?? 0).toFixed(1)}</td>
+                <td className="table-number" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>{(entry.avgDamage ?? 0).toLocaleString()}</td>
+                <td className="table-number" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>{(entry.avgCs ?? 0).toFixed(1)}</td>
                 <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>{entry.pickRate.toFixed(1)}%</td>
                 <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>{entry.picks}</td>
               </tr>

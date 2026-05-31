@@ -31,7 +31,7 @@ export default function MobileOverviewTab({ mode }: { mode: string }) {
           <div className="m-overview-stat-label">총 경기</div>
         </div>
         <div className="m-overview-stat">
-          <div className="m-overview-stat-value">{data.avgGameMinutes.toFixed(1)}<span style={{ fontSize: 12 }}>분</span></div>
+          <div className="m-overview-stat-value">{data.avgGameMinutes.toFixed(1)}<span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>분</span></div>
           <div className="m-overview-stat-label">평균 시간</div>
         </div>
       </div>
@@ -48,13 +48,13 @@ export default function MobileOverviewTab({ mode }: { mode: string }) {
                   onClick={() => navigate(`/m/champion/${encodeURIComponent(c?.championKey ?? cp.champion)}`)}
                 >
                   {c?.imageUrl ? (
-                    <img src={c.imageUrl} alt={c.nameKo} width={48} height={48} style={{ borderRadius: 8, objectFit: 'cover' }} />
+                    <img src={c.imageUrl} alt={c.nameKo} width={48} height={48} style={{ borderRadius: 'var(--radius-md)', objectFit: 'cover', border: '1px solid var(--color-border)' }} />
                   ) : (
-                    <div style={{ width: 48, height: 48, borderRadius: 8, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11 }}>
+                    <div style={{ width: 48, height: 48, borderRadius: 'var(--radius-md)', background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--font-size-2xs)' }}>
                       {cp.champion.slice(0, 2)}
                     </div>
                   )}
-                  <span style={{ fontSize: 10, color: 'var(--color-text-secondary)' }}>{cp.picks}픽</span>
+                  <span style={{ fontSize: 'var(--font-size-2xs)', color: 'var(--color-text-secondary)' }}>{cp.picks}픽</span>
                 </div>
               );
             })}
@@ -69,9 +69,9 @@ export default function MobileOverviewTab({ mode }: { mode: string }) {
             {leaders.map(({ label, stat }) => stat && (
               <div key={label} className="m-leader-row"
                 onClick={() => navigate(`/m/player/${encodeURIComponent(stat.riotId)}`)}>
-                <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', width: 60 }}>{label}</span>
-                <span style={{ fontWeight: 700, flex: 1 }}>{stat.riotId.split('#')[0]}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--color-primary)' }}>{stat.displayValue}</span>
+                <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', width: 60 }}>{label}</span>
+                <span style={{ fontWeight: 700, flex: 1, color: 'var(--color-text-primary)' }}>{stat.riotId.split('#')[0]}</span>
+                <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 700, color: 'var(--color-primary)' }}>{stat.displayValue}</span>
               </div>
             ))}
           </div>
@@ -89,7 +89,7 @@ export default function MobileOverviewTab({ mode }: { mode: string }) {
           { label: '퍼블', value: data.totalFirstBloods },
         ].map(({ label, value }) => (
           <div key={label} className="m-overview-stat col-span-5">
-            <div className="m-overview-stat-value" style={{ fontSize: 18 }}>{value.toLocaleString()}</div>
+            <div className="m-overview-stat-value" style={{ fontSize: 'var(--font-size-lg)' }}>{value.toLocaleString()}</div>
             <div className="m-overview-stat-label">{label}</div>
           </div>
         ))}

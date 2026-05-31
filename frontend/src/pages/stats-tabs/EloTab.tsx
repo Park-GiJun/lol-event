@@ -29,14 +29,17 @@ export default function EloTab() {
 
   if (loading) return <LoadingCenter />;
   if (!data || data.players.length === 0) return (
-    <p style={{ fontSize: 13, color: 'var(--color-text-secondary)', padding: '24px 0' }}>
+    <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', padding: 'var(--spacing-lg) 0' }}>
       Elo 데이터가 없습니다. 어드민에서 재집계를 실행하세요.
     </p>
   );
 
   return (
     <div>
-      <div style={{ fontWeight: 700, marginBottom: 16, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase' }}>Elo 랭킹</div>
+      <div className="section-head">
+        <span className="icon-chip">🏆</span>
+        <span className="section-head-title">Elo 랭킹</span>
+      </div>
       <div className="table-wrapper">
         <table className="table member-stats-table">
           <thead>
@@ -61,14 +64,14 @@ export default function EloTab() {
                       <span style={{ fontWeight: 600 }}>
                         {entry.riotId.split('#')[0]}
                       </span>
-                      <span style={{ fontSize: 10, color: 'var(--color-text-secondary)', marginLeft: 4 }}>
+                      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginLeft: 'var(--spacing-xs)' }}>
                         #{entry.riotId.split('#')[1]}
                       </span>
                     </PlayerLink>
                   </td>
                   <td>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: tier.color,
-                      background: tier.color + '22', borderRadius: 4, padding: '2px 7px',
+                    <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: tier.color,
+                      background: tier.color + '22', borderRadius: 'var(--radius-sm)', padding: '2px 7px',
                       border: `1px solid ${tier.color}44` }}>
                       {tier.label}
                     </span>
