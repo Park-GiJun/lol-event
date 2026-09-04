@@ -9,6 +9,7 @@ import type {
   ChampionDetailStats,
   ChampionTierEntry,
   EloRankEntry,
+  ChampionLaneStrength,
   MatchupStat,
   OverviewStats,
   SampleGrade,
@@ -160,5 +161,7 @@ export interface ChampionPageResult {
   detail: ChampionDetailStats;
   /** 표본 미달이면 tier 가 "?" 다. */
   tier: ChampionTierEntry | null;
+  laneStrength: ChampionLaneStrength[];
   matchups: MatchupStat[];
+  matchupMinGames: number;
 }

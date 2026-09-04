@@ -11,7 +11,7 @@ interface GetChampionStatsUseCase {
 }
 
 interface GetChampionMatchupUseCase {
-    fun getMatchup(champion: String?, vsChampion: String?, mode: String, samePosition: Boolean = false): ChampionMatchupResult
+    fun getMatchup(champion: String?, vsChampion: String?, mode: String): ChampionMatchupResult
 }
 
 interface GetChampionCertificateUseCase {

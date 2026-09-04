@@ -5,6 +5,13 @@ import { ChampionIcon, PersonLink } from '@/components/ds/Champion';
 import { Rate, Stat, TierBadge, WinBar } from '@/components/ds/Stat';
 import { InlineError } from '@/components/common/InlineError';
 import { positionLabel } from '@/lib/position';
+import { LaneStrengthSection } from './champion/LaneStrength';
+
+/** 표 안에서 쓰는 짧은 격차 표기. 양수는 파랑, 음수는 빨강. */
+function Diff({ v, digits = 0 }: { v: number; digits?: number }) {
+  const color = v > 0 ? 'var(--color-win)' : v < 0 ? 'var(--color-loss)' : 'var(--gray-500)';
+  return <span style={{ color, fontWeight: 600 }}>{v > 0 ? '+' : ''}{v.toFixed(digits)}</span>;
+}
 
 export function ChampionPage() {
   const { champion = '' } = useParams();
@@ -28,7 +35,7 @@ export function ChampionPage() {
     );
   }
 
-  const { detail, tier, matchups } = data;
+  const { detail, tier, laneStrength, matchups, matchupMinGames } = data;
   const nameKo = dragon.get(detail.championId)?.nameKo ?? detail.champion;
 
   if (detail.totalGames === 0) {
@@ -166,18 +173,42 @@ export function ChampionPage() {
         )}
       </div>
 
+      {/* 라인전 지표를 상성표보다 먼저 둔다. 개별 상성은 표본이 잘 안 모이는데
+          라인전 지표는 챔피언 x 라인 단위라 대부분의 챔피언에서 읽을 값이 나온다. */}
+      <section className="t-card">
+        <div className="t-card-head">
+          <h2 className="t-card-title">라인전 지표</h2>
+          <span className="t-card-more">같은 라인 상대와 비교</span>
+        </div>
+        <LaneStrengthSection laneStrength={laneStrength} />
+      </section>
+
       <div className="t-grid">
         <section className="t-card">
           <div className="t-card-head">
-            <h2 className="t-card-title">상대해 본 챔피언</h2>
-            <span className="t-card-more">맞은편에 섰을 때 내 전적</span>
+            <h2 className="t-card-title">같은 라인에서 만난 챔피언</h2>
+            <span className="t-card-more">{matchupMinGames}경기 이상만</span>
           </div>
           {matchups.length === 0 ? (
-            <p className="t-empty">기록이 없습니다.</p>
+            <p className="t-empty">
+              {matchupMinGames}경기 이상 맞붙은 상대가 아직 없습니다.
+              <br />
+              <span className="t-detail-sub">
+                개별 상성은 조합이 574가지로 흩어져 표본이 잘 안 모입니다. 위의 라인전 지표를 보세요.
+              </span>
+            </p>
           ) : (
             <div className="t-tablewrap">
               <table className="t-table">
-                <thead><tr><th>챔피언</th><th>전적</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th>챔피언</th>
+                    <th>전적</th>
+                    <th className="t-num">골드</th>
+                    <th className="t-num">CS</th>
+                    <th className="t-num">딜량</th>
+                  </tr>
+                </thead>
                 <tbody>
                   {matchups.slice(0, 15).map((m) => (
                     <tr key={m.opponent}>
@@ -189,7 +220,10 @@ export function ChampionPage() {
                           </span>
                         </span>
                       </td>
-                      <td><Rate value={m.winRate} games={m.games} /></td>
+                      <td><Rate value={m.winRate} games={m.games} grade={m.sampleGrade} adjusted={m.adjustedWinRate} /></td>
+                      <td className="t-num"><Diff v={m.gap.goldDiff} /></td>
+                      <td className="t-num"><Diff v={m.gap.csDiff} digits={1} /></td>
+                      <td className="t-num"><Diff v={m.gap.damageDiff} /></td>
                     </tr>
                   ))}
                 </tbody>

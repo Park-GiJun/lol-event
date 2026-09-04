@@ -50,20 +50,20 @@ class ChampionStatsWebAdapter(
         CommonApiResponse.success(getChampionCertificateUseCase.getChampionCertificates(mode, minGames))
 
     @Operation(
-        summary = "챔피언 상성 매트릭스",
-        description = "champion=X: X의 각 상대 챔피언 vs 승률 / vsChampion=X: X를 상대하는 챔피언 중 카운터픽 추천"
+        summary = "챔피언 상성",
+        description = "champion=X: X의 라인전 지표와 상대별 상성 / vsChampion=X: X를 상대한 쪽의 성적(카운터).\n\n" +
+            "같은 라인끼리만 맞춘다. 예전에는 상대 다섯 명 전부와 짝지어 탑과 상대 서포터가 상성으로 잡혔다.\n" +
+            "laneStrength 는 챔피언 x 라인 단위라 표본이 두텁고, matchups 는 개별 상성이라 얇아 최소 표본을 넘긴 것만 나온다."
     )
     @GetMapping("/matchup")
     fun getMatchup(
         @RequestParam(required = false) champion: String?,
         @RequestParam(required = false) vsChampion: String?,
         @RequestParam(defaultValue = "normal") mode: String,
-        @RequestParam(defaultValue = "false") samePosition: Boolean,
     ): CommonApiResponse<ChampionMatchupResult> =
         CommonApiResponse.success(getChampionMatchupUseCase.getMatchup(
             champion?.let { java.net.URLDecoder.decode(it, "UTF-8") },
             vsChampion?.let { java.net.URLDecoder.decode(it, "UTF-8") },
             mode,
-            samePosition,
         ))
 }

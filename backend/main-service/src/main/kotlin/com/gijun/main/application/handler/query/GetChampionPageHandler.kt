@@ -24,16 +24,17 @@ class GetChampionPageHandler(
         val tier = getChampionTierUseCase.getChampionTier(mode, TIER_MIN_GAMES)
             .tierList.firstOrNull { it.champion == champion }
 
-        val matchups = getChampionMatchupUseCase
+        val matchup = getChampionMatchupUseCase
             .getMatchup(champion = champion, vsChampion = null, mode = mode)
-            .matchups
 
         // 챔피언 시너지는 걷어냈다. 154경기에서 챔피언 2인 조합은 2,142가지가 나오는데
         // 중앙 표본이 1회, 10회 이상은 단 하나뿐이라 어떤 컷을 걸어도 의미가 생기지 않는다.
         return ChampionPageResult(
             detail = detail,
             tier = tier,
-            matchups = matchups,
+            laneStrength = matchup.laneStrength,
+            matchups = matchup.matchups,
+            matchupMinGames = matchup.minGames,
         )
     }
 }

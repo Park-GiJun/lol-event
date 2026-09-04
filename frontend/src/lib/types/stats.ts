@@ -895,17 +895,51 @@ export interface PositionChampionPoolResult {
   allPlayers: PlayerPositionEntry[];
 }
 
-// 챔피언 상대 전적 (백엔드 ChampionMatchupResult)
-export interface MatchupStat {
-  opponent: string;
-  opponentId: number;
+// 챔피언 상성 (백엔드 ChampionMatchupResult)
+
+/** 같은 라인 상대와의 평균 격차. 양수면 이 챔피언이 앞선다. */
+export interface LaneGap {
+  goldDiff: number;
+  csDiff: number;
+  damageDiff: number;
+  killDiff: number;
+  visionDiff: number;
+}
+
+/**
+ * 챔피언 x 라인 단위 라인전 지표.
+ * 개별 상성은 표본이 중앙 1경기라 못 읽는다. 축을 하나 위로 올린 값이다.
+ */
+export interface ChampionLaneStrength {
+  champion: string;
+  championId: number;
+  position: string;
   games: number;
   wins: number;
   winRate: number;
+  adjustedWinRate: number;
+  sampleGrade: SampleGrade;
+  gap: LaneGap;
+}
+
+/** 개별 상성. 최소 표본을 넘긴 것만 내려온다. */
+export interface MatchupStat {
+  opponent: string;
+  opponentId: number;
+  position: string;
+  games: number;
+  wins: number;
+  winRate: number;
+  adjustedWinRate: number;
+  sampleGrade: SampleGrade;
+  gap: LaneGap;
 }
 
 export interface ChampionMatchupResult {
   champion: string;
   championId: number;
+  laneStrength: ChampionLaneStrength[];
   matchups: MatchupStat[];
+  /** 개별 상성에 적용된 최소 표본. 화면에 밝힌다. */
+  minGames: number;
 }
