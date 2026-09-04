@@ -12,7 +12,7 @@
   font-size: var(--font-size-xs);
 }
 .sse-line { padding: 1px 0; line-height: 1.5; }
-.sse-info { color: #0AC8B9; }
+.sse-info { color: var(--color-win); }
 .sse-warn { color: var(--color-primary); }
 .sse-error { color: var(--color-error); }
 .sse-done { color: var(--color-win); font-weight: 600; }

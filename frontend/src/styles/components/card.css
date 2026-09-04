@@ -24,7 +24,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(240, 230, 210, 0.03), transparent);
+  background: linear-gradient(90deg, transparent, rgba(25, 31, 40, 0.03), transparent);
   pointer-events: none;
 }
 
@@ -37,7 +37,7 @@
   cursor: pointer;
 }
 .card.clickable:hover {
-  border-color: rgba(200, 170, 110, 0.2);
+  border-color: rgba(49, 130, 246, 0.2);
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
 }
@@ -107,13 +107,13 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.08), transparent);
+  background: linear-gradient(90deg, transparent, rgba(49, 130, 246, 0.08), transparent);
   pointer-events: none;
 }
 
 .stat-card:hover {
   background: var(--color-bg-tertiary);
-  border-color: rgba(200, 170, 110, 0.15);
+  border-color: rgba(49, 130, 246, 0.15);
   transform: translateY(-1px);
   box-shadow: var(--shadow-teal);
 }
@@ -133,7 +133,7 @@
   font-variant-numeric: tabular-nums;
   line-height: var(--line-height-tight);
   letter-spacing: var(--tracking-tight);
-  text-shadow: 0 0 20px rgba(200, 170, 110, 0.15);
+  text-shadow: 0 0 20px rgba(49, 130, 246, 0.15);
 }
 
 /* ================================================================
@@ -156,7 +156,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(240, 230, 210, 0.04), transparent);
+  background: linear-gradient(90deg, transparent, rgba(25, 31, 40, 0.04), transparent);
   pointer-events: none;
 }
 

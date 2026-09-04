@@ -32,7 +32,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: rgba(240, 230, 210, 0.06);
+  background: rgba(25, 31, 40, 0.06);
   pointer-events: none;
 }
 
@@ -54,15 +54,15 @@
   background: var(--gradient-primary);
   color: var(--color-text-inverse);
   border-color: transparent;
-  box-shadow: 0 2px 8px rgba(200, 170, 110, 0.15);
+  box-shadow: 0 2px 8px rgba(49, 130, 246, 0.15);
 }
 .btn-primary:hover:not(:disabled) {
-  box-shadow: 0 4px 20px rgba(200, 170, 110, 0.3), 0 0 0 1px rgba(200, 170, 110, 0.3);
+  box-shadow: 0 4px 20px rgba(49, 130, 246, 0.3), 0 0 0 1px rgba(49, 130, 246, 0.3);
   transform: translateY(-1px);
   filter: brightness(1.1);
 }
 .btn-primary:active:not(:disabled) {
-  box-shadow: 0 1px 4px rgba(200, 170, 110, 0.15);
+  box-shadow: 0 1px 4px rgba(49, 130, 246, 0.15);
   transform: translateY(0);
   filter: brightness(0.95);
 }
@@ -74,22 +74,22 @@
   border-color: var(--color-border);
 }
 .btn-secondary:hover:not(:disabled) {
-  border-color: rgba(200, 170, 110, 0.3);
+  border-color: rgba(49, 130, 246, 0.3);
   color: var(--color-primary);
-  background: rgba(200, 170, 110, 0.06);
+  background: rgba(49, 130, 246, 0.06);
   box-shadow: var(--shadow-teal);
 }
 
 /* -- Danger -- */
 .btn-danger {
-  background: rgba(232, 64, 87, 0.08);
+  background: rgba(229, 72, 77, 0.08);
   color: var(--color-error);
-  border-color: rgba(232, 64, 87, 0.2);
+  border-color: rgba(229, 72, 77, 0.2);
 }
 .btn-danger:hover:not(:disabled) {
-  background: rgba(232, 64, 87, 0.15);
-  border-color: rgba(232, 64, 87, 0.4);
-  box-shadow: 0 0 20px rgba(232, 64, 87, 0.12);
+  background: rgba(229, 72, 77, 0.15);
+  border-color: rgba(229, 72, 77, 0.4);
+  box-shadow: 0 0 20px rgba(229, 72, 77, 0.12);
 }
 
 /* -- Ghost -- */
@@ -101,7 +101,7 @@
 .btn-ghost::before { display: none; }
 .btn-ghost:hover:not(:disabled) {
   color: var(--color-text-primary);
-  background: rgba(240, 230, 210, 0.04);
+  background: rgba(25, 31, 40, 0.04);
 }
 
 /* -- Sizes -- */

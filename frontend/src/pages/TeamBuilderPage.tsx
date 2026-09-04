@@ -195,7 +195,7 @@ export function TeamBuilderPage() {
   }
 
   return (
-    <div>
+    <div className="t-page">
       <div className="hero-banner flex items-center justify-between" style={{ marginBottom: 'var(--spacing-md)' }}>
         <div>
           <div className="hero-eyebrow">Team Builder</div>

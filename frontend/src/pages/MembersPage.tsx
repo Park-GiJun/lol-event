@@ -52,7 +52,7 @@ export function MembersPage() {
   };
 
   return (
-    <div>
+    <div className="t-page">
       <div className="hero-banner page-header flex items-center justify-between">
         <div>
           <div className="hero-eyebrow">Member Roster</div>

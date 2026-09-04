@@ -21,47 +21,47 @@
 
 /* Win/Loss pills */
 .badge-win {
-  background: rgba(10, 200, 185, 0.1);
+  background: rgba(27, 100, 218, 0.1);
   color: var(--color-win);
-  border: 1px solid rgba(10, 200, 185, 0.2);
+  border: 1px solid rgba(27, 100, 218, 0.2);
 }
 
 .badge-loss {
-  background: rgba(232, 64, 87, 0.1);
+  background: rgba(229, 72, 77, 0.1);
   color: var(--color-loss);
-  border: 1px solid rgba(232, 64, 87, 0.2);
+  border: 1px solid rgba(229, 72, 77, 0.2);
 }
 
 /* Team color badges */
 .badge-blue {
-  background: rgba(10, 200, 185, 0.1);
+  background: rgba(27, 100, 218, 0.1);
   color: var(--color-blue);
-  border: 1px solid rgba(10, 200, 185, 0.2);
+  border: 1px solid rgba(27, 100, 218, 0.2);
 }
 
 .badge-red {
-  background: rgba(232, 64, 87, 0.1);
+  background: rgba(229, 72, 77, 0.1);
   color: var(--color-red);
-  border: 1px solid rgba(232, 64, 87, 0.2);
+  border: 1px solid rgba(229, 72, 77, 0.2);
 }
 
 /* Gold / S-tier */
 .badge-gold {
-  background: rgba(200, 170, 110, 0.1);
+  background: rgba(49, 130, 246, 0.1);
   color: var(--color-primary);
-  border: 1px solid rgba(200, 170, 110, 0.25);
+  border: 1px solid rgba(49, 130, 246, 0.25);
 }
 
 /* Primary accent */
 .badge-primary {
-  background: rgba(200, 170, 110, 0.1);
+  background: rgba(49, 130, 246, 0.1);
   color: var(--color-primary);
-  border: 1px solid rgba(200, 170, 110, 0.2);
+  border: 1px solid rgba(49, 130, 246, 0.2);
 }
 
 /* Neutral */
 .badge-normal {
-  background: rgba(240, 230, 210, 0.04);
+  background: rgba(25, 31, 40, 0.04);
   color: var(--color-text-secondary);
   border: 1px solid var(--color-border);
 }

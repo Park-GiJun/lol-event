@@ -29,8 +29,8 @@
   border-radius: var(--radius-sm);
   font-size: 14px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, rgba(200, 170, 110, 0.22), rgba(200, 170, 110, 0.08));
-  border: 1px solid rgba(200, 170, 110, 0.28);
+  background: linear-gradient(135deg, rgba(49, 130, 246, 0.22), rgba(49, 130, 246, 0.08));
+  border: 1px solid rgba(49, 130, 246, 0.28);
   color: var(--color-primary);
 }
 .icon-chip-sm { width: 22px; height: 22px; border-radius: 5px; font-size: 11px; }
@@ -41,14 +41,14 @@
   align-items: center;
   gap: var(--spacing-sm);
   padding: 7px 10px;
-  background: rgba(240, 230, 210, 0.02);
+  background: rgba(25, 31, 40, 0.02);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   transition: background var(--transition-fast), border-color var(--transition-fast);
 }
 .pill-row:hover {
-  background: rgba(200, 170, 110, 0.05);
+  background: rgba(49, 130, 246, 0.05);
   border-color: var(--color-border-light);
 }
 .pill-row + .pill-row { margin-top: 4px; }
@@ -90,45 +90,26 @@
 
 /* ── 히어로 배너: 페이지 상단 타이틀 블록 (골드 글로우) ────────── */
 .hero-banner {
-  position: relative;
-  border-radius: var(--radius-xl);
-  padding: 28px 32px;
-  overflow: hidden;
-  background:
-    radial-gradient(ellipse at 0% 0%, rgba(200, 170, 110, 0.10) 0%, transparent 55%),
-    linear-gradient(135deg, rgba(120, 90, 40, 0.10) 0%, var(--color-bg-secondary) 60%);
-  border: 1px solid var(--color-border-light);
+  /* 그라디언트 카드였다. 토스 방향에서는 제목이 배경 위에 그냥 놓인다.
+     장식을 걷어내면 아래 표의 밀도가 더 잘 읽힌다. */
+  padding: 0 0 4px;
+  background: none;
+  border: 0;
+  border-radius: 0;
 }
-.hero-banner::after {
-  content: '';
-  position: absolute;
-  top: -50px;
-  right: -50px;
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(200, 170, 110, 0.10) 0%, transparent 70%);
-  pointer-events: none;
-}
-.hero-eyebrow {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-widest);
-  text-transform: uppercase;
-  color: var(--color-primary);
-  margin-bottom: 8px;
-}
+
+/* 대문자 영문 라벨(RANKINGS, Player Analysis …). 한글 화면에서 정보가 없고
+   시선만 먼저 가져간다. 마크업은 남기고 표시만 끈다. */
+.hero-eyebrow { display: none; }
+
 .hero-title {
-  font-family: var(--font-family-display);
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-extrabold);
-  line-height: var(--line-height-tight);
+  font-size: 26px;
+  font-weight: 700;
   letter-spacing: var(--tracking-tight);
-  margin: 0;
+  color: var(--color-text-primary);
 }
 .hero-subtitle {
-  font-size: var(--font-size-sm);
+  font-size: 14px;
   color: var(--color-text-secondary);
-  margin-top: 6px;
-  line-height: var(--line-height-relaxed);
+  margin-top: 4px;
 }

@@ -47,7 +47,7 @@ export function SyncPage() {
   };
 
   return (
-    <div>
+    <div className="t-page">
       <div className="hero-banner" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--spacing-lg)', flexWrap: 'wrap', marginBottom: 'var(--spacing-lg)' }}>
         <div>
           <div className="hero-eyebrow">DataDragon</div>

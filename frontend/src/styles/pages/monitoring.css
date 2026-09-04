@@ -44,12 +44,12 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: rgba(200, 170, 110, 0.06);
-  border: 1px solid rgba(200, 170, 110, 0.12);
+  background: rgba(49, 130, 246, 0.06);
+  border: 1px solid rgba(49, 130, 246, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 24px rgba(200, 170, 110, 0.08);
+  box-shadow: 0 0 24px rgba(49, 130, 246, 0.08);
 }
 
 .monitoring-gate-title {
@@ -88,7 +88,7 @@
 
 .monitoring-gate-input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(200, 170, 110, 0.1), 0 0 12px rgba(200, 170, 110, 0.06);
+  box-shadow: 0 0 0 2px rgba(49, 130, 246, 0.1), 0 0 12px rgba(49, 130, 246, 0.06);
 }
 
 .monitoring-gate-input.error {
@@ -163,7 +163,7 @@
 }
 
 .monitoring-link-card:hover {
-  border-color: rgba(200, 170, 110, 0.2);
+  border-color: rgba(49, 130, 246, 0.2);
   background: var(--color-bg-tertiary);
   box-shadow: var(--shadow-teal);
 }
@@ -228,8 +228,8 @@
 }
 
 .monitoring-setup-guide code {
-  background: rgba(200, 170, 110, 0.05);
-  border: 1px solid rgba(200, 170, 110, 0.1);
+  background: rgba(49, 130, 246, 0.05);
+  border: 1px solid rgba(49, 130, 246, 0.1);
   border-radius: var(--radius-xs);
   padding: 0.1em 0.35em;
   font-size: 0.82em;

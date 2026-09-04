@@ -42,7 +42,7 @@
     background var(--transition-fast);
 }
 .champ-pick-card:hover {
-  border-color: rgba(200, 170, 110, 0.2);
+  border-color: rgba(49, 130, 246, 0.2);
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
   background: var(--color-bg-tertiary);
@@ -67,7 +67,7 @@
 .champ-pick-img-fallback {
   width: 100%;
   height: 100%;
-  background: rgba(240, 230, 210, 0.03);
+  background: rgba(25, 31, 40, 0.03);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -130,7 +130,7 @@
   text-align: center;
 }
 .hall-card:hover:not(.hall-card--empty) {
-  border-color: rgba(200, 170, 110, 0.2);
+  border-color: rgba(49, 130, 246, 0.2);
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
   background: var(--color-bg-tertiary);
@@ -164,7 +164,7 @@
   font-weight: var(--font-weight-extrabold);
   color: var(--color-primary);
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 20px rgba(200, 170, 110, 0.15);
+  text-shadow: 0 0 20px rgba(49, 130, 246, 0.15);
 }
 .hall-games {
   font-size: var(--font-size-2xs);
@@ -240,7 +240,7 @@
   gap: 4px;
 }
 .highlight-card:hover {
-  border-color: rgba(200, 170, 110, 0.2);
+  border-color: rgba(49, 130, 246, 0.2);
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
   background: var(--color-bg-tertiary);
@@ -269,7 +269,7 @@
   font-weight: var(--font-weight-extrabold);
   color: var(--color-primary);
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 20px rgba(200, 170, 110, 0.15);
+  text-shadow: 0 0 20px rgba(49, 130, 246, 0.15);
 }
 .highlight-sub {
   font-size: var(--font-size-2xs);
@@ -298,29 +298,29 @@
 .member-sort-tab:hover {
   color: var(--color-text-primary);
   border-color: var(--color-border);
-  background: rgba(240, 230, 210, 0.03);
+  background: rgba(25, 31, 40, 0.03);
 }
 .member-sort-tab.active {
   background: var(--gradient-primary);
   color: var(--color-text-inverse);
   border-color: transparent;
   font-weight: var(--font-weight-bold);
-  box-shadow: 0 2px 8px rgba(200, 170, 110, 0.2);
+  box-shadow: 0 2px 8px rgba(49, 130, 246, 0.2);
 }
 
 .member-stats-table thead tr {
-  background: linear-gradient(90deg, rgba(200, 170, 110, 0.04) 0%, rgba(200, 170, 110, 0.02) 100%);
+  background: linear-gradient(90deg, rgba(49, 130, 246, 0.04) 0%, rgba(49, 130, 246, 0.02) 100%);
 }
 .member-stats-table thead th {
-  border-bottom: 1px solid rgba(200, 170, 110, 0.12);
+  border-bottom: 1px solid rgba(49, 130, 246, 0.12);
 }
 .member-stats-table tbody tr.member-stats-row {
   cursor: pointer;
   transition: background var(--transition-fast), box-shadow var(--transition-fast);
 }
 .member-stats-table tbody tr.member-stats-row:hover {
-  background: rgba(200, 170, 110, 0.04);
-  box-shadow: inset 3px 0 0 rgba(200, 170, 110, 0.3);
+  background: rgba(49, 130, 246, 0.04);
+  box-shadow: inset 3px 0 0 rgba(49, 130, 246, 0.3);
 }
 
 /* -- Player name button -- */
@@ -352,7 +352,7 @@
 }
 .back-btn:hover {
   color: var(--color-primary);
-  border-color: rgba(200, 170, 110, 0.25);
+  border-color: rgba(49, 130, 246, 0.25);
   box-shadow: var(--shadow-teal);
 }
 
@@ -378,7 +378,7 @@
   border-radius: 50%;
   border: 3px solid var(--wr-color, var(--color-primary));
   flex-shrink: 0;
-  box-shadow: 0 0 16px rgba(200, 170, 110, 0.1);
+  box-shadow: 0 0 16px rgba(49, 130, 246, 0.1);
 }
 .player-stat-cards {
 }
@@ -423,14 +423,14 @@
   min-width: 76px;
 }
 .lane-tab:hover {
-  border-color: rgba(200, 170, 110, 0.2);
+  border-color: rgba(49, 130, 246, 0.2);
   background: var(--color-bg-tertiary);
   transform: translateY(-1px);
 }
 .lane-tab.active {
   background: var(--gradient-primary);
   border-color: transparent;
-  box-shadow: 0 4px 16px rgba(200, 170, 110, 0.25);
+  box-shadow: 0 4px 16px rgba(49, 130, 246, 0.25);
 }
 .lane-tab-emoji { font-size: 18px; line-height: 1; }
 .lane-tab-label {
@@ -483,7 +483,7 @@
   font-weight: var(--font-weight-extrabold);
   color: var(--color-primary);
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 20px rgba(200, 170, 110, 0.15);
+  text-shadow: 0 0 20px rgba(49, 130, 246, 0.15);
 }
 .lane-key-stat-label {
   font-size: var(--font-size-2xs);
@@ -508,8 +508,8 @@
   border-left: 3px solid transparent;
   transition: background var(--transition-fast);
 }
-.recent-match-card.win  { background: rgba(10, 200, 185, 0.04); border-left-color: var(--color-win); }
-.recent-match-card.loss { background: rgba(232, 64, 87, 0.04);  border-left-color: var(--color-loss); }
+.recent-match-card.win  { background: rgba(27, 100, 218, 0.04); border-left-color: var(--color-win); }
+.recent-match-card.loss { background: rgba(229, 72, 77, 0.04);  border-left-color: var(--color-loss); }
 .recent-match-card:hover { filter: brightness(1.1); }
 
 .recent-match-champ {
@@ -525,8 +525,8 @@
   padding: 1px 5px;
   border-radius: 8px;
 }
-.recent-match-result.win  { background: rgba(10, 200, 185, 0.1); color: var(--color-win); }
-.recent-match-result.loss { background: rgba(232, 64, 87, 0.08);  color: var(--color-loss); }
+.recent-match-result.win  { background: rgba(27, 100, 218, 0.1); color: var(--color-win); }
+.recent-match-result.loss { background: rgba(229, 72, 77, 0.08);  color: var(--color-loss); }
 
 .recent-match-info { display: flex; flex-direction: column; gap: 2px; }
 .recent-match-kda  { text-align: center; }
@@ -568,7 +568,7 @@
   font-weight: var(--font-weight-extrabold);
   color: var(--color-primary);
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 20px rgba(200, 170, 110, 0.15);
+  text-shadow: 0 0 20px rgba(49, 130, 246, 0.15);
 }
 .summary-stat-label {
   font-size: var(--font-size-xs);
@@ -631,7 +631,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(49, 130, 246, 0.15), transparent);
   pointer-events: none;
 }
 .overview-hero-main {
@@ -648,7 +648,7 @@
   color: var(--color-primary);
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  text-shadow: 0 0 24px rgba(200, 170, 110, 0.2);
+  text-shadow: 0 0 24px rgba(49, 130, 246, 0.2);
 }
 .overview-hero-label {
   font-size: 12px;
@@ -722,7 +722,7 @@
   cursor: pointer;
 }
 .overview-spotlight-card.clickable:hover {
-  border-color: rgba(200, 170, 110, 0.2);
+  border-color: rgba(49, 130, 246, 0.2);
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
   background: var(--color-bg-tertiary);
@@ -754,7 +754,7 @@
   color: var(--color-primary);
   font-variant-numeric: tabular-nums;
   line-height: var(--line-height-tight);
-  text-shadow: 0 0 20px rgba(200, 170, 110, 0.15);
+  text-shadow: 0 0 20px rgba(49, 130, 246, 0.15);
 }
 .overview-spotlight-games {
   font-size: var(--font-size-2xs);
@@ -851,15 +851,15 @@
 }
 .stats-tab-btn:hover {
   color: var(--color-text-primary);
-  background: rgba(200, 170, 110, 0.04);
+  background: rgba(49, 130, 246, 0.04);
 }
 /* Gold underline active tab */
 .stats-tab-btn.active {
   color: var(--color-primary);
   font-weight: var(--font-weight-bold);
-  background: rgba(200, 170, 110, 0.06);
+  background: rgba(49, 130, 246, 0.06);
   border-bottom-color: var(--color-primary);
-  box-shadow: 0 2px 8px rgba(200, 170, 110, 0.1);
+  box-shadow: 0 2px 8px rgba(49, 130, 246, 0.1);
 }
 
 /* -- Breadcrumb Navigation -- */

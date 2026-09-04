@@ -41,11 +41,13 @@ export function ChampImg({ championId, champion, size, style }: { championId: nu
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const RANK_COLORS: Record<number, string> = { 1: '#FFD700', 2: '#C0C0C0', 3: '#CD7F32' };
+export const RANK_COLORS: Record<number, string> = { 1: '#FDF3D0', 2: '#EEF0F2', 3: '#F6E4D4' };
+// 배지 배경이 옅어졌으니 글자는 같은 계열의 진한 톤으로 둔다.
+const RANK_TEXT: Record<number, string> = { 1: '#8A6A00', 2: '#4E5968', 3: '#8A5524' };
 export function RankBadge({ rank }: { rank: number }) {
   const color = RANK_COLORS[rank];
   if (color) return (
-    <div style={{ width: 26, height: 26, borderRadius: '50%', background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: '#111', flexShrink: 0 }}>{rank}</div>
+    <div style={{ width: 26, height: 26, borderRadius: '50%', background: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 800, color: RANK_TEXT[rank], flexShrink: 0 }}>{rank}</div>
   );
   return <span style={{ color: 'var(--color-text-disabled)', fontSize: 12, width: 26, textAlign: 'center', display: 'inline-block' }}>{rank}</span>;
 }

@@ -15,7 +15,7 @@ const FEATURES = [
 
 export function LcuPage() {
   return (
-    <div>
+    <div className="t-page">
       <div className="hero-banner" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div className="hero-eyebrow">Desktop Collector</div>
         <h1 className="hero-title">데스크톱 수집기</h1>

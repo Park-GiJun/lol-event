@@ -6,14 +6,21 @@ import { LoadingCenter } from '../../components/common/Spinner';
 import { PlayerLink } from '../../components/common/PlayerLink';
 import { RankBadge } from './shared';
 
+/**
+ * Elo 구간 이름과 색.
+ *
+ * 원래 값은 다크 배경 기준이라 흰 바탕에서 대비가 무너진다
+ * (#FFD700 골드는 흰색 위에서 1.4:1). 같은 계열을 유지하되 명도를 낮춰
+ * 본문 대비 기준을 넘기도록 맞춘 값이다.
+ */
 function eloTier(elo: number): { label: string; color: string } {
-  if (elo >= 1300) return { label: 'Challenger', color: '#FFD700' };
-  if (elo >= 1200) return { label: 'Master',     color: '#AA47BC' };
-  if (elo >= 1100) return { label: 'Diamond',    color: '#0BC4B4' };
-  if (elo >= 1000) return { label: 'Platinum',   color: '#4A9EFF' };
-  if (elo >= 900)  return { label: 'Gold',       color: '#C89B3C' };
-  if (elo >= 800)  return { label: 'Silver',     color: '#A8A8A8' };
-  return                  { label: 'Bronze',     color: '#CD7F32' };
+  if (elo >= 1300) return { label: 'Challenger', color: '#B07A00' };
+  if (elo >= 1200) return { label: 'Master',     color: '#8E24AA' };
+  if (elo >= 1100) return { label: 'Diamond',    color: '#00796B' };
+  if (elo >= 1000) return { label: 'Platinum',   color: '#1B64DA' };
+  if (elo >= 900)  return { label: 'Gold',       color: '#96731F' };
+  if (elo >= 800)  return { label: 'Silver',     color: '#6B7684' };
+  return                  { label: 'Bronze',     color: '#8A5524' };
 }
 
 export default function EloTab() {

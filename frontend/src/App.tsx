@@ -9,14 +9,14 @@ import { LoadingCenter } from './components/common/Spinner';
 // 개편된 화면
 const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
 const SummonerPage = lazy(() => import('./pages/SummonerPage').then(m => ({ default: m.SummonerPage })));
-
-// 아직 개편 전인 화면. 새 셸 안에서 그대로 동작한다.
-const MemberStatsListPage = lazy(() => import('./pages/MemberStatsListPage').then(m => ({ default: m.MemberStatsListPage })));
-const ChampionStatsPage = lazy(() => import('./pages/ChampionStatsPage').then(m => ({ default: m.ChampionStatsPage })));
+const PlayersPage = lazy(() => import('./pages/PlayersPage').then(m => ({ default: m.PlayersPage })));
 const ChampionListPage = lazy(() => import('./pages/ChampionListPage').then(m => ({ default: m.ChampionListPage })));
-const MembersPage = lazy(() => import('./pages/MembersPage').then(m => ({ default: m.MembersPage })));
+const ChampionPage = lazy(() => import('./pages/ChampionPage').then(m => ({ default: m.ChampionPage })));
 const MatchesPage = lazy(() => import('./pages/MatchesPage').then(m => ({ default: m.MatchesPage })));
 const MatchDetailPage = lazy(() => import('./pages/MatchDetailPage').then(m => ({ default: m.MatchDetailPage })));
+
+// 아직 개편 전인 화면. 새 셸 안에서 그대로 동작한다.
+const MembersPage = lazy(() => import('./pages/MembersPage').then(m => ({ default: m.MembersPage })));
 const LcuPage = lazy(() => import('./pages/LcuPage').then(m => ({ default: m.LcuPage })));
 const SyncPage = lazy(() => import('./pages/SyncPage').then(m => ({ default: m.SyncPage })));
 const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
@@ -48,11 +48,11 @@ function App() {
             <Route element={<AppLayout />}>
               <Route index element={<HomePage />} />
 
-              <Route path="players" element={<MemberStatsListPage />} />
+              <Route path="players" element={<PlayersPage />} />
               <Route path="players/:riotId" element={<SummonerPage />} />
 
               <Route path="champions" element={<ChampionListPage />} />
-              <Route path="champions/:champion" element={<ChampionStatsPage />} />
+              <Route path="champions/:champion" element={<ChampionPage />} />
 
               <Route path="matches" element={<MatchesPage />} />
               <Route path="matches/:matchId" element={<MatchDetailPage />} />

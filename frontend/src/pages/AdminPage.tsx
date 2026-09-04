@@ -251,7 +251,7 @@ export function AdminPage() {
   // ── Login ──────────────────────────────────────────
   if (!authed) {
     return (
-      <div className="monitoring-gate">
+      <div className="t-page monitoring-gate">
         <div className="monitoring-gate-card">
           <div className="monitoring-gate-icon"><Lock size={32} color="var(--color-primary)" /></div>
           <h2 className="monitoring-gate-title">어드민 접근 인증</h2>
@@ -274,7 +274,7 @@ export function AdminPage() {
 
   // ── Main ───────────────────────────────────────────
   return (
-    <div className="monitoring-page">
+    <div className="t-page monitoring-page">
       <div className="monitoring-header">
         <div className="monitoring-header-left">
           <Shield size={20} color="var(--color-primary)" />
