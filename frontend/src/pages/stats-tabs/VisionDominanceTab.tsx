@@ -1,3 +1,4 @@
+import { EyeIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
@@ -25,7 +26,7 @@ export default function VisionDominanceTab({ mode }: { mode: string }) {
     <div>
       {data.visionKing && (
         <div className="card-glass" style={{ marginBottom: 'var(--spacing-md)', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-          <span className="icon-chip">👁️</span>
+          <EyeIcon size={16} />
           <div>
             <div className="hero-eyebrow" style={{ marginBottom: 2 }}>시야 지배왕</div>
             <div style={{ fontWeight: 'var(--font-weight-extrabold)', fontSize: 'var(--font-size-md)', color: 'var(--color-primary)' }}>{data.visionKing.split('#')[0]}</div>

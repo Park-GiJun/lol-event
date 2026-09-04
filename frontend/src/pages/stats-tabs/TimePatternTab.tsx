@@ -18,7 +18,7 @@ export default function TimePatternTab({ mode }: { mode: string }) {
     <div className="grid-16" style={{ gap: 'var(--spacing-lg)' }}>
       <div className="col-span-8">
         <div className="section-head" style={{ paddingBottom: 'var(--spacing-sm)', borderBottom: '1px solid var(--color-border)' }}>
-          <span className="icon-chip" aria-hidden>📅</span>
+          <span className="icon-chip" aria-hidden></span>
           <span className="section-head-title">요일별 내전 횟수</span>
         </div>
         {data.busiestDay && <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-sm)' }}>가장 활발한 요일: <strong style={{ color: 'var(--color-primary)' }}>{data.busiestDay}요일</strong></div>}
@@ -39,7 +39,7 @@ export default function TimePatternTab({ mode }: { mode: string }) {
       </div>
       <div className="col-span-8">
         <div className="section-head" style={{ paddingBottom: 'var(--spacing-sm)', borderBottom: '1px solid var(--color-border)' }}>
-          <span className="icon-chip" aria-hidden>🕒</span>
+          <span className="icon-chip" aria-hidden></span>
           <span className="section-head-title">시간대별 내전 횟수</span>
         </div>
         {data.busiestHour !== null && <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-sm)' }}>가장 활발한 시간: <strong style={{ color: 'var(--color-primary)' }}>{data.busiestHour}시</strong></div>}

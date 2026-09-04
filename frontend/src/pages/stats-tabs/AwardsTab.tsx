@@ -5,14 +5,14 @@ import type { WeeklyAwardsResult } from '../../lib/types/stats';
 import { LoadingCenter } from '../../components/common/Spinner';
 
 const AWARD_LABELS: Record<string, string> = {
-  mostDeaths:        '💀 단일 경기 최다 사망',
-  worstKda:          '😢 평균 KDA 최하위',
-  highGoldLowDamage: '💰 먹튀 골드왕',
-  mostSurrenders:    '🏳️ 항복 유발자',
-  pentaKillHero:     '⚔️ 펜타킬 영웅',
-  loneHero:          '🦸 그래도 난 했다',
-  highestWinRate:    '🏆 승률 1위',
-  mostGamesChampion: '🎮 챔피언 장인',
+  mostDeaths:        '단일 경기 최다 사망',
+  worstKda:          '평균 KDA 최하위',
+  highGoldLowDamage: '먹튀 골드왕',
+  mostSurrenders:    '항복 유발자',
+  pentaKillHero:     '펜타킬 영웅',
+  loneHero:          '그래도 난 했다',
+  highestWinRate:    '승률 1위',
+  mostGamesChampion: '챔피언 장인',
 };
 
 export default function AwardsTab({ mode }: { mode: string }) {

@@ -1,3 +1,4 @@
+import { SwordsIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
@@ -56,7 +57,7 @@ export default function DamageAnalysisTab({ mode }: { mode: string }) {
   return (
     <div>
       <div className="section-head">
-        <span className="icon-chip">⚔️</span>
+        <SwordsIcon size={16} />
         <span className="section-head-title">데미지 유형 분포</span>
         <div className="section-head-action" style={{ display: 'flex', gap: 'var(--spacing-md)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
           <LegendDot color={DMG_PHYSICAL} label="물리" />

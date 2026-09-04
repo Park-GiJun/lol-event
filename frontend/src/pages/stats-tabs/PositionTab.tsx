@@ -28,7 +28,7 @@ export default function PositionTab({ mode }: { mode: string }) {
   return (
     <div>
       <div className="section-head">
-        <span className="icon-chip">🥇</span>
+        <span className="icon-chip"></span>
         <span className="section-head-title">포지션별 1위</span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-2xl)' }}>

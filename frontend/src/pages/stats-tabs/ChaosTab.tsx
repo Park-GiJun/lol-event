@@ -1,3 +1,4 @@
+import { FlameIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../lib/api/api';
 import type { ChaosMatchResult, ChaosMatchEntry } from '../../lib/types/stats';
@@ -83,7 +84,7 @@ export default function ChaosTab({ mode }: { mode: string }) {
       </div>
 
       <div className="section-head">
-        <span className="icon-chip">🔥</span>
+        <FlameIcon size={16} />
         <span className="section-head-title">최고 혼돈 경기 TOP 10</span>
       </div>
 

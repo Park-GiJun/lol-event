@@ -4,11 +4,11 @@ import { Button } from '../components/common/Button';
 const INSTALLER_URL = 'https://lol.gijun.net/downloads/lol-collector.msi';
 
 const FEATURES = [
-  { icon: ZapIcon, title: '자동 수집', desc: '게임 종료 감지 → 30초 후 자동 수집 · 서버 전송' },
+  { icon: ZapIcon, title: '자동 수집', desc: '게임 종료 감지 30초 후 자동 수집 · 서버 전송' },
   { icon: EyeIcon, title: '챔프셀렉트 분석', desc: '상대 모스트픽 · 밴 추천 · 카운터픽 · 팀 전력 비교' },
   { icon: BarChartIcon, title: '내전 대시보드', desc: 'Elo 리더보드 · 어워즈 · MVP · 멀티킬 하이라이트' },
   { icon: GamepadIcon, title: '라이브 게임', desc: '실시간 킬/CS/레벨 · 게임 이벤트 피드' },
-  { icon: ShieldIcon, title: '로비 캐시', desc: '대기방 10명 데이터 캐싱 → 챔프셀렉트에서 활용' },
+  { icon: ShieldIcon, title: '로비 캐시', desc: '대기방 10명 데이터 캐싱 챔프셀렉트에서 활용' },
   { icon: RefreshIcon, title: '자동 업데이트', desc: '새 버전 자동 감지 · 원클릭 업데이트' },
 ];
 
@@ -100,8 +100,7 @@ export function LcuPage() {
           background: 'rgba(200, 170, 110, 0.06)', borderRadius: 'var(--radius-md)',
           border: '1px solid rgba(200, 170, 110, 0.18)',
           fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', lineHeight: 1.6,
-        }}>
-          💡 <strong style={{ color: 'var(--color-primary)' }}>Tip</strong>: 수집기를 실행한 상태로 LoL을
+        }}><strong style={{ color: 'var(--color-primary)' }}>Tip</strong>: 수집기를 실행한 상태로 LoL을
           플레이하면 모든 내전 데이터가 자동으로 수집됩니다. 별도의 수동 조작이 필요 없습니다.
         </div>
       </div>

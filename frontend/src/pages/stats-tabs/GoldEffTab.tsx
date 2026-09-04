@@ -1,3 +1,4 @@
+import { CoinsIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../lib/api/api';
 import type { GoldEfficiencyResult, GoldEfficiencyEntry } from '../../lib/types/stats';
@@ -22,10 +23,10 @@ export default function GoldEffTab({ mode }: { mode: string }) {
   if (!data) return null;
 
   const kings = [
-    { emoji: '💥', label: '딜 효율왕', name: data.dmgEfficiencyKing },
-    { emoji: '👁️', label: '시야 효율왕', name: data.visionEfficiencyKing },
-    { emoji: '🌾', label: 'CS 효율왕', name: data.csEfficiencyKing },
-    { emoji: '🏰', label: '오브젝트 효율왕', name: data.objEfficiencyKing },
+    { emoji: '', label: '딜 효율왕', name: data.dmgEfficiencyKing },
+    { emoji: '', label: '시야 효율왕', name: data.visionEfficiencyKing },
+    { emoji: '', label: 'CS 효율왕', name: data.csEfficiencyKing },
+    { emoji: '', label: '오브젝트 효율왕', name: data.objEfficiencyKing },
   ];
 
   return (
@@ -41,7 +42,7 @@ export default function GoldEffTab({ mode }: { mode: string }) {
       </div>
 
       <div className="section-head">
-        <span className="icon-chip">💰</span>
+        <CoinsIcon size={16} />
         <span className="section-head-title">골드 효율 랭킹</span>
       </div>
       <div className="table-wrapper">

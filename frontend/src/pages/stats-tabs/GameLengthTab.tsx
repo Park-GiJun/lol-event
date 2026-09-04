@@ -1,3 +1,4 @@
+import { TimerIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../lib/api/api';
 import type { GameLengthTendencyResult, GameLengthTendencyEntry } from '../../lib/types/stats';
@@ -23,7 +24,7 @@ export default function GameLengthTab({ mode }: { mode: string }) {
   return (
     <div>
       <div className="section-head">
-        <span className="icon-chip">⏱️</span>
+        <TimerIcon size={16} />
         <span className="section-head-title">플레이어별 게임 길이 성향</span>
       </div>
       <div className="table-wrapper">

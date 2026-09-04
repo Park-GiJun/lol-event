@@ -1,3 +1,4 @@
+import { TrophyIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
@@ -28,7 +29,7 @@ export default function MvpTab({ mode }: { mode: string }) {
   return (
     <div>
       <div className="section-head">
-        <span className="icon-chip">🏆</span>
+        <TrophyIcon size={16} />
         <span className="section-head-title">MVP 랭킹</span>
       </div>
       <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-md)', lineHeight: 'var(--line-height-relaxed)' }}>

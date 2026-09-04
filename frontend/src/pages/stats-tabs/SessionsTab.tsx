@@ -1,3 +1,4 @@
+import { CalendarIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../lib/api/api';
 import type { SessionReportResult, SessionEntry } from '../../lib/types/stats';
@@ -22,7 +23,7 @@ export default function SessionsTab({ mode }: { mode: string }) {
   return (
     <div>
       <div className="section-head">
-        <span className="icon-chip">📅</span>
+        <CalendarIcon size={16} />
         <span className="section-head-title">세션 리포트</span>
         <span className="section-head-action badge badge-primary badge-sm">총 {data.totalSessions}개</span>
       </div>

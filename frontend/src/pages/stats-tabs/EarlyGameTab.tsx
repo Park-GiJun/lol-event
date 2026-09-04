@@ -1,3 +1,4 @@
+import { SwordsIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../lib/api/api';
 import type { EarlyGameDominanceResult, EarlyGameDominanceEntry } from '../../lib/types/stats';
@@ -25,7 +26,7 @@ export default function EarlyGameTab({ mode }: { mode: string }) {
     <div>
       <div className="grid-16" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div className="stat-card col-span-8" style={{ alignItems: 'center', textAlign: 'center' }}>
-          <div style={{ fontSize: 28, marginBottom: 'var(--spacing-xs)', filter: 'drop-shadow(0 0 6px rgba(200,170,110,0.3))' }}>🗡️</div>
+          <div style={{ fontSize: 28, marginBottom: 'var(--spacing-xs)', filter: 'drop-shadow(0 0 6px rgba(200,170,110,0.3))' }}></div>
           <div className="stat-card-label">퍼블킹</div>
           <div style={{ fontWeight: 800, fontSize: 'var(--font-size-md)', color: 'var(--color-primary)' }}>{data.firstBloodKing?.split('#')[0] ?? '-'}</div>
           <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: 'var(--spacing-xs)', fontVariantNumeric: 'tabular-nums' }}>
@@ -33,7 +34,7 @@ export default function EarlyGameTab({ mode }: { mode: string }) {
           </div>
         </div>
         <div className="stat-card col-span-8" style={{ alignItems: 'center', textAlign: 'center' }}>
-          <div style={{ fontSize: 28, marginBottom: 'var(--spacing-xs)', filter: 'drop-shadow(0 0 6px rgba(200,170,110,0.3))' }}>🏯</div>
+          <div style={{ fontSize: 28, marginBottom: 'var(--spacing-xs)', filter: 'drop-shadow(0 0 6px rgba(200,170,110,0.3))' }}></div>
           <div className="stat-card-label">포탑 파괴자</div>
           <div style={{ fontWeight: 800, fontSize: 'var(--font-size-md)', color: 'var(--color-primary)' }}>{data.towerDestroyer?.split('#')[0] ?? '-'}</div>
           <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: 'var(--spacing-xs)', fontVariantNumeric: 'tabular-nums' }}>
@@ -43,7 +44,7 @@ export default function EarlyGameTab({ mode }: { mode: string }) {
       </div>
 
       <div className="section-head">
-        <span className="icon-chip">⚔️</span>
+        <SwordsIcon size={16} />
         <span className="section-head-title">초반 지배력 랭킹</span>
       </div>
       <div className="table-wrapper">

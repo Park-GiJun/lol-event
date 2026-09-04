@@ -1,3 +1,4 @@
+import { SkullIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
@@ -24,7 +25,7 @@ export default function DefeatTab({ mode }: { mode: string }) {
   return (
     <div>
       <div className="section-head">
-        <span className="icon-chip">💀</span>
+        <SkullIcon size={16} />
         <span className="section-head-title">패배 기여도</span>
         <span className="section-head-action" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', fontWeight: 'normal' }}>
           높을수록 팀을 더 힘들게 합니다

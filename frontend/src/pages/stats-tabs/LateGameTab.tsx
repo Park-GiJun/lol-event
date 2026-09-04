@@ -1,3 +1,4 @@
+import { CrownIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
@@ -31,7 +32,7 @@ export default function LateGameTab({ mode }: { mode: string }) {
     <div>
       {data.lateGameKing && (
         <div className="section-head" style={{ marginBottom: 'var(--spacing-md)' }}>
-          <span className="icon-chip">👑</span>
+          <CrownIcon size={16} />
           <div>
             <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', fontWeight: 'var(--font-weight-bold)', letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase' }}>후반 지배왕</div>
             <div style={{ fontWeight: 'var(--font-weight-extrabold)', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)' }}>{data.lateGameKing.split('#')[0]}</div>

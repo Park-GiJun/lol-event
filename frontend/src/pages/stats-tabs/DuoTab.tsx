@@ -1,3 +1,4 @@
+import { HandshakeIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
@@ -26,7 +27,7 @@ export default function DuoTab({ mode }: { mode: string }) {
   return (
     <div>
       <div className="section-head">
-        <span className="icon-chip">🤝</span>
+        <HandshakeIcon size={16} />
         <span className="section-head-title">같은 팀에서 함께 플레이한 멤버 조합의 시너지</span>
         <div className="section-head-action" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
           <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>최소 게임수</span>

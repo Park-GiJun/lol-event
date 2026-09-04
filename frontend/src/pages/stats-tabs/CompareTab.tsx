@@ -122,7 +122,7 @@ export default function CompareTab({ mode }: { mode: string }) {
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-sm)' }}>
                 함께한 경기: <strong style={{ color: 'var(--color-text-primary)' }}>{data.togetherGames}판</strong> | 승률: <strong style={{ color: data.togetherWinRate >= 50 ? 'var(--color-win)' : 'var(--color-loss)' }}>{data.togetherWinRate.toFixed(1)}%</strong>
               </div>
-              {compareSnap(data.p1TogetherStats, data.p2TogetherStats, '함께 플레이', '🤝')}
+              {compareSnap(data.p1TogetherStats, data.p2TogetherStats, '함께 플레이', '')}
             </div>
           )}
 
@@ -131,12 +131,12 @@ export default function CompareTab({ mode }: { mode: string }) {
               <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-sm)' }}>
                 맞대결: <strong style={{ color: 'var(--color-text-primary)' }}>{data.versusGames}판</strong> | {data.player1.split('#')[0]} 승률: <strong style={{ color: data.player1VsWinRate >= 50 ? 'var(--color-win)' : 'var(--color-loss)' }}>{data.player1VsWinRate.toFixed(1)}%</strong>
               </div>
-              {compareSnap(data.p1VersusStats, data.p2VersusStats, '맞대결', '⚔️')}
+              {compareSnap(data.p1VersusStats, data.p2VersusStats, '맞대결', '')}
             </div>
           )}
 
           <div className="card card-body">
-            {compareSnap(data.overallP1Stats, data.overallP2Stats, '전체 통계', '📊')}
+            {compareSnap(data.overallP1Stats, data.overallP2Stats, '전체 통계', '')}
           </div>
         </div>
       )}

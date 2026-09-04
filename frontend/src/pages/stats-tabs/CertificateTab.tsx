@@ -1,3 +1,4 @@
+import { MedalIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
@@ -26,7 +27,7 @@ export default function CertificateTab({ mode }: { mode: string }) {
   return (
     <div>
       <div className="section-head">
-        <span className="icon-chip">🎖️</span>
+        <MedalIcon size={16} />
         <span className="section-head-title">챔피언 장인 인증</span>
       </div>
       <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-md)' }}>
@@ -51,7 +52,7 @@ export default function CertificateTab({ mode }: { mode: string }) {
                   <div style={{ fontWeight: 'var(--font-weight-extrabold)', fontSize: 'var(--font-size-sm)' }}>{cert.riotId.split('#')[0]}</div>
                   <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginTop: 1 }}>{nameKo}</div>
                 </div>
-                <span style={{ marginLeft: 'auto', fontSize: 18, filter: 'drop-shadow(0 0 4px rgba(var(--color-primary-rgb), 0.4))' }}>🎖️</span>
+                <span style={{ marginLeft: 'auto', fontSize: 18, filter: 'drop-shadow(0 0 4px rgba(var(--color-primary-rgb), 0.4))' }}></span>
               </div>
               <div style={{ display: 'flex', gap: 'var(--spacing-sm)', fontSize: 'var(--font-size-xs)', fontVariantNumeric: 'tabular-nums' }}>
                 <span style={{ color: 'var(--color-text-secondary)' }}>{cert.games}판</span>

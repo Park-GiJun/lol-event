@@ -1,3 +1,4 @@
+import { LaneTopIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
@@ -24,7 +25,7 @@ export default function SurvivalTab({ mode }: { mode: string }) {
   return (
     <div>
       <div className="section-head">
-        <span className="icon-chip">🛡️</span>
+        <LaneTopIcon size={16} />
         <span className="section-head-title">생존력 & 탱킹 지수 — 높을수록 팀의 방패</span>
       </div>
       <div className="table-wrapper">

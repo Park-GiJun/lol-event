@@ -1,3 +1,4 @@
+import { TrophyIcon, BanIcon, TrendingUpIcon, MedalIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
@@ -26,10 +27,10 @@ export default function OverviewTab({ mode }: { mode: string }) {
   const n = Math.max(data.matchCount, 1);
 
   const spotlights: { emoji: string; label: string; stat: PlayerLeaderStat | null }[] = [
-    { emoji: '👑', label: '승률왕',  stat: data.winRateLeader },
-    { emoji: '⚔️', label: 'KDA왕',  stat: data.kdaLeader },
-    { emoji: '💥', label: '딜량왕',  stat: data.damageLeader },
-    { emoji: '🎮', label: '판수왕',  stat: data.mostGamesPlayed },
+    { emoji: '', label: '승률왕',  stat: data.winRateLeader },
+    { emoji: '', label: 'KDA왕',  stat: data.kdaLeader },
+    { emoji: '', label: '딜량왕',  stat: data.damageLeader },
+    { emoji: '', label: '판수왕',  stat: data.mostGamesPlayed },
   ];
 
   type HallEntry = { emoji: string; label: string; stat: PlayerLeaderStat | null; basis: 'per-min' | 'per-match' | 'total' };
@@ -38,32 +39,32 @@ export default function OverviewTab({ mode }: { mode: string }) {
       title: '경기당',
       sub: '경기 1판 기준 평균',
       items: [
-        { emoji: '👑', label: '승률왕',  stat: data.winRateLeader,      basis: 'per-match' },
-        { emoji: '⚔️', label: 'KDA왕',   stat: data.kdaLeader,          basis: 'per-match' },
-        { emoji: '🗡️', label: '킬왕',    stat: data.killsLeader,        basis: 'per-match' },
-        { emoji: '🏯', label: '포탑왕',  stat: data.turretKillsLeader,  basis: 'per-match' },
-        { emoji: '🔭', label: '와드왕',  stat: data.wardsLeader,        basis: 'per-match' },
+        { emoji: '', label: '승률왕',  stat: data.winRateLeader,      basis: 'per-match' },
+        { emoji: '', label: 'KDA왕',   stat: data.kdaLeader,          basis: 'per-match' },
+        { emoji: '', label: '킬왕',    stat: data.killsLeader,        basis: 'per-match' },
+        { emoji: '', label: '포탑왕',  stat: data.turretKillsLeader,  basis: 'per-match' },
+        { emoji: '', label: '와드왕',  stat: data.wardsLeader,        basis: 'per-match' },
       ],
     },
     {
       title: '분당',
       sub: '분 기준 평균 (플레이 시간 보정)',
       items: [
-        { emoji: '💥', label: '딜량왕',        stat: data.damageLeader,          basis: 'per-min' },
-        { emoji: '💰', label: '골드왕',         stat: data.goldLeader,            basis: 'per-min' },
-        { emoji: '🌾', label: 'CS왕',          stat: data.csLeader,              basis: 'per-min' },
-        { emoji: '👁️', label: '시야왕',         stat: data.visionLeader,          basis: 'per-min' },
-        { emoji: '🏰', label: '오브젝트딜왕',   stat: data.objectiveDamageLeader, basis: 'per-min' },
-        { emoji: '🧊', label: 'CC왕',          stat: data.ccLeader,              basis: 'per-min' },
+        { emoji: '', label: '딜량왕',        stat: data.damageLeader,          basis: 'per-min' },
+        { emoji: '', label: '골드왕',         stat: data.goldLeader,            basis: 'per-min' },
+        { emoji: '', label: 'CS왕',          stat: data.csLeader,              basis: 'per-min' },
+        { emoji: '', label: '시야왕',         stat: data.visionLeader,          basis: 'per-min' },
+        { emoji: '', label: '오브젝트딜왕',   stat: data.objectiveDamageLeader, basis: 'per-min' },
+        { emoji: '', label: 'CC왕',          stat: data.ccLeader,              basis: 'per-min' },
       ],
     },
     {
       title: '누적',
       sub: '총 합산 기록',
       items: [
-        { emoji: '⭐', label: '펜타킬',  stat: data.pentaKillsLeader,  basis: 'total' },
-        { emoji: '💀', label: '퍼블왕',  stat: data.firstBloodLeader,  basis: 'total' },
-        { emoji: '🎮', label: '판수왕',  stat: data.mostGamesPlayed,   basis: 'total' },
+        { emoji: '', label: '펜타킬',  stat: data.pentaKillsLeader,  basis: 'total' },
+        { emoji: '', label: '퍼블왕',  stat: data.firstBloodLeader,  basis: 'total' },
+        { emoji: '', label: '판수왕',  stat: data.mostGamesPlayed,   basis: 'total' },
       ],
     },
   ];
@@ -79,10 +80,10 @@ export default function OverviewTab({ mode }: { mode: string }) {
         </div>
         <div className="overview-hero-divider" />
         {[
-          { emoji: '🐉', label: '드래곤', value: data.totalDragonKills, sub: `경기당 ${(data.totalDragonKills/n).toFixed(1)}` },
-          { emoji: '🐲', label: '바론',   value: data.totalBaronKills,  sub: `경기당 ${(data.totalBaronKills/n).toFixed(1)}` },
-          { emoji: '🏰', label: '포탑',   value: data.totalTowerKills,  sub: `경기당 ${(data.totalTowerKills/n).toFixed(1)}` },
-          { emoji: '🌾', label: '총 CS',  value: data.totalCs, sub: `경기당 ${Math.round(data.totalCs / n)}` },
+          { emoji: '', label: '드래곤', value: data.totalDragonKills, sub: `경기당 ${(data.totalDragonKills/n).toFixed(1)}` },
+          { emoji: '', label: '바론',   value: data.totalBaronKills,  sub: `경기당 ${(data.totalBaronKills/n).toFixed(1)}` },
+          { emoji: '', label: '포탑',   value: data.totalTowerKills,  sub: `경기당 ${(data.totalTowerKills/n).toFixed(1)}` },
+          { emoji: '', label: '총 CS',  value: data.totalCs, sub: `경기당 ${Math.round(data.totalCs / n)}` },
         ].map(({ emoji, label, value, sub }) => (
           <div key={label} className="overview-hero-stat">
             <div className="overview-hero-stat-emoji">{emoji}</div>
@@ -119,7 +120,7 @@ export default function OverviewTab({ mode }: { mode: string }) {
       <div className="grid-16 overview-main-row">
         {/* 왼쪽: 픽률 챔피언 */}
         <section className="col-span-11 stats-section card overview-main-left">
-          <h2 className="stats-section-title">🏆 많이 사용된 챔피언</h2>
+          <h2 className="stats-section-title"><TrophyIcon size={16} /> 많이 사용된 챔피언</h2>
           <div className="overview-champ-grid">
             {data.topPickedChampions.slice(0, 20).map(s => (
               <ChampPickCard key={s.championId} stat={s} champions={champions}
@@ -132,7 +133,7 @@ export default function OverviewTab({ mode }: { mode: string }) {
         <div className="col-span-5 overview-main-right">
           {data.topBannedChampions.length > 0 && (
             <section className="stats-section card">
-              <h2 className="stats-section-title">🚫 많이 밴된 챔피언</h2>
+              <h2 className="stats-section-title"><BanIcon size={16} /> 많이 밴된 챔피언</h2>
               <div className="overview-champ-grid overview-champ-grid--sm">
                 {data.topBannedChampions.slice(0, 6).map(s => (
                   <ChampPickCard key={s.championId} stat={s} champions={champions}
@@ -145,7 +146,7 @@ export default function OverviewTab({ mode }: { mode: string }) {
           )}
           {data.topWinRateChampions.length > 0 && (
             <section className="stats-section card">
-              <h2 className="stats-section-title">📈 승률 높은 챔피언 <span className="stats-section-sub">최소 3픽</span></h2>
+              <h2 className="stats-section-title"><TrendingUpIcon size={16} /> 승률 높은 챔피언 <span className="stats-section-sub">최소 3픽</span></h2>
               <div className="overview-champ-grid overview-champ-grid--sm">
                 {data.topWinRateChampions.slice(0, 6).map(s => (
                   <ChampPickCard key={s.championId} stat={s} champions={champions}
@@ -159,7 +160,7 @@ export default function OverviewTab({ mode }: { mode: string }) {
 
       {/* ④ 명예의 전당 */}
       <section className="stats-section card">
-        <h2 className="stats-section-title">🏅 명예의 전당</h2>
+        <h2 className="stats-section-title"><MedalIcon size={16} /> 명예의 전당</h2>
         <div className="hall-groups">
           {hallGroups.map(group => (
             <div key={group.title} className="hall-group">

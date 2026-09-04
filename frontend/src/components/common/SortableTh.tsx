@@ -55,7 +55,7 @@ function SortableThInner<T extends string>({
           }}
           aria-hidden="true"
         >
-          {!active ? '↕' : sortDir === 'desc' ? '▼' : '▲'}
+          {!active ? '' : sortDir === 'desc' ? '▼' : '▲'}
         </span>
       </span>
     </th>

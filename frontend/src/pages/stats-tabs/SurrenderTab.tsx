@@ -30,8 +30,8 @@ export default function SurrenderTab({ mode }: { mode: string }) {
     (best, p) => (!best || p.surrenderRate < best.surrenderRate ? p : best), null);
 
   const funCards = [
-    { emoji: '🏳️', label: '서렌더왕', name: surrenderKing?.riotId, color: 'var(--color-loss)' },
-    { emoji: '💪', label: '끝까지 안포기왕', name: neverGiveUpKing?.riotId, color: 'var(--color-win)' },
+    { emoji: '', label: '서렌더왕', name: surrenderKing?.riotId, color: 'var(--color-loss)' },
+    { emoji: '', label: '끝까지 안포기왕', name: neverGiveUpKing?.riotId, color: 'var(--color-win)' },
   ];
 
   return (

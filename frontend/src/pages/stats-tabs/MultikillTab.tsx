@@ -1,3 +1,4 @@
+import { BarChartIcon, StarIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../lib/api/api';
 import type { MultiKillHighlightsResult, MultiKillEvent, PlayerMultiKillStat } from '../../lib/types/stats';
@@ -34,7 +35,7 @@ export default function MultikillTab({ mode }: { mode: string }) {
       {data.pentaKillEvents.length > 0 && (
         <section style={{ marginBottom: 'var(--spacing-lg)' }}>
           <div className="section-head">
-            <span className="icon-chip">⭐</span>
+            <StarIcon size={16} />
             <span className="section-head-title">펜타킬 명예의 전당</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 'var(--spacing-sm)' }}>
@@ -60,7 +61,7 @@ export default function MultikillTab({ mode }: { mode: string }) {
       )}
 
       <div className="section-head">
-        <span className="icon-chip">📊</span>
+        <BarChartIcon size={16} />
         <span className="section-head-title">플레이어 멀티킬 랭킹</span>
       </div>
       <div className="table-wrapper">

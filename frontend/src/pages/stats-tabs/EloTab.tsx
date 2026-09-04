@@ -1,3 +1,4 @@
+import { TrophyIcon } from '@/components/icons/LolIcons';
 import { Fragment, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
@@ -44,7 +45,7 @@ export default function EloTab() {
   return (
     <div>
       <div className="section-head">
-        <span className="icon-chip">🏆</span>
+        <TrophyIcon size={16} />
         <span className="section-head-title">Elo 랭킹</span>
       </div>
       <div className="table-wrapper">

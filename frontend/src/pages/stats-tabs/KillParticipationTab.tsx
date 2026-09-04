@@ -1,3 +1,4 @@
+import { ZapIcon } from '@/components/icons/LolIcons';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api/api';
 import type { KillParticipationResult, KillParticipationEntry } from '../../lib/types/stats';
@@ -16,7 +17,7 @@ export default function KillParticipationTab({ mode }: { mode: string }) {
     <div>
       {data.kpKing && (
         <div className="card-glass" style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', padding: 'var(--spacing-sm) var(--spacing-md)', marginBottom: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>
-          <span className="icon-chip">⚡</span>
+          <ZapIcon size={16} />
           <span style={{ color: 'var(--color-text-secondary)' }}>
             KP왕 <strong style={{ color: 'var(--color-primary)' }}><PlayerLink riotId={data.kpKing}>{data.kpKing.split('#')[0]}</PlayerLink></strong>
           </span>

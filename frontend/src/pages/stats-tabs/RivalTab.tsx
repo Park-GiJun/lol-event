@@ -1,3 +1,4 @@
+import { FlameIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
@@ -24,7 +25,7 @@ export default function RivalTab({ mode }: { mode: string }) {
     <div>
       {data.topRivalry && (
         <div className="hero-banner" style={{ marginBottom: 'var(--spacing-lg)' }}>
-          <div className="hero-eyebrow">🔥 최대 라이벌</div>
+          <div className="hero-eyebrow"><FlameIcon size={14} /> 최대 라이벌</div>
           <h2 className="hero-title">
             {data.topRivalry.player1.split('#')[0]} <span style={{ color: 'var(--color-text-disabled)', fontWeight: 'var(--font-weight-normal)' }}>vs</span> {data.topRivalry.player2.split('#')[0]}
           </h2>

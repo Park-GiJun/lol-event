@@ -1,3 +1,4 @@
+import { SwordsIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../lib/api/api';
 import type { ComebackIndexResult, ComebackIndexEntry } from '../../lib/types/stats';
@@ -27,7 +28,7 @@ export default function ComebackTab({ mode }: { mode: string }) {
     <div>
       {(data.comebackKing || kings.length > 0) && (
         <div className="hero-banner" style={{ textAlign: 'center', marginBottom: 'var(--spacing-lg)' }}>
-          <div style={{ fontSize: 28, marginBottom: 'var(--spacing-xs)' }}>🔄</div>
+          <div style={{ fontSize: 28, marginBottom: 'var(--spacing-xs)' }}></div>
           <div className="hero-eyebrow" style={{ marginBottom: 'var(--spacing-xs)' }}>컴백킹</div>
           <div className="hero-title" style={{ fontSize: 'var(--font-size-lg)', color: 'var(--color-primary)' }}>
             {data.comebackKing ? data.comebackKing.split('#')[0] : kings[0]?.riotId.split('#')[0] ?? '-'}
@@ -41,7 +42,7 @@ export default function ComebackTab({ mode }: { mode: string }) {
       )}
 
       <div className="section-head">
-        <span className="icon-chip">⚔️</span>
+        <SwordsIcon size={16} />
         <span className="section-head-title">접전 vs 압도 경기 승률</span>
       </div>
       <div className="table-wrapper">
@@ -64,7 +65,7 @@ export default function ComebackTab({ mode }: { mode: string }) {
                     <PlayerLink riotId={e.riotId} mode={mode}>
                       <span style={{ fontWeight: 700 }}>{e.riotId.split('#')[0]}</span>
                     </PlayerLink>
-                    {e.isKing && <span style={{ fontSize: 12 }}>👑</span>}
+                    {e.isKing && <span style={{ fontSize: 12 }}></span>}
                   </div>
                   <div style={{ fontSize: 10, color: 'var(--color-text-disabled)', paddingLeft: 32, marginTop: 1 }}>{e.totalGames}게임</div>
                 </td>

@@ -1,3 +1,4 @@
+import { BanIcon } from '@/components/icons/LolIcons';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api/api';
 import type { BanAnalysisResult, BanEntry } from '../../lib/types/stats';
@@ -17,7 +18,7 @@ export default function BanAnalysisTab({ mode }: { mode: string }) {
   return (
     <div>
       <div className="section-head" style={{ marginBottom: 'var(--spacing-md)' }}>
-        <span className="icon-chip">🚫</span>
+        <BanIcon size={16} />
         <span className="section-head-title">밴 분석</span>
         <span className="section-head-action" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
           총 {data.totalGamesAnalyzed}게임 분석 · 최다 밴
