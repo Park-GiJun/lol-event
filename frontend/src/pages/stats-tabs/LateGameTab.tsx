@@ -28,14 +28,17 @@ export default function LateGameTab({ mode }: { mode: string }) {
   if (loading) return <LoadingCenter />;
   if (!data) return null;
 
+  // 백엔드는 players 만 내려준다. 대표 선수는 목록 맨 앞에서 뽑는다.
+  const lateGameKing = data.players[0]?.riotId ?? null;
+
   return (
     <div>
-      {data.lateGameKing && (
+      {lateGameKing && (
         <div className="section-head" style={{ marginBottom: 'var(--spacing-md)' }}>
           <CrownIcon size={16} />
           <div>
             <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', fontWeight: 'var(--font-weight-bold)', letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase' }}>후반 지배왕</div>
-            <div style={{ fontWeight: 'var(--font-weight-extrabold)', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)' }}>{data.lateGameKing.split('#')[0]}</div>
+            <div style={{ fontWeight: 'var(--font-weight-extrabold)', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)' }}>{lateGameKing.split('#')[0]}</div>
           </div>
         </div>
       )}
@@ -57,7 +60,7 @@ export default function LateGameTab({ mode }: { mode: string }) {
             </tr>
           </thead>
           <tbody>
-            {data.rankings.map((p: LateGamePlayerEntry, i) => (
+            {data.players.map((p: LateGamePlayerEntry, i) => (
               <tr key={p.riotId} className="member-stats-row"
                 onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
                 <td><RankBadge rank={i + 1} /></td>
@@ -78,7 +81,7 @@ export default function LateGameTab({ mode }: { mode: string }) {
                 </td>
               </tr>
             ))}
-            {!data.rankings.length && (
+            {!data.players.length && (
               <tr><td colSpan={8} style={{ textAlign: 'center', padding: 'var(--spacing-xl) 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
             )}
           </tbody>

@@ -82,7 +82,7 @@ export default function DamageAnalysisTab({ mode }: { mode: string }) {
             </tr>
           </thead>
           <tbody>
-            {data.rankings.map((p: DamagePlayerEntry, i) => (
+            {data.players.map((p: DamagePlayerEntry, i) => (
               <tr key={p.riotId} className="member-stats-row"
                 onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
                 <td><RankBadge rank={i + 1} /></td>
@@ -108,7 +108,7 @@ export default function DamageAnalysisTab({ mode }: { mode: string }) {
                 <td className="table-number">{(p.avgTurretDamage / 1000).toFixed(1)}k</td>
               </tr>
             ))}
-            {!data.rankings.length && (
+            {!data.players.length && (
               <tr><td colSpan={10} style={{ textAlign: 'center', padding: 'var(--spacing-2xl) 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
             )}
           </tbody>

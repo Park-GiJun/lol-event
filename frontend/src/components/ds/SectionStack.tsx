@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import type { ComponentType } from 'react';
 import { LoadingCenter } from '@/components/common/Spinner';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
 /**
  * 여러 지표를 한 화면에 세로로 이어 붙인다.
@@ -30,9 +31,22 @@ export function SectionStack({ sections, mode }: { sections: Section[]; mode: st
             <h3 className="t-section-title">{title}</h3>
             {hint && <span className="t-section-hint">{hint}</span>}
           </div>
-          <Suspense fallback={<LoadingCenter />}>
-            <Body mode={mode} />
-          </Suspense>
+          {/* 섹션마다 따로 감싼다. 한 화면에 열 개 넘게 붙어 있어서, 경계가 없으면
+              한 섹션이 던질 때 페이지 전체가 빈 화면이 된다. 어느 섹션이 문제인지도 안 보인다. */}
+          <ErrorBoundary
+            fallback={
+              <p className="t-empty">
+                이 섹션을 불러오지 못했습니다.
+                <span className="t-detail-sub" style={{ display: 'block', marginTop: 4 }}>
+                  나머지 항목은 정상입니다.
+                </span>
+              </p>
+            }
+          >
+            <Suspense fallback={<LoadingCenter />}>
+              <Body mode={mode} />
+            </Suspense>
+          </ErrorBoundary>
         </section>
       ))}
     </div>

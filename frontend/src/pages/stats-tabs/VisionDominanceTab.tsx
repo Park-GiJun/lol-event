@@ -22,14 +22,17 @@ export default function VisionDominanceTab({ mode }: { mode: string }) {
   if (loading) return <LoadingCenter />;
   if (!data) return null;
 
+  // 백엔드는 players 만 내려준다. 대표 선수는 목록 맨 앞에서 뽑는다.
+  const visionKing = data.players[0]?.riotId ?? null;
+
   return (
     <div>
-      {data.visionKing && (
+      {visionKing && (
         <div className="card-glass" style={{ marginBottom: 'var(--spacing-md)', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
           <EyeIcon size={16} />
           <div>
             <div className="hero-eyebrow" style={{ marginBottom: 2 }}>시야 지배왕</div>
-            <div style={{ fontWeight: 'var(--font-weight-extrabold)', fontSize: 'var(--font-size-md)', color: 'var(--color-primary)' }}>{data.visionKing.split('#')[0]}</div>
+            <div style={{ fontWeight: 'var(--font-weight-extrabold)', fontSize: 'var(--font-size-md)', color: 'var(--color-primary)' }}>{visionKing.split('#')[0]}</div>
           </div>
         </div>
       )}
@@ -51,7 +54,7 @@ export default function VisionDominanceTab({ mode }: { mode: string }) {
             </tr>
           </thead>
           <tbody>
-            {data.rankings.map((p: VisionPlayerEntry, i) => (
+            {data.players.map((p: VisionPlayerEntry, i) => (
               <tr key={p.riotId} className="member-stats-row"
                 onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
                 <td><RankBadge rank={i + 1} /></td>
@@ -69,7 +72,7 @@ export default function VisionDominanceTab({ mode }: { mode: string }) {
                 </td>
               </tr>
             ))}
-            {!data.rankings.length && (
+            {!data.players.length && (
               <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
             )}
           </tbody>

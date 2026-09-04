@@ -768,8 +768,9 @@ export interface DamagePlayerEntry {
   avgDamageTaken: number;
   avgTurretDamage: number;
 }
+/** 백엔드는 players 로 내려준다. 예전 타입은 rankings 라 undefined.map 으로 터졌다. */
 export interface DamageAnalysisResult {
-  rankings: DamagePlayerEntry[];
+  players: DamagePlayerEntry[];
 }
 
 // 시야 지배
@@ -782,9 +783,9 @@ export interface VisionPlayerEntry {
   avgControlWardsBought: number;
   visionIndex: number;
 }
+/** 백엔드는 players 만 내려준다. visionKing 은 목록에서 뽑는다. */
 export interface VisionDominanceResult {
-  rankings: VisionPlayerEntry[];
-  visionKing: string | null;
+  players: VisionPlayerEntry[];
 }
 
 // 서렌더 분석
@@ -818,9 +819,9 @@ export interface LateGamePlayerEntry {
   topChampion: string | null;
   topChampionId: number | null;
 }
+/** 백엔드는 players 만 내려준다. lateGameKing 은 목록에서 뽑는다. */
 export interface LateGameResult {
-  rankings: LateGamePlayerEntry[];
-  lateGameKing: string | null;
+  players: LateGamePlayerEntry[];
 }
 
 // ── 신규 추가 4종 ──────────────────────────────────────────────
