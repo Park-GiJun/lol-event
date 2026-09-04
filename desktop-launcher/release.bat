@@ -65,10 +65,10 @@ gh release delete launcher-v%VERSION% --yes 2>nul
 git tag -d launcher-v%VERSION% 2>nul
 git push origin :refs/tags/launcher-v%VERSION% 2>nul
 
-REM Launcher releases must NOT use --latest. The "latest" release must always
-REM be a desktop-v* tag because the launcher's auto-update logic only looks
-REM at desktop-v* tags. A launcher release marked latest would break body updates.
-gh release create launcher-v%VERSION% "%MSI_FILE%" --title "LoL Collector Launcher v%VERSION%" --notes "Launcher v%VERSION% - manual download only, not auto-updated"
+REM Launcher releases must be created with --latest=false. Omitting the flag is
+REM NOT enough: GitHub marks the newest release as "latest" by default. The
+REM "latest" release must always be a desktop-v* tag.
+gh release create launcher-v%VERSION% "%MSI_FILE%" --title "LoL Collector Launcher v%VERSION%" --notes "Launcher v%VERSION% - manual download only, not auto-updated" --latest=false
 
 if errorlevel 1 (
     echo Upload FAILED
