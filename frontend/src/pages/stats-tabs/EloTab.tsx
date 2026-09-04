@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
 import type { EloLeaderboardResult, EloRankEntry } from '../../lib/types/stats';
@@ -59,13 +59,35 @@ export default function EloTab() {
             </tr>
           </thead>
           <tbody>
-            {data.players.map((entry: EloRankEntry) => {
+            {data.players.map((entry: EloRankEntry, i: number) => {
               const tier = eloTier(entry.elo);
+              // 배치 중은 순위를 매기지 않아 Elo 가 여기서 다시 높은 값부터 시작한다.
+              // 구분선 없이 이어 붙이면 767 다음에 1085 가 나와 정렬이 깨진 것처럼 보인다.
+              const firstPlacement = entry.placement && !data.players[i - 1]?.placement;
               return (
-                <tr key={entry.riotId}
+                <Fragment key={entry.riotId}>
+                {firstPlacement && (
+                  <tr>
+                    <td colSpan={5} style={{
+                      padding: '14px 10px 6px', fontSize: 'var(--font-size-xs)', fontWeight: 700,
+                      color: 'var(--color-text-secondary)', borderTop: '1px solid var(--color-border)',
+                    }}>
+                      배치 중 · {data.minGames}경기 미만 {data.placementCount}명
+                      <span style={{ fontWeight: 500, marginLeft: 6, color: 'var(--color-text-disabled)' }}>
+                        표본이 모자라 순위를 매기지 않습니다
+                      </span>
+                    </td>
+                  </tr>
+                )}
+                <tr
                   className="member-stats-row"
+                  style={entry.placement ? { opacity: 0.65 } : undefined}
                   onClick={() => navigate(`/player-stats/${encodeURIComponent(entry.riotId)}`)}>
-                  <td><RankBadge rank={entry.rank} /></td>
+                  <td>
+                    {entry.placement
+                      ? <span style={{ color: 'var(--color-text-disabled)', fontSize: 12, width: 26, textAlign: 'center', display: 'inline-block' }}>–</span>
+                      : <RankBadge rank={entry.rank} />}
+                  </td>
                   <td>
                     <PlayerLink riotId={entry.riotId} mode="all">
                       <span style={{ fontWeight: 600 }}>
@@ -90,6 +112,7 @@ export default function EloTab() {
                     {entry.games}
                   </td>
                 </tr>
+                </Fragment>
               );
             })}
           </tbody>

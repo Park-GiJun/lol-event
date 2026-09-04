@@ -5,6 +5,7 @@ import {
   Swords, Target, TrendingUp, Trophy, UserRound, Users, Users2, X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { PlayerSearch } from './PlayerSearch';
 
 /**
  * 데스크탑과 모바일을 한 벌로 처리하는 셸.
@@ -74,18 +75,10 @@ function titleFor(pathname: string): string {
 
 export function AppLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [search, setSearch] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
   const close = useCallback(() => setDrawerOpen(false), []);
 
-  const submitSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const q = search.trim();
-    if (!q) return;
-    navigate(`/players/${encodeURIComponent(q)}`);
-    setSearch('');
-  };
 
   return (
     <div className="t-shell">
@@ -105,15 +98,7 @@ export function AppLayout() {
           </button>
         </div>
 
-        <form className="t-search" onSubmit={submitSearch} style={{ marginBottom: 12 }}>
-          <Search size={15} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="닉네임#태그"
-            aria-label="플레이어 검색"
-          />
-        </form>
+        <PlayerSearch onNavigate={close} />
 
         {/* 링크를 누르면 서랍을 닫는다. 이동했는데 서랍이 덮여 있으면 바뀐 걸 못 본다.
             경로 변화를 이펙트로 감시하는 대신 클릭 시점에 처리한다. */}

@@ -536,3 +536,53 @@ a.t-person:hover .t-person-name { color: var(--blue-500); }
 
   .t-bottomnav a.active { color: var(--blue-500); }
 }
+
+/* ── 검색 자동완성 ─────────────────────────────────────────────── */
+/* 참가자가 70명뿐이라 전체를 받아 두고 클라이언트에서 거른다. 태그 없이 닉네임만으로 찾힌다. */
+
+.t-search-pop {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--gray-0);
+  border-radius: 10px;
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--gray-200);
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.t-search-item {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.t-search-item.active { background: var(--gray-100); }
+.t-search-name { font-weight: 600; color: var(--gray-900); }
+.t-search-tag  { font-size: 11px; color: var(--gray-500); }
+.t-search-games {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--gray-500);
+  font-variant-numeric: tabular-nums;
+}
+
+.t-search-empty {
+  padding: 12px 10px;
+  font-size: 13px;
+  color: var(--gray-500);
+  text-align: center;
+}
