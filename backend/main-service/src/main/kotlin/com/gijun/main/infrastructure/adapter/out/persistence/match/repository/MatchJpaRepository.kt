@@ -28,4 +28,14 @@ interface MatchJpaRepository : JpaRepository<MatchEntity, Long> {
 
     @Query("SELECT DISTINCT m FROM MatchEntity m LEFT JOIN FETCH m.participants ORDER BY m.gameCreation ASC")
     fun findAllWithParticipantsOrderedByGameCreation(): List<MatchEntity>
+
+    @Query("SELECT MIN(m.gameCreation) FROM MatchEntity m WHERE m.queueId IN :queueIds")
+    fun findFirstGameCreation(queueIds: List<Int>): Long?
+
+    @Query("SELECT MAX(m.gameCreation) FROM MatchEntity m WHERE m.queueId IN :queueIds")
+    fun findLastGameCreation(queueIds: List<Int>): Long?
+
+    /** 경기에 한 번이라도 등장한 인원. 등록 멤버가 아니라 실제 참가자 기준이다. */
+    @Query("SELECT COUNT(DISTINCT p.riotId) FROM MatchEntity m JOIN m.participants p WHERE m.queueId IN :queueIds")
+    fun countDistinctPlayers(queueIds: List<Int>): Long
 }

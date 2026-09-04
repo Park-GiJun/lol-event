@@ -1,5 +1,6 @@
 package com.gijun.main.infrastructure.adapter.out.persistence.match.adapter
 
+import com.gijun.main.application.port.out.MatchPeriodSummary
 import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.domain.model.match.Match
 import com.gijun.main.infrastructure.adapter.out.persistence.match.entity.MatchEntity
@@ -40,6 +41,13 @@ class MatchPersistenceAdapter(
         if (matchIds.isEmpty()) return emptyList()
         return repo.findAllWithParticipantsByMatchIdIn(matchIds).map { it.toDomain() }
     }
+
+    override fun findPeriodSummary(queueIds: List<Int>): MatchPeriodSummary = MatchPeriodSummary(
+        firstMatchAt = repo.findFirstGameCreation(queueIds),
+        lastMatchAt = repo.findLastGameCreation(queueIds),
+        totalMatches = repo.countByQueueIdIn(queueIds),
+        playerCount = repo.countDistinctPlayers(queueIds),
+    )
 
     @Transactional
     override fun deleteByMatchId(matchId: String) = repo.deleteByMatchId(matchId)

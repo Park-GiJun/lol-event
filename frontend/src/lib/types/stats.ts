@@ -890,3 +890,18 @@ export interface PlayerPositionEntry {
 export interface PositionChampionPoolResult {
   allPlayers: PlayerPositionEntry[];
 }
+
+// 챔피언 상대 전적 (백엔드 ChampionMatchupResult)
+export interface MatchupStat {
+  opponent: string;
+  opponentId: number;
+  games: number;
+  wins: number;
+  winRate: number;
+}
+
+export interface ChampionMatchupResult {
+  champion: string;
+  championId: number;
+  matchups: MatchupStat[];
+}
