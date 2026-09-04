@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "net.gijun"
-version = "1.0.7"
+version = "1.0.8"
 
 repositories {
     google()
