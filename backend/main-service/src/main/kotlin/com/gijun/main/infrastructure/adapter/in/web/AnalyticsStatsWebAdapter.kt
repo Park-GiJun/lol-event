@@ -5,7 +5,6 @@ import com.gijun.main.application.dto.stats.result.BanAnalysisResult
 import com.gijun.main.application.dto.stats.result.ComebackIndexResult
 import com.gijun.main.application.dto.stats.result.EarlyGameDominanceResult
 import com.gijun.main.application.dto.stats.result.GameLengthTendencyResult
-import com.gijun.main.application.dto.stats.result.MetaShiftResult
 import com.gijun.main.application.dto.stats.result.ObjectiveCorrelationResult
 import com.gijun.main.application.dto.stats.result.OverviewStats
 import com.gijun.main.application.dto.stats.result.SessionReportResult
@@ -15,7 +14,6 @@ import com.gijun.main.application.port.`in`.GetBanAnalysisUseCase
 import com.gijun.main.application.port.`in`.GetComebackIndexUseCase
 import com.gijun.main.application.port.`in`.GetEarlyGameDominanceUseCase
 import com.gijun.main.application.port.`in`.GetGameLengthTendencyUseCase
-import com.gijun.main.application.port.`in`.GetMetaShiftUseCase
 import com.gijun.main.application.port.`in`.GetObjectiveCorrelationUseCase
 import com.gijun.main.application.port.`in`.GetOverviewStatsUseCase
 import com.gijun.main.application.port.`in`.GetSessionReportUseCase
@@ -32,7 +30,6 @@ import org.springframework.web.bind.annotation.*
 class AnalyticsStatsWebAdapter(
     private val getOverviewStatsUseCase: GetOverviewStatsUseCase,
     private val getWeeklyAwardsUseCase: GetWeeklyAwardsUseCase,
-    private val getMetaShiftUseCase: GetMetaShiftUseCase,
     private val getSessionReportUseCase: GetSessionReportUseCase,
     private val getTimePatternUseCase: GetTimePatternUseCase,
     private val getGameLengthTendencyUseCase: GetGameLengthTendencyUseCase,
@@ -54,13 +51,6 @@ class AnalyticsStatsWebAdapter(
         @RequestParam(defaultValue = "normal") mode: String,
     ): CommonApiResponse<WeeklyAwardsResult> =
         CommonApiResponse.success(getWeeklyAwardsUseCase.getWeeklyAwards(mode))
-
-    @GetMapping("/meta-shift")
-    fun getMetaShift(
-        @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<MetaShiftResult> =
-        CommonApiResponse.success(getMetaShiftUseCase.getMetaShift(mode))
-
     @GetMapping("/sessions")
     fun getSessionReport(
         @RequestParam(defaultValue = "normal") mode: String,

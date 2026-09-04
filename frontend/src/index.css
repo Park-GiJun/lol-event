@@ -14,4 +14,8 @@
 @import './styles/layouts/grid.css';
 @import './styles/pages/monitoring.css';
 @import './styles/components/popup.css';
+/* 분석 탭 27개가 member-stats-table 등 이 파일의 클래스를 쓰는데,
+   분석 페이지 5개(랭킹·플레이어·챔피언·경기·효율)가 이걸 import 하지 않아 스타일이 빠져 있었다.
+   개별 페이지 import 를 전역으로 올린다. */
+@import './styles/pages/stats.css';
 @import './styles/ds.css';

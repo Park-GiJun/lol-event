@@ -1,5 +1,5 @@
 import { memo, useEffect, useId } from 'react';
-import { X } from 'lucide-react';
+import { CloseIcon } from '@/components/icons/LolIcons';
 import type { ReactNode } from 'react';
 
 interface ModalProps {
@@ -45,7 +45,7 @@ export const Modal = memo(function Modal({ isOpen, onClose, title, size = 'md', 
             onClick={onClose}
             aria-label="닫기"
           >
-            <X size={18} aria-hidden="true" />
+            <CloseIcon size={18} aria-hidden="true" />
           </button>
         </div>
         <div className="modal-body">{children}</div>

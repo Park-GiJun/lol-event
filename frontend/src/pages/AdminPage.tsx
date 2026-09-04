@@ -1,6 +1,6 @@
+import { BarChartIcon, CloseIcon, LockIcon, MapPinIcon, PlayIcon, RefreshIcon, ShieldIcon, TrashIcon, TrophyIcon, UsersIcon, ZapIcon } from '@/components/icons/LolIcons';
 import { POSITIONS } from '@/lib/position';
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Lock, RefreshCw, Play, Users, Trophy, Zap, X, Trash2, BarChart2, MapPin } from 'lucide-react';
 import { api } from '../lib/api/api';
 import type {
   StatsResponse,
@@ -15,7 +15,6 @@ import type {
 import type { ReassignPositionsResult } from '../lib/types/member';
 import { PlayerLink } from '../components/common/PlayerLink';
 import '../styles/pages/monitoring.css';
-import '../styles/pages/stats.css';
 
 const ADMIN_PASSWORD = 'admin1234';
 const SESSION_KEY = 'monitoring_auth';
@@ -254,7 +253,7 @@ export function AdminPage() {
     return (
       <div className="t-page monitoring-gate">
         <div className="monitoring-gate-card">
-          <div className="monitoring-gate-icon"><Lock size={32} color="var(--color-primary)" /></div>
+          <div className="monitoring-gate-icon"><LockIcon size={32} color="var(--color-primary)" /></div>
           <h2 className="monitoring-gate-title">어드민 접근 인증</h2>
           <p className="monitoring-gate-desc">접근하려면 관리자 비밀번호를 입력하세요.</p>
           <form onSubmit={e => {
@@ -278,28 +277,28 @@ export function AdminPage() {
     <div className="t-page monitoring-page">
       <div className="monitoring-header">
         <div className="monitoring-header-left">
-          <Shield size={20} color="var(--color-primary)" />
+          <ShieldIcon size={20} color="var(--color-primary)" />
           <h1>어드민</h1>
         </div>
         <button className="btn btn-secondary btn-sm"
           onClick={() => { sessionStorage.removeItem(SESSION_KEY); setAuthed(false); }}>
-          <Lock size={13} />잠금
+          <LockIcon size={13} />잠금
         </button>
       </div>
 
       {/* ── 1. 배치 스케쥴러 ──────────────────────── */}
       <section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div className="section-head">
-          <span className="icon-chip"><RefreshCw size={15} /></span>
+          <span className="icon-chip"><RefreshIcon size={15} /></span>
           <span className="section-head-title">통계 배치 스케쥴러</span>
           <span className="admin-section-sub text-secondary text-xs">매일 04:00 자동 실행 | Kafka 이벤트 수신 시 자동 실행</span>
         </div>
         <div className="admin-action-row">
           <button className="btn btn-primary" onClick={triggerBatch} disabled={triggering}>
-            <Play size={14} />{triggering ? '실행 중...' : '배치 수동 실행'}
+            <PlayIcon size={14} />{triggering ? '실행 중...' : '배치 수동 실행'}
           </button>
           <button className="btn btn-secondary" onClick={loadAll}>
-            <RefreshCw size={14} />상태 새로고침
+            <RefreshIcon size={14} />상태 새로고침
           </button>
           {triggerMsg && (
             <span className={`admin-msg ${triggerMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}>
@@ -309,7 +308,7 @@ export function AdminPage() {
         </div>
         <div className="admin-action-row">
           <button className="btn btn-secondary" onClick={triggerItemStats} disabled={triggeringItems}>
-            <Play size={14} />{triggeringItems ? '집계 중...' : '아이템 통계만 재집계'}
+            <PlayIcon size={14} />{triggeringItems ? '집계 중...' : '아이템 통계만 재집계'}
           </button>
           {triggerItemMsg && (
             <span className={`admin-msg ${triggerItemMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}>
@@ -320,7 +319,7 @@ export function AdminPage() {
         <div className="admin-action-sep" />
         <div className="admin-action-row">
           <button className="btn btn-danger" onClick={clearAllCache} disabled={clearingCache}>
-            <Trash2 size={14} />{clearingCache ? '초기화 중...' : '전체 캐시 초기화'}
+            <TrashIcon size={14} />{clearingCache ? '초기화 중...' : '전체 캐시 초기화'}
           </button>
           {clearCacheMsg && (
             <span className={`admin-msg ${clearCacheMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}>
@@ -348,20 +347,20 @@ export function AdminPage() {
       {/* ── 2. Elo 관리 ──────────────────────────── */}
       <section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div className="section-head">
-          <span className="icon-chip"><BarChart2 size={15} /></span>
+          <span className="icon-chip"><BarChartIcon size={15} /></span>
           <span className="section-head-title">Elo 관리</span>
           <span className="admin-section-sub text-secondary text-xs">전체 초기화 후 매치 시간순 재집계</span>
           <button className="btn btn-secondary btn-sm section-head-action" onClick={loadEloLeaderboard} disabled={eloLoading}>
-            <RefreshCw size={12} />{eloLoading ? '로딩 중...' : '새로고침'}
+            <RefreshIcon size={12} />{eloLoading ? '로딩 중...' : '새로고침'}
           </button>
         </div>
 
         <div className="admin-action-row">
           <button className="btn btn-secondary" onClick={reassignPositions} disabled={posReassigning}>
-            <MapPin size={14} />{posReassigning ? '재배정 중...' : '포지션 재배정 백필'}
+            <MapPinIcon size={14} />{posReassigning ? '재배정 중...' : '포지션 재배정 백필'}
           </button>
           <button className="btn btn-danger" onClick={resetElo} disabled={eloResetting}>
-            <Trash2 size={14} />{eloResetting ? '재집계 중...' : 'Elo 전체 초기화 및 재집계'}
+            <TrashIcon size={14} />{eloResetting ? '재집계 중...' : 'Elo 전체 초기화 및 재집계'}
           </button>
           {eloResetMsg && (
             <span className={`admin-msg ${eloResetMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}>
@@ -415,7 +414,7 @@ export function AdminPage() {
       {/* ── 3. 포지션별 승리기여도 ────────────────── */}
       <section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div className="section-head">
-          <span className="icon-chip"><Trophy size={15} /></span>
+          <span className="icon-chip"><TrophyIcon size={15} /></span>
           <span className="section-head-title">포지션별 승리기여도</span>
           <span className="admin-section-sub text-secondary text-xs">KDA · 승률 · 비전 · CS 종합 기여 점수</span>
           {!posLoaded && (
@@ -478,7 +477,7 @@ export function AdminPage() {
       {/* ── 4. 팀 빌더 (Drag & Drop 4팀) ─────────── */}
       <section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div className="section-head">
-          <span className="icon-chip"><Users size={15} /></span>
+          <span className="icon-chip"><UsersIcon size={15} /></span>
           <span className="section-head-title">팀 빌더 · 예상 승률</span>
           <span className="admin-section-sub text-secondary text-xs">드래그 &amp; 드롭으로 4팀 구성 · 각 팀 최대 5명</span>
           <button className="btn btn-secondary btn-sm section-head-action" onClick={resetTeams}>초기화</button>
@@ -595,7 +594,7 @@ export function AdminPage() {
       {/* ── 5. 전체 듀오 시너지 Top ───────────────── */}
       <section className="stats-section card">
         <div className="section-head">
-          <span className="icon-chip"><Zap size={15} /></span>
+          <span className="icon-chip"><ZapIcon size={15} /></span>
           <span className="section-head-title">듀오 시너지 전체</span>
           <span className="admin-section-sub text-secondary text-xs">승률 순 정렬</span>
         </div>
@@ -695,7 +694,7 @@ function PlayerChip({ riotId, from, allStats, mvpStats, color, className, onRemo
       </div>
       {onRemove && (
         <button className="player-chip-remove" onClick={e => { e.stopPropagation(); onRemove(); }}>
-          <X size={12} />
+          <CloseIcon size={12} />
         </button>
       )}
     </div>

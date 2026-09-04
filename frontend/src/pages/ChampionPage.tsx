@@ -28,7 +28,7 @@ export function ChampionPage() {
     );
   }
 
-  const { detail, tier, matchups, synergies } = data;
+  const { detail, tier, matchups } = data;
   const nameKo = dragon.get(detail.championId)?.nameKo ?? detail.champion;
 
   if (detail.totalGames === 0) {
@@ -198,41 +198,6 @@ export function ChampionPage() {
           )}
         </section>
 
-        <section className="t-card">
-          <div className="t-card-head">
-            <h2 className="t-card-title">같은 팀이었을 때</h2>
-            <span className="t-card-more">함께 나온 조합</span>
-          </div>
-          {synergies.length === 0 ? (
-            <p className="t-empty">기록이 없습니다.</p>
-          ) : (
-            <div className="t-tablewrap">
-              <table className="t-table">
-                <thead><tr><th>챔피언</th><th>전적</th></tr></thead>
-                <tbody>
-                  {synergies.map((s) => {
-                    const isFirst = s.champion1 === detail.champion;
-                    const otherId = isFirst ? s.champion2Id : s.champion1Id;
-                    const otherKey = isFirst ? s.champion2 : s.champion1;
-                    return (
-                      <tr key={`${s.champion1}-${s.champion2}`}>
-                        <td>
-                          <span className="t-person">
-                            <ChampionIcon championId={otherId} champion={otherKey} size="sm" />
-                            <span className="t-person-name">
-                              {dragon.get(otherId)?.nameKo ?? otherKey}
-                            </span>
-                          </span>
-                        </td>
-                        <td><Rate value={s.winRate} games={s.games} /></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
+import { TrashIcon, UserPlusIcon, UsersIcon } from '@/components/icons/LolIcons';
 import { useEffect, useState, useCallback } from 'react';
-import { Trash2, UserPlus, Users } from 'lucide-react';
 import { api } from '../lib/api/api';
-import '../styles/pages/stats.css';
 import { PlayerLink } from '../components/common/PlayerLink';
 import type { Member, BulkRegisterResponse } from '../lib/types/member';
 import { Button } from '../components/common/Button';
@@ -61,10 +60,10 @@ export function MembersPage() {
         </div>
         <div className="flex gap-sm">
           <Button variant="secondary" size="sm" onClick={() => setShowBulk(true)}>
-            <Users size={14} /> 일괄 등록
+            <UsersIcon size={14} /> 일괄 등록
           </Button>
           <Button size="sm" onClick={() => setShowRegister(true)}>
-            <UserPlus size={14} /> 멤버 등록
+            <UserPlusIcon size={14} /> 멤버 등록
           </Button>
         </div>
       </div>
@@ -82,7 +81,7 @@ export function MembersPage() {
                     <td className="text-secondary">{new Date(m.registeredAt).toLocaleDateString('ko-KR')}</td>
                     <td>
                       <Button variant="ghost" size="sm" onClick={() => handleDelete(m.puuid)}>
-                        <Trash2 size={14} color="var(--color-error)" />
+                        <TrashIcon size={14} color="var(--color-error)" />
                       </Button>
                     </td>
                   </tr>

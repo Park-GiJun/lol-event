@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircleIcon } from '@/components/icons/LolIcons';
 import { Modal } from './Modal';
 import { Button } from './Button';
 
@@ -15,7 +15,7 @@ export const ErrorModal = memo(function ErrorModal({ isOpen, title, message, onC
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm"
       footer={<Button variant="danger" onClick={onClose} aria-label="오류 확인 후 닫기">확인</Button>}>
       <div className="error-alert" role="alert">
-        <AlertCircle size={20} aria-hidden="true" className="error-alert-icon" />
+        <AlertCircleIcon size={20} aria-hidden="true" className="error-alert-icon" />
         <span className="error-alert-message">{message}</span>
       </div>
     </Modal>

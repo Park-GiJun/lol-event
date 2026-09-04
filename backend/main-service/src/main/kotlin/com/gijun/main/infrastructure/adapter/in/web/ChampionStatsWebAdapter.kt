@@ -4,12 +4,10 @@ import com.gijun.common.response.CommonApiResponse
 import com.gijun.main.application.dto.stats.result.ChampionCertificateResult
 import com.gijun.main.application.dto.stats.result.ChampionDetailStats
 import com.gijun.main.application.dto.stats.result.ChampionMatchupResult
-import com.gijun.main.application.dto.stats.result.ChampionSynergyResult
 import com.gijun.main.application.dto.stats.result.ChampionTierResult
 import com.gijun.main.application.port.`in`.GetChampionCertificateUseCase
 import com.gijun.main.application.port.`in`.GetChampionMatchupUseCase
 import com.gijun.main.application.port.`in`.GetChampionStatsUseCase
-import com.gijun.main.application.port.`in`.GetChampionSynergyUseCase
 import com.gijun.main.application.port.`in`.GetChampionTierUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -21,7 +19,6 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/stats")
 class ChampionStatsWebAdapter(
     private val getChampionStatsUseCase: GetChampionStatsUseCase,
-    private val getChampionSynergyUseCase: GetChampionSynergyUseCase,
     private val getChampionMatchupUseCase: GetChampionMatchupUseCase,
     private val getChampionTierUseCase: GetChampionTierUseCase,
     private val getChampionCertificateUseCase: GetChampionCertificateUseCase,
@@ -41,14 +38,14 @@ class ChampionStatsWebAdapter(
     @GetMapping("/champion-tier")
     fun getChampionTier(
         @RequestParam(defaultValue = "normal") mode: String,
-        @RequestParam(defaultValue = "5") minGames: Int,
+        @RequestParam(defaultValue = "3") minGames: Int,
     ): CommonApiResponse<ChampionTierResult> =
         CommonApiResponse.success(getChampionTierUseCase.getChampionTier(mode, minGames))
 
     @GetMapping("/champion-certificate")
     fun getChampionCertificate(
         @RequestParam(defaultValue = "normal") mode: String,
-        @RequestParam(defaultValue = "10") minGames: Int,
+        @RequestParam(defaultValue = "3") minGames: Int,
     ): CommonApiResponse<ChampionCertificateResult> =
         CommonApiResponse.success(getChampionCertificateUseCase.getChampionCertificates(mode, minGames))
 
@@ -69,17 +66,4 @@ class ChampionStatsWebAdapter(
             mode,
             samePosition,
         ))
-
-    @Operation(
-        summary = "챔피언 조합 시너지 분석",
-        description = "같은 팀에서 함께 플레이한 챔피언 조합의 승률을 반환합니다"
-    )
-    @GetMapping("/synergy")
-    fun getChampionSynergy(
-        @Parameter(description = "경기 모드 (normal=5v5내전, aram=칼바람, all=전체)", example = "normal")
-        @RequestParam(defaultValue = "normal") mode: String,
-        @Parameter(description = "최소 게임 수 필터", example = "3")
-        @RequestParam(defaultValue = "3") minGames: Int,
-    ): CommonApiResponse<ChampionSynergyResult> =
-        CommonApiResponse.success(getChampionSynergyUseCase.getChampionSynergy(mode, minGames))
 }

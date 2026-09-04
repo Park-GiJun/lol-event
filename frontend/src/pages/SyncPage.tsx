@@ -1,7 +1,6 @@
+import { CheckCircleIcon, DatabaseIcon, RefreshIcon, SwordsIcon, ZapIcon } from '@/components/icons/LolIcons';
 import { useState, useEffect, useCallback } from 'react';
-import { RefreshCw, CheckCircle, Database, Swords, Zap } from 'lucide-react';
 import { api } from '../lib/api/api';
-import '../styles/pages/stats.css';
 import type { DragonSyncResponse, DragonChampion, DragonItem, DragonSummonerSpell } from '../lib/types/dragon';
 import { Spinner } from '../components/common/Spinner';
 
@@ -55,7 +54,7 @@ export function SyncPage() {
           <p className="hero-subtitle">Riot DataDragon에서 최신 챔피언·아이템·스펠 데이터를 받아 DB에 저장하고 캐시를 갱신합니다</p>
         </div>
         <button className="btn btn-primary" onClick={handleSync} disabled={syncing}>
-          {syncing ? <Spinner size="sm" /> : <RefreshCw size={16} />}
+          {syncing ? <Spinner size="sm" /> : <RefreshIcon size={16} />}
           {syncing ? '동기화 중...' : 'DataDragon 동기화'}
         </button>
       </div>
@@ -63,16 +62,16 @@ export function SyncPage() {
       {syncResult && (
         <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
           <div className="section-head">
-            <span className="icon-chip"><CheckCircle size={16} /></span>
+            <span className="icon-chip"><CheckCircleIcon size={16} /></span>
             <span className="section-head-title">동기화 완료</span>
             <span className="section-head-action">
               <span className="badge badge-gold">버전 {syncResult.version}</span>
             </span>
           </div>
           <div className="grid-16">
-            <div className="col-span-5"><SyncStat icon={<Swords size={16} />} label="챔피언" value={syncResult.champions} /></div>
-            <div className="col-span-5"><SyncStat icon={<Database size={16} />} label="아이템" value={syncResult.items} /></div>
-            <div className="col-span-6"><SyncStat icon={<Zap size={16} />} label="소환사 스펠" value={syncResult.spells} /></div>
+            <div className="col-span-5"><SyncStat icon={<SwordsIcon size={16} />} label="챔피언" value={syncResult.champions} /></div>
+            <div className="col-span-5"><SyncStat icon={<DatabaseIcon size={16} />} label="아이템" value={syncResult.items} /></div>
+            <div className="col-span-6"><SyncStat icon={<ZapIcon size={16} />} label="소환사 스펠" value={syncResult.spells} /></div>
           </div>
         </div>
       )}

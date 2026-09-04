@@ -1,7 +1,6 @@
 package com.gijun.main.application.dto.champion.result
 
 import com.gijun.main.application.dto.stats.result.ChampionDetailStats
-import com.gijun.main.application.dto.stats.result.ChampionSynergy
 import com.gijun.main.application.dto.stats.result.ChampionTierEntry
 import com.gijun.main.application.dto.stats.result.MatchupStat
 
@@ -18,5 +17,4 @@ data class ChampionPageResult(
     /** 이 챔피언을 상대로 만났을 때의 전적 */
     val matchups: List<MatchupStat>,
     /** 이 챔피언과 같은 팀이었을 때 잘 맞은 조합 */
-    val synergies: List<ChampionSynergy>,
 )

@@ -1,10 +1,7 @@
+import { BarChartIcon, CloseIcon, GemIcon, ListIcon, MenuIcon, RadioIcon, RefreshIcon, SearchIcon, ShieldIcon, ShuffleIcon, SwordsIcon, TargetIcon, TrendingUpIcon, TrophyIcon, UserIcon, UsersIcon, UsersThreeIcon } from '@/components/icons/LolIcons';
+import type { IconComponent } from '@/components/icons/LolIcons';
 import { useCallback, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import {
-  BarChart2, Gem, List, Menu, Radio, RefreshCw, Search, Shield, Shuffle,
-  Swords, Target, TrendingUp, Trophy, UserRound, Users, Users2, X,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { PlayerSearch } from './PlayerSearch';
 
 /**
@@ -15,45 +12,45 @@ import { PlayerSearch } from './PlayerSearch';
  * 폭에 따라 사이드바가 서랍으로, 하단 탭이 붙는 식으로만 달라진다.
  */
 
-interface NavItem { to: string; icon: LucideIcon; label: string }
+interface NavItem { to: string; icon: IconComponent; label: string }
 
 const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
   {
     items: [
-      { to: '/', icon: BarChart2, label: '홈' },
-      { to: '/players', icon: UserRound, label: '플레이어' },
-      { to: '/champions', icon: Trophy, label: '챔피언' },
-      { to: '/matches', icon: List, label: '경기' },
+      { to: '/', icon: BarChartIcon, label: '홈' },
+      { to: '/players', icon: UserIcon, label: '플레이어' },
+      { to: '/champions', icon: TrophyIcon, label: '챔피언' },
+      { to: '/matches', icon: ListIcon, label: '경기' },
     ],
   },
   {
     label: '분석',
     items: [
-      { to: '/rankings', icon: TrendingUp, label: '랭킹' },
-      { to: '/player-analysis', icon: Users2, label: '플레이어 분석' },
-      { to: '/champion-analysis', icon: Target, label: '챔피언 분석' },
-      { to: '/match-analysis', icon: Swords, label: '경기 분석' },
-      { to: '/efficiency', icon: Gem, label: '효율 분석' },
+      { to: '/rankings', icon: TrendingUpIcon, label: '랭킹' },
+      { to: '/player-analysis', icon: UsersThreeIcon, label: '플레이어 분석' },
+      { to: '/champion-analysis', icon: TargetIcon, label: '챔피언 분석' },
+      { to: '/match-analysis', icon: SwordsIcon, label: '경기 분석' },
+      { to: '/efficiency', icon: GemIcon, label: '효율 분석' },
     ],
   },
   {
     label: '관리',
     items: [
-      { to: '/team-builder', icon: Shuffle, label: '팀 빌더' },
-      { to: '/members', icon: Users, label: '멤버 관리' },
-      { to: '/lcu', icon: Radio, label: 'LCU 수집' },
-      { to: '/sync', icon: RefreshCw, label: '동기화' },
-      { to: '/admin', icon: Shield, label: '어드민' },
+      { to: '/team-builder', icon: ShuffleIcon, label: '팀 빌더' },
+      { to: '/members', icon: UsersIcon, label: '멤버 관리' },
+      { to: '/lcu', icon: RadioIcon, label: 'LCU 수집' },
+      { to: '/sync', icon: RefreshIcon, label: '동기화' },
+      { to: '/admin', icon: ShieldIcon, label: '어드민' },
     ],
   },
 ];
 
 /** 모바일 하단 탭. 자주 쓰는 넷과 메뉴. */
 const BOTTOM_NAV: NavItem[] = [
-  { to: '/', icon: BarChart2, label: '홈' },
-  { to: '/players', icon: UserRound, label: '플레이어' },
-  { to: '/champions', icon: Trophy, label: '챔피언' },
-  { to: '/matches', icon: List, label: '경기' },
+  { to: '/', icon: BarChartIcon, label: '홈' },
+  { to: '/players', icon: UserIcon, label: '플레이어' },
+  { to: '/champions', icon: TrophyIcon, label: '챔피언' },
+  { to: '/matches', icon: ListIcon, label: '경기' },
 ];
 
 const TITLES: [string, string][] = [
@@ -86,7 +83,7 @@ export function AppLayout() {
 
       <aside className={`t-shell-side${drawerOpen ? ' open' : ''}`}>
         <div className="t-brand">
-          <span className="t-brand-mark"><Swords size={15} /></span>
+          <span className="t-brand-mark"><SwordsIcon size={15} /></span>
           LoL 내전
           <button
             className="t-iconbtn"
@@ -94,7 +91,7 @@ export function AppLayout() {
             aria-label="메뉴 닫기"
             style={{ marginLeft: 'auto' }}
           >
-            <X size={18} />
+            <CloseIcon size={18} />
           </button>
         </div>
 
@@ -120,7 +117,7 @@ export function AppLayout() {
       <div className="t-shell-main">
         <header className="t-topbar">
           <button className="t-iconbtn" onClick={() => setDrawerOpen(true)} aria-label="메뉴 열기">
-            <Menu size={20} />
+            <MenuIcon size={20} />
           </button>
           <span className="t-topbar-title">{titleFor(location.pathname)}</span>
           <button
@@ -128,7 +125,7 @@ export function AppLayout() {
             onClick={() => navigate('/players')}
             aria-label="플레이어 검색"
           >
-            <Search size={19} />
+            <SearchIcon size={19} />
           </button>
         </header>
 

@@ -2,11 +2,8 @@ import { lazy } from 'react';
 import { TabPage } from '@/components/ds/TabPage';
 
 const TABS = [
-  { key: 'synergy',     label: '챔피언 시너지', component: lazy(() => import('./stats-tabs/SynergyTab')) },
-  { key: 'chemistry',   label: '팀 케미',      component: lazy(() => import('./stats-tabs/ChemistryTab')) },
   { key: 'ban',         label: '밴 분석',      component: lazy(() => import('./stats-tabs/BanAnalysisTab')) },
   { key: 'certificate', label: '장인 인증',    component: lazy(() => import('./stats-tabs/CertificateTab')) },
-  { key: 'meta',        label: '메타 추적',    component: lazy(() => import('./stats-tabs/MetaTab')) },
 ];
 
 export function ChampionAnalysisPage() {

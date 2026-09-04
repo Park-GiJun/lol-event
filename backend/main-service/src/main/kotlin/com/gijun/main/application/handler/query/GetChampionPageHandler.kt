@@ -4,14 +4,11 @@ import com.gijun.main.application.dto.champion.result.ChampionPageResult
 import com.gijun.main.application.port.`in`.GetChampionMatchupUseCase
 import com.gijun.main.application.port.`in`.GetChampionPageUseCase
 import com.gijun.main.application.port.`in`.GetChampionStatsUseCase
-import com.gijun.main.application.port.`in`.GetChampionSynergyUseCase
 import com.gijun.main.application.port.`in`.GetChampionTierUseCase
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 private const val TIER_MIN_GAMES = 5
-private const val SYNERGY_MIN_GAMES = 2
-private const val TOP_SYNERGIES = 20
 
 @Service
 @Transactional(readOnly = true)
@@ -19,7 +16,6 @@ class GetChampionPageHandler(
     private val getChampionStatsUseCase: GetChampionStatsUseCase,
     private val getChampionTierUseCase: GetChampionTierUseCase,
     private val getChampionMatchupUseCase: GetChampionMatchupUseCase,
-    private val getChampionSynergyUseCase: GetChampionSynergyUseCase,
 ) : GetChampionPageUseCase {
 
     override fun getChampionPage(champion: String, mode: String): ChampionPageResult {
@@ -32,18 +28,12 @@ class GetChampionPageHandler(
             .getMatchup(champion = champion, vsChampion = null, mode = mode)
             .matchups
 
-        // 시너지는 champion1/champion2 어느 쪽에 있을지 모른다. 상대 챔피언 관점으로 뒤집어 담는다.
-        val synergies = getChampionSynergyUseCase.getChampionSynergy(mode, SYNERGY_MIN_GAMES)
-            .synergies
-            .filter { it.champion1 == champion || it.champion2 == champion }
-            .sortedByDescending { it.games }
-            .take(TOP_SYNERGIES)
-
+        // 챔피언 시너지는 걷어냈다. 154경기에서 챔피언 2인 조합은 2,142가지가 나오는데
+        // 중앙 표본이 1회, 10회 이상은 단 하나뿐이라 어떤 컷을 걸어도 의미가 생기지 않는다.
         return ChampionPageResult(
             detail = detail,
             tier = tier,
             matchups = matchups,
-            synergies = synergies,
         )
     }
 }

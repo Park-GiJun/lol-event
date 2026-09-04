@@ -30,7 +30,7 @@ class RankingStatsWebAdapter(
     @GetMapping("/elo")
     fun getEloLeaderboard(
         @Parameter(description = "순위에 들어가기 위한 최소 경기 수", example = "5")
-        @RequestParam(defaultValue = "10") minGames: Int,
+        @RequestParam(defaultValue = "3") minGames: Int,
     ): CommonApiResponse<EloLeaderboardResult> =
         CommonApiResponse.success(getEloLeaderboardUseCase.getLeaderboard(minGames))
 

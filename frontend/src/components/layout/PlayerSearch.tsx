@@ -1,6 +1,6 @@
+import { SearchIcon } from '@/components/icons/LolIcons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search } from 'lucide-react';
 import { usePlayers } from '@/hooks/usePlayers';
 import { parseRiotId } from '@/lib/lol';
 
@@ -62,7 +62,7 @@ export function PlayerSearch({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="t-search" ref={boxRef} style={{ marginBottom: 12 }}>
-      <Search size={15} />
+      <SearchIcon size={15} />
       <input
         value={query}
         onChange={(e) => { setQuery(e.target.value); setOpen(true); setCursor(0); }}

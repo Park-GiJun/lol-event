@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircleIcon } from '@/components/icons/LolIcons';
 import { Button } from './Button';
 
 export interface InlineErrorProps {
@@ -14,7 +14,7 @@ export const InlineError = memo(function InlineError({ message, onRetry, classNa
       className={`inline-error ${className}`.trim()}
       role="alert"
     >
-      <AlertCircle size={16} aria-hidden="true" className="inline-error-icon" />
+      <AlertCircleIcon size={16} aria-hidden="true" className="inline-error-icon" />
       <span className="inline-error-message">{message}</span>
       <Button variant="ghost" size="sm" onClick={onRetry} aria-label="다시 시도">
         다시 시도

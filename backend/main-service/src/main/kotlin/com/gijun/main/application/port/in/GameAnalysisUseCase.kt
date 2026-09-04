@@ -20,7 +20,6 @@ import com.gijun.main.application.dto.stats.result.SessionReportResult
 import com.gijun.main.application.dto.stats.result.SupportImpactResult
 import com.gijun.main.application.dto.stats.result.SurrenderAnalysisResult
 import com.gijun.main.application.dto.stats.result.SurvivalIndexResult
-import com.gijun.main.application.dto.stats.result.TeamChemistryResult
 import com.gijun.main.application.dto.stats.result.TimePatternResult
 import com.gijun.main.application.dto.stats.result.VisionDominanceResult
 import com.gijun.main.application.dto.stats.result.WeeklyAwardsResult
@@ -63,10 +62,6 @@ interface GetSupportImpactUseCase {
 
 interface GetRivalMatchupUseCase {
     fun getRivalMatchups(mode: String, minGames: Int = 3): RivalMatchupResult
-}
-
-interface GetTeamChemistryUseCase {
-    fun getTeamChemistry(mode: String, minGames: Int = 3): TeamChemistryResult
 }
 
 interface GetPositionBadgeUseCase {

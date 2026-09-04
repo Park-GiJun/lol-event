@@ -7,7 +7,6 @@
 import type { MatchSummary, Position } from './match';
 import type {
   ChampionDetailStats,
-  ChampionSynergy,
   ChampionTierEntry,
   EloRankEntry,
   MatchupStat,
@@ -162,5 +161,4 @@ export interface ChampionPageResult {
   /** 표본 미달이면 tier 가 "?" 다. */
   tier: ChampionTierEntry | null;
   matchups: MatchupStat[];
-  synergies: ChampionSynergy[];
 }

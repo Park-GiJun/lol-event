@@ -1,7 +1,6 @@
+import { ActivityIcon, ExternalLinkIcon, LockIcon, MonitorIcon } from '@/components/icons/LolIcons';
 import { useState, useEffect, useRef } from 'react';
-import { Monitor, Lock, ExternalLink, Activity } from 'lucide-react';
 import '../styles/pages/monitoring.css';
-import '../styles/pages/stats.css';
 
 const MONITORING_PASSWORD = 'admin1234';
 const SESSION_KEY = 'monitoring_auth';
@@ -36,7 +35,7 @@ export function MonitoringPage() {
       <div className="monitoring-gate">
         <div className="monitoring-gate-card">
           <div className="monitoring-gate-icon">
-            <Lock size={32} color="var(--color-primary)" />
+            <LockIcon size={32} color="var(--color-primary)" />
           </div>
           <h2 className="monitoring-gate-title">모니터링 접근 인증</h2>
           <p className="monitoring-gate-desc">접근하려면 관리자 비밀번호를 입력하세요.</p>
@@ -64,14 +63,14 @@ export function MonitoringPage() {
     <div className="monitoring-page">
       <div className="monitoring-header">
         <div className="monitoring-header-left">
-          <Monitor size={20} color="var(--color-primary)" />
+          <MonitorIcon size={20} color="var(--color-primary)" />
           <h1>서비스 모니터링</h1>
         </div>
         <button
           className="btn btn-secondary btn-sm monitoring-open-btn"
           onClick={() => sessionStorage.removeItem(SESSION_KEY)}
         >
-          <Lock size={13} />
+          <LockIcon size={13} />
           잠금
         </button>
       </div>
@@ -83,11 +82,11 @@ export function MonitoringPage() {
           rel="noopener noreferrer"
           className="monitoring-link-card monitoring-link-card--grafana"
         >
-          <Monitor size={24} />
+          <MonitorIcon size={24} />
           <div>
             <div className="monitoring-link-title">
               Grafana 대시보드
-              <ExternalLink size={12} style={{ marginLeft: 'var(--spacing-xs)', verticalAlign: 'middle' }} />
+              <ExternalLinkIcon size={12} style={{ marginLeft: 'var(--spacing-xs)', verticalAlign: 'middle' }} />
             </div>
             <div className="monitoring-link-desc">
               HTTP 요청 처리량 · 에러율 · JVM 메모리 · DB 커넥션
@@ -101,11 +100,11 @@ export function MonitoringPage() {
           rel="noopener noreferrer"
           className="monitoring-link-card monitoring-link-card--prometheus"
         >
-          <Activity size={24} />
+          <ActivityIcon size={24} />
           <div>
             <div className="monitoring-link-title">
               Prometheus
-              <ExternalLink size={12} style={{ marginLeft: 'var(--spacing-xs)', verticalAlign: 'middle' }} />
+              <ExternalLinkIcon size={12} style={{ marginLeft: 'var(--spacing-xs)', verticalAlign: 'middle' }} />
             </div>
             <div className="monitoring-link-desc">
               메트릭 수집 · PromQL 쿼리 · 타겟 상태 확인

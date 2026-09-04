@@ -1,16 +1,15 @@
-import { Download, Monitor, Zap, Shield, RefreshCw, BarChart2, Eye, Gamepad2 } from 'lucide-react';
+import { BarChartIcon, DownloadIcon, EyeIcon, GamepadIcon, MonitorIcon, RefreshIcon, ShieldIcon, ZapIcon } from '@/components/icons/LolIcons';
 import { Button } from '../components/common/Button';
-import '../styles/pages/stats.css';
 
 const INSTALLER_URL = 'https://lol.gijun.net/downloads/lol-collector.msi';
 
 const FEATURES = [
-  { icon: Zap, title: '자동 수집', desc: '게임 종료 감지 → 30초 후 자동 수집 · 서버 전송' },
-  { icon: Eye, title: '챔프셀렉트 분석', desc: '상대 모스트픽 · 밴 추천 · 카운터픽 · 팀 전력 비교' },
-  { icon: BarChart2, title: '내전 대시보드', desc: 'Elo 리더보드 · 어워즈 · MVP · 멀티킬 하이라이트' },
-  { icon: Gamepad2, title: '라이브 게임', desc: '실시간 킬/CS/레벨 · 게임 이벤트 피드' },
-  { icon: Shield, title: '로비 캐시', desc: '대기방 10명 데이터 캐싱 → 챔프셀렉트에서 활용' },
-  { icon: RefreshCw, title: '자동 업데이트', desc: '새 버전 자동 감지 · 원클릭 업데이트' },
+  { icon: ZapIcon, title: '자동 수집', desc: '게임 종료 감지 → 30초 후 자동 수집 · 서버 전송' },
+  { icon: EyeIcon, title: '챔프셀렉트 분석', desc: '상대 모스트픽 · 밴 추천 · 카운터픽 · 팀 전력 비교' },
+  { icon: BarChartIcon, title: '내전 대시보드', desc: 'Elo 리더보드 · 어워즈 · MVP · 멀티킬 하이라이트' },
+  { icon: GamepadIcon, title: '라이브 게임', desc: '실시간 킬/CS/레벨 · 게임 이벤트 피드' },
+  { icon: ShieldIcon, title: '로비 캐시', desc: '대기방 10명 데이터 캐싱 → 챔프셀렉트에서 활용' },
+  { icon: RefreshIcon, title: '자동 업데이트', desc: '새 버전 자동 감지 · 원클릭 업데이트' },
 ];
 
 export function LcuPage() {
@@ -31,7 +30,7 @@ export function LcuPage() {
             alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             boxShadow: 'var(--shadow-teal-md)',
           }}>
-            <Monitor size={22} color="#fff" />
+            <MonitorIcon size={22} color="#fff" />
           </div>
           <div>
             <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
@@ -51,7 +50,7 @@ export function LcuPage() {
 
         <a href={INSTALLER_URL} download style={{ display: 'inline-block' }}>
           <Button variant="primary" size="md">
-            <Download size={15} /> 수집기 다운로드 (.msi)
+            <DownloadIcon size={15} /> 수집기 다운로드 (.msi)
           </Button>
         </a>
       </div>
@@ -59,7 +58,7 @@ export function LcuPage() {
       {/* 주요 기능 */}
       <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div className="section-head">
-          <span className="icon-chip"><Zap size={15} /></span>
+          <span className="icon-chip"><ZapIcon size={15} /></span>
           <span className="section-head-title">주요 기능</span>
         </div>
         <div className="grid-16">
@@ -81,7 +80,7 @@ export function LcuPage() {
       {/* 설치 방법 */}
       <div className="card">
         <div className="section-head">
-          <span className="icon-chip"><Download size={15} /></span>
+          <span className="icon-chip"><DownloadIcon size={15} /></span>
           <span className="section-head-title">설치 및 사용</span>
         </div>
         <ol className="lcu-step-list">

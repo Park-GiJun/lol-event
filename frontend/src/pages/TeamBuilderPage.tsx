@@ -1,9 +1,8 @@
+import { CloseIcon, RefreshIcon, UsersIcon } from '@/components/icons/LolIcons';
 import { useState, useEffect } from 'react';
-import { Users, X, RefreshCw } from 'lucide-react';
 import { api } from '../lib/api/api';
 import type { StatsResponse, PlayerStats, MvpStatsResult, MvpPlayerStat, DuoStatsResult, DuoStat, EloLeaderboardResult } from '../lib/types/stats';
 import { PlayerLink } from '../components/common/PlayerLink';
-import '../styles/pages/stats.css';
 
 // ── 타입 ─────────────────────────────────────────────────────
 type TeamKey = 'pool' | 'team1' | 'team2' | 'team3' | 'team4';
@@ -124,7 +123,7 @@ function PlayerChip({ riotId, from, allStats, mvpStats, eloMap, color, onRemove 
           className="player-chip-remove"
           onClick={e => { e.stopPropagation(); onRemove(); }}
         >
-          <X size={12} />
+          <CloseIcon size={12} />
         </button>
       )}
     </div>
@@ -203,7 +202,7 @@ export function TeamBuilderPage() {
           <p className="hero-subtitle">드래그&드롭으로 4팀 구성 · 예상 승률 = WR + Elo + KDA + 듀오시너지</p>
         </div>
         <button className="btn btn-secondary btn-sm" onClick={resetTeams}>
-          <RefreshCw size={14} />초기화
+          <RefreshIcon size={14} />초기화
         </button>
       </div>
 
@@ -327,7 +326,7 @@ export function TeamBuilderPage() {
           {duoData.length > 0 && (
             <div className="card" style={{ marginTop: 'var(--spacing-md)' }}>
               <div className="section-head">
-                <span className="icon-chip"><Users size={14} /></span>
+                <span className="icon-chip"><UsersIcon size={14} /></span>
                 <span className="section-head-title">듀오 시너지 전체 참고</span>
               </div>
               <div className="grid-16">

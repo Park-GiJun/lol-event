@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Loader2 } from 'lucide-react';
+import { LoaderIcon } from '@/components/icons/LolIcons';
 import type { ReactNode } from 'react';
 
 interface ButtonProps {
@@ -40,7 +40,7 @@ export const Button = memo(function Button({
       aria-busy={loading ? true : undefined}
       className={`btn btn-${variant} ${sizeClass} ${iconClass} ${loadingClass} ${className}`.trim().replace(/\s+/g, ' ')}
     >
-      {loading && <Loader2 size={14} className="icon-spin" aria-hidden="true" />}
+      {loading && <LoaderIcon size={14} className="icon-spin" aria-hidden="true" />}
       {children}
     </button>
   );
