@@ -7,6 +7,7 @@ import com.gijun.main.application.port.out.MatchPersistencePort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import com.gijun.main.application.port.out.StatsCachePort
+import com.gijun.main.domain.service.RankingScore
 
 @Service
 @Transactional(readOnly = true)
@@ -57,6 +58,9 @@ class GetRivalMatchupHandler(
                     player1Wins = record.firstWins,
                     player2Wins = record.secondWins,
                     player1WinRate = winRate,
+                    player1AdjustedWinRate =
+                        (RankingScore.shrunkWinRate(record.firstWins, record.games) * 100).toInt() / 100.0,
+                    sampleGrade = RankingScore.sampleGrade(record.games),
                 )
             }
             .sortedByDescending { it.games }

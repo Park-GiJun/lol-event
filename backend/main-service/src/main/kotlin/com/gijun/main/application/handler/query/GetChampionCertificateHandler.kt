@@ -5,6 +5,7 @@ import com.gijun.main.application.dto.stats.result.ChampionCertificateResult
 import com.gijun.main.application.port.`in`.GetChampionCertificateUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.application.port.out.StatsCachePort
+import com.gijun.main.domain.service.RankingScore
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -59,19 +60,24 @@ class GetChampionCertificateHandler(
                 avgAssists = r1(a.toDouble() / g),
                 kda = kda,
                 avgDamage = avgDamage,
-                certified = g >= minGames && winRate >= 50,
+                adjustedWinRate = r2(RankingScore.shrunkWinRate(w, g)),
+                sampleGrade = RankingScore.sampleGrade(g),
+                // 관측 승률로 인증하면 1경기 1승이 곧바로 "장인"이 된다.
+                // 표본을 50% 쪽으로 당긴 값이 50을 넘어야 인증한다 — 표본이 쌓여야만 통과한다.
+                certified = g >= minGames && RankingScore.shrunkWinRate(w, g) >= 50.0,
             )
         }
 
+        // 관측 승률로 정렬하면 1경기 1승(100%)이 33경기 20승(60%)을 이긴다.
         val certifiedMasters = allEntries
             .filter { it.certified }
-            .sortedByDescending { it.winRate }
+            .sortedWith(compareByDescending<ChampionCertEntry> { it.adjustedWinRate }.thenByDescending { it.games })
 
         // topChampionMasters: for each champion, the player with best win rate (among those with >= minGames)
         val topChampionMasters = allEntries
             .filter { it.games >= minGames }
             .groupBy { it.champion }
-            .mapValues { (_, entries) -> entries.maxByOrNull { it.winRate }!! }
+            .mapValues { (_, entries) -> entries.maxByOrNull { it.adjustedWinRate }!! }
 
         ChampionCertificateResult(
             certifiedMasters = certifiedMasters,

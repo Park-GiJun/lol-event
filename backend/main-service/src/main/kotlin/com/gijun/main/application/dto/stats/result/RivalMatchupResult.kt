@@ -7,6 +7,10 @@ data class RivalMatchupEntry(
     val player1Wins: Int,
     val player2Wins: Int,
     val player1WinRate: Int,
+    /** 표본을 50% 쪽으로 당긴 player1 승률. 정렬은 이 값으로 한다. */
+    val player1AdjustedWinRate: Double,
+    /** HIGH / MEDIUM / LOW / INSUFFICIENT */
+    val sampleGrade: String,
 )
 
 data class RivalMatchupResult(

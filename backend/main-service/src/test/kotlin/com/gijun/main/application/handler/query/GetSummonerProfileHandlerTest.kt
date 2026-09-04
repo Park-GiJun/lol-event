@@ -1,5 +1,6 @@
 package com.gijun.main.application.handler.query
 
+import com.gijun.main.domain.service.RankingScore
 import com.gijun.main.application.dto.stats.result.DuoStat
 import com.gijun.main.application.dto.stats.result.DuoStatsResult
 import com.gijun.main.application.dto.stats.result.EloLeaderboardResult
@@ -67,6 +68,8 @@ class GetSummonerProfileHandlerTest {
         player1 = p1, player2 = p2, games = games,
         player1Wins = p1Wins, player2Wins = games - p1Wins,
         player1WinRate = p1Wins * 100 / games,
+        player1AdjustedWinRate = RankingScore.shrunkWinRate(p1Wins, games),
+        sampleGrade = RankingScore.sampleGrade(games),
     )
 
     @Test

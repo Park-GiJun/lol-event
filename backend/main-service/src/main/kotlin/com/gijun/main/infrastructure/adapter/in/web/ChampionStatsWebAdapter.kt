@@ -41,14 +41,14 @@ class ChampionStatsWebAdapter(
     @GetMapping("/champion-tier")
     fun getChampionTier(
         @RequestParam(defaultValue = "normal") mode: String,
-        @RequestParam(defaultValue = "3") minGames: Int,
+        @RequestParam(defaultValue = "5") minGames: Int,
     ): CommonApiResponse<ChampionTierResult> =
         CommonApiResponse.success(getChampionTierUseCase.getChampionTier(mode, minGames))
 
     @GetMapping("/champion-certificate")
     fun getChampionCertificate(
         @RequestParam(defaultValue = "normal") mode: String,
-        @RequestParam(defaultValue = "5") minGames: Int,
+        @RequestParam(defaultValue = "10") minGames: Int,
     ): CommonApiResponse<ChampionCertificateResult> =
         CommonApiResponse.success(getChampionCertificateUseCase.getChampionCertificates(mode, minGames))
 

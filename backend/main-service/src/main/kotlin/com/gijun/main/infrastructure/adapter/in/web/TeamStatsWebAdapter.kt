@@ -29,14 +29,14 @@ class TeamStatsWebAdapter(
         @Parameter(description = "경기 모드 (normal=5v5내전, aram=칼바람, all=전체)", example = "normal")
         @RequestParam(defaultValue = "normal") mode: String,
         @Parameter(description = "최소 게임 수 필터", example = "2")
-        @RequestParam(defaultValue = "2") minGames: Int,
+        @RequestParam(defaultValue = "10") minGames: Int,
     ): CommonApiResponse<DuoStatsResult> =
         CommonApiResponse.success(getDuoStatsUseCase.getDuoStats(mode, minGames))
 
     @GetMapping("/rival-matchup")
     fun getRivalMatchup(
         @RequestParam(defaultValue = "normal") mode: String,
-        @RequestParam(defaultValue = "3") minGames: Int,
+        @RequestParam(defaultValue = "10") minGames: Int,
     ): CommonApiResponse<RivalMatchupResult> =
         CommonApiResponse.success(getRivalMatchupUseCase.getRivalMatchups(mode, minGames))
 
