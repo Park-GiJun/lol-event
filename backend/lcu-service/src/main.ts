@@ -7,7 +7,7 @@ async function bootstrap() {
     origin: [
       'http://localhost:8080', 'http://localhost:5173',
       'http://localhost:3000', 'http://localhost:4173',
-      'https://gijun.net', 'https://www.gijun.net',
+      'https://lol.gijun.net',
     ],
     credentials: true,
   });

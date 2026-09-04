@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { RefreshCw, Swords } from 'lucide-react';
 
-const SERVER_URL = 'https://api.gijun.net';
+const SERVER_URL = 'https://api.lol.gijun.net';
 
 interface ChampionStat {
   champion: string;
@@ -80,7 +80,7 @@ function PlayerCard({ player, accentColor }: { player: PlayerData; accentColor: 
           <span style={{ fontSize: 9, background: accentColor, color: '#fff', borderRadius: 3, padding: '1px 4px', fontWeight: 700, flexShrink: 0 }}>나</span>
         )}
         <span
-          onClick={() => window.lol.openExternal(`https://gijun.net/player-stats/${encodeURIComponent(player.riotId)}`)}
+          onClick={() => window.lol.openExternal(`https://lol.gijun.net/player-stats/${encodeURIComponent(player.riotId)}`)}
           style={{ fontSize: 12, fontWeight: 600, color: accentColor, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', cursor: 'pointer', textDecoration: 'underline' }}
         >
           {player.summonerName || player.riotId}

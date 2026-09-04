@@ -12,7 +12,7 @@ import kotlinx.serialization.json.*
 
 object ApiClient {
 
-    private const val BASE_URL = "https://api.gijun.net/api"
+    private const val BASE_URL = "https://api.lol.gijun.net/api"
 
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 

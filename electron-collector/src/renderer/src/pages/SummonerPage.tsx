@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Search, ChevronDown, ChevronUp } from 'lucide-react';
 
-const API = 'https://api.gijun.net/api';
+const API = 'https://api.lol.gijun.net/api';
 
 interface PlayerStats { riotId: string; games: number; wins: number; }
 interface StatsListResult { stats: PlayerStats[]; }

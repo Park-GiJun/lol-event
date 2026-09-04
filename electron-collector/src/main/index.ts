@@ -54,7 +54,7 @@ function setupTray(): void {
     { label: 'LoL 수집기', enabled: false },
     { type: 'separator' },
     { label: '창 열기', click: () => { if (win) { win.show(); win.focus(); } else createWindow(); } },
-    { label: '웹사이트', click: () => shell.openExternal('https://gijun.net') },
+    { label: '웹사이트', click: () => shell.openExternal('https://lol.gijun.net') },
     { label: '시작 프로그램 등록', type: 'checkbox', checked: app.getLoginItemSettings().openAtLogin,
       click: (item) => app.setLoginItemSettings({ openAtLogin: item.checked }) },
     { type: 'separator' },

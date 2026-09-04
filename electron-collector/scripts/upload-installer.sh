@@ -20,4 +20,4 @@ fi
 echo "📦 업로드 중: $LOCAL_FILE → $SERVER:$REMOTE_PATH"
 ssh "$SERVER" "mkdir -p $(dirname $REMOTE_PATH)"
 scp "$LOCAL_FILE" "$SERVER:$REMOTE_PATH"
-echo "✅ 업로드 완료 — https://gijun.net/downloads/lol-collector-setup.exe"
+echo "✅ 업로드 완료 — https://lol.gijun.net/downloads/lol-collector-setup.exe"

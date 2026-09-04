@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { RefreshCw, Swords } from 'lucide-react';
 
-const API = 'https://api.gijun.net/api';
+const API = 'https://api.lol.gijun.net/api';
 const CDN = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons';
 
 interface Participant {

@@ -66,7 +66,7 @@ fun main() {
             menu = {
                 Item("창 열기") { isVisible = true }
                 Item("웹사이트") {
-                    try { Desktop.getDesktop().browse(URI("https://gijun.net")) } catch (_: Exception) {}
+                    try { Desktop.getDesktop().browse(URI("https://lol.gijun.net")) } catch (_: Exception) {}
                 }
                 if (StartupService.isPackagedApp()) {
                     Separator()

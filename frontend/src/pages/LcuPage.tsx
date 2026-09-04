@@ -2,7 +2,7 @@ import { Download, Monitor, Zap, Shield, RefreshCw, BarChart2, Eye, Gamepad2 } f
 import { Button } from '../components/common/Button';
 import '../styles/pages/stats.css';
 
-const INSTALLER_URL = 'https://gijun.net/downloads/lol-collector.msi';
+const INSTALLER_URL = 'https://lol.gijun.net/downloads/lol-collector.msi';
 
 const FEATURES = [
   { icon: Zap, title: '자동 수집', desc: '게임 종료 감지 → 30초 후 자동 수집 · 서버 전송' },

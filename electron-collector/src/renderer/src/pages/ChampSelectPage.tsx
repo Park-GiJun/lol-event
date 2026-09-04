@@ -3,7 +3,7 @@ import { RefreshCw, Shield, Swords, Star } from 'lucide-react';
 import { PlayerCard, PlayerData } from '../components/lobby/PlayerCard';
 import { BanRecommendBadge } from '../components/lobby/BanRecommendBadge';
 
-const API = 'https://api.gijun.net/api';
+const API = 'https://api.lol.gijun.net/api';
 const DDRAGON = 'https://ddragon.leagueoflegends.com/cdn/14.24.1';
 const CDN = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons';
 

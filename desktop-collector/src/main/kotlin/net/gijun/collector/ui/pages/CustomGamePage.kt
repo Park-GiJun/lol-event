@@ -587,7 +587,7 @@ private fun PlayerCardCompact(player: PlayerData, accentColor: Color) {
                 overflow = TextOverflow.Ellipsis,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier.clickable {
-                    try { Desktop.getDesktop().browse(URI("https://gijun.net/player-stats/${java.net.URLEncoder.encode(player.riotId, "UTF-8")}")) } catch (_: Exception) {}
+                    try { Desktop.getDesktop().browse(URI("https://lol.gijun.net/player-stats/${java.net.URLEncoder.encode(player.riotId, "UTF-8")}")) } catch (_: Exception) {}
                 },
             )
         }

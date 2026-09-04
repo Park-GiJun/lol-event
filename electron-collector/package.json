@@ -34,7 +34,7 @@
     "extraResources": [{ "from": "assets", "to": "assets" }],
     "publish": {
       "provider": "generic",
-      "url": "https://gijun.net/downloads/"
+      "url": "https://lol.gijun.net/downloads/"
     },
     "win": {
       "target": "nsis",

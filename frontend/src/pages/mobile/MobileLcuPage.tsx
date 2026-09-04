@@ -1,6 +1,6 @@
 import { Download, Monitor, Zap, Eye, BarChart2, Gamepad2 } from 'lucide-react';
 
-const INSTALLER_URL = 'https://gijun.net/downloads/lol-collector.msi';
+const INSTALLER_URL = 'https://lol.gijun.net/downloads/lol-collector.msi';
 
 const FEATURES = [
   { icon: Zap, title: '자동 수집', desc: '게임 종료 → 자동 수집 · 서버 전송' },

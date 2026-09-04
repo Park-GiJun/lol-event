@@ -17,8 +17,7 @@ class CorsConfig {
                 "http://localhost:5173",
                 "http://localhost:3000",
                 "http://localhost:4173",
-                "https://gijun.net",
-                "https://www.gijun.net"
+                "https://lol.gijun.net"
             )
             allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
             allowedHeaders = listOf("*")

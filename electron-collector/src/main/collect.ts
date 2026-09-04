@@ -6,7 +6,7 @@ export interface CollectedMatch {
   [key: string]: unknown;
 }
 
-const SERVER_URL = 'https://api.gijun.net/api';
+const SERVER_URL = 'https://api.lol.gijun.net/api';
 const INGEST_URL = `${SERVER_URL}/matches/bulk`;
 const CUSTOM_QUEUE_IDS = new Set([0, 3130, 3270]);
 const MAX_GAMES = 500;
