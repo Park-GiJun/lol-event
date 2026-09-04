@@ -25,8 +25,7 @@ const StatsPage = lazy(() => import('./pages/StatsPage').then(m => ({ default: m
 const RankingsPage = lazy(() => import('./pages/RankingsPage').then(m => ({ default: m.RankingsPage })));
 const PlayerAnalysisPage = lazy(() => import('./pages/PlayerAnalysisPage').then(m => ({ default: m.PlayerAnalysisPage })));
 const ChampionAnalysisPage = lazy(() => import('./pages/ChampionAnalysisPage').then(m => ({ default: m.ChampionAnalysisPage })));
-const MatchAnalysisPage = lazy(() => import('./pages/MatchAnalysisPage').then(m => ({ default: m.MatchAnalysisPage })));
-const EfficiencyPage = lazy(() => import('./pages/EfficiencyPage').then(m => ({ default: m.EfficiencyPage })));
+const HallOfFamePage = lazy(() => import('./pages/HallOfFamePage').then(m => ({ default: m.HallOfFamePage })));
 
 /** 경로에 낀 파라미터를 유지한 채 옮겨 준다. 예전에 공유한 링크가 죽지 않게. */
 function RedirectParam({ to, param }: { to: string; param: string }) {
@@ -60,8 +59,10 @@ function App() {
               <Route path="rankings" element={<RankingsPage />} />
               <Route path="player-analysis" element={<PlayerAnalysisPage />} />
               <Route path="champion-analysis" element={<ChampionAnalysisPage />} />
-              <Route path="match-analysis" element={<MatchAnalysisPage />} />
-              <Route path="efficiency" element={<EfficiencyPage />} />
+              <Route path="hall" element={<HallOfFamePage />} />
+              {/* 경기 분석·효율 분석은 명예의 전당과 선수 분석으로 흡수됐다. */}
+              <Route path="match-analysis" element={<Navigate to="/hall" replace />} />
+              <Route path="efficiency" element={<Navigate to="/player-analysis" replace />} />
               <Route path="reports" element={<StatsPage />} />
 
               <Route path="team-builder" element={<TeamBuilderPage />} />

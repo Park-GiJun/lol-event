@@ -1,4 +1,4 @@
-import { BarChartIcon, CloseIcon, GemIcon, ListIcon, MenuIcon, RadioIcon, RefreshIcon, SearchIcon, ShieldIcon, ShuffleIcon, SwordsIcon, TargetIcon, TrendingUpIcon, TrophyIcon, UserIcon, UsersIcon, UsersThreeIcon } from '@/components/icons/LolIcons';
+import { BarChartIcon, CloseIcon, ListIcon, MedalIcon, MenuIcon, RadioIcon, RefreshIcon, SearchIcon, ShieldIcon, ShuffleIcon, SwordsIcon, TargetIcon, TrendingUpIcon, TrophyIcon, UserIcon, UsersIcon, UsersThreeIcon } from '@/components/icons/LolIcons';
 import type { IconComponent } from '@/components/icons/LolIcons';
 import { useCallback, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -24,13 +24,14 @@ const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
     ],
   },
   {
+    // 분석 화면은 넷이다. 예전에는 다섯 페이지에 탭이 31개 흩어져 있었는데
+    // 어느 탭에 뭐가 있는지 아무도 외우지 못했다.
     label: '분석',
     items: [
-      { to: '/rankings', icon: TrendingUpIcon, label: '랭킹' },
-      { to: '/player-analysis', icon: UsersThreeIcon, label: '플레이어 분석' },
+      { to: '/rankings', icon: TrendingUpIcon, label: '리더보드' },
+      { to: '/player-analysis', icon: UsersThreeIcon, label: '선수 분석' },
       { to: '/champion-analysis', icon: TargetIcon, label: '챔피언 분석' },
-      { to: '/match-analysis', icon: SwordsIcon, label: '경기 분석' },
-      { to: '/efficiency', icon: GemIcon, label: '효율 분석' },
+      { to: '/hall', icon: MedalIcon, label: '명예의 전당' },
     ],
   },
   {
@@ -54,10 +55,13 @@ const BOTTOM_NAV: NavItem[] = [
 ];
 
 const TITLES: [string, string][] = [
+  ['/hall', '명예의 전당'],
+  ['/player-analysis', '선수 분석'],
+  ['/champion-analysis', '챔피언 분석'],
   ['/players', '플레이어'],
   ['/champions', '챔피언'],
   ['/matches', '경기'],
-  ['/rankings', '랭킹'],
+  ['/rankings', '리더보드'],
   ['/members', '멤버 관리'],
   ['/team-builder', '팀 빌더'],
   ['/lcu', 'LCU 수집'],
