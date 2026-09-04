@@ -1,5 +1,5 @@
 /* ================================================================
-   Popup Panel — Hextech Dark Card Tooltip
+   Popup Panel — 카드 툴팁
    ================================================================ */
 
 .popup-trigger {
@@ -28,7 +28,7 @@
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-radius: 10px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(49, 130, 246, 0.08);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(49, 130, 246, 0.08);
   overflow: hidden;
   pointer-events: auto;
   animation: popup-fade-in 0.12s ease;
@@ -68,7 +68,7 @@
   color: var(--color-text-disabled);
   text-align: center;
   border-top: 1px solid var(--color-border);
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--gray-50);
 }
 
 .popup-section-title {

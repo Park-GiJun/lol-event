@@ -1,5 +1,5 @@
 /* ================================================================
- * MATCHES PAGE — Hextech Dark Theme
+ * MATCHES PAGE
  * ================================================================ */
 
 /* -- Match List -- */
@@ -261,7 +261,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--gray-50);
 }
 .match-group-body .match-group { margin-bottom: 0; }
 .match-group-body .match-card  { margin-bottom: 0; }
@@ -669,7 +669,7 @@
 }
 
 /* ================================================================
- * HEXTECH REDESIGN — Win/Loss borders, team colors, hover
+ * 승패 테두리 · 팀 컬러 · hover
  * ================================================================ */
 
 /* -- Match Card Win/Loss Left-Border -- */
@@ -712,7 +712,7 @@
 }
 .dragon-champ-img:hover {
   transform: scale(1.12);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-md);
 }
 
 /* -- Team Color Gradient Background -- */

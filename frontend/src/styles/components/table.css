@@ -1,5 +1,5 @@
 /* ================================================================
- * TABLE — Hextech Dark Data Table
+ * TABLE — 데이터 테이블
  * ================================================================ */
 .table-wrapper {
   overflow-x: auto;
@@ -51,7 +51,7 @@
 
 /* Stripe pattern */
 .table tbody tr:nth-child(even) td {
-  background: rgba(12, 15, 22, 0.5);
+  background: var(--gray-50);
 }
 .table tbody tr:nth-child(even):hover td {
   background: rgba(49, 130, 246, 0.03);

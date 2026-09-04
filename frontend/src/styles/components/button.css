@@ -1,5 +1,5 @@
 /* ================================================================
- * BUTTON — Hextech Button System
+ * BUTTON — 버튼 시스템
  * ================================================================ */
 .btn {
   display: inline-flex;
@@ -67,7 +67,7 @@
   filter: brightness(0.95);
 }
 
-/* -- Secondary: Dark ghost -- */
+/* -- Secondary: 고스트 -- */
 .btn-secondary {
   background: var(--color-bg-tertiary);
   color: var(--color-text-primary);

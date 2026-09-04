@@ -1,5 +1,5 @@
 /* ================================================================
- * MONITORING PAGE — Hextech Dark Theme
+ * MONITORING PAGE
  * ================================================================ */
 
 /* -- Password Gate -- */
@@ -22,7 +22,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--spacing-md);
-  box-shadow: var(--shadow-lg), 0 0 60px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--shadow-lg);
   position: relative;
   animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
