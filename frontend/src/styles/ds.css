@@ -643,28 +643,6 @@ a.t-person:hover .t-person-name { color: var(--blue-500); }
 .t-detail-value { font-size: 13px; font-weight: 700; color: var(--gray-900); font-variant-numeric: tabular-nums; }
 .t-detail-sub   { font-size: 10px; color: var(--gray-500); }
 
-/* ── 섹션 스택 ─────────────────────────────────────────────────── */
-/* 지표 하나가 탭 하나였던 구조를 접었다. 서로 붙어 있어야 할 것들은 세로로 잇는다. */
-
-.t-section-head {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.t-section-title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--gray-900);
-  letter-spacing: var(--tracking-tight);
-}
-
-.t-section-hint { font-size: 12px; color: var(--gray-500); }
 
 /* 탭 이름만으로 안 읽히는 지표가 많다. 내용 위에 한 줄로 띄운다. */
 .t-tab-hint {
