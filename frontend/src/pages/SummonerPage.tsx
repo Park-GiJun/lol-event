@@ -1,15 +1,12 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useSummoner } from '@/hooks/usePages';
-import { ChampionIcon, PersonLink } from '@/components/ds/Champion';
+import { ChampionIcon, ChampionLabel, PersonLink } from '@/components/ds/Champion';
 import { Rate, RecentForm, Stat, WinBar } from '@/components/ds/Stat';
 import { InlineError } from '@/components/common/InlineError';
 import { fmt, parseRiotId } from '@/lib/lol';
 import type { SummonerOpponent, SummonerTeammate } from '@/lib/types/page';
-
-const POSITION_LABEL: Record<string, string> = {
-  TOP: '탑', JUNGLE: '정글', MIDDLE: '미드', BOTTOM: '원딜', UTILITY: '서포터',
-};
+import { positionLabel } from '@/lib/position';
 
 type Tab = 'overview' | 'champions' | 'people';
 
@@ -139,7 +136,7 @@ export function SummonerPage() {
                   <tbody>
                     {positionStats.map((p) => (
                       <tr key={p.position}>
-                        <td><b>{POSITION_LABEL[p.position] ?? p.position}</b></td>
+                        <td><b>{positionLabel(p.position)}</b></td>
                         <td><WinBar winRate={p.winRate} /></td>
                         <td><Rate value={p.winRate} games={p.games} /></td>
                         <td className="t-num">{p.kda}</td>
@@ -208,10 +205,7 @@ export function SummonerPage() {
                 {championStats.map((c) => (
                   <tr key={c.champion}>
                     <td>
-                      <Link to={`/champions/${encodeURIComponent(c.champion)}`} className="t-person">
-                        <ChampionIcon championId={c.championId} champion={c.champion} size="sm" />
-                        <span className="t-person-name">{c.champion}</span>
-                      </Link>
+                      <ChampionLabel championId={c.championId} champion={c.champion} />
                     </td>
                     <td><WinBar winRate={c.winRate} /></td>
                     <td><Rate value={c.winRate} games={c.games} /></td>

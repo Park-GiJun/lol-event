@@ -1,3 +1,5 @@
+import { POSITIONS, positionLabel, type Position } from '@/lib/position';
+import { POSITION_ICON } from '@/components/icons/positionIcon';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
@@ -8,14 +10,15 @@ import { PlayerLink } from '../../components/common/PlayerLink';
 import { ChampionLink } from '../../components/common/ChampionLink';
 import { RankBadge, ChampImg, WinRateBar } from './shared';
 
-const LANE_META: Record<string, { label: string; emoji: string; keyCol: { key: keyof PlayerLaneStat; label: string; format: (v: number) => string } }> = {
-  TOP:     { label: '탑',   emoji: '🛡️', keyCol: { key: 'avgDamageTaken',    label: '평균 받은딜',  format: v => v.toLocaleString() } },
-  JUNGLE:  { label: '정글', emoji: '🌲', keyCol: { key: 'avgNeutralMinions', label: '중립 몬스터', format: v => v.toFixed(1) } },
-  MID:     { label: '미드', emoji: '⚡', keyCol: { key: 'avgDamage',         label: '평균 딜량',   format: v => v.toLocaleString() } },
-  BOTTOM:  { label: '원딜', emoji: '🏹', keyCol: { key: 'avgCs',             label: '평균 CS',    format: v => v.toFixed(1) } },
-  SUPPORT: { label: '서폿', emoji: '💫', keyCol: { key: 'avgWardsPlaced',    label: '평균 와드',  format: v => v.toFixed(1) } },
+/** 라인마다 대표로 하나 더 보여줄 열. 키는 백엔드 Position 과 같아야 한다. */
+const LANE_KEY_COL: Record<Position, { key: keyof PlayerLaneStat; label: string; format: (v: number) => string }> = {
+  TOP:     { key: 'avgDamageTaken',    label: '평균 받은딜',  format: v => v.toLocaleString() },
+  JUNGLE:  { key: 'avgNeutralMinions', label: '중립 몬스터', format: v => v.toFixed(1) },
+  MID:     { key: 'avgDamage',         label: '평균 딜량',   format: v => v.toLocaleString() },
+  ADC:     { key: 'avgCs',             label: '평균 CS',    format: v => v.toFixed(1) },
+  SUPPORT: { key: 'avgWardsPlaced',    label: '평균 와드',  format: v => v.toFixed(1) },
 };
-const LANES = ['TOP', 'JUNGLE', 'MID', 'BOTTOM', 'SUPPORT'] as const;
+const LANES = POSITIONS;
 
 export default function LaneTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
@@ -33,19 +36,19 @@ export default function LaneTab({ mode }: { mode: string }) {
 
   useEffect(() => { load(selectedLane); }, [load, selectedLane]);
 
-  const meta = LANE_META[selectedLane];
+  const keyCol = LANE_KEY_COL[selectedLane as Position];
 
   return (
     <div>
       <div className="tab-bar" style={{ marginBottom: 'var(--spacing-md)' }}>
         {LANES.map(lane => {
-          const m = LANE_META[lane];
+          const Icon = POSITION_ICON[lane];
           return (
             <button key={lane}
               className={`tab-bar-item ${selectedLane === lane ? 'active' : ''}`}
               onClick={() => setSelectedLane(lane)}>
-              <span className="icon-chip-sm">{m.emoji}</span>
-              <span>{m.label}</span>
+              <Icon size={16} />
+              <span>{positionLabel(lane)}</span>
             </button>
           );
         })}
@@ -64,7 +67,7 @@ export default function LaneTab({ mode }: { mode: string }) {
                 <th className="table-number">KDA</th>
                 <th className="table-number">K/D/A</th>
                 <th className="table-number">평균 딜량</th>
-                <th className="table-number">{meta.keyCol.label}</th>
+                <th className="table-number">{keyCol.label}</th>
               </tr>
             </thead>
             <tbody>
@@ -102,7 +105,7 @@ export default function LaneTab({ mode }: { mode: string }) {
                       {p.avgKills.toFixed(1)} / <span style={{ color: 'var(--color-error)' }}>{p.avgDeaths.toFixed(1)}</span> / {p.avgAssists.toFixed(1)}
                     </td>
                     <td className="table-number">{p.avgDamage.toLocaleString()}</td>
-                    <td className="table-number">{meta.keyCol.format(p[meta.keyCol.key] as number)}</td>
+                    <td className="table-number">{keyCol.format(p[keyCol.key] as number)}</td>
                   </tr>
                 );
               })}

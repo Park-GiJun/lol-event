@@ -1,3 +1,4 @@
+import { POSITIONS as POS } from '@/lib/position';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api/api';
@@ -17,7 +18,7 @@ export default function PositionPoolTab({ mode }: { mode: string }) {
   if (isLoading) return <LoadingCenter />;
   if (!data) return <div style={{ padding: 24, color: 'var(--color-text-secondary)' }}>데이터 없음</div>;
 
-  const POSITIONS = ['TOP', 'JUNGLE', 'MID', 'BOTTOM', 'SUPPORT'];
+  const POSITIONS = POS;
   const POS_LABEL: Record<string, string> = { TOP: '탑', JUNGLE: '정글', MID: '미드', BOTTOM: '원딜', SUPPORT: '서폿' };
 
   const posPlayers = data.allPlayers.filter((p: PlayerPositionEntry) => p.position === selectedPos).sort((a: PlayerPositionEntry, b: PlayerPositionEntry) => b.games - a.games);

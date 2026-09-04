@@ -1,3 +1,5 @@
+import type { Position } from "@/lib/position";
+
 /**
  * 표본 신뢰 등급. 내전 데이터는 표본이 금방 한 자리 수로 떨어져서,
  * 승률 같은 비율 지표는 이 등급과 경기 수를 같이 보여주지 않으면 거짓말이 된다.
@@ -63,7 +65,7 @@ export interface RecentMatchStat {
 }
 
 export interface LaneStat {
-  position: 'TOP' | 'JUNGLE' | 'MID' | 'BOTTOM' | 'SUPPORT';
+  position: Position;
   games: number;
   wins: number;
   winRate: number;

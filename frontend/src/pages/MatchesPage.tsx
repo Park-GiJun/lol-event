@@ -5,18 +5,9 @@ import { ChampionIcon, PersonLink } from '@/components/ds/Champion';
 import { InlineError } from '@/components/common/InlineError';
 import { fmt } from '@/lib/lol';
 import type { MatchSummary, ParticipantSummary } from '@/lib/types/match';
+import { byPosition } from '@/lib/position';
 
-const POSITION_ORDER = ['TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY'];
 
-/** 포지션 배정이 있으면 그 순서로, 없으면 원래 순서로 세운다. */
-function byPosition(a: ParticipantSummary, b: ParticipantSummary) {
-  const ia = POSITION_ORDER.indexOf(a.assignedPosition);
-  const ib = POSITION_ORDER.indexOf(b.assignedPosition);
-  if (ia === -1 && ib === -1) return 0;
-  if (ia === -1) return 1;
-  if (ib === -1) return -1;
-  return ia - ib;
-}
 
 function dayKey(ms: number) {
   const d = new Date(ms);

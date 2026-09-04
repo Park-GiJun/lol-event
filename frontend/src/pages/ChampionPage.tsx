@@ -4,10 +4,7 @@ import { useDragon } from '@/context/DragonContext';
 import { ChampionIcon, PersonLink } from '@/components/ds/Champion';
 import { Rate, Stat, TierBadge, WinBar } from '@/components/ds/Stat';
 import { InlineError } from '@/components/common/InlineError';
-
-const POSITION_LABEL: Record<string, string> = {
-  TOP: '탑', JUNGLE: '정글', MIDDLE: '미드', BOTTOM: '원딜', UTILITY: '서포터',
-};
+import { positionLabel } from '@/lib/position';
 
 export function ChampionPage() {
   const { champion = '' } = useParams();
@@ -124,7 +121,7 @@ export function ChampionPage() {
                 <tbody>
                   {detail.laneStats.map((l) => (
                     <tr key={l.position}>
-                      <td><b>{POSITION_LABEL[l.position] ?? l.position}</b></td>
+                      <td><b>{positionLabel(l.position)}</b></td>
                       <td><Rate value={l.winRate} games={l.games} /></td>
                       <td className="t-num">{l.kda}</td>
                     </tr>

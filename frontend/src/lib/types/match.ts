@@ -1,3 +1,4 @@
+import type { MaybePosition as Position } from "@/lib/position";
 export interface Participant {
   /**
    * 포지션 재배정 백필 결과.
@@ -127,8 +128,8 @@ export interface Team {
   firstDragon: boolean;
 }
 
-/** TOP | JUNGLE | MIDDLE | BOTTOM | UTILITY, 미배정이면 빈 문자열 */
-export type Position = "TOP" | "JUNGLE" | "MIDDLE" | "BOTTOM" | "UTILITY" | "";
+/** 백엔드 Position enum 을 그대로 따른다. 정의는 @/lib/position 한 곳에만 둔다. */
+export type { Position };
 
 export interface Match {
   matchId: string;

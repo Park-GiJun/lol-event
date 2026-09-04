@@ -1,3 +1,4 @@
+import { POSITIONS } from '@/lib/position';
 import { useState, useEffect, useRef } from 'react';
 import { Shield, Lock, RefreshCw, Play, Users, Trophy, Zap, X, Trash2, BarChart2, MapPin } from 'lucide-react';
 import { api } from '../lib/api/api';
@@ -37,7 +38,7 @@ const TEAM_META: Record<Exclude<TeamKey, 'pool'>, { label: string; main: string;
   team4: { label: '팀 4', main: '#CC5DE8', bg: 'rgba(204,93,232,0.08)',  border: 'rgba(204,93,232,0.35)' },
 };
 
-const POS_ORDER = ['TOP', 'JUNGLE', 'MID', 'BOTTOM', 'SUPPORT'] as const;
+const POS_ORDER = POSITIONS;
 const POS_LABELS: Record<string, string> = {
   TOP: 'TOP', JUNGLE: 'JGL', MID: 'MID', BOTTOM: 'BOT', SUPPORT: 'SUP',
 };

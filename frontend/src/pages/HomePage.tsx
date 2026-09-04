@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useHome } from '@/hooks/usePages';
-import { ChampionIcon, PersonLink } from '@/components/ds/Champion';
+import { ChampionIcon, ChampionLabel, PersonLink } from '@/components/ds/Champion';
 import { Rate, Stat, TierBadge } from '@/components/ds/Stat';
 import { InlineError } from '@/components/common/InlineError';
 import { fmt, parseRiotId } from '@/lib/lol';
@@ -118,10 +118,8 @@ export function HomePage() {
                     <tr key={c.champion}>
                       <td><TierBadge tier={c.tier} /></td>
                       <td>
-                        <Link to={`/champions/${encodeURIComponent(c.champion)}`} className="t-person">
-                          <ChampionIcon championId={c.championId} champion={c.champion} size="sm" />
-                          <span className="t-person-name">{c.champion}</span>
-                        </Link>
+                        {/* 영문 키(c.champion)를 그대로 쓰면 "Kaisa" 처럼 나온다. 한글명 조회는 ChampionLabel 이 한다. */}
+                        <ChampionLabel championId={c.championId} champion={c.champion} />
                       </td>
                       <td>
                         <Rate

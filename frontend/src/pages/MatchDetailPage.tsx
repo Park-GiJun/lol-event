@@ -4,20 +4,8 @@ import { ChampionIcon, ItemIcons, PersonLink } from '@/components/ds/Champion';
 import { InlineError } from '@/components/common/InlineError';
 import { calcMvp, fmt } from '@/lib/lol';
 import type { Match, Participant } from '@/lib/types/match';
+import { byPosition, positionLabel } from '@/lib/position';
 
-const POSITION_ORDER = ['TOP', 'JUNGLE', 'MIDDLE', 'BOTTOM', 'UTILITY'];
-const POSITION_LABEL: Record<string, string> = {
-  TOP: '탑', JUNGLE: '정글', MIDDLE: '미드', BOTTOM: '원딜', UTILITY: '서포터',
-};
-
-function byPosition(a: Participant, b: Participant) {
-  const ia = POSITION_ORDER.indexOf(a.assignedPosition);
-  const ib = POSITION_ORDER.indexOf(b.assignedPosition);
-  if (ia === -1 && ib === -1) return 0;
-  if (ia === -1) return 1;
-  if (ib === -1) return -1;
-  return ia - ib;
-}
 
 function kdaRatio(p: Participant) {
   return p.deaths === 0 ? p.kills + p.assists : (p.kills + p.assists) / p.deaths;
@@ -71,7 +59,7 @@ function TeamTable({
             {players.map((p) => (
               <tr key={p.riotId}>
                 <td className="t-stat-sample">
-                  {POSITION_LABEL[p.assignedPosition] ?? '–'}
+                  {positionLabel(p.assignedPosition)}
                 </td>
                 <td>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
