@@ -39,7 +39,7 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.file.Files
 
-private const val LAUNCHER_VERSION = "1.0.2"
+private const val LAUNCHER_VERSION = "1.0.3"
 private const val GITHUB_RELEASES_URL = "https://api.github.com/repos/Park-GiJun/lol-event/releases"
 private const val MAIN_APP_DISPLAY_NAME = "LoL-Collector"
 private const val MAIN_APP_EXE = "LoL-Collector.exe"
