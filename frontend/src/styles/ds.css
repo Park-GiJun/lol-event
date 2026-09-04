@@ -1,0 +1,538 @@
+/* ================================================================
+ * 디자인 시스템 — 토스 라이트 기반, op.gg 밀도
+ *
+ * 기존 CSS 5,000여 줄과 클래스명이 겹치지 않도록 전부 t- 로 시작한다.
+ * 개편이 끝나면 레거시 쪽을 걷어내고 이 접두사도 뗀다.
+ *
+ * 원칙 셋:
+ *  1. 테두리 대신 면으로 나눈다. 선이 많으면 밀도가 소음이 된다.
+ *  2. 한 화면에 굵은 숫자는 하나. 나머지는 같은 크기로 눕힌다.
+ *  3. 비율 옆에는 항상 표본 수가 붙는다. "승률 100%" 만 크게 띄우면 거짓말이 된다.
+ * ================================================================ */
+
+/* ── 앱 셸 ─────────────────────────────────────────────────────── */
+
+.t-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  min-height: 100dvh;
+  background: var(--bg-base);
+}
+
+.t-shell-side {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  background: var(--gray-0);
+  padding: 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.t-shell-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.t-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 20px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  color: var(--gray-900);
+}
+
+.t-brand-mark {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--blue-500);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.t-navgroup-label {
+  padding: 16px 10px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+}
+
+.t-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-700);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.t-nav:hover { background: var(--gray-50); }
+
+.t-nav.active {
+  background: var(--blue-50);
+  color: var(--blue-600);
+  font-weight: 600;
+}
+
+.t-nav svg { flex-shrink: 0; }
+
+/* 상단 바 — 모바일에서만 뜬다 */
+.t-topbar {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 14px;
+  background: var(--gray-0);
+}
+
+.t-topbar-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.t-iconbtn {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--gray-700);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.t-iconbtn:hover { background: var(--gray-100); }
+
+.t-bottomnav { display: none; }
+
+/* ── 검색 ──────────────────────────────────────────────────────── */
+
+.t-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.t-search svg {
+  position: absolute;
+  left: 12px;
+  color: var(--gray-500);
+  pointer-events: none;
+}
+
+.t-search input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px 0 36px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--gray-100);
+  font-size: 14px;
+  color: var(--gray-900);
+}
+
+.t-search input::placeholder { color: var(--gray-500); }
+.t-search input:focus { outline: 2px solid var(--blue-500); outline-offset: 0; background: var(--gray-0); }
+
+/* ── 페이지 ────────────────────────────────────────────────────── */
+
+.t-page {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 28px 24px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.t-page-head { display: flex; flex-direction: column; gap: 4px; }
+
+.t-page-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  color: var(--gray-900);
+}
+
+.t-page-sub { font-size: 14px; color: var(--gray-600); }
+
+/* ── 카드 / 섹션 ───────────────────────────────────────────────── */
+
+.t-card {
+  background: var(--gray-0);
+  border-radius: var(--radius-xl);
+  padding: 20px;
+}
+
+/* 회색 바탕 위에서 한 단계 더 눌러야 할 때 */
+.t-card-sunken { background: var(--gray-50); }
+
+.t-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.t-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  color: var(--gray-900);
+}
+
+.t-card-more {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-600);
+}
+
+.t-card-more:hover { color: var(--blue-500); }
+
+.t-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* ── 숫자 ──────────────────────────────────────────────────────── */
+
+.t-stat { display: flex; flex-direction: column; gap: 2px; }
+
+.t-stat-label { font-size: 13px; color: var(--gray-600); }
+
+.t-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  color: var(--gray-900);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 화면의 주인공 숫자. 한 화면에 하나만 쓴다. */
+.t-stat-hero { font-size: 40px; line-height: 1.1; }
+
+/* 비율 옆에 붙는 표본 수. 비율보다 항상 작지만 사라지지는 않는다. */
+.t-stat-sample {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-500);
+  font-variant-numeric: tabular-nums;
+}
+
+.t-delta-up { color: var(--color-win); }
+.t-delta-down { color: var(--color-loss); }
+
+/* ── 칩 / 배지 ─────────────────────────────────────────────────── */
+
+.t-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--radius-full);
+  background: var(--gray-100);
+  color: var(--gray-700);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.t-chip-win { background: var(--color-win-bg); color: var(--color-win); }
+.t-chip-loss { background: var(--color-loss-bg); color: var(--color-loss); }
+.t-chip-blue { background: var(--blue-50); color: var(--blue-600); }
+
+/* 표본이 못 미더울 때만 눈에 띈다. 충분하면 배지를 아예 안 단다. */
+.t-chip-low { background: #FFF4E5; color: #B25E00; }
+
+.t-tier {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--gray-100);
+  color: var(--gray-600);
+}
+
+.t-tier-S { background: #FFE9E9; color: #D42B2B; }
+.t-tier-A { background: #FFF1E0; color: #C2660A; }
+.t-tier-B { background: var(--blue-50); color: var(--blue-600); }
+.t-tier-C { background: var(--gray-100); color: var(--gray-600); }
+.t-tier-D { background: var(--gray-100); color: var(--gray-500); }
+
+/* ── 탭 ────────────────────────────────────────────────────────── */
+
+.t-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  box-shadow: inset 0 -1px 0 var(--gray-200);
+}
+
+.t-tabs::-webkit-scrollbar { display: none; }
+
+.t-tab {
+  position: relative;
+  flex-shrink: 0;
+  padding: 12px 14px;
+  border: 0;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gray-500);
+  white-space: nowrap;
+}
+
+.t-tab:hover { color: var(--gray-700); }
+
+.t-tab.active { color: var(--gray-900); }
+
+.t-tab.active::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--gray-900);
+}
+
+/* 분절 컨트롤 — 모드 전환처럼 선택지가 적을 때 */
+.t-seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--gray-100);
+}
+
+.t-seg button {
+  border: 0;
+  background: transparent;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-600);
+}
+
+.t-seg button.active { background: var(--gray-0); color: var(--gray-900); box-shadow: var(--shadow-sm); }
+
+/* ── 표 ────────────────────────────────────────────────────────── */
+
+.t-tablewrap { overflow-x: auto; margin: 0 -20px; padding: 0 20px; }
+
+.t-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.t-table th {
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+  white-space: nowrap;
+}
+
+.t-table td {
+  padding: 10px;
+  color: var(--gray-800);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* 행 구분은 선이 아니라 아주 얕은 면으로 한다 */
+.t-table tbody tr { box-shadow: inset 0 -1px 0 var(--gray-100); }
+.t-table tbody tr:last-child { box-shadow: none; }
+.t-table tbody tr:hover { background: var(--gray-50); }
+
+.t-num { text-align: right; font-variant-numeric: tabular-nums; }
+.t-rank { width: 36px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
+
+/* ── 경기 행 ───────────────────────────────────────────────────── */
+
+/* 승패는 좌측 4px 막대로만 말한다. 배경을 물들이면 표가 시끄러워진다. */
+.t-result {
+  border-left: 4px solid var(--gray-300);
+  padding-left: 12px;
+}
+
+.t-result-win { border-left-color: var(--color-win); }
+.t-result-loss { border-left-color: var(--color-loss); }
+
+.t-champ {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--gray-100);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.t-champ-sm { width: 22px; height: 22px; border-radius: 6px; }
+.t-champ-lg { width: 48px; height: 48px; border-radius: 12px; }
+
+.t-item {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--gray-100);
+  flex-shrink: 0;
+}
+
+.t-items { display: flex; gap: 2px; }
+
+/* ── 승률 막대 ─────────────────────────────────────────────────── */
+
+.t-bar {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--gray-200);
+  overflow: hidden;
+  min-width: 60px;
+}
+
+.t-bar-fill { height: 100%; background: var(--blue-500); border-radius: inherit; }
+.t-bar-fill-loss { background: var(--color-loss); }
+
+/* 최근 폼 — W/L 점 나열 */
+.t-form { display: inline-flex; gap: 3px; }
+
+.t-form-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.t-form-w { background: var(--color-win-bg); color: var(--color-win); }
+.t-form-l { background: var(--color-loss-bg); color: var(--color-loss); }
+
+/* ── 사람 ──────────────────────────────────────────────────────── */
+
+.t-person { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+
+.t-person-name {
+  font-weight: 600;
+  color: var(--gray-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+a.t-person:hover .t-person-name { color: var(--blue-500); }
+
+.t-person-tag { font-size: 12px; color: var(--gray-500); }
+
+/* ── 빈 상태 / 로딩 ────────────────────────────────────────────── */
+
+.t-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--gray-500);
+  font-size: 14px;
+}
+
+.t-skel {
+  border-radius: var(--radius-md);
+  background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-50) 50%, var(--gray-100) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* ── 반응형 ────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .t-shell { grid-template-columns: 1fr; }
+
+  .t-shell-side {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 260px;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .t-shell-side.open { transform: translateX(0); }
+
+  .t-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(25, 31, 40, 0.4);
+  }
+
+  .t-topbar { display: flex; }
+
+  .t-page { padding: 16px 16px 88px; gap: 16px; }
+  .t-page-title { font-size: 22px; }
+  .t-card { padding: 16px; border-radius: var(--radius-lg); }
+  .t-tablewrap { margin: 0 -16px; padding: 0 16px; }
+  .t-stat-hero { font-size: 32px; }
+
+  .t-bottomnav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    background: var(--gray-0);
+    box-shadow: inset 0 1px 0 var(--gray-200);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .t-bottomnav a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 9px 0 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-500);
+  }
+
+  .t-bottomnav a.active { color: var(--blue-500); }
+}

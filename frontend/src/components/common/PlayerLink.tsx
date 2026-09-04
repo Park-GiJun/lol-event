@@ -18,7 +18,7 @@ function PlayerPopupContent({ riotId, data }: { riotId: string; data: PlayerDeta
   const eloColor = (eloVal ?? 0) >= 1200 ? 'var(--color-win)' : (eloVal ?? 0) >= 1000 ? 'var(--color-primary)' : 'var(--color-loss)';
 
   return (
-    <div className="popup-player" onClick={() => navigate(`/player-stats/${encodeURIComponent(riotId)}`)}>
+    <div className="popup-player" onClick={() => navigate(`/players/${encodeURIComponent(riotId)}`)}>
       {/* 헤더 */}
       <div className="popup-player-header">
         <div className="popup-player-name">{riotId.split('#')[0]}</div>

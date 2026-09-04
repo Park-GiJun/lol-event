@@ -1,138 +1,221 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { EloLeaderboard } from '@/components/dashboard/EloLeaderboard';
-import { ChampionTierTable } from '@/components/dashboard/ChampionTierTable';
-import { BanTrendCard } from '@/components/dashboard/BanTrendCard';
-import { StatsOverview } from '@/components/dashboard/StatsOverview';
-import { ChampionPicksTab } from '@/components/dashboard/ChampionPicksTab';
-import { PartnerSynergyTab } from '@/components/dashboard/PartnerSynergyTab';
-import { api } from '../lib/api/api';
-import type { WeeklyAwardsResult, MultiKillHighlightsResult } from '../lib/types/stats';
+import { Link } from 'react-router-dom';
+import { useHome } from '@/hooks/usePages';
+import { ChampionIcon, PersonLink } from '@/components/ds/Champion';
+import { Rate, Stat, TierBadge } from '@/components/ds/Stat';
+import { InlineError } from '@/components/common/InlineError';
+import { fmt, parseRiotId } from '@/lib/lol';
 
-const CURRENT_RIOT_ID_KEY = 'lol-event:currentRiotId';
+function fmtDate(ms: number | null) {
+  if (!ms) return '–';
+  const d = new Date(ms);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+}
 
-const TABS = [
-  { key: 'elo',       label: 'Elo 리더보드',   icon: '🏆' },
-  { key: 'champion',  label: '챔피언 티어표',   icon: '⚔️' },
-  { key: 'ban',       label: '밴픽 트렌드',     icon: '🚫' },
-  { key: 'picks',     label: '챔피언 픽 순위',  icon: '🎯' },
-  { key: 'partner',   label: '파트너 시너지',   icon: '🤝' },
-];
+function HomeSkeleton() {
+  return (
+    <div className="t-page">
+      <div className="t-skel" style={{ height: 132, borderRadius: 16 }} />
+      <div className="t-grid">
+        <div className="t-skel" style={{ height: 320, borderRadius: 16 }} />
+        <div className="t-skel" style={{ height: 320, borderRadius: 16 }} />
+      </div>
+    </div>
+  );
+}
 
 export function HomePage() {
-  const currentRiotId = localStorage.getItem(CURRENT_RIOT_ID_KEY) || undefined;
-  const [tab, setTab] = useState('elo');
+  const { data, isPending, error, refetch } = useHome('all');
 
-  const { data: awards } = useQuery({
-    queryKey: ['home-awards'],
-    queryFn: () => api.get<WeeklyAwardsResult>('/stats/awards?mode=normal'),
-    staleTime: 5 * 60 * 1000,
-  });
-  const { data: mkHighlights } = useQuery({
-    queryKey: ['home-multikill'],
-    queryFn: () => api.get<MultiKillHighlightsResult>('/stats/multikill-highlights?mode=normal'),
-    staleTime: 5 * 60 * 1000,
-  });
+  if (isPending) return <HomeSkeleton />;
+  if (error) {
+    return (
+      <div className="t-page">
+        <InlineError message="기록을 불러오지 못했습니다." onRetry={() => refetch()} />
+      </div>
+    );
+  }
+  if (!data) return null;
+
+  const { overview, topPlayers, topChampions, recentMatches, period } = data;
 
   return (
-    <div className="flex flex-col gap-6 page-enter">
-      {/* 히어로 배너 */}
-      <div className="hero-banner">
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div className="hero-eyebrow">내전 통계 대시보드</div>
-          <h1 className="hero-title">
-            <span className="text-gradient">LoL 이벤트</span>
-            <span style={{ color: 'var(--color-text-primary)' }}> 리그</span>
-          </h1>
-          <p className="hero-subtitle">실시간 Elo 랭킹 · 챔피언 통계 · 파트너 시너지</p>
+    <div className="t-page">
+      {/* 이 내전이 지금까지 뭘 쌓았는지 한 줄로 말한다.
+          큰 숫자는 경기 수 하나뿐이고, 나머지는 같은 크기로 눕힌다. */}
+      <section className="t-card">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 32, alignItems: 'flex-end' }}>
+          <Stat
+            label="지금까지 치른 내전"
+            value={`${period.totalMatches}경기`}
+            sample={`${fmtDate(period.firstMatchAt)} – ${fmtDate(period.lastMatchAt)}`}
+            hero
+          />
+          <Stat label="함께한 사람" value={`${period.playerCount}명`} />
+          <Stat label="평균 경기 시간" value={`${overview.avgGameMinutes}분`} />
         </div>
-      </div>
+      </section>
 
-      {/* 상단: 전체 통계 리더 */}
-      <StatsOverview />
+      <div className="t-grid">
+        {/* ── Elo 상위 ── */}
+        <section className="t-card">
+          <div className="t-card-head">
+            <h2 className="t-card-title">Elo 순위</h2>
+            <Link to="/rankings" className="t-card-more">전체 보기</Link>
+          </div>
 
-      {/* 어워즈 하이라이트 */}
-      {(awards || mkHighlights) && (
-        <div className="grid-16">
-          {awards && (
-            <div className="col-span-8 card" style={{ animation: 'fadeInUp 0.4s ease both' }}>
-              <div className="section-head">
-                <span className="icon-chip">🏆</span>
-                <span className="section-head-title">이번 기간 어워즈</span>
-              </div>
-              <div>
-                {[
-                  { label: '펜타킬', entry: awards.pentaKillHero,   emoji: '⚔️',  accent: 'var(--color-loss)' },
-                  { label: '승률왕', entry: awards.highestWinRate,  emoji: '👑',  accent: 'var(--color-primary)' },
-                  { label: '데스왕', entry: awards.mostDeaths,      emoji: '💀',  accent: 'var(--color-text-secondary)' },
-                ].map(({ label, entry, emoji, accent }) => entry && (
-                  <div key={label} className="pill-row">
-                    <span className="icon-chip icon-chip-sm">{emoji}</span>
-                    <span className="pill-row-label" style={{ width: 46 }}>{label}</span>
-                    <span className="pill-row-name">{entry.riotId.split('#')[0]}</span>
-                    <span className="pill-row-value" style={{ color: accent, fontSize: 11 }}>{entry.displayValue}</span>
-                  </div>
-                ))}
-              </div>
+          {topPlayers.length === 0 ? (
+            <p className="t-empty">아직 순위를 매길 만큼 경기가 쌓이지 않았습니다.</p>
+          ) : (
+            <div className="t-tablewrap">
+              <table className="t-table">
+                <thead>
+                  <tr>
+                    <th className="t-rank">#</th>
+                    <th>플레이어</th>
+                    <th className="t-num">Elo</th>
+                    <th>전적</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topPlayers.map((p) => (
+                    <tr key={p.riotId}>
+                      <td className="t-rank">{p.rank}</td>
+                      <td><PersonLink riotId={p.riotId} /></td>
+                      <td className="t-num"><b>{Math.round(p.elo)}</b></td>
+                      <td>
+                        <Rate value={Math.round(p.winRate)} games={p.games} grade={p.sampleGrade} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
+        </section>
 
-          {mkHighlights && mkHighlights.pentaKillEvents.length > 0 && (
-            <div className="col-span-8 card" style={{ animation: 'fadeInUp 0.4s 0.07s ease both' }}>
-              <div className="section-head">
-                <span className="icon-chip">⚡</span>
-                <span className="section-head-title">최근 펜타킬</span>
-              </div>
-              <div>
-                {mkHighlights.pentaKillEvents.slice(0, 3).map((e, i) => {
-                  const date = new Date(e.gameCreation).toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' });
-                  return (
-                    <div key={i} className="pill-row">
-                      <span style={{
-                        fontSize: 10, fontWeight: 800,
-                        background: 'linear-gradient(135deg, #FFD700, #FF8C00)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                        backgroundClip: 'text',
-                        letterSpacing: '0.02em',
-                      }}>PENTA</span>
-                      <span className="pill-row-name">{e.riotId.split('#')[0]}</span>
-                      <span style={{ color: 'var(--color-text-secondary)' }}>{e.champion}</span>
-                      <span className="pill-row-value" style={{ color: 'var(--color-text-disabled)', fontSize: 11, fontWeight: 400 }}>{date}</span>
-                    </div>
-                  );
-                })}
-              </div>
+        {/* ── 챔피언 티어 ── */}
+        <section className="t-card">
+          <div className="t-card-head">
+            <h2 className="t-card-title">잘 나가는 챔피언</h2>
+            <Link to="/champions" className="t-card-more">전체 보기</Link>
+          </div>
+
+          {topChampions.length === 0 ? (
+            <p className="t-empty">표본을 채운 챔피언이 아직 없습니다.</p>
+          ) : (
+            <div className="t-tablewrap">
+              <table className="t-table">
+                <thead>
+                  <tr>
+                    <th style={{ width: 32 }}>티어</th>
+                    <th>챔피언</th>
+                    <th>승률</th>
+                    <th className="t-num">KDA</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topChampions.map((c) => (
+                    <tr key={c.champion}>
+                      <td><TierBadge tier={c.tier} /></td>
+                      <td>
+                        <Link to={`/champions/${encodeURIComponent(c.champion)}`} className="t-person">
+                          <ChampionIcon championId={c.championId} champion={c.champion} size="sm" />
+                          <span className="t-person-name">{c.champion}</span>
+                        </Link>
+                      </td>
+                      <td>
+                        <Rate
+                          value={c.winRate}
+                          games={c.games}
+                          grade={c.sampleGrade}
+                          adjusted={c.adjustedWinRate}
+                        />
+                      </td>
+                      <td className="t-num">{c.kda}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-        </div>
-      )}
-
-      {/* 탭 전환 섹션 */}
-      <div className="card" style={{ padding: 0, overflow: 'visible' }}>
-        {/* 탭 헤더 */}
-        <div className="tab-bar">
-          {TABS.map(t => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`tab-bar-item${tab === t.key ? ' active' : ''}`}
-            >
-              <span style={{ fontSize: 12 }}>{t.icon}</span>
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        {/* 탭 콘텐츠 */}
-        <div style={{ padding: '20px', animation: 'fadeIn 0.18s ease both' }} key={tab}>
-          {tab === 'elo'      && <EloLeaderboard currentRiotId={currentRiotId} />}
-          {tab === 'champion' && <ChampionTierTable />}
-          {tab === 'ban'      && <BanTrendCard />}
-          {tab === 'picks'    && <ChampionPicksTab />}
-          {tab === 'partner'  && <PartnerSynergyTab />}
-        </div>
+        </section>
       </div>
+
+      {/* ── 최근 경기 ── */}
+      <section className="t-card">
+        <div className="t-card-head">
+          <h2 className="t-card-title">최근 경기</h2>
+          <Link to="/matches" className="t-card-more">전체 보기</Link>
+        </div>
+
+        {recentMatches.length === 0 ? (
+          <p className="t-empty">아직 기록된 경기가 없습니다.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {recentMatches.map((m) => {
+              const blue = m.participants.filter((p) => p.team === 'blue');
+              const red = m.participants.filter((p) => p.team === 'red');
+              const blueWon = m.teams.find((t) => t.teamId === 100)?.win ?? false;
+              return (
+                <Link
+                  key={m.matchId}
+                  to={`/matches/${encodeURIComponent(m.matchId)}`}
+                  className={`t-result ${blueWon ? 't-result-win' : 't-result-loss'}`}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '10px 12px', borderRadius: 10, background: 'var(--gray-50)',
+                  }}
+                >
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-700)', width: 74 }}>
+                    {blueWon ? '블루 승' : '레드 승'}
+                  </span>
+                  <span style={{ display: 'flex', gap: 2 }}>
+                    {blue.map((p) => (
+                      <ChampionIcon key={p.riotId} championId={p.championId} champion={p.champion} size="sm" />
+                    ))}
+                  </span>
+                  <span className="t-stat-sample">vs</span>
+                  <span style={{ display: 'flex', gap: 2 }}>
+                    {red.map((p) => (
+                      <ChampionIcon key={p.riotId} championId={p.championId} champion={p.champion} size="sm" />
+                    ))}
+                  </span>
+                  <span className="t-stat-sample" style={{ marginLeft: 'auto' }}>
+                    {fmt(m.gameDuration)}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* ── 부문별 1위 ── */}
+      <section className="t-card">
+        <div className="t-card-head">
+          <h2 className="t-card-title">부문별 1위</h2>
+        </div>
+        <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
+          {([
+            ['최다 출전', overview.mostGamesPlayed],
+            ['승률', overview.winRateLeader],
+            ['KDA', overview.kdaLeader],
+            ['딜량', overview.damageLeader],
+            ['CS', overview.csLeader],
+            ['시야 점수', overview.visionLeader],
+          ] as const).map(([label, leader]) =>
+            leader ? (
+              <div key={label} className="t-stat">
+                <span className="t-stat-label">{label}</span>
+                <span className="t-stat-value" style={{ fontSize: 18 }}>{leader.displayValue}</span>
+                <span className="t-stat-sample">
+                  {parseRiotId(leader.riotId).name} · {leader.games}경기
+                </span>
+              </div>
+            ) : null,
+          )}
+        </div>
+      </section>
     </div>
   );
 }

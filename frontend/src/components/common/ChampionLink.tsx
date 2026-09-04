@@ -17,7 +17,7 @@ function ChampionPopupContent({ champion, data }: { champion: string; data: Cham
   const wrColor = wr >= 60 ? 'var(--color-win)' : wr >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
 
   return (
-    <div className="popup-champ" onClick={() => navigate(`/stats/champion/${encodeURIComponent(champion)}`)}>
+    <div className="popup-champ" onClick={() => navigate(`/champions/${encodeURIComponent(champion)}`)}>
       {/* 헤더 */}
       <div className="popup-champ-header">
         {img && (

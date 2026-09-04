@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=DM+Sans:wght@400;500;600;700&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 @import './styles/global.css';
@@ -11,8 +11,7 @@
 @import './styles/components/badge.css';
 @import './styles/components/patterns.css';
 @import './styles/components/sse.css';
-@import './styles/layouts/sidebar.css';
 @import './styles/layouts/grid.css';
 @import './styles/pages/monitoring.css';
 @import './styles/components/popup.css';
-@import './styles/mobile.css';
+@import './styles/ds.css';

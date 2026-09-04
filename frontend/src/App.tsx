@@ -1,17 +1,17 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { lazy, Suspense, useState, useEffect } from 'react';
+import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { lazy, Suspense, useState } from 'react';
 import { setErrorHandler } from './lib/api/api';
 import { DragonProvider } from './context/DragonContext';
-import { Layout } from './components/layout/Layout';
-import { MobileLayout } from './components/layout/MobileLayout';
+import { AppLayout } from './components/layout/AppLayout';
 import { ErrorModal } from './components/common/ErrorModal';
 import { LoadingCenter } from './components/common/Spinner';
-import { useIsMobile } from './hooks/useMobile';
 
-// Desktop pages
+// 개편된 화면
 const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
+const SummonerPage = lazy(() => import('./pages/SummonerPage').then(m => ({ default: m.SummonerPage })));
+
+// 아직 개편 전인 화면. 새 셸 안에서 그대로 동작한다.
 const MemberStatsListPage = lazy(() => import('./pages/MemberStatsListPage').then(m => ({ default: m.MemberStatsListPage })));
-const PlayerStatsPage = lazy(() => import('./pages/PlayerStatsPage').then(m => ({ default: m.PlayerStatsPage })));
 const ChampionStatsPage = lazy(() => import('./pages/ChampionStatsPage').then(m => ({ default: m.ChampionStatsPage })));
 const ChampionListPage = lazy(() => import('./pages/ChampionListPage').then(m => ({ default: m.ChampionListPage })));
 const MembersPage = lazy(() => import('./pages/MembersPage').then(m => ({ default: m.MembersPage })));
@@ -28,29 +28,11 @@ const ChampionAnalysisPage = lazy(() => import('./pages/ChampionAnalysisPage').t
 const MatchAnalysisPage = lazy(() => import('./pages/MatchAnalysisPage').then(m => ({ default: m.MatchAnalysisPage })));
 const EfficiencyPage = lazy(() => import('./pages/EfficiencyPage').then(m => ({ default: m.EfficiencyPage })));
 
-// Mobile pages
-const MobileHomePage = lazy(() => import('./pages/mobile/MobileHomePage').then(m => ({ default: m.MobileHomePage })));
-const MobileStatsPage = lazy(() => import('./pages/mobile/MobileStatsPage').then(m => ({ default: m.MobileStatsPage })));
-const MobileMatchesPage = lazy(() => import('./pages/mobile/MobileMatchesPage').then(m => ({ default: m.MobileMatchesPage })));
-const MobilePlayerListPage = lazy(() => import('./pages/mobile/MobilePlayerListPage').then(m => ({ default: m.MobilePlayerListPage })));
-const MobilePlayerDetailPage = lazy(() => import('./pages/mobile/MobilePlayerDetailPage').then(m => ({ default: m.MobilePlayerDetailPage })));
-const MobileChampionListPage = lazy(() => import('./pages/mobile/MobileChampionListPage').then(m => ({ default: m.MobileChampionListPage })));
-const MobileChampionDetailPage = lazy(() => import('./pages/mobile/MobileChampionDetailPage').then(m => ({ default: m.MobileChampionDetailPage })));
-const MobileMorePage = lazy(() => import('./pages/mobile/MobileMorePage').then(m => ({ default: m.MobileMorePage })));
-const MobileMembersPage = lazy(() => import('./pages/mobile/MobileMembersPage').then(m => ({ default: m.MobileMembersPage })));
-const MobileAdminPage = lazy(() => import('./pages/mobile/MobileAdminPage').then(m => ({ default: m.MobileAdminPage })));
-const MobileSyncPage = lazy(() => import('./pages/mobile/MobileSyncPage').then(m => ({ default: m.MobileSyncPage })));
-const MobileLcuPage = lazy(() => import('./pages/mobile/MobileLcuPage').then(m => ({ default: m.MobileLcuPage })));
-const MobileMatchDetailPage = lazy(() => import('./pages/mobile/MobileMatchDetailPage').then(m => ({ default: m.MobileMatchDetailPage })));
-
-function MobileRedirect() {
-  const isMobile = useIsMobile();
-  useEffect(() => {
-    if (isMobile && !window.location.pathname.startsWith('/m')) {
-      window.location.replace('/m');
-    }
-  }, [isMobile]);
-  return null;
+/** 경로에 낀 파라미터를 유지한 채 옮겨 준다. 예전에 공유한 링크가 죽지 않게. */
+function RedirectParam({ to, param }: { to: string; param: string }) {
+  const params = useParams();
+  const value = params[param];
+  return <Navigate to={value ? `${to}/${encodeURIComponent(value)}` : to} replace />;
 }
 
 function App() {
@@ -60,59 +42,65 @@ function App() {
 
   return (
     <DragonProvider>
-    <BrowserRouter>
-      <MobileRedirect />
-      <Suspense fallback={<LoadingCenter />}>
-        <Routes>
-          {/* Desktop routes */}
-          <Route element={<Layout />}>
-            <Route index element={<HomePage />} />
-            <Route path="player-stats" element={<MemberStatsListPage />} />
-            <Route path="player-stats/:riotId" element={<PlayerStatsPage />} />
-            <Route path="stats/player/:riotId" element={<PlayerStatsPage />} />
-            <Route path="champions" element={<ChampionListPage />} />
-            <Route path="stats/champion/:champion" element={<ChampionStatsPage />} />
-            <Route path="members" element={<MembersPage />} />
-            <Route path="matches" element={<MatchesPage />} />
-            <Route path="matches/:matchId" element={<MatchDetailPage />} />
-            <Route path="lcu" element={<LcuPage />} />
-            <Route path="sync" element={<SyncPage />} />
-            <Route path="admin" element={<AdminPage />} />
-            <Route path="team-builder" element={<TeamBuilderPage />} />
-            <Route path="rankings" element={<RankingsPage />} />
-            <Route path="player-analysis" element={<PlayerAnalysisPage />} />
-            <Route path="champion-analysis" element={<ChampionAnalysisPage />} />
-            <Route path="match-analysis" element={<MatchAnalysisPage />} />
-            <Route path="efficiency" element={<EfficiencyPage />} />
-            <Route path="reports" element={<StatsPage />} />
-          </Route>
+      <BrowserRouter>
+        <Suspense fallback={<LoadingCenter />}>
+          <Routes>
+            <Route element={<AppLayout />}>
+              <Route index element={<HomePage />} />
 
-          {/* Mobile routes */}
-          <Route path="m" element={<MobileLayout />}>
-            <Route index element={<MobileHomePage />} />
-            <Route path="stats" element={<MobileStatsPage />} />
-            <Route path="matches" element={<MobileMatchesPage />} />
-            <Route path="match/:matchId" element={<MobileMatchDetailPage />} />
-            <Route path="players" element={<MobilePlayerListPage />} />
-            <Route path="player/:riotId" element={<MobilePlayerDetailPage />} />
-            <Route path="champions" element={<MobileChampionListPage />} />
-            <Route path="champion/:champion" element={<MobileChampionDetailPage />} />
-            <Route path="more" element={<MobileMorePage />} />
-            <Route path="members" element={<MobileMembersPage />} />
-            <Route path="admin" element={<MobileAdminPage />} />
-            <Route path="sync" element={<MobileSyncPage />} />
-            <Route path="lcu" element={<MobileLcuPage />} />
-            <Route path="*" element={<Navigate to="/m" replace />} />
-          </Route>
-        </Routes>
-      </Suspense>
-      <ErrorModal
-        isOpen={!!error}
-        title={error?.title ?? ''}
-        message={error?.message ?? ''}
-        onClose={() => setError(null)}
-      />
-    </BrowserRouter>
+              <Route path="players" element={<MemberStatsListPage />} />
+              <Route path="players/:riotId" element={<SummonerPage />} />
+
+              <Route path="champions" element={<ChampionListPage />} />
+              <Route path="champions/:champion" element={<ChampionStatsPage />} />
+
+              <Route path="matches" element={<MatchesPage />} />
+              <Route path="matches/:matchId" element={<MatchDetailPage />} />
+
+              <Route path="rankings" element={<RankingsPage />} />
+              <Route path="player-analysis" element={<PlayerAnalysisPage />} />
+              <Route path="champion-analysis" element={<ChampionAnalysisPage />} />
+              <Route path="match-analysis" element={<MatchAnalysisPage />} />
+              <Route path="efficiency" element={<EfficiencyPage />} />
+              <Route path="reports" element={<StatsPage />} />
+
+              <Route path="team-builder" element={<TeamBuilderPage />} />
+              <Route path="members" element={<MembersPage />} />
+              <Route path="lcu" element={<LcuPage />} />
+              <Route path="sync" element={<SyncPage />} />
+              <Route path="admin" element={<AdminPage />} />
+
+              {/* 예전 경로. 데스크탑/모바일 두 벌이던 시절 링크를 그대로 살려 둔다. */}
+              <Route path="player-stats" element={<Navigate to="/players" replace />} />
+              <Route path="player-stats/:riotId" element={<RedirectParam to="/players" param="riotId" />} />
+              <Route path="stats/player/:riotId" element={<RedirectParam to="/players" param="riotId" />} />
+              <Route path="stats/champion/:champion" element={<RedirectParam to="/champions" param="champion" />} />
+
+              <Route path="m" element={<Navigate to="/" replace />} />
+              <Route path="m/stats" element={<Navigate to="/rankings" replace />} />
+              <Route path="m/matches" element={<Navigate to="/matches" replace />} />
+              <Route path="m/match/:matchId" element={<RedirectParam to="/matches" param="matchId" />} />
+              <Route path="m/players" element={<Navigate to="/players" replace />} />
+              <Route path="m/player/:riotId" element={<RedirectParam to="/players" param="riotId" />} />
+              <Route path="m/champions" element={<Navigate to="/champions" replace />} />
+              <Route path="m/champion/:champion" element={<RedirectParam to="/champions" param="champion" />} />
+              <Route path="m/members" element={<Navigate to="/members" replace />} />
+              <Route path="m/admin" element={<Navigate to="/admin" replace />} />
+              <Route path="m/sync" element={<Navigate to="/sync" replace />} />
+              <Route path="m/lcu" element={<Navigate to="/lcu" replace />} />
+              <Route path="m/more" element={<Navigate to="/" replace />} />
+
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
+        </Suspense>
+        <ErrorModal
+          isOpen={!!error}
+          title={error?.title ?? ''}
+          message={error?.message ?? ''}
+          onClose={() => setError(null)}
+        />
+      </BrowserRouter>
     </DragonProvider>
   );
 }
