@@ -1,3 +1,9 @@
+/**
+ * 표본 신뢰 등급. 내전 데이터는 표본이 금방 한 자리 수로 떨어져서,
+ * 승률 같은 비율 지표는 이 등급과 경기 수를 같이 보여주지 않으면 거짓말이 된다.
+ */
+export type SampleGrade = "HIGH" | "MEDIUM" | "LOW" | "INSUFFICIENT";
+
 export interface ChampionCount {
   champ: string;
   count: number;
@@ -114,6 +120,7 @@ export interface PlayerEloHistoryResult {
 }
 
 export interface EloRankEntry {
+  /** 배치 중인 플레이어는 0. 순위를 매기지 않는다. */
   rank: number;
   riotId: string;
   elo: number;
@@ -123,10 +130,17 @@ export interface EloRankEntry {
   winRate: number;
   winStreak: number;
   lossStreak: number;
+  /** 최소 경기 수 미달. 목록에는 남기되 순위에서는 뺀다. */
+  placement: boolean;
+  sampleGrade: SampleGrade;
 }
 
 export interface EloLeaderboardResult {
+  /** 순위가 매겨진 플레이어가 먼저, 배치 중인 플레이어가 뒤에 온다. */
   players: EloRankEntry[];
+  minGames: number;
+  rankedCount: number;
+  placementCount: number;
 }
 
 export interface ChampionPlayerStat {
@@ -264,7 +278,11 @@ export interface DuoStat {
   player2: string;
   games: number;
   wins: number;
+  /** 관측 승률. 항상 games 와 같이 보여줄 것. */
   winRate: number;
+  /** 전체 평균 쪽으로 끌어당긴 승률. 정렬은 이 값으로 한다. */
+  adjustedWinRate: number;
+  sampleGrade: SampleGrade;
   avgKills: number;
   avgDeaths: number;
   avgAssists: number;
@@ -621,7 +639,11 @@ export interface ChampionTierEntry {
   tier: string;
   tierScore: number;
   games: number;
+  /** 관측 승률. 항상 games 와 같이 보여줄 것. */
   winRate: number;
+  /** 전체 평균 쪽으로 끌어당긴 승률. 정렬은 이 값으로 한다. */
+  adjustedWinRate: number;
+  sampleGrade: SampleGrade;
   kda: number;
   pickRate: number;
   avgDamage: number;

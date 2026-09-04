@@ -1,4 +1,10 @@
 export interface Participant {
+  /**
+   * 포지션 재배정 백필 결과.
+   * Riot 원본 lane/role 은 5v5 내전에서 심하게 왜곡돼 있으니(정글 464 / 탑 156)
+   * 포지션 표기는 반드시 이 값을 쓴다.
+   */
+  assignedPosition: Position;
   puuid: string | null;
   riotId: string;
   champion: string;
@@ -121,6 +127,9 @@ export interface Team {
   firstDragon: boolean;
 }
 
+/** TOP | JUNGLE | MIDDLE | BOTTOM | UTILITY, 미배정이면 빈 문자열 */
+export type Position = "TOP" | "JUNGLE" | "MIDDLE" | "BOTTOM" | "UTILITY" | "";
+
 export interface Match {
   matchId: string;
   queueId: number;
@@ -140,4 +149,60 @@ export interface SaveMatchesResponse {
   saved: number;
   skipped: number;
   total: number;
+}
+
+// ── 목록 화면 전용 요약 타입 ────────────────────────────────────
+// 상세 Participant 는 114개 필드라 목록에서 그대로 받으면 154경기에 3.6MB가 된다.
+
+export interface ParticipantSummary {
+  puuid: string | null;
+  riotId: string;
+  champion: string;
+  championId: number;
+  team: "blue" | "red";
+  teamId: number;
+  win: boolean;
+  kills: number;
+  deaths: number;
+  assists: number;
+  damage: number;
+  cs: number;
+  gold: number;
+  visionScore: number;
+  champLevel: number;
+  spell1Id: number;
+  spell2Id: number;
+  perkPrimaryStyle: number;
+  perkSubStyle: number;
+  perk0: number;
+  item0: number; item1: number; item2: number;
+  item3: number; item4: number; item5: number; item6: number;
+  assignedPosition: Position;
+}
+
+export interface TeamSummary {
+  teamId: number;
+  win: boolean;
+  baronKills: number;
+  dragonKills: number;
+  towerKills: number;
+}
+
+export interface MatchSummary {
+  matchId: string;
+  queueId: number;
+  gameCreation: number;
+  gameDuration: number;
+  gameMode: string | null;
+  participants: ParticipantSummary[];
+  teams: TeamSummary[];
+}
+
+export interface MatchPage {
+  matches: MatchSummary[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  hasNext: boolean;
 }

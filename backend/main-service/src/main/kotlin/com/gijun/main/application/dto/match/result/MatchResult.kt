@@ -79,7 +79,12 @@ data class ParticipantResult(
     val playerAugment1: Int, val playerAugment2: Int, val playerAugment3: Int,
     val playerAugment4: Int, val playerAugment5: Int, val playerAugment6: Int,
     val playerSubteamId: Int, val subteamPlacement: Int, val roleBoundItem: Int,
-    val lane: String?, val role: String?
+    val lane: String?, val role: String?,
+    /**
+     * 포지션 재배정 백필 결과(TOP/JUNGLE/MIDDLE/BOTTOM/UTILITY).
+     * Riot 원본 lane/role 은 5v5 내전에서 심하게 왜곡돼 있어 그대로 쓰면 안 된다.
+     */
+    val assignedPosition: String
 ) {
     companion object {
         fun from(domain: MatchParticipant) = ParticipantResult(
@@ -132,7 +137,8 @@ data class ParticipantResult(
             playerAugment3 = domain.playerAugment3, playerAugment4 = domain.playerAugment4,
             playerAugment5 = domain.playerAugment5, playerAugment6 = domain.playerAugment6,
             playerSubteamId = domain.playerSubteamId, subteamPlacement = domain.subteamPlacement,
-            roleBoundItem = domain.roleBoundItem, lane = domain.lane, role = domain.role
+            roleBoundItem = domain.roleBoundItem, lane = domain.lane, role = domain.role,
+            assignedPosition = domain.assignedPosition
         )
     }
 }

@@ -18,7 +18,8 @@ interface GetEloUseCase {
 }
 
 interface GetEloLeaderboardUseCase {
-    fun getLeaderboard(): EloLeaderboardResult
+    /** @param minGames 이 경기 수 미만은 배치 중으로 분류해 순위에서 뺀다. */
+    fun getLeaderboard(minGames: Int): EloLeaderboardResult
 }
 
 interface GetEloHistoryUseCase {

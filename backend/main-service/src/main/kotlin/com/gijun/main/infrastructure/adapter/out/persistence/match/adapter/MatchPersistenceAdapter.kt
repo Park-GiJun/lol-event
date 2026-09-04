@@ -7,6 +7,7 @@ import com.gijun.main.infrastructure.adapter.out.persistence.match.entity.MatchP
 import com.gijun.main.infrastructure.adapter.out.persistence.match.entity.MatchTeamEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.match.repository.MatchJpaRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.match.repository.MatchParticipantJpaRepository
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -33,6 +34,12 @@ class MatchPersistenceAdapter(
     override fun findByMatchId(matchId: String): Match? = repo.findByMatchId(matchId)?.toDomain()
     override fun findAllWithParticipants(queueIds: List<Int>): List<Match> =
         repo.findAllWithParticipantsByQueueIdIn(queueIds).map { it.toDomain() }
+
+    override fun findPageWithParticipants(queueIds: List<Int>, page: Int, size: Int): List<Match> {
+        val matchIds = repo.findMatchIdsByQueueIdIn(queueIds, PageRequest.of(page, size))
+        if (matchIds.isEmpty()) return emptyList()
+        return repo.findAllWithParticipantsByMatchIdIn(matchIds).map { it.toDomain() }
+    }
 
     @Transactional
     override fun deleteByMatchId(matchId: String) = repo.deleteByMatchId(matchId)

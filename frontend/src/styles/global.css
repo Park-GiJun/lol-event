@@ -1,78 +1,107 @@
 :root {
   /* ================================================================
-   * PRIMARY ACCENT — Metallic Warm Gold (Hextech)
+   * GRAY RAMP — 토스 특유의 푸른기 도는 회색. 순수 무채색이 아니다.
+   * 화면 구분은 선이 아니라 이 램프의 인접 두 단계로 만든다.
    * ================================================================ */
-  --color-primary: #C8AA6E;
-  --color-primary-light: #F0E6D2;
-  --color-primary-dark: #785A28;
-  --color-primary-hover: #F0E6D2;
-  --color-primary-rgb: 200, 170, 110;
+  --gray-0:   #FFFFFF;
+  --gray-50:  #F9FAFB;
+  --gray-100: #F2F4F6;
+  --gray-200: #E5E8EB;
+  --gray-300: #D1D6DB;
+  --gray-400: #B0B8C1;
+  --gray-500: #8B95A1;
+  --gray-600: #6B7684;
+  --gray-700: #4E5968;
+  --gray-800: #333D4B;
+  --gray-900: #191F28;
 
-  --color-secondary: #5B5A56;
+  /* ================================================================
+   * BLUE — 포인트는 하나뿐이다. 링크 · 선택 · 진행 전부 이 파랑.
+   * ================================================================ */
+  --blue-50:  #EBF3FE;
+  --blue-100: #C9E2FF;
+  --blue-300: #6BA6F8;
+  --blue-500: #3182F6;
+  --blue-600: #1B64DA;
+  --blue-700: #1957B8;
+
+  /* ================================================================
+   * PRIMARY ACCENT
+   * ================================================================ */
+  --color-primary: #3182F6;
+  --color-primary-light: #6BA6F8;
+  --color-primary-dark: #1B64DA;
+  --color-primary-hover: #1B64DA;
+  --color-primary-rgb: 49, 130, 246;
+
+  --color-secondary: #6B7684;
 
   /* ================================================================
    * SEMANTIC COLORS
    * ================================================================ */
-  --color-success: #0AC8B9;
-  --color-warning: #F0E6D2;
-  --color-error: #E84057;
-  --color-info: #0AC8B9;
+  --color-success: #00B37E;
+  --color-warning: #F59E0B;
+  --color-error: #E5484D;
+  --color-info: #3182F6;
 
-  /* Win/Loss */
-  --color-win: #0AC8B9;
-  --color-loss: #E84057;
+  /* Win/Loss — 승은 파랑, 패는 빨강.
+   * 초록/빨강 조합은 적록색약에서 구분이 안 되고,
+   * LoL은 이미 블루팀/레드팀 관습이 있어 파랑이 더 자연스럽다. */
+  --color-win: #1B64DA;
+  --color-loss: #E5484D;
+  --color-win-bg: #EBF3FE;
+  --color-loss-bg: #FDECEC;
 
   /* Tier colors */
-  --color-tier-s: #F0E6D2;
-  --color-tier-a: #0AC8B9;
-  --color-tier-b: #5B5A56;
-  --color-tier-c: #3C3C41;
+  --color-tier-s: #1B64DA;
+  --color-tier-a: #3182F6;
+  --color-tier-b: #8B95A1;
+  --color-tier-c: #B0B8C1;
 
   /* ================================================================
-   * BACKGROUNDS — Rich Obsidian Black
+   * BACKGROUNDS — 흰 바탕 위에 회색 면을 얹어 층을 만든다.
    * ================================================================ */
-  --color-bg-primary: #06080C;
-  --color-bg-secondary: #0C0F16;
-  --color-bg-tertiary: #12151F;
-  --color-bg-card: #0C0F16;
-  --color-bg-hover: #1E2328;
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #FFFFFF;
+  --color-bg-tertiary: #F9FAFB;
+  --color-bg-card: #FFFFFF;
+  --color-bg-hover: #F2F4F6;
 
-  /* Semantic background */
-  --bg-base: #06080C;
-  --bg-surface: #0C0F16;
-  --bg-elevated: #12151F;
+  --bg-base: #F9FAFB;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
 
   /* ================================================================
-   * GLASSMORPHISM — Replaced with solid dark surfaces
+   * SURFACES — 이전 glassmorphism 자리. 이제 불투명 흰 면이다.
    * ================================================================ */
-  --glass-bg: #0C0F16;
-  --glass-bg-hover: #12151F;
-  --glass-border: #1E2328;
-  --glass-border-hover: #32281E;
+  --glass-bg: #FFFFFF;
+  --glass-bg-hover: #F9FAFB;
+  --glass-border: #E5E8EB;
+  --glass-border-hover: #D1D6DB;
   --glass-blur: 0px;
   --glass-blur-heavy: 0px;
 
   /* ================================================================
-   * TEXT — Warm off-white palette
+   * TEXT
    * ================================================================ */
-  --color-text-primary: #F0E6D2;
-  --color-text-secondary: #A09B8C;
-  --color-text-disabled: #5B5A56;
-  --color-text-muted: #5B5A56;
-  --color-text-inverse: #06080C;
+  --color-text-primary: #191F28;
+  --color-text-secondary: #4E5968;
+  --color-text-disabled: #B0B8C1;
+  --color-text-muted: #8B95A1;
+  --color-text-inverse: #FFFFFF;
 
   /* ================================================================
-   * BORDERS
+   * BORDERS — 되도록 쓰지 않는다. 쓸 때는 거의 안 보이게.
    * ================================================================ */
-  --color-border: #1E2328;
-  --color-border-light: #32281E;
+  --color-border: #E5E8EB;
+  --color-border-light: #F2F4F6;
   --color-border-focus: var(--color-primary);
 
   /* ================================================================
    * LEGACY COLOR ALIASES
    * ================================================================ */
-  --color-blue: #0AC8B9;
-  --color-red: #E84057;
+  --color-blue: #3182F6;
+  --color-red: #E5484D;
 
   /* ================================================================
    * SPACING — 4px base scale
@@ -87,67 +116,68 @@
   --spacing-3xl: 64px;
 
   /* ================================================================
-   * BORDER RADIUS
+   * BORDER RADIUS — 카드는 크게, 컨트롤은 작게.
    * ================================================================ */
   --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
-  --radius-2xl: 24px;
+  --radius-2xl: 20px;
   --radius-full: 9999px;
 
   /* ================================================================
-   * SHADOWS — Warm downward shadows + gold glow
+   * SHADOWS — 거의 보이지 않을 만큼 얕게. 카드는 그림자보다 면으로 띄운다.
    * ================================================================ */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
-  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.8);
-  --shadow-teal: 0 0 20px rgba(200, 170, 110, 0.08);
-  --shadow-teal-md: 0 4px 24px rgba(200, 170, 110, 0.1);
-  --shadow-teal-lg: 0 8px 40px rgba(200, 170, 110, 0.15);
-  --shadow-glow: 0 0 0 1px rgba(200, 170, 110, 0.2), 0 0 15px rgba(200, 170, 110, 0.06);
-  --shadow-glow-lg: 0 0 0 1px rgba(200, 170, 110, 0.15), 0 0 24px rgba(200, 170, 110, 0.08);
-  --shadow-card-hover: 0 0 0 1px rgba(200, 170, 110, 0.2), 0 0 15px rgba(200, 170, 110, 0.06);
-  --shadow-inset: inset 0 1px 0 rgba(240, 230, 210, 0.03);
+  --shadow-sm: 0 1px 2px rgba(25, 31, 40, 0.04);
+  --shadow-md: 0 2px 8px rgba(25, 31, 40, 0.06);
+  --shadow-lg: 0 6px 20px rgba(25, 31, 40, 0.08);
+  --shadow-xl: 0 12px 32px rgba(25, 31, 40, 0.1);
+  --shadow-teal: 0 1px 2px rgba(25, 31, 40, 0.04);
+  --shadow-teal-md: 0 2px 8px rgba(25, 31, 40, 0.06);
+  --shadow-teal-lg: 0 6px 20px rgba(25, 31, 40, 0.08);
+  --shadow-glow: 0 0 0 1px rgba(49, 130, 246, 0.16);
+  --shadow-glow-lg: 0 0 0 1px rgba(49, 130, 246, 0.16), 0 4px 16px rgba(49, 130, 246, 0.08);
+  --shadow-card-hover: 0 2px 8px rgba(25, 31, 40, 0.08);
+  --shadow-inset: none;
 
   /* ================================================================
-   * TYPOGRAPHY — Hextech hierarchy
+   * TYPOGRAPHY — Pretendard 하나로 간다.
+   * 한글 전적 사이트에서 장식 세리프는 숫자 가독성만 해친다.
    * ================================================================ */
-  --font-family-display: 'Cinzel', 'Beaufort for LOL', serif;
-  --font-family: 'DM Sans', 'Spiegel', -apple-system, BlinkMacSystemFont, 'Pretendard', 'Malgun Gothic', sans-serif;
-  --font-family-mono: 'JetBrains Mono', 'Courier New', monospace;
-  --font-size-2xs: 10px;
-  --font-size-xs: 11px;
+  --font-family-display: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, 'Malgun Gothic', sans-serif;
+  --font-family-mono: 'Pretendard Variable', Pretendard, ui-monospace, 'SFMono-Regular', monospace;
+  --font-size-2xs: 11px;
+  --font-size-xs: 12px;
   --font-size-sm: 13px;
   --font-size-md: 15px;
-  --font-size-lg: 18px;
-  --font-size-xl: 24px;
-  --font-size-2xl: 32px;
-  --font-size-3xl: 40px;
-  --font-size-hero: 56px;
+  --font-size-lg: 17px;
+  --font-size-xl: 22px;
+  --font-size-2xl: 28px;
+  --font-size-3xl: 36px;
+  --font-size-hero: 48px;
 
   /* Font weights */
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  --font-weight-extrabold: 800;
-  --font-weight-black: 900;
+  --font-weight-extrabold: 700;
+  --font-weight-black: 800;
 
   /* Line heights */
-  --line-height-tight: 1.15;
-  --line-height-snug: 1.3;
-  --line-height-normal: 1.55;
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.35;
+  --line-height-normal: 1.5;
   --line-height-relaxed: 1.7;
 
-  /* Letter spacing */
-  --tracking-tight: -0.02em;
-  --tracking-normal: 0;
-  --tracking-wide: 0.03em;
-  --tracking-wider: 0.06em;
-  --tracking-widest: 0.1em;
+  /* Letter spacing — 큰 숫자일수록 좁게. */
+  --tracking-tight: -0.03em;
+  --tracking-normal: -0.01em;
+  --tracking-wide: 0;
+  --tracking-wider: 0.02em;
+  --tracking-widest: 0.04em;
 
   /* ================================================================
    * LAYOUT
@@ -155,47 +185,50 @@
   --sidebar-width: 240px;
   --header-height: 56px;
   --grid-gap: 12px;
+  --content-max: 1200px;
 
   /* ================================================================
    * TRANSITIONS
    * ================================================================ */
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-spring: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-normal: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
 
   /* ================================================================
-   * GRADIENTS — Gold-based
+   * GRADIENTS — 장식용 그라디언트는 없다. 진행 막대에만 쓴다.
    * ================================================================ */
-  --gradient-primary: linear-gradient(135deg, #C8AA6E 0%, #785A28 100%);
-  --gradient-glow: linear-gradient(135deg, rgba(200, 170, 110, 0.15) 0%, rgba(120, 90, 40, 0.05) 100%);
-  --gradient-surface: linear-gradient(180deg, rgba(240, 230, 210, 0.02) 0%, transparent 100%);
-  --gradient-radial-glow: radial-gradient(ellipse at 50% 0%, rgba(200, 170, 110, 0.06) 0%, transparent 70%);
-  --gradient-border: linear-gradient(135deg, rgba(200, 170, 110, 0.3), rgba(200, 170, 110, 0.05));
+  --gradient-primary: linear-gradient(135deg, #3182F6 0%, #1B64DA 100%);
+  --gradient-glow: none;
+  --gradient-surface: none;
+  --gradient-radial-glow: none;
+  --gradient-border: none;
 
   /* ================================================================
    * SHADCN CSS variable mapping
    * ================================================================ */
   --background: var(--color-bg-primary);
   --foreground: var(--color-text-primary);
-  --card: var(--color-bg-secondary);
+  --card: var(--color-bg-card);
   --card-foreground: var(--color-text-primary);
-  --popover: var(--color-bg-tertiary);
+  --popover: var(--color-bg-primary);
   --popover-foreground: var(--color-text-primary);
   --primary: var(--color-primary);
   --primary-foreground: var(--color-text-inverse);
   --secondary: var(--color-bg-tertiary);
   --secondary-foreground: var(--color-text-primary);
-  --muted: var(--color-border);
+  --muted: var(--color-bg-tertiary);
   --muted-foreground: var(--color-text-secondary);
   --accent: var(--color-bg-hover);
   --accent-foreground: var(--color-text-primary);
   --destructive: var(--color-error);
-  --destructive-foreground: var(--color-text-primary);
+  --destructive-foreground: #FFFFFF;
   --border: var(--color-border);
   --input: var(--color-border);
   --ring: var(--color-primary);
-  --radius: var(--radius-md);
+  --radius: var(--radius-lg);
+
+  color-scheme: light;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -203,49 +236,46 @@
 html, body, #root {
   height: 100%;
   font-family: var(--font-family);
-  background-color: var(--color-bg-primary);
+  background-color: var(--bg-base);
   color: var(--color-text-primary);
   font-size: var(--font-size-md);
   line-height: var(--line-height-normal);
+  letter-spacing: var(--tracking-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a { color: inherit; text-decoration: none; }
-button { cursor: pointer; font-family: inherit; }
-input, textarea, select { font-family: inherit; }
-
-/* ================================================================
- * NOISE TEXTURE OVERLAY
- * ================================================================ */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.015;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-  mix-blend-mode: overlay;
+/* 표에서 KDA·승률이 세로로 정렬돼야 op.gg 밀도가 성립한다.
+ * 폭이 고정된 숫자를 기본값으로 둔다. */
+body {
+  font-variant-numeric: tabular-nums;
 }
 
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: inherit; letter-spacing: inherit; }
+input, textarea, select { font-family: inherit; letter-spacing: inherit; }
+
+table { border-collapse: collapse; }
+
 /* ================================================================
- * SCROLLBAR — Warm gold tinted
+ * SCROLLBAR
  * ================================================================ */
-::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(200, 170, 110, 0.15);
+  background: var(--gray-300);
   border-radius: var(--radius-full);
-  transition: background 0.2s;
+  border: 3px solid transparent;
+  background-clip: content-box;
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(200, 170, 110, 0.3); }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); background-clip: content-box; }
 ::-webkit-scrollbar-corner { background: transparent; }
 
 /* Focus-visible ring (keyboard nav) */
 :focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
+  border-radius: var(--radius-xs);
 }
 
 /* ================================================================
@@ -257,27 +287,27 @@ body::after {
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-12px); }
+  from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideUp {
-  from { transform: translateY(24px) scale(0.98); opacity: 0; }
-  to   { transform: translateY(0) scale(1); opacity: 1; }
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
 }
 
 @keyframes slideDown {
-  from { transform: translateY(-24px) scale(0.98); opacity: 0; }
-  to   { transform: translateY(0) scale(1); opacity: 1; }
+  from { transform: translateY(-16px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
 }
 
 @keyframes scaleIn {
-  from { transform: scale(0.95); opacity: 0; }
+  from { transform: scale(0.97); opacity: 0; }
   to   { transform: scale(1); opacity: 1; }
 }
 
@@ -287,34 +317,43 @@ body::after {
 }
 
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(200, 170, 110, 0.08); }
-  50%      { box-shadow: 0 0 20px rgba(200, 170, 110, 0.2); }
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.6; }
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-4px); }
+  50%      { transform: translateY(-3px); }
 }
 
-/* Page enter animation */
+/* 페이지 전환은 위치 이동 없이 밝기만 바꾼다.
+ * 표가 많은 화면에서 슬라이드는 읽는 눈을 방해한다. */
 @keyframes page-enter {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
-.page-enter { animation: page-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.page-enter { animation: page-enter 0.18s ease-out both; }
 
-/* Staggered children animation */
 .stagger-children > * {
-  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .stagger-children > *:nth-child(1) { animation-delay: 0s; }
-.stagger-children > *:nth-child(2) { animation-delay: 0.05s; }
-.stagger-children > *:nth-child(3) { animation-delay: 0.1s; }
-.stagger-children > *:nth-child(4) { animation-delay: 0.15s; }
-.stagger-children > *:nth-child(5) { animation-delay: 0.2s; }
-.stagger-children > *:nth-child(6) { animation-delay: 0.25s; }
-.stagger-children > *:nth-child(7) { animation-delay: 0.3s; }
-.stagger-children > *:nth-child(8) { animation-delay: 0.35s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.03s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.06s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.09s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.12s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.18s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.21s; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 
 /* ================================================================
  * UTILITY CLASSES
@@ -331,7 +370,7 @@ body::after {
 .text-lg { font-size: var(--font-size-lg); }
 .font-bold { font-weight: 700; }
 .font-semibold { font-weight: 600; }
-.font-mono { font-family: var(--font-family-mono); }
+.font-mono { font-family: var(--font-family-mono); font-variant-numeric: tabular-nums; }
 .flex { display: flex; }
 .flex-col { flex-direction: column; }
 .items-center { align-items: center; }
@@ -341,36 +380,35 @@ body::after {
 .w-full { width: 100%; }
 .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Solid dark surface utility (replaces glass) */
+/* 흰 면 위의 카드. 테두리 대신 얕은 그림자로 띄운다. */
 .glass {
-  background: var(--color-bg-secondary);
+  background: var(--bg-surface);
   border: 1px solid var(--color-border);
 }
 
-/* Gold gradient text */
+/* 그라디언트 텍스트는 쓰지 않는다. 단색으로 되돌린다. */
 .text-gradient {
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--color-primary);
 }
 
-/* Gold gradient divider */
 .divider-gold {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.25), transparent);
+  background: var(--color-border);
 }
 
-/* Stat number style */
+/* 숫자 하나가 화면의 주인공일 때 쓰는 스타일 */
 .stat-value {
   font-family: var(--font-family-display);
   font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
   color: var(--color-text-primary);
-  text-shadow: 0 0 20px rgba(200, 170, 110, 0.15);
 }
 
-/* Glow effect */
-.glow { box-shadow: var(--shadow-teal); }
+.glow { box-shadow: none; }
+.glow-hover:hover { box-shadow: var(--shadow-card-hover); }
 
 /* ── Inline Error ─────────────────────────────────────────────── */
 .inline-error {
@@ -382,11 +420,5 @@ body::after {
   font-size: var(--font-size-sm);
 }
 
-.inline-error-icon {
-  flex-shrink: 0;
-}
-
-.inline-error-message {
-  flex: 1;
-}
-.glow-hover:hover { box-shadow: var(--shadow-teal-md); }
+.inline-error-icon { flex-shrink: 0; }
+.inline-error-message { flex: 1; }

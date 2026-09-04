@@ -2,6 +2,7 @@ package com.gijun.main.infrastructure.adapter.`in`.web
 
 import com.gijun.common.response.CommonApiResponse
 import com.gijun.main.application.dto.match.command.SaveMatchesCommand
+import com.gijun.main.application.dto.match.result.MatchPageResult
 import com.gijun.main.application.dto.match.result.SaveMatchesResult
 import com.gijun.main.application.port.`in`.DeleteMatchUseCase
 import com.gijun.main.application.port.`in`.GetMatchesUseCase
@@ -19,12 +20,31 @@ class MatchWebAdapter(
     private val getMatchesUseCase: GetMatchesUseCase,
     private val deleteMatchUseCase: DeleteMatchUseCase
 ) {
-    @Operation(summary = "경기 목록 조회", description = "모드(normal/aram/all)별 경기 목록을 반환합니다")
+    @Operation(
+        summary = "경기 목록 조회 (전체)",
+        description = "모드별 경기 전체를 상세 필드까지 반환합니다. 응답이 매우 크므로 목록 화면에서는 /page 를 쓰세요."
+    )
+    @Deprecated("목록 화면은 GET /api/matches/page 를 사용한다. 전체 상세가 정말 필요한 배치성 호출만 남긴다.")
     @GetMapping
     fun getAll(
         @Parameter(description = "경기 모드 (normal=5v5내전, aram=칼바람, all=전체)", example = "normal")
         @RequestParam(defaultValue = "normal") mode: String
     ) = CommonApiResponse.success(getMatchesUseCase.getAll(mode))
+
+    @Operation(
+        summary = "경기 목록 조회 (페이지)",
+        description = "최신순 한 페이지를 목록 화면에 필요한 필드만 담아 반환합니다."
+    )
+    @GetMapping("/page")
+    fun getPage(
+        @Parameter(description = "경기 모드 (normal=5v5내전, aram=칼바람, all=전체)", example = "normal")
+        @RequestParam(defaultValue = "normal") mode: String,
+        @Parameter(description = "0부터 시작하는 페이지 번호", example = "0")
+        @RequestParam(defaultValue = "0") page: Int,
+        @Parameter(description = "페이지당 경기 수 (최대 100)", example = "20")
+        @RequestParam(defaultValue = "20") size: Int,
+    ): CommonApiResponse<MatchPageResult> =
+        CommonApiResponse.success(getMatchesUseCase.getPage(mode, page, size))
 
     @Operation(summary = "경기 일괄 저장", description = "LCU에서 수집한 경기 데이터를 저장합니다 (upsert)")
     @PostMapping("/bulk")

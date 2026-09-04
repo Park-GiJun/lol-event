@@ -4,6 +4,7 @@ import com.gijun.main.application.dto.stats.result.DuoStat
 import com.gijun.main.application.dto.stats.result.DuoStatsResult
 import com.gijun.main.application.port.`in`.GetDuoStatsUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
+import com.gijun.main.domain.service.RankingScore
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import com.gijun.main.application.port.out.StatsCachePort
@@ -55,6 +56,8 @@ class GetDuoStatsHandler(
                     player1 = s.p1, player2 = s.p2,
                     games = s.games, wins = s.wins,
                     winRate = s.wins * 100 / s.games,
+                    adjustedWinRate = r2(RankingScore.shrunkWinRate(s.wins, s.games)),
+                    sampleGrade = RankingScore.sampleGrade(s.games),
                     avgKills   = r1(s.kills.toDouble() / s.games),
                     avgDeaths  = r1(s.deaths.toDouble() / s.games),
                     avgAssists = r1(s.assists.toDouble() / s.games),
@@ -62,7 +65,8 @@ class GetDuoStatsHandler(
                           else (s.kills + s.assists).toDouble(),
                 )
             }
-            .sortedWith(compareByDescending<DuoStat> { it.winRate }.thenByDescending { it.games })
+            // 관측 승률로 정렬하면 5경기 5승 듀오가 90경기를 함께한 듀오를 이긴다.
+            .sortedWith(compareByDescending<DuoStat> { it.adjustedWinRate }.thenByDescending { it.games })
 
         DuoStatsResult(duos)
     }

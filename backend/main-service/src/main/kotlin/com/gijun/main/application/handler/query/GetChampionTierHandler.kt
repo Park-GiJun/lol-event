@@ -4,6 +4,7 @@ import com.gijun.main.application.dto.stats.result.ChampionTierEntry
 import com.gijun.main.application.dto.stats.result.ChampionTierResult
 import com.gijun.main.application.port.`in`.GetChampionTierUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
+import com.gijun.main.domain.service.RankingScore
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import com.gijun.main.application.port.out.StatsCachePort
@@ -64,13 +65,17 @@ class GetChampionTierHandler(
         // 티어 점수 계산 (minGames 미만 포함 모두 계산, 티어만 "?"로)
         val scored = champMap.values.map { acc ->
             val g = acc.games.coerceAtLeast(1)
-            val winRate = acc.wins.toDouble() / g
             val avgKda = if (acc.deaths > 0) (acc.kills + acc.assists).toDouble() / acc.deaths
                          else (acc.kills + acc.assists).toDouble()
             val avgDamage = acc.totalDamage.toDouble() / g
             val pickRate = acc.games.toDouble() / totalMatches
-            val normalizedKda = avgKda / maxOf(1.0, overallAvgKda)
-            val dmgShare = avgDamage / maxOf(1.0, overallAvgDamage)
+
+            // 승률·KDA·데미지를 각각 전체 평균 쪽으로 끌어당긴 뒤 합성한다.
+            // 셋 중 하나라도 원값을 쓰면 1경기 챔피언이 그 항목 하나로 상위권에 올라온다.
+            val winRate = RankingScore.shrinkToward(acc.wins.toDouble() / g, 0.5, acc.games)
+            val normalizedKda = RankingScore.shrinkToward(avgKda / maxOf(1.0, overallAvgKda), 1.0, acc.games)
+            val dmgShare = RankingScore.shrinkToward(avgDamage / maxOf(1.0, overallAvgDamage), 1.0, acc.games)
+            // 픽률은 경기 수 그 자체라 표본 노이즈가 없다. 보정하지 않는다.
             val tierScore = winRate * 0.5 + normalizedKda * 0.25 + dmgShare * 0.15 + pickRate * 0.10
 
             acc to tierScore
@@ -111,11 +116,17 @@ class GetChampionTierHandler(
                 tierScore = r2(tierScore),
                 games = acc.games,
                 winRate = acc.wins * 100 / g,
+                adjustedWinRate = r2(RankingScore.shrunkWinRate(acc.wins, acc.games)),
+                sampleGrade = RankingScore.sampleGrade(acc.games),
                 kda = avgKda,
                 pickRate = r2(pickRate),
                 avgDamage = r2(avgDamage),
             )
-        }.sortedByDescending { it.tierScore }
+        }
+            // 표본 미달 챔피언은 목록에 남기되 항상 뒤로 보낸다.
+            // 점수만으로 정렬하면 "?" 티어가 상단을 차지해 티어표가 거짓말을 한다.
+            .sortedWith(compareByDescending<ChampionTierEntry> { it.games >= minGames }
+                .thenByDescending { it.tierScore })
 
         val byTier = tierList.groupBy { it.tier }
 

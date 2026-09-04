@@ -1,6 +1,7 @@
 package com.gijun.main.infrastructure.adapter.out.persistence.match.repository
 
 import com.gijun.main.infrastructure.adapter.out.persistence.match.entity.MatchEntity
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 
@@ -13,6 +14,17 @@ interface MatchJpaRepository : JpaRepository<MatchEntity, Long> {
     fun findAllWithParticipantsByQueueIdIn(queueIds: List<Int>): List<MatchEntity>
 
     fun countByQueueIdIn(queueIds: List<Int>): Long
+
+    /**
+     * 페이지에 해당하는 matchId 만 먼저 뽑는다.
+     * JOIN FETCH 와 페이징을 한 쿼리에 섞으면 JPA 가 전체를 읽고 메모리에서 자르기 때문에
+     * (HHH000104) 페이징 효과가 사라진다. 그래서 2단계로 나눈다.
+     */
+    @Query("SELECT m.matchId FROM MatchEntity m WHERE m.queueId IN :queueIds ORDER BY m.gameCreation DESC")
+    fun findMatchIdsByQueueIdIn(queueIds: List<Int>, pageable: Pageable): List<String>
+
+    @Query("SELECT DISTINCT m FROM MatchEntity m LEFT JOIN FETCH m.participants WHERE m.matchId IN :matchIds ORDER BY m.gameCreation DESC")
+    fun findAllWithParticipantsByMatchIdIn(matchIds: List<String>): List<MatchEntity>
 
     @Query("SELECT DISTINCT m FROM MatchEntity m LEFT JOIN FETCH m.participants ORDER BY m.gameCreation ASC")
     fun findAllWithParticipantsOrderedByGameCreation(): List<MatchEntity>
