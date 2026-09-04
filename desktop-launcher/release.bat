@@ -2,7 +2,7 @@
 chcp 65001 >nul 2>&1
 setlocal enabledelayedexpansion
 
-set JAVA_HOME=C:\Users\tpgj9\.jdks\ms-25.0.2
+set JAVA_HOME=C:\Users\tpgj9\.jdks\ms-25.0.4.1
 set PATH=%PATH%;C:\Program Files\GitHub CLI;C:\Program Files (x86)\GitHub CLI
 
 REM === Step 0: Auto bump patch version ===
