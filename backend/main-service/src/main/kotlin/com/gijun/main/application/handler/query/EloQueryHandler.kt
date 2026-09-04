@@ -34,7 +34,8 @@ class EloQueryHandler(
         val history    = eloHistoryPort.findByRiotId(riotId, limit).map {
             EloHistoryEntry(
                 matchId = it.matchId, eloBefore = it.eloBefore, eloAfter = it.eloAfter,
-                delta = it.delta, win = it.win, gameCreation = it.gameCreation,
+                delta = it.delta, win = it.win, lanePerformance = it.lanePerformance,
+                gameCreation = it.gameCreation,
             )
         }
         return PlayerEloHistoryResult(riotId = riotId, currentElo = currentElo, eloRank = eloRank, history = history)

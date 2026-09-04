@@ -109,6 +109,8 @@ export interface EloHistoryEntry {
   eloAfter: number;
   delta: number;
   win: boolean;
+  /** 같은 포지션 상대와 비교한 라인전 점수(0~1, 0.5가 호각). 같은 승리에서 변동폭이 갈리는 근거다. */
+  lanePerformance: number;
   gameCreation: number;
 }
 

@@ -5,6 +5,7 @@ import com.gijun.main.application.dto.match.command.MatchInput
 import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.application.port.out.MemberPersistencePort
 import com.gijun.main.domain.model.member.Member
+import com.gijun.main.domain.service.PositionDetector
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -29,7 +30,15 @@ class MatchEventConsumer(
             val input = objectMapper.readValue(record.value(), MatchInput::class.java)
 
             // 매치 upsert (이미 MatchPersistenceAdapter.save가 upsert 처리)
-            matchPersistencePort.save(input.toDomain())
+            // SaveMatchCommand.toDomain() 은 assignedPosition 을 빈 값으로 둔다. 여기서 채우지 않으면
+            // 수집기로 들어온 매치는 관리자가 백필을 돌리기 전까지 포지션이 없는 채로 남는다.
+            val match = input.toDomain()
+            match.participants.let { ps ->
+                val positioned = PositionDetector.assignPositionsToAll(ps)
+                ps.clear()
+                ps.addAll(positioned)
+            }
+            matchPersistencePort.save(match)
             kafkaTemplate.send("lol.stats.rebuild", matchId, "match_saved")
             kafkaTemplate.send("lol.elo.calculate", matchId, matchId)
 

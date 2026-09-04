@@ -70,7 +70,10 @@ object Build : BuildType({
         gradle {
             id = "backend_build"
             name = "Backend - Gradle Build"
-            tasks = "clean build -x test"
+            // clean 을 빼면 체크아웃 디렉토리에 남은 증분 상태를 그대로 쓴다.
+            // 붙여두면 매 빌드가 전체 재컴파일이라 1분 10초가 통째로 나갔다.
+            tasks = "build -x test"
+            gradleParams = "--parallel --build-cache"
             workingDir = "backend"
             gradleWrapperPath = ""
             jdkHome = "%env.JAVA_HOME%"
@@ -82,8 +85,10 @@ object Build : BuildType({
             id = "frontend_build"
             name = "Frontend - Install & Build"
             workingDir = "frontend"
+            // --no-audit --no-fund: npm 은 설치할 때마다 취약점 조회와 후원 조회를 원격으로 돈다.
+            // 이 빌드에서 그게 설치 시간의 대부분을 차지했다. 취약점 점검은 별도로 하면 된다.
             scriptContent = """
-                npm ci
+                npm ci --no-audit --no-fund
                 npm run lint
                 npm run build
             """.trimIndent()
@@ -95,10 +100,12 @@ object Build : BuildType({
             id = "lcu_build"
             name = "LCU Service - Install & Build"
             workingDir = "backend/lcu-service"
+            // npm prune --production 은 없앴다. 5분 14초를 들여 프로덕션 node_modules 를 만들었지만
+            // artifactRules 도 배포 스크립트도 dist/ 와 package.json 만 가져간다. 만들고 그 자리에서 버렸다.
+            // 런타임 의존성은 배포 단계(Step 7)에서 컨테이너가 설치한다.
             scriptContent = """
-                npm ci
+                npm ci --no-audit --no-fund
                 npm run build
-                npm prune --production
             """.trimIndent()
             conditions {
                 equals("build.lcu", "true")
@@ -149,6 +156,7 @@ object Build : BuildType({
                 DEPLOY_DIR="/lol-event/deploy"
                 HOST_DEPLOY="/home/gijunpark/lol-event/deploy"
                 HOST_CONFIG="/home/gijunpark/lol-event/config"
+                HOST_NPM_CACHE="/home/gijunpark/lol-event/.npm-cache"
                 JAVA_IMAGE="eclipse-temurin:25-jdk-alpine"
                 NODE_IMAGE="node:20-alpine"
 
@@ -229,15 +237,22 @@ object Build : BuildType({
                         ${'$'}JAVA_IMAGE java -jar /app.jar \
                         --spring.cloud.config.server.native.search-locations=classpath:/config,file:/config
 
+                    # 헬스체크는 반드시 컨테이너 안에서 host 네트워크로 돌아야 한다.
+                    # 빌드 에이전트에서 직접 curl 하면 Eureka 의 localhost:8761 이 보이지 않아
+                    # 30번이 전부 실패하고 90초를 버린 뒤 조용히 넘어갔다 (빌드 #104 로그 확인).
                     echo "Waiting for Eureka to start..."
-                    for i in ${'$'}(seq 1 30); do
-                        if curl -sf http://localhost:8761/actuator/health > /dev/null 2>&1; then
-                            echo "Eureka is UP!"
-                            break
-                        fi
-                        echo "  waiting... (${'$'}i/30)"
-                        sleep 3
-                    done
+                    if docker run --rm --network host ${'$'}NODE_IMAGE sh -c \
+                        'for i in ${'$'}(seq 1 30); do
+                             wget -q -T 2 -O /dev/null http://localhost:8761/actuator/health && exit 0
+                             echo "  waiting... (${'$'}i/30)"
+                             sleep 3
+                         done
+                         exit 1'; then
+                        echo "Eureka is UP!"
+                    else
+                        echo "WARNING: Eureka 가 90초 안에 뜨지 않았다. 이후 서비스들이 등록에 실패한다."
+                        docker logs --tail 50 lol-eureka || true
+                    fi
                 else
                     echo "Eureka 배포 스킵"
                 fi
@@ -282,9 +297,12 @@ object Build : BuildType({
 
                 echo "=== Step 7: Install lcu-service deps & Start ==="
                 if [ "${'$'}DO_LCU" = "true" ]; then
+                    # npm 캐시를 호스트에 남겨 재사용한다. 캐시 없이 매 배포마다 349개를 새로 받느라
+                    # 이 한 줄에서만 7분 2초가 나갔다 (빌드 #104).
                     docker run --rm \
                         -v ${'$'}HOST_DEPLOY/lcu-service:/app \
-                        ${'$'}NODE_IMAGE sh -c "cd /app && npm ci --production"
+                        -v ${'$'}HOST_NPM_CACHE:/root/.npm \
+                        ${'$'}NODE_IMAGE sh -c "cd /app && npm ci --omit=dev --no-audit --no-fund"
                     docker run -d --name lol-lcu-service \
                         --network host \
                         --restart unless-stopped \

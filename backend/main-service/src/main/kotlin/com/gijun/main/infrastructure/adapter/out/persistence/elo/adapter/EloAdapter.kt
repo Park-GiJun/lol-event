@@ -36,8 +36,9 @@ class EloAdapter(private val repo: PlayerEloRepository) : EloPort {
         repo.saveAll(entities)
     }
 
+    /** 재집계는 전체 삭제 후 같은 riot_id 를 다시 넣는다. 유니크 제약 때문에 삭제가 먼저 DB 에 닿아야 한다. */
     @Transactional
-    override fun deleteAll() = repo.deleteAll()
+    override fun deleteAll() = repo.deleteAllInBatch()
 
     override fun findAll(): List<PlayerElo> = repo.findAll().map { it.toDomain() }
 }

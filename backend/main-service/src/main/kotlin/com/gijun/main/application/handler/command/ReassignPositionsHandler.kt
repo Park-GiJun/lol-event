@@ -33,7 +33,7 @@ class ReassignPositionsHandler(
     }
 
     @Transactional
-    override fun reassignAll(): ReassignPositionsResult {
+    override fun reassignAll(force: Boolean): ReassignPositionsResult {
         val matches = matchPersistencePort.findAllOrderedByGameCreation()
         log.info("포지션 백필 시작 — 대상 매치 ${matches.size}개")
 
@@ -57,7 +57,7 @@ class ReassignPositionsHandler(
                 teamsScanned++
 
                 // 이미 정상 배정인 팀은 제외
-                if (PositionDetector.isTeamPositioned(team)) {
+                if (!force && PositionDetector.isTeamPositioned(team)) {
                     teamsAlreadyValid++
                     return@teamLoop
                 }

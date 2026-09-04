@@ -6,6 +6,8 @@ data class EloHistoryEntry(
     val eloAfter: Double,
     val delta: Double,
     val win: Boolean,
+    /** 같은 포지션 상대와 비교한 라인전 점수(0~1, 0.5가 호각). 변동폭 차이의 근거다. */
+    val lanePerformance: Double,
     val gameCreation: Long,
 )
 

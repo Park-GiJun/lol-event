@@ -9,12 +9,16 @@ import com.gijun.main.domain.model.elo.PlayerElo
 import com.gijun.main.domain.model.elo.PlayerEloHistory
 import com.gijun.main.domain.model.match.Match
 import com.gijun.main.domain.model.match.MatchParticipant
+import com.gijun.main.domain.service.EloRating
+import com.gijun.main.domain.service.LanePerformance
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import kotlin.math.pow
 
+/**
+ * Elo 집계. 계산식 자체는 [EloRating] 에 있고 여기서는 "어떤 경기를 셀지"와 영속화만 다룬다.
+ */
 @Service
 class EloCommandHandler(
     private val matchPersistencePort: MatchPersistencePort,
@@ -25,38 +29,12 @@ class EloCommandHandler(
     private val log = LoggerFactory.getLogger(javaClass)
 
     companion object {
-        private const val INITIAL_ELO = 1000.0
-        private const val MIN_ELO     = 100.0
         private const val ARAM_QUEUE_ID = 3270
+        private const val TEAM_A = 100
+        private const val TEAM_B = 200
 
-        // ═══════════════════════════════════════════════════
-        // 고정 K값 (게임 수와 무관한 일정 변동폭, 표준 Elo)
-        // ═══════════════════════════════════════════════════
-        private const val K_FACTOR = 32.0
-
-        // ═══════════════════════════════════════════════════
-        // 이변 배율: 팀 평균 ELO 차이가 클수록, 약팀이 이기면 보너스
-        //   diff <= THRESHOLD          → 1.0 (배율 없음)
-        //   diff  > THRESHOLD          → 1.0 + (diff - THRESHOLD) * SLOPE, 상한 MAX
-        //   (약 30 ~ 116 구간에서 1.0 → 1.3 으로 스케일)
-        // ═══════════════════════════════════════════════════
-        private const val UPSET_THRESHOLD = 30.0
-        private const val UPSET_SLOPE     = 0.0035
-        private const val UPSET_MAX       = 1.3
-
-        // ═══════════════════════════════════════════════════
-        // 연승/연패 배율
-        // ═══════════════════════════════════════════════════
-        fun streakMultiplier(winStreak: Int, lossStreak: Int, won: Boolean): Double =
-            if (won) when {
-                winStreak  >= 5 -> 1.15
-                winStreak  >= 3 -> 1.07
-                else            -> 1.0
-            } else when {
-                lossStreak >= 5 -> 1.12
-                lossStreak >= 3 -> 1.06
-                else            -> 1.0
-            }
+        /** 이 시간 안에 끝난 경기는 리메이크로 본다. gameDuration 은 초 단위다. */
+        private const val REMAKE_DURATION_SEC = 300
     }
 
     // ────────── UseCase 구현 ──────────
@@ -65,11 +43,31 @@ class EloCommandHandler(
     override fun calculateForMatch(matchId: String) {
         val match = matchPersistencePort.findByMatchId(matchId)
             ?: run { log.warn("Elo 계산 skip — 매치 없음: $matchId"); return }
-        if (match.queueId == ARAM_QUEUE_ID) {
-            log.info("Elo 계산 skip — 칼바람: $matchId")
+
+        skipReason(match)?.let { log.info("Elo 계산 skip — $it: $matchId"); return }
+
+        // Kafka 는 최소 한 번 배달이다. 같은 매치가 두 번 오면 점수가 두 번 반영된다.
+        if (eloHistoryPort.existsByMatchId(matchId)) {
+            log.info("Elo 계산 skip — 이미 반영된 매치: $matchId")
             return
         }
-        processMatch(match)
+
+        // Elo 는 순차 계산이라 경기 순서가 곧 결과다. 과거 경기가 뒤늦게 도착하면
+        // 그 경기만 끼워 넣을 수 없고, 그 이후 전부가 다시 계산돼야 한다.
+        val latest = eloHistoryPort.findLatestGameCreation()
+        if (latest != null && match.gameCreation < latest) {
+            log.warn("Elo 순서 역전 — $matchId (gameCreation=${match.gameCreation} < 최신=$latest). 전체 재집계로 전환한다.")
+            resetAndRecalculate()
+            return
+        }
+
+        val riotIds = ratableParticipants(match).map { it.riotId }
+        val current = eloPort.findAllByRiotIds(riotIds).associateBy { it.riotId }
+
+        val outcome = rate(match, current) ?: return
+        eloPort.saveAll(outcome.players)
+        eloHistoryPort.saveAll(outcome.histories)
+        log.debug("Elo 업데이트 — matchId=${match.matchId}, 대상=${outcome.players.size}명")
     }
 
     @Transactional
@@ -77,150 +75,110 @@ class EloCommandHandler(
         log.info("Elo 전체 초기화 시작")
         eloPort.deleteAll()
         eloHistoryPort.deleteAll()
-        val matches = matchPersistencePort.findAllOrderedByGameCreation()
-            .filter { it.queueId != ARAM_QUEUE_ID }
-        log.info("재집계 대상 매치: ${matches.size}개 (칼바람 제외)")
 
-        val eloCache = mutableMapOf<String, PlayerElo>()
-        val allHistories = mutableListOf<PlayerEloHistory>()
+        val matches = matchPersistencePort.findAllOrderedByGameCreation()
+        val cache = mutableMapOf<String, PlayerElo>()
+        val histories = mutableListOf<PlayerEloHistory>()
+        var counted = 0
 
         for (match in matches) {
-            processMatchInMemory(match, eloCache, allHistories)
+            if (skipReason(match) != null) continue
+            val outcome = rate(match, cache) ?: continue
+            outcome.players.forEach { cache[it.riotId] = it }
+            histories += outcome.histories
+            counted++
         }
 
-        eloPort.saveAll(eloCache.values.toList())
-        eloHistoryPort.saveAll(allHistories)
-        log.info("Elo 재집계 완료")
+        eloPort.saveAll(cache.values.toList())
+        eloHistoryPort.saveAll(histories)
+        log.info("Elo 재집계 완료 — 전체 ${matches.size}경기 중 ${counted}경기 반영, ${cache.size}명")
     }
 
-    // ═══════════════════════════════════════════════════════════
-    //  핵심 계산 — 순수 Elo (승패 + 이변배율 + 연승/연패)
-    // ═══════════════════════════════════════════════════════════
+    // ────────── 집계 대상 판별 ──────────
 
-    private fun processMatch(match: Match) {
-        val participants = match.participants
-        if (participants.size < 2) return
+    /** 집계에서 빼야 할 경기면 그 이유를, 정상 경기면 null 을 돌려준다. */
+    private fun skipReason(match: Match): String? = when {
+        match.queueId == ARAM_QUEUE_ID ->
+            "칼바람"
+        // 리메이크는 실력이 아니라 누가 안 들어왔느냐의 결과다. 감쇠가 아니라 제외가 맞다.
+        match.participants.any { it.gameEndedInEarlySurrender } ->
+            "리메이크(조기 종료)"
+        match.gameDuration in 1 until REMAKE_DURATION_SEC ->
+            "경기 시간 ${match.gameDuration}초 — 리메이크로 간주"
+        else -> null
+    }
 
-        val riotIds = participants.mapNotNull { it.riotId.takeIf { r -> r.isNotBlank() } }
-        val currentElos = eloPort.findAllByRiotIds(riotIds).associate { it.riotId to it }.toMutableMap()
+    /**
+     * riotId 가 비어 있는 참가자는 제외한다. 그대로 두면 빈 문자열이 한 명의 플레이어로
+     * player_elo 에 쌓여 리더보드에 유령이 생긴다. 같은 riotId 가 두 번 들어온 경우도 하나로 접는다.
+     */
+    private fun ratableParticipants(match: Match): List<MatchParticipant> =
+        match.participants.filter { it.riotId.isNotBlank() }.distinctBy { it.riotId }
 
-        val changes = calcEloChanges(match, currentElos)
+    // ────────── 한 경기 계산 ──────────
+
+    private class Outcome(val players: List<PlayerElo>, val histories: List<PlayerEloHistory>)
+
+    private fun rate(match: Match, current: Map<String, PlayerElo>): Outcome? {
+        val players = ratableParticipants(match)
+        val teamA = players.filter { it.teamId == TEAM_A }
+        val teamB = players.filter { it.teamId == TEAM_B }
+        if (teamA.isEmpty() || teamB.isEmpty()) {
+            log.warn("Elo 계산 skip — 한쪽 팀이 비었다: ${match.matchId} (${teamA.size}대${teamB.size})")
+            return null
+        }
+
+        val aWon = teamA.any { it.win }
+        val bWon = teamB.any { it.win }
+        if (aWon == bWon) {
+            // 양쪽 다 패배(무승부·미완 경기)거나 양쪽 다 승리(데이터 오류). 어느 쪽이든 셀 수 없다.
+            log.warn("Elo 계산 skip — 승패를 판정할 수 없다: ${match.matchId}")
+            return null
+        }
+
+        // 같은 포지션 상대와의 비교 점수. 팀 총량을 팀원끼리 어떻게 나눌지에만 쓰인다.
+        val lane = LanePerformance.scores(teamA, teamB)
+
+        fun rated(p: MatchParticipant): EloRating.Rated = EloRating.Rated(
+            rating = current[p.riotId]?.elo ?: EloRating.INITIAL,
+            games = current[p.riotId]?.games ?: 0,
+            lanePerformance = lane[p.riotId] ?: LanePerformance.NEUTRAL,
+        )
+
+        val deltas = EloRating.deltas(teamA.map(::rated), teamB.map(::rated), aWon = aWon)
 
         val now = LocalDateTime.now()
-        val updated = changes.map { (riotId, delta) ->
-            val prev = currentElos[riotId]
-            val participant = match.participants.firstOrNull { it.riotId == riotId }
-            val won = participant?.win ?: false
-            val newElo = maxOf(MIN_ELO, (prev?.elo ?: INITIAL_ELO) + delta)
-            PlayerElo(
-                id = prev?.id ?: 0, riotId = riotId, elo = newElo,
+        val updated = mutableListOf<PlayerElo>()
+        val histories = mutableListOf<PlayerEloHistory>()
+
+        fun apply(p: MatchParticipant, delta: Double, won: Boolean) {
+            val prev = current[p.riotId]
+            val before = prev?.elo ?: EloRating.INITIAL
+            // 하한을 두지 않는다. 바닥에서 클램프가 걸리면 그만큼이 무에서 생겨나 제로섬이 깨지고,
+            // 기록된 delta 와 (eloAfter - eloBefore) 도 어긋난다.
+            val after = before + delta
+            updated += PlayerElo(
+                id = prev?.id ?: 0,
+                riotId = p.riotId,
+                elo = after,
                 games = (prev?.games ?: 0) + 1,
                 wins = (prev?.wins ?: 0) + if (won) 1 else 0,
-                losses = (prev?.losses ?: 0) + if (!won) 1 else 0,
+                losses = (prev?.losses ?: 0) + if (won) 0 else 1,
                 winStreak = if (won) (prev?.winStreak ?: 0) + 1 else 0,
-                lossStreak = if (!won) (prev?.lossStreak ?: 0) + 1 else 0,
+                lossStreak = if (won) 0 else (prev?.lossStreak ?: 0) + 1,
                 updatedAt = now,
             )
-        }
-        eloPort.saveAll(updated)
-
-        val updatedMap = updated.associateBy { it.riotId }
-        val histories = changes.map { (riotId, delta) ->
-            val prev = currentElos[riotId]
-            val eloBefore = prev?.elo ?: INITIAL_ELO
-            PlayerEloHistory(
-                riotId = riotId, matchId = match.matchId,
-                eloBefore = eloBefore, eloAfter = updatedMap[riotId]?.elo ?: eloBefore,
-                delta = delta, win = match.participants.firstOrNull { it.riotId == riotId }?.win ?: false,
+            histories += PlayerEloHistory(
+                riotId = p.riotId, matchId = match.matchId,
+                eloBefore = before, eloAfter = after, delta = delta,
+                win = won, lanePerformance = lane[p.riotId] ?: LanePerformance.NEUTRAL,
                 gameCreation = match.gameCreation, createdAt = now,
             )
         }
-        eloHistoryPort.saveAll(histories)
-        log.debug("Elo 업데이트 — matchId=${match.matchId}, 대상=${updated.size}명")
-    }
 
-    private fun processMatchInMemory(
-        match: Match, eloCache: MutableMap<String, PlayerElo>,
-        allHistories: MutableList<PlayerEloHistory>,
-    ) {
-        val participants = match.participants
-        if (participants.size < 2) return
-        val currentElos = participants
-            .mapNotNull { it.riotId.takeIf { r -> r.isNotBlank() } }
-            .associateWith { eloCache[it] }.filterValues { it != null }.mapValues { it.value!! }.toMutableMap()
+        teamA.forEachIndexed { i, p -> apply(p, deltas.teamA[i], aWon) }
+        teamB.forEachIndexed { i, p -> apply(p, deltas.teamB[i], !aWon) }
 
-        val changes = calcEloChanges(match, currentElos)
-        val now = LocalDateTime.now()
-
-        changes.forEach { (riotId, delta) ->
-            val prev = currentElos[riotId]
-            val won = participants.firstOrNull { it.riotId == riotId }?.win ?: false
-            val newElo = maxOf(MIN_ELO, (prev?.elo ?: INITIAL_ELO) + delta)
-            val updated = PlayerElo(
-                id = prev?.id ?: 0, riotId = riotId, elo = newElo,
-                games = (prev?.games ?: 0) + 1,
-                wins = (prev?.wins ?: 0) + if (won) 1 else 0,
-                losses = (prev?.losses ?: 0) + if (!won) 1 else 0,
-                winStreak = if (won) (prev?.winStreak ?: 0) + 1 else 0,
-                lossStreak = if (!won) (prev?.lossStreak ?: 0) + 1 else 0,
-                updatedAt = now,
-            )
-            eloCache[riotId] = updated
-            allHistories.add(PlayerEloHistory(
-                riotId = riotId, matchId = match.matchId,
-                eloBefore = prev?.elo ?: INITIAL_ELO, eloAfter = newElo,
-                delta = delta, win = won, gameCreation = match.gameCreation, createdAt = now,
-            ))
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    //  Elo 변동량 계산 — 핵심 알고리즘
-    // ═══════════════════════════════════════════════════════════
-
-    private fun calcEloChanges(match: Match, eloMap: Map<String, PlayerElo>): Map<String, Double> {
-        val teamA = match.participants.filter { it.teamId == 100 }
-        val teamB = match.participants.filter { it.teamId == 200 }
-        if (teamA.isEmpty() || teamB.isEmpty()) return emptyMap()
-
-        val avgEloA = teamA.map { eloMap[it.riotId]?.elo ?: INITIAL_ELO }.average()
-        val avgEloB = teamB.map { eloMap[it.riotId]?.elo ?: INITIAL_ELO }.average()
-
-        val eA = 1.0 / (1 + 10.0.pow((avgEloB - avgEloA) / 400))
-        val eB = 1.0 - eA
-        val aWon = teamA.any { it.win }
-
-        // 이변 배율: 약팀이 이긴 경우에만 적용
-        val eloDiff = kotlin.math.abs(avgEloA - avgEloB)
-        val upsetMult = if (eloDiff > UPSET_THRESHOLD)
-            (1.0 + (eloDiff - UPSET_THRESHOLD) * UPSET_SLOPE).coerceAtMost(UPSET_MAX)
-        else 1.0
-
-        // ── 항복/조기항복 보정 ──
-        // 항복으로 끝난 경기는 온전히 진행되지 않아 결과의 확정성이 낮으므로 Elo 변동폭을 축소한다.
-        //   - 조기항복(FF15·리메이크급): 사실상 미완 경기 → 강하게 감쇠.
-        //   - 일반 항복: 후반이 잘린 경기 → 완만히 감쇠.
-        val earlySurrender = match.participants.any { it.gameEndedInEarlySurrender }
-        val anySurrender   = match.participants.any { it.gameEndedInSurrender }
-        val baseMult = when {
-            earlySurrender -> 0.75
-            anySurrender   -> 0.90
-            else           -> 1.0
-        }
-
-        val result = mutableMapOf<String, Double>()
-
-        fun calcForPlayer(p: MatchParticipant, expected: Double, won: Boolean) {
-            val prev = eloMap[p.riotId]
-            val mult = streakMultiplier(prev?.winStreak ?: 0, prev?.lossStreak ?: 0, won)
-            // 약팀(expected < 0.5)이 이겼을 때만 이변 배율 부여
-            val upset = if (won && expected < 0.5) upsetMult else 1.0
-
-            result[p.riotId] = baseMult * K_FACTOR * ((if (won) 1.0 else 0.0) - expected) * mult * upset
-        }
-
-        teamA.forEach { calcForPlayer(it, eA, aWon) }
-        teamB.forEach { calcForPlayer(it, eB, !aWon) }
-        return result
+        return Outcome(updated, histories)
     }
 }
