@@ -128,6 +128,8 @@ object Build : BuildType({
 
                 DEPLOY_DIR="/lol-event/deploy"
                 HOST_DEPLOY="/home/gijunpark/lol-event/deploy"
+                # DB 접속 정보 등 배포 환경 설정. 예전에는 Config Server 가 읽던 디렉터리다.
+                HOST_CONFIG="/home/gijunpark/lol-event/config"
                 # 실행에는 JDK 가 필요 없다. JRE 이미지가 컴파일러·도구를 안 들고 있어 더 가볍다.
                 JAVA_IMAGE="eclipse-temurin:25-jre-alpine"
                 # 정적 파일 서빙에 Node 는 과하다. serve 를 매 기동마다 npm 으로 깔고 있었다.
@@ -207,14 +209,23 @@ object Build : BuildType({
 
                 echo "=== Step 3: Start Main Service ==="
                 if [ "${'$'}DO_MAIN" = "true" ]; then
+                    # /config 마운트가 반드시 있어야 한다.
+                    # DB 접속 정보(spring.datasource)는 secrets/*.env 가 아니라
+                    # HOST_CONFIG/application.yml 에 들어 있고, 예전에는 Config Server(lol-eureka)가
+                    # 그걸 읽어 내려줬다. Config Server 를 걷어냈으므로 main-service 가 파일을
+                    # 직접 읽어야 한다. 이 마운트를 빠뜨리면
+                    #   "Failed to configure a DataSource: 'url' attribute is not specified"
+                    # 로 기동이 막힌다.
                     docker run -d --name lol-main-service \
                         --network host \
                         --restart unless-stopped \
                         -m ${'$'}MAIN_MEM \
                         -v ${'$'}HOST_DEPLOY/main-service.jar:/app.jar:ro \
+                        -v ${'$'}HOST_CONFIG:/config:ro \
                         --env-file /lol-event/secrets/main-service.env \
                         ${'$'}JAVA_IMAGE java ${'$'}MAIN_JVM -jar /app.jar \
-                        --spring.profiles.active=prd
+                        --spring.profiles.active=prd \
+                        --spring.config.additional-location=file:/config/
                 else
                     echo "Main Service 배포 스킵"
                 fi
