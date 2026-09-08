@@ -26,6 +26,22 @@ Set-Location $PSScriptRoot
 
 $env:PATH = "$env:PATH;$env:USERPROFILE\.cargo\bin;C:\Program Files\GitHub CLI;C:\Program Files (x86)\GitHub CLI"
 
+# 네이티브 명령(cargo · git · gh)을 돌리고 종료 코드로만 성공을 판단한다.
+#
+# Windows PowerShell 5.1 은 ErrorActionPreference=Stop 일 때 네이티브 명령이
+# stderr 에 한 줄만 뱉어도 종료 코드와 무관하게 스크립트를 죽인다. cargo 는
+# 링커 경고를 stderr 로 흘리므로 그대로 두면 정상 빌드에서도 릴리즈가 멈춘다.
+function Invoke-Native {
+  param(
+    [Parameter(Mandatory = $true)][string]$What,
+    [Parameter(Mandatory = $true)][scriptblock]$Body
+  )
+  $previous = $ErrorActionPreference
+  $ErrorActionPreference = "Continue"
+  try { & $Body } finally { $ErrorActionPreference = $previous }
+  if ($LASTEXITCODE -ne 0) { throw "$What 실패 (exit $LASTEXITCODE)" }
+}
+
 # ── 1. 버전 ──────────────────────────────────────
 $cargoToml = "Cargo.toml"
 $content = Get-Content $cargoToml -Raw -Encoding UTF8
@@ -51,24 +67,23 @@ if (-not $NoBump) {
   Push-Location ..
   # 프로젝트 폴더를 통째로 넣는다. Cargo.toml 만 넣으면 소스 변경이 빠진 채
   # 릴리즈가 나간다. target\ 은 .gitignore 가 막는다.
-  git add desktop-collector-rs
-  git commit -m "release(collector): v$version"
-  if ($LASTEXITCODE -ne 0) { Pop-Location; throw "git commit 실패" }
-  git push origin master
-  if ($LASTEXITCODE -ne 0) { Pop-Location; throw "git push 실패" }
-  Pop-Location
+  try {
+    Invoke-Native "git add" { git add desktop-collector-rs }
+    Invoke-Native "git commit" { git commit -m "release(collector): v$version" }
+    Invoke-Native "git push" { git push origin master }
+  } finally {
+    Pop-Location
+  }
 }
 
 # ── 3. 빌드 ──────────────────────────────────────
 Write-Host ""
 Write-Host "=== 테스트 ===" -ForegroundColor Cyan
-cargo test --quiet
-if ($LASTEXITCODE -ne 0) { throw "테스트 실패 — 릴리즈를 중단합니다" }
+Invoke-Native "테스트 — 릴리즈를 중단합니다" { cargo test --quiet }
 
 Write-Host ""
 Write-Host "=== 릴리즈 빌드 ===" -ForegroundColor Cyan
-cargo build --release
-if ($LASTEXITCODE -ne 0) { throw "빌드 실패" }
+Invoke-Native "빌드" { cargo build --release }
 
 $exe = "target\release\LoL-Collector.exe"
 if (-not (Test-Path $exe)) { throw "exe 가 없습니다: $exe" }
@@ -78,8 +93,7 @@ Write-Host "빌드 완료: $exe (${sizeMb}MB)" -ForegroundColor Green
 # ── 4. 서명 ──────────────────────────────────────
 Write-Host ""
 Write-Host "=== 서명 ===" -ForegroundColor Cyan
-& "$PSScriptRoot\scripts\sign.ps1" -Path $exe
-if ($LASTEXITCODE -ne 0) { throw "서명 실패" }
+Invoke-Native "서명" { & "$PSScriptRoot\scripts\sign.ps1" -Path $exe }
 
 if ($SkipPublish) {
   Write-Host ""
@@ -88,17 +102,19 @@ if ($SkipPublish) {
 }
 
 # ── 5~6. GitHub 릴리즈 ───────────────────────────
-gh --version *> $null
-if ($LASTEXITCODE -ne 0) { throw "gh CLI 를 찾을 수 없습니다" }
+Invoke-Native "gh CLI 확인" { gh --version *> $null }
 
 $tag = "desktop-v$version"
 Write-Host ""
 Write-Host "=== GitHub 릴리즈 $tag ===" -ForegroundColor Cyan
 
 # 같은 버전을 다시 올리는 경우를 위해 기존 것을 먼저 치운다.
+# 없으면 실패하는 게 정상이므로 종료 코드를 보지 않는다.
+$ErrorActionPreference = "Continue"
 gh release delete $tag --yes *> $null
 git tag -d $tag *> $null
 git push origin ":refs/tags/$tag" *> $null
+$ErrorActionPreference = "Stop"
 
 $assets = @($exe)
 # 참가자가 서명을 신뢰하려면 공개 인증서도 같이 받아야 한다.
@@ -117,8 +133,9 @@ LoL 수집기 v$version
 게시자 경고가 뜨지 않습니다.
 "@
 
-gh release create $tag @assets --title "LoL 수집기 v$version" --notes $notes --latest
-if ($LASTEXITCODE -ne 0) { throw "릴리즈 업로드 실패" }
+Invoke-Native "릴리즈 업로드" {
+  gh release create $tag @assets --title "LoL 수집기 v$version" --notes $notes --latest
+}
 
 Write-Host ""
 Write-Host "=== 완료 ===" -ForegroundColor Green
