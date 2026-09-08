@@ -13,7 +13,8 @@ class SecurityConfig {
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .cors { it.disable() }
+            // 게이트웨이가 붙여 주던 CORS 를 이제 여기서 처리한다. 설정은 WebConfig 에 있다.
+            .cors { }
             .csrf { it.disable() }
             .authorizeHttpRequests { it.anyRequest().permitAll() }
         return http.build()

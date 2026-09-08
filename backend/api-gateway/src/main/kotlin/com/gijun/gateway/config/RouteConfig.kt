@@ -36,6 +36,12 @@ class RouteConfig(
                     .filters { f -> f.removeRequestHeader("Origin") }
                     .uri(lcuServiceUrl)
             }
+            // Swagger UI + OpenAPI 스펙: main-service가 /api/** 밖의 경로로 서빙하므로 별도 라우트가 필요하다
+            .route("main-service-docs") { r ->
+                r.path("/swagger-ui.html", "/swagger-ui/**", "/api-docs", "/api-docs/**")
+                    .filters { f -> f.removeRequestHeader("Origin") }
+                    .uri("lb://main-service")
+            }
             .route("main-service") { r ->
                 r.path("/api/**")
                     .filters { f -> f.removeRequestHeader("Origin") }

@@ -9,10 +9,16 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/backend" />
-            <option value="$PROJECT_DIR$/backend/api-gateway" />
             <option value="$PROJECT_DIR$/backend/common" />
-            <option value="$PROJECT_DIR$/backend/eureka-server" />
             <option value="$PROJECT_DIR$/backend/main-service" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/desktop-collector" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/desktop-collector" />
           </set>
         </option>
       </GradleProjectSettings>

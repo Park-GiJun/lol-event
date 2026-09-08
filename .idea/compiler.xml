@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="lol-event-backend.api-gateway" target="25" />
+      <module name="lol-event-backend.api-gateway.main" target="24" />
+      <module name="lol-event-backend.api-gateway.test" target="24" />
+      <module name="lol-event-backend.eureka-server" target="25" />
+      <module name="lol-event-backend.eureka-server.main" target="24" />
+      <module name="lol-event-backend.eureka-server.test" target="24" />
+    </bytecodeTargetLevel>
+  </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="lol-event-backend.api-gateway" options="-parameters" />

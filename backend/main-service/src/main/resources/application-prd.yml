@@ -1,6 +1,13 @@
+# 단독 실행 프로파일.
+#
+# 예전에는 Config Server(Eureka 컨테이너)에서 설정을 받아 오고 Eureka 에 자기를 등록했다.
+# 그런데 등록할 서비스가 main-service 하나뿐이라 디스커버리가 찾아 줄 대상이 자기 자신밖에
+# 없었고, Config Server 가 내려주던 config/main-service.yml 의 내용도 이 파일과 거의 같았다.
+# JVM 하나(약 345MB)가 그 일만 하려고 떠 있었다.
+#
+# 이제 설정은 이 파일과 환경변수(--env-file)로 끝낸다. DB 접속 정보처럼 비밀인 값은
+# 원래도 env 로 들어오고 있었으므로 달라지는 게 없다.
 spring:
-  config:
-    import: configserver:http://${EUREKA_HOST}:${EUREKA_PORT}
   kafka:
     bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9094}
     consumer:
@@ -17,15 +24,6 @@ spring:
     jdbc:
       initialize-schema: always
       table-prefix: lol_event.BATCH_
-
-eureka:
-  instance:
-    prefer-ip-address: true
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT}/eureka/
 
 scheduling:
   enabled: true

@@ -13,46 +13,33 @@ project {
 object Build : BuildType({
     name = "Build"
 
+    // 컨테이너를 다섯에서 둘로 줄였다. 배경은 frontend/nginx.conf 주석 참고.
+    //   lol-eureka / lol-api-gateway / lol-lcu-service 제거
+    //   → nginx(정적 + API 프록시) + main-service 만 남는다.
     artifactRules = """
-        backend/eureka-server/build/libs/*.jar => jars/
-        backend/api-gateway/build/libs/*.jar => jars/
         backend/main-service/build/libs/*.jar => jars/
         frontend/dist/** => frontend-dist/
-        backend/lcu-service/dist/** => lcu-service-dist/
-        backend/lcu-service/package.json => lcu-service-dist/
         desktop-collector/build/compose/binaries/main/msi/*.msi => desktop-collector-dist/
     """.trimIndent()
 
     params {
         // 빌드 항목
         checkbox("build.backend", "true",
-            label = "[빌드] Backend (Gradle)", description = "eureka-server, api-gateway, main-service JAR 빌드",
+            label = "[빌드] Backend (Gradle)", description = "main-service JAR 빌드",
             checked = "true", unchecked = "false")
         checkbox("build.frontend", "true",
             label = "[빌드] Frontend", description = "React 앱 빌드",
-            checked = "true", unchecked = "false")
-        checkbox("build.lcu", "true",
-            label = "[빌드] LCU Service", description = "Node.js LCU 서비스 빌드",
             checked = "true", unchecked = "false")
         checkbox("build.desktop", "false",
             label = "[빌드] Desktop Collector", description = "Compose Desktop 수집기 MSI 빌드",
             checked = "true", unchecked = "false")
 
         // 배포 항목
-        checkbox("deploy.eureka", "true",
-            label = "[배포] Eureka Server", description = "Eureka / Config Server 재배포",
-            checked = "true", unchecked = "false")
         checkbox("deploy.main", "true",
             label = "[배포] Main Service", description = "main-service 재배포",
             checked = "true", unchecked = "false")
-        checkbox("deploy.gateway", "true",
-            label = "[배포] API Gateway", description = "api-gateway 재배포",
-            checked = "true", unchecked = "false")
         checkbox("deploy.frontend", "true",
-            label = "[배포] Frontend", description = "프론트엔드 정적 파일 재배포",
-            checked = "true", unchecked = "false")
-        checkbox("deploy.lcu", "true",
-            label = "[배포] LCU Service", description = "lcu-service 재배포",
+            label = "[배포] Frontend (nginx)", description = "정적 파일 + API 프록시 재배포",
             checked = "true", unchecked = "false")
     }
 
@@ -72,7 +59,11 @@ object Build : BuildType({
             name = "Backend - Gradle Build"
             // clean 을 빼면 체크아웃 디렉토리에 남은 증분 상태를 그대로 쓴다.
             // 붙여두면 매 빌드가 전체 재컴파일이라 1분 10초가 통째로 나갔다.
-            tasks = "build -x test"
+            //
+            // 테스트는 켜 둔다. 예전에 -x test 로 꺼 놨는데, 그러면 도메인 규칙 테스트(Elo,
+            // 포지션 판정, 라인 성과)가 CI 에서 한 번도 안 돌아 있으나 마나였다.
+            // 전부 DB·네트워크를 안 타는 순수 테스트라 몇 초면 끝난다.
+            tasks = "build"
             gradleParams = "--parallel --build-cache"
             workingDir = "backend"
             gradleWrapperPath = ""
@@ -90,25 +81,11 @@ object Build : BuildType({
             scriptContent = """
                 npm ci --no-audit --no-fund
                 npm run lint
+                npm test
                 npm run build
             """.trimIndent()
             conditions {
                 equals("build.frontend", "true")
-            }
-        }
-        script {
-            id = "lcu_build"
-            name = "LCU Service - Install & Build"
-            workingDir = "backend/lcu-service"
-            // npm prune --production 은 없앴다. 5분 14초를 들여 프로덕션 node_modules 를 만들었지만
-            // artifactRules 도 배포 스크립트도 dist/ 와 package.json 만 가져간다. 만들고 그 자리에서 버렸다.
-            // 런타임 의존성은 배포 단계(Step 7)에서 컨테이너가 설치한다.
-            scriptContent = """
-                npm ci --no-audit --no-fund
-                npm run build
-            """.trimIndent()
-            conditions {
-                equals("build.lcu", "true")
             }
         }
         script {
@@ -145,27 +122,36 @@ object Build : BuildType({
 
                 DEPLOY_BACKEND="%build.backend%"
                 DEPLOY_FRONTEND="%build.frontend%"
-                DEPLOY_LCU="%build.lcu%"
                 DEPLOY_DESKTOP="%build.desktop%"
-                DO_EUREKA="%deploy.eureka%"
                 DO_MAIN="%deploy.main%"
-                DO_GATEWAY="%deploy.gateway%"
                 DO_FRONTEND="%deploy.frontend%"
-                DO_LCU="%deploy.lcu%"
 
                 DEPLOY_DIR="/lol-event/deploy"
                 HOST_DEPLOY="/home/gijunpark/lol-event/deploy"
-                HOST_CONFIG="/home/gijunpark/lol-event/config"
-                HOST_NPM_CACHE="/home/gijunpark/lol-event/.npm-cache"
-                JAVA_IMAGE="eclipse-temurin:25-jdk-alpine"
-                NODE_IMAGE="node:20-alpine"
+                # 실행에는 JDK 가 필요 없다. JRE 이미지가 컴파일러·도구를 안 들고 있어 더 가볍다.
+                JAVA_IMAGE="eclipse-temurin:25-jre-alpine"
+                # 정적 파일 서빙에 Node 는 과하다. serve 를 매 기동마다 npm 으로 깔고 있었다.
+                # 이제 게이트웨이가 하던 API 프록시까지 이 nginx 가 맡는다.
+                NGINX_IMAGE="nginx:1.27-alpine"
+
+                # ── JVM 메모리 상한 ──────────────────────────────────────────────
+                # 지금까지 힙 옵션도 컨테이너 메모리 제한도 없었다. 그러면 JVM 은 호스트
+                # 메모리(32GB)의 4분의 1을 최대 힙으로 잡는다. 실제로 확인해 보니 세 JVM 모두
+                # MaxHeapSize 가 7,960MB 였다. 셋이 동시에 크면 가용 메모리를 넘긴다.
+                #
+                # -Xss512k                    : 스레드 스택 기본 1MB → 절반.
+                # -XX:+ExitOnOutOfMemoryError : 힙이 새면 죽고 재시작한다. 살아서 스래싱하는 것보다 낫다.
+                # -XX:MaxMetaspaceSize        : 메타스페이스도 기본이 무제한이다.
+                #
+                # main-service 는 JPA + 배치 + 통계 집계를 전부 안고 있다. 통계가 매치를 통째로
+                # 메모리에 올려 도는 구간이 있어 힙은 넉넉히 준다. GC 는 G1 그대로.
+                MAIN_JVM="-Xmx512m -XX:MaxMetaspaceSize=256m -Xss512k -XX:+ExitOnOutOfMemoryError"
+                MAIN_MEM="896m"
 
                 echo "=== Step 1: Copy build artifacts ==="
                 mkdir -p ${'$'}DEPLOY_DIR
 
                 if [ "${'$'}DEPLOY_BACKEND" = "true" ]; then
-                    cp backend/eureka-server/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/eureka-server.jar
-                    cp backend/api-gateway/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/api-gateway.jar
                     cp backend/main-service/build/libs/*-SNAPSHOT.jar ${'$'}DEPLOY_DIR/main-service.jar
                     echo "Backend JARs 복사 완료"
                 fi
@@ -211,114 +197,47 @@ object Build : BuildType({
                     echo "Frontend dist 복사 완료"
                 fi
 
-                if [ "${'$'}DEPLOY_LCU" = "true" ]; then
-                    mkdir -p ${'$'}DEPLOY_DIR/lcu-service
-                    cp -r backend/lcu-service/dist ${'$'}DEPLOY_DIR/lcu-service/dist
-                    cp backend/lcu-service/package.json ${'$'}DEPLOY_DIR/lcu-service/
-                    cp backend/lcu-service/package-lock.json ${'$'}DEPLOY_DIR/lcu-service/ 2>/dev/null || true
-                    echo "LCU Service 복사 완료"
-                fi
-
                 echo "=== Step 2: Stop selected services ==="
-                if [ "${'$'}DO_EUREKA"   = "true" ]; then docker stop lol-eureka        2>/dev/null || true; docker rm lol-eureka        2>/dev/null || true; fi
+                # 예전에 돌던 lol-eureka / lol-api-gateway / lol-lcu-service 는 이제 안 띄운다.
+                # 남아 있으면 포트를 물고 있으니 무조건 내린다.
+                docker stop lol-eureka lol-api-gateway lol-lcu-service 2>/dev/null || true
+                docker rm   lol-eureka lol-api-gateway lol-lcu-service 2>/dev/null || true
                 if [ "${'$'}DO_MAIN"     = "true" ]; then docker stop lol-main-service  2>/dev/null || true; docker rm lol-main-service  2>/dev/null || true; fi
-                if [ "${'$'}DO_GATEWAY"  = "true" ]; then docker stop lol-api-gateway   2>/dev/null || true; docker rm lol-api-gateway   2>/dev/null || true; fi
                 if [ "${'$'}DO_FRONTEND" = "true" ]; then docker stop lol-frontend      2>/dev/null || true; docker rm lol-frontend      2>/dev/null || true; fi
-                if [ "${'$'}DO_LCU"      = "true" ]; then docker stop lol-lcu-service   2>/dev/null || true; docker rm lol-lcu-service   2>/dev/null || true; fi
 
-                echo "=== Step 3: Start Eureka Server (Config Server) ==="
-                if [ "${'$'}DO_EUREKA" = "true" ]; then
-                    docker run -d --name lol-eureka \
-                        --network host \
-                        --restart unless-stopped \
-                        -v ${'$'}HOST_DEPLOY/eureka-server.jar:/app.jar:ro \
-                        -v ${'$'}HOST_CONFIG:/config:ro \
-                        --env-file /lol-event/secrets/shared.env \
-                        ${'$'}JAVA_IMAGE java -jar /app.jar \
-                        --spring.cloud.config.server.native.search-locations=classpath:/config,file:/config
-
-                    # 헬스체크는 반드시 컨테이너 안에서 host 네트워크로 돌아야 한다.
-                    # 빌드 에이전트에서 직접 curl 하면 Eureka 의 localhost:8761 이 보이지 않아
-                    # 30번이 전부 실패하고 90초를 버린 뒤 조용히 넘어갔다 (빌드 #104 로그 확인).
-                    echo "Waiting for Eureka to start..."
-                    if docker run --rm --network host ${'$'}NODE_IMAGE sh -c \
-                        'for i in ${'$'}(seq 1 30); do
-                             wget -q -T 2 -O /dev/null http://localhost:8761/actuator/health && exit 0
-                             echo "  waiting... (${'$'}i/30)"
-                             sleep 3
-                         done
-                         exit 1'; then
-                        echo "Eureka is UP!"
-                    else
-                        echo "WARNING: Eureka 가 90초 안에 뜨지 않았다. 이후 서비스들이 등록에 실패한다."
-                        docker logs --tail 50 lol-eureka || true
-                    fi
-                else
-                    echo "Eureka 배포 스킵"
-                fi
-
-                echo "=== Step 4: Start Main Service ==="
+                echo "=== Step 3: Start Main Service ==="
                 if [ "${'$'}DO_MAIN" = "true" ]; then
                     docker run -d --name lol-main-service \
                         --network host \
                         --restart unless-stopped \
+                        -m ${'$'}MAIN_MEM \
                         -v ${'$'}HOST_DEPLOY/main-service.jar:/app.jar:ro \
                         --env-file /lol-event/secrets/main-service.env \
-                        ${'$'}JAVA_IMAGE java -jar /app.jar \
+                        ${'$'}JAVA_IMAGE java ${'$'}MAIN_JVM -jar /app.jar \
                         --spring.profiles.active=prd
                 else
                     echo "Main Service 배포 스킵"
                 fi
 
-                echo "=== Step 5: Start API Gateway ==="
-                if [ "${'$'}DO_GATEWAY" = "true" ]; then
-                    docker run -d --name lol-api-gateway \
-                        --network host \
-                        --restart unless-stopped \
-                        -v ${'$'}HOST_DEPLOY/api-gateway.jar:/app.jar:ro \
-                        --env-file /lol-event/secrets/shared.env \
-                        --env LCU_SERVICE_URL=http://localhost:3002 \
-                        ${'$'}JAVA_IMAGE java -jar /app.jar \
-                        --spring.profiles.active=local
-                else
-                    echo "API Gateway 배포 스킵"
-                fi
-
-                echo "=== Step 6: Start Frontend ==="
+                echo "=== Step 4: Start Frontend (nginx: 정적 + API 프록시) ==="
                 if [ "${'$'}DO_FRONTEND" = "true" ]; then
+                    # 정적 파일 서빙을 nginx 로 옮겼다. 예전에는 node:20-alpine 을 띄우고
+                    # 기동할 때마다 `npm install -g serve` 를 돌렸다. 설정은 frontend/nginx.conf 에 있다.
+                    cp frontend/nginx.conf ${'$'}DEPLOY_DIR/frontend-nginx.conf
+
                     docker run -d --name lol-frontend \
                         --network host \
                         --restart unless-stopped \
+                        -m 32m \
                         -v ${'$'}HOST_DEPLOY/frontend-dist:/app:ro \
-                        ${'$'}NODE_IMAGE sh -c "npm install -g serve && serve -s /app -l 8080"
+                        -v ${'$'}HOST_DEPLOY/frontend-nginx.conf:/etc/nginx/conf.d/default.conf:ro \
+                        ${'$'}NGINX_IMAGE
                 else
                     echo "Frontend 배포 스킵"
                 fi
 
-                echo "=== Step 7: Install lcu-service deps & Start ==="
-                if [ "${'$'}DO_LCU" = "true" ]; then
-                    # npm 캐시를 호스트에 남겨 재사용한다. 캐시 없이 매 배포마다 349개를 새로 받느라
-                    # 이 한 줄에서만 7분 2초가 나갔다 (빌드 #104).
-                    docker run --rm \
-                        -v ${'$'}HOST_DEPLOY/lcu-service:/app \
-                        -v ${'$'}HOST_NPM_CACHE:/root/.npm \
-                        ${'$'}NODE_IMAGE sh -c "cd /app && npm ci --omit=dev --no-audit --no-fund"
-                    docker run -d --name lol-lcu-service \
-                        --network host \
-                        --restart unless-stopped \
-                        -v ${'$'}HOST_DEPLOY/lcu-service:/app:ro \
-                        --env-file /lol-event/secrets/shared.env \
-                        --env PORT=3002 \
-                        --env KAFKA_BROKERS=localhost:9094 \
-                        ${'$'}NODE_IMAGE sh -c "node /app/dist/main"
-                else
-                    echo "LCU Service 배포 스킵"
-                fi
-
                 echo "=== Deploy Complete ==="
-                echo "Frontend:    http://localhost:8080"
-                echo "API Gateway: http://localhost:9832"
-                echo "Eureka:      http://localhost:8761"
+                echo "Site: http://localhost:8080  (정적 + /api → main-service:8081)"
             """.trimIndent()
         }
     }

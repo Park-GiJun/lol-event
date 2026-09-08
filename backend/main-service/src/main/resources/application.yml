@@ -54,3 +54,8 @@ springdoc:
     enabled: false   # UI는 SwaggerUiController에서 직접 서빙
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
+
+app:
+  cors:
+    # 게이트웨이가 쓰던 목록 그대로. 배포 도메인이 바뀌면 APP_CORS_ALLOWED_ORIGINS 로 덮는다.
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:8080,http://localhost:5173,http://localhost:3000,http://localhost:4173,https://lol.gijun.net}

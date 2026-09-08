@@ -20,8 +20,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
     // Spring Cloud
-    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
-    implementation("org.springframework.cloud:spring-cloud-starter-config")
+    // Eureka 클라이언트와 Config 클라이언트는 걷어냈다.
+    // 등록할 서비스가 자기 자신 하나뿐이라 디스커버리가 할 일이 없었고, Config Server 가
+    // 내려주던 값은 application-prd.yml 과 환경변수로 옮겼다.
+    // 두 스타터는 기동 시 레지스트리 폴링 스레드와 하트비트 스케줄러를 띄운다. 그만큼이 순수 낭비였다.
 
     // Ktor Client
     implementation("io.ktor:ktor-client-core:3.1.1")
