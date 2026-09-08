@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { api, setErrorHandler } from './api';
 
 // 테스트도 앱과 같은 환경변수 해석을 따른다. .env 값이 바뀌어도 이 테스트는 안 깨진다.
-const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9832/api';
+const BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api';
 
 function jsonResponse(body: unknown, init: { ok?: boolean; status?: number } = {}) {
   return {

@@ -1,7 +1,13 @@
 import type { ApiResponse } from '../types/api';
 
-const BACKEND_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9832/api';
-const LCU_BASE = import.meta.env.VITE_LCU_BASE_URL || 'http://localhost:9832/api';
+// 기본값은 로컬에서 main-service 를 직접 띄웠을 때의 주소다.
+// 예전에는 9832(API Gateway)를 가리켰는데 게이트웨이를 걷어냈다.
+// 배포 환경에서는 .env 의 VITE_API_BASE_URL 이 덮는다.
+const BACKEND_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api';
+
+// lcuApi 는 지웠다. 서버의 lcu-service 는 윈도우 롤 lockfile 을 읽는 코드라
+// 리눅스 컨테이너에서 동작한 적이 없고, 이 클라이언트를 쓰는 화면도 없었다.
+// LCU 연동은 데스크탑 수집기가 로컬에서 직접 한다.
 
 type ErrorHandler = (title: string, message: string) => void;
 let globalErrorHandler: ErrorHandler | null = null;
@@ -33,17 +39,3 @@ export const api = {
   delete: <T>(endpoint: string) => request<T>(`${BACKEND_BASE}${endpoint}`, { method: 'DELETE' }),
 };
 
-export const lcuApi = {
-  status: () => fetch(`${LCU_BASE}/lcu/status`).then(r => r.json()),
-  fetchSSE: (onMessage: (data: Record<string, unknown>) => void, onDone: () => void) => {
-    const es = new EventSource(`${LCU_BASE}/lcu/collect`);
-    es.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      onMessage(data);
-      if (data.type === 'done' || data.type === 'error') { es.close(); onDone(); }
-    };
-    es.onerror = () => { es.close(); onDone(); };
-    return es;
-  },
-  getMatches: () => fetch(`${LCU_BASE}/matches`).then(r => r.json()),
-};

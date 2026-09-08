@@ -1,6 +1,9 @@
+# 로컬 개발 프로파일.
+#
+# Config Server 임포트와 Eureka 등록 설정은 걷어냈다. 두 서비스를 없앴고
+# spring-cloud 클라이언트 의존성도 빠져서, 남겨 두면 `configserver:` 접두사를
+# 풀어 줄 리졸버가 없어 기동이 막힌다.
 spring:
-  config:
-    import: optional:configserver:http://localhost:8761
   kafka:
     bootstrap-servers: ${KAFKA_HOST:localhost}:${KAFKA_PORT:9093}
     consumer:
@@ -17,15 +20,6 @@ spring:
     jdbc:
       initialize-schema: always
       table-prefix: lol_event.BATCH_
-
-eureka:
-  instance:
-    prefer-ip-address: true
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
 
 scheduling:
   enabled: true

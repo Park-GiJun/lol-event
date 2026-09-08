@@ -1,38 +1,11 @@
-server:
-  port: 8081
-
-spring:
-  kafka:
-    bootstrap-servers: ${KAFKA_HOST}:${KAFKA_PORT}
-    consumer:
-      group-id: main-service-match-consumer
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
-  batch:
-    job:
-      enabled: false
-    jdbc:
-      initialize-schema: always
-      table-prefix: lol_event.BATCH_
-
-eureka:
-  instance:
-    prefer-ip-address: true
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT}/eureka/
-
-scheduling:
-  enabled: true
-
-springdoc:
-  api-docs:
-    path: /api-docs
-  swagger-ui:
-    path: /swagger-ui.html
+# 이 파일은 더 이상 쓰이지 않는다.
+#
+# 예전에는 Config Server(lol-eureka 컨테이너)가 이 디렉터리를 읽어 main-service 에
+# 설정을 내려줬다. Config Server 를 걷어내면서 main-service 가 자기 application-prd.yml 과
+# 환경변수로 직접 뜬다.
+#
+# 실제 배포에 쓰이는 설정은 저장소가 아니라 호스트에 있다.
+#   /home/gijunpark/lol-event/config/application.yml    ← DB 접속 정보
+#   배포 스크립트가 이 디렉터리를 컨테이너의 /config 로 마운트한다.
+#
+# 참고용으로 비워 두되, 지워도 무방하다.

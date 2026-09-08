@@ -119,13 +119,6 @@ export function MonitoringPage() {
         <p>기존 Prometheus(<code>stockSimulator-prometheus</code>)에 아래 scrape config를 추가하세요.</p>
         <pre>{`# /etc/prometheus/prometheus.yml 에 추가
 scrape_configs:
-  - job_name: 'lol-api-gateway'
-    metrics_path: '/actuator/prometheus'
-    static_configs:
-      - targets: ['host.docker.internal:9832']
-        labels:
-          application: 'api-gateway'
-
   - job_name: 'lol-main-service'
     metrics_path: '/actuator/prometheus'
     static_configs:
