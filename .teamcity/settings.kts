@@ -200,10 +200,6 @@ object Build : BuildType({
                 fi
 
                 echo "=== Step 2: Stop selected services ==="
-                # 예전에 돌던 lol-eureka / lol-api-gateway / lol-lcu-service 는 이제 안 띄운다.
-                # 남아 있으면 포트를 물고 있으니 무조건 내린다.
-                docker stop lol-eureka lol-api-gateway lol-lcu-service 2>/dev/null || true
-                docker rm   lol-eureka lol-api-gateway lol-lcu-service 2>/dev/null || true
                 if [ "${'$'}DO_MAIN"     = "true" ]; then docker stop lol-main-service  2>/dev/null || true; docker rm lol-main-service  2>/dev/null || true; fi
                 if [ "${'$'}DO_FRONTEND" = "true" ]; then docker stop lol-frontend      2>/dev/null || true; docker rm lol-frontend      2>/dev/null || true; fi
 
