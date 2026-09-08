@@ -33,10 +33,10 @@ export default function SupportTab({ mode }: { mode: string }) {
               <th>플레이어</th>
               <th>역할</th>
               <th className="table-number">판수</th>
-              <th className="table-number">힐 기여</th>
-              <th className="table-number">CC 기여</th>
-              <th className="table-number">시야 기여</th>
-              <th className="table-number">서폿 지수</th>
+              <th className="table-number">팀 힐 중 내 몫</th>
+              <th className="table-number">팀 CC 중 내 몫</th>
+              <th className="table-number">팀 시야 중 내 몫</th>
+              <th className="table-number">서포터 기여 점수</th>
             </tr>
           </thead>
           <tbody>

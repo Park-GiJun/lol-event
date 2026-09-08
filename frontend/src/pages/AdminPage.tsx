@@ -411,11 +411,11 @@ export function AdminPage() {
         )}
       </section>
 
-      {/* ── 3. 포지션별 승리기여도 ────────────────── */}
+      {/* ── 3. 포지션이 승패에 미친 영향 ────────────────── */}
       <section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div className="section-head">
           <span className="icon-chip"><TrophyIcon size={15} /></span>
-          <span className="section-head-title">포지션별 승리기여도</span>
+          <span className="section-head-title">포지션이 승패에 미친 영향</span>
           <span className="admin-section-sub text-secondary text-xs">KDA · 승률 · 비전 · CS 종합 기여 점수</span>
           {!posLoaded && (
             <button className="btn btn-secondary btn-sm section-head-action" onClick={loadPositions}

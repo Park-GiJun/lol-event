@@ -3,12 +3,15 @@ package com.gijun.main.infrastructure.adapter.out.persistence.dragon.adapter
 import com.gijun.main.application.port.out.DragonDataPort
 import com.gijun.main.domain.model.dragon.DragonChampion
 import com.gijun.main.domain.model.dragon.DragonItem
+import com.gijun.main.domain.model.dragon.DragonRune
 import com.gijun.main.domain.model.dragon.DragonSummonerSpell
 import com.gijun.main.infrastructure.adapter.out.persistence.dragon.entity.DragonChampionEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.dragon.entity.DragonItemEntity
+import com.gijun.main.infrastructure.adapter.out.persistence.dragon.entity.DragonRuneEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.dragon.entity.DragonSummonerSpellEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.dragon.repository.DragonChampionJpaRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.dragon.repository.DragonItemJpaRepository
+import com.gijun.main.infrastructure.adapter.out.persistence.dragon.repository.DragonRuneJpaRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.dragon.repository.DragonSummonerSpellJpaRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -18,7 +21,8 @@ import java.time.LocalDateTime
 class DragonDataPersistenceAdapter(
     private val championRepo: DragonChampionJpaRepository,
     private val itemRepo: DragonItemJpaRepository,
-    private val spellRepo: DragonSummonerSpellJpaRepository
+    private val spellRepo: DragonSummonerSpellJpaRepository,
+    private val runeRepo: DragonRuneJpaRepository,
 ) : DragonDataPort {
 
     @Transactional
@@ -64,11 +68,30 @@ class DragonDataPersistenceAdapter(
         }
     }
 
+    @Transactional
+    override fun saveAllRunes(runes: List<DragonRune>) {
+        for (domain in runes) {
+            val entity = runeRepo.findByRuneId(domain.runeId)
+            if (entity != null) {
+                entity.runeKey = domain.runeKey; entity.nameKo = domain.nameKo
+                entity.description = domain.description
+                entity.iconPath = domain.iconPath; entity.imageUrl = domain.imageUrl
+                entity.styleId = domain.styleId; entity.styleNameKo = domain.styleNameKo
+                entity.slot = domain.slot; entity.version = domain.version
+                entity.updatedAt = LocalDateTime.now()
+            } else {
+                runeRepo.save(DragonRuneEntity.from(domain))
+            }
+        }
+    }
+
     override fun findAllChampions(): List<DragonChampion> = championRepo.findAll().map { it.toDomain() }
     override fun findAllItems(): List<DragonItem> = itemRepo.findAll().map { it.toDomain() }
     override fun findAllSpells(): List<DragonSummonerSpell> = spellRepo.findAll().map { it.toDomain() }
+    override fun findAllRunes(): List<DragonRune> = runeRepo.findAll().map { it.toDomain() }
 
     override fun findChampionById(championId: Int): DragonChampion? = championRepo.findByChampionId(championId)?.toDomain()
     override fun findItemById(itemId: Int): DragonItem? = itemRepo.findByItemId(itemId)?.toDomain()
     override fun findSpellById(spellId: Int): DragonSummonerSpell? = spellRepo.findBySpellId(spellId)?.toDomain()
+    override fun findRuneById(runeId: Int): DragonRune? = runeRepo.findByRuneId(runeId)?.toDomain()
 }

@@ -2,6 +2,7 @@ package com.gijun.main.infrastructure.adapter.out.persistence.dragon.repository
 
 import com.gijun.main.infrastructure.adapter.out.persistence.dragon.entity.DragonChampionEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.dragon.entity.DragonItemEntity
+import com.gijun.main.infrastructure.adapter.out.persistence.dragon.entity.DragonRuneEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.dragon.entity.DragonSummonerSpellEntity
 import org.springframework.data.jpa.repository.JpaRepository
 
@@ -15,4 +16,8 @@ interface DragonItemJpaRepository : JpaRepository<DragonItemEntity, Long> {
 
 interface DragonSummonerSpellJpaRepository : JpaRepository<DragonSummonerSpellEntity, Long> {
     fun findBySpellId(spellId: Int): DragonSummonerSpellEntity?
+}
+
+interface DragonRuneJpaRepository : JpaRepository<DragonRuneEntity, Long> {
+    fun findByRuneId(runeId: Int): DragonRuneEntity?
 }

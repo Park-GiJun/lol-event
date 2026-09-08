@@ -90,8 +90,6 @@ class GetComebackIndexHandler(
                     totalWinRate = totalWinRate,
                     contestGames = acc.contestGames,
                     contestWinRate = contestWinRate,
-                    surrenderGames = acc.surrenderGames,
-                    surrenderWinRate = surrenderWinRate,
                     comebackBonus = comebackBonus,
                     isKing = isKing,
                 )

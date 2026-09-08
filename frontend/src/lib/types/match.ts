@@ -29,7 +29,6 @@ export interface Participant {
   tripleKills: number;
   quadraKills: number;
   pentaKills: number;
-  unrealKills: number;
   killingSprees: number;
   largestKillingSpree: number;
   largestMultiKill: number;
@@ -84,13 +83,16 @@ export interface Participant {
   totalTimeCrowdControlDealt: number;
   // 미니언
   neutralMinionsKilled: number;
-  neutralMinionsKilledTeamJungle: number;
   neutralMinionsKilledEnemyJungle: number;
-  // 스코어
-  combatPlayerScore: number;
-  objectivePlayerScore: number;
-  totalPlayerScore: number;
-  totalScoreRank: number;
+  /**
+   * 응답에는 더 있지만 여기서 뺀 필드들:
+   *   combatPlayerScore, objectivePlayerScore, totalPlayerScore, totalScoreRank
+   *     — Riot Match-V4 시절 스코어. 전 행이 0 이다(수집분 190행 전수 확인).
+   *   unrealKills — 펜타 초과 킬. 전 행이 0.
+   *   neutralMinionsKilledTeamJungle — 아군 정글 몹. 전 행이 0.
+   * 타입에 남겨 두면 화면에서 집어 쓰게 되고, 그러면 전원 0 인 칸이 생긴다.
+   * 나중에 실제로 채워지기 시작하면 그때 다시 넣으면 된다.
+   */
   // 항복
   gameEndedInSurrender: boolean;
   gameEndedInEarlySurrender: boolean;

@@ -43,10 +43,10 @@ class GetSessionReportHandler(
                     }
                 }
 
-                // 펜타킬: kills >= 5인 단일 플레이어 (근사치)
-                // MatchParticipant에 pentaKills 필드가 없으므로 kills 기반으로 집계하지 않고 0으로 유지
-                // (실제 pentaKills 필드 있을 경우 교체 가능)
-                val pentaKills = 0
+                // MatchParticipant.pentaKills 는 처음부터 있었다. 없다고 적힌 주석을 믿고
+                // 0 을 그대로 내보내고 있어서, 실제로 나온 펜타(수집분 7회)가 세션 보고서에서
+                // 전부 사라져 있었다.
+                val pentaKills = dayMatches.sumOf { m -> m.participants.sumOf { it.pentaKills } }
 
                 // 세션 MVP: 최고 KDA 플레이어
                 data class PlayerKda(val riotId: String, val kda: Double)

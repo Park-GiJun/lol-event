@@ -56,13 +56,12 @@ class GetTimePatternHandler(
                 dayName = DAY_NAMES[dow] ?: "$dow",
                 sessions = acc.sessionDates.size,
                 games = acc.games,
-                winRate = if (acc.games > 0) (acc.wins.toDouble() / acc.games * 100 * 10).toInt() / 10.0 else 0.0,
             )
         }
 
         val byHour = (0..23).mapNotNull { h ->
             val acc = hourMap[h] ?: return@mapNotNull null
-            HourPatternEntry(hour = h, games = acc.games, winRate = 0.0)
+            HourPatternEntry(hour = h, games = acc.games)
         }
 
         val busiestDay = byDay.maxByOrNull { it.games }?.dayName

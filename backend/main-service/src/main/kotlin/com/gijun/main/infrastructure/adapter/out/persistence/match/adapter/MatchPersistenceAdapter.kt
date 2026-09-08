@@ -58,6 +58,18 @@ class MatchPersistenceAdapter(
 
     @Transactional
     override fun updateAssignedPositions(updates: Map<Long, String>) {
-        updates.forEach { (id, pos) -> participantRepo.updateAssignedPosition(id, pos) }
+        // 포지션별로 묶어 UPDATE 를 5방 이내로 줄인다. IN 목록이 너무 길면 파라미터 한도에
+        // 걸리는 DB 가 있어 청크로 나눈다.
+        updates.entries
+            .groupBy({ it.value }, { it.key })
+            .forEach { (pos, ids) ->
+                ids.chunked(IN_CLAUSE_CHUNK).forEach { chunk ->
+                    participantRepo.updateAssignedPositionIn(chunk, pos)
+                }
+            }
+    }
+
+    private companion object {
+        const val IN_CLAUSE_CHUNK = 1_000
     }
 }

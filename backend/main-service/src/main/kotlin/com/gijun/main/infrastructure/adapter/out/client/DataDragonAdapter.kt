@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.gijun.main.application.port.out.DataDragonFetchPort
 import com.gijun.main.domain.model.dragon.DragonChampion
 import com.gijun.main.domain.model.dragon.DragonItem
+import com.gijun.main.domain.model.dragon.DragonRune
 import com.gijun.main.domain.model.dragon.DragonSummonerSpell
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -70,6 +71,68 @@ class DataDragonAdapter(
                     version = version
                 )
             }.onFailure { log.warn("아이템 파싱 실패: key=$key", it) }.getOrNull()
+        }
+    }
+
+    /**
+     * 룬은 runesReforged.json 하나에 계열 → 줄(slot) → 룬 의 3단 구조로 들어 있다.
+     * 평평하게 펴서 계열 행과 룬 행을 한 목록으로 만든다.
+     *
+     * 아이콘 경로만 주의하면 된다. 챔피언·아이템·스펠 이미지는 `cdn/{version}/img/...` 인데
+     * 룬 아이콘은 버전이 없는 `cdn/img/{icon}` 이다. 버전을 끼우면 404 가 난다.
+     */
+    @Suppress("UNCHECKED_CAST")
+    override fun fetchRunes(version: String): List<DragonRune> = runBlocking {
+        val text = client.get("$base/cdn/$version/data/ko_KR/runesReforged.json").bodyAsText()
+        val styles = objectMapper.readValue(text, List::class.java) as? List<Map<String, Any>>
+            ?: return@runBlocking emptyList()
+
+        fun iconUrl(icon: String?) = icon?.let { "$base/cdn/img/$it" }
+
+        styles.flatMap { style ->
+            runCatching {
+                val styleId = (style["id"] as Number).toInt()
+                val styleName = style["name"] as String
+
+                // 계열 자체도 한 행으로 남긴다. 화면에서 보조 계열 아이콘을 id 로 찾기 때문이다.
+                val styleRow = DragonRune(
+                    runeId = styleId,
+                    runeKey = style["key"] as? String ?: styleName,
+                    nameKo = styleName,
+                    description = null,
+                    iconPath = style["icon"] as? String,
+                    imageUrl = iconUrl(style["icon"] as? String),
+                    styleId = styleId,
+                    styleNameKo = styleName,
+                    slot = DragonRune.STYLE_SLOT,
+                    version = version,
+                )
+
+                val slots = style["slots"] as? List<Map<String, Any>> ?: emptyList()
+                val runeRows = slots.flatMapIndexed { slotIndex, slot ->
+                    val runes = slot["runes"] as? List<Map<String, Any>> ?: emptyList()
+                    runes.mapNotNull { rune ->
+                        runCatching {
+                            DragonRune(
+                                runeId = (rune["id"] as Number).toInt(),
+                                runeKey = rune["key"] as? String ?: "",
+                                nameKo = rune["name"] as String,
+                                // shortDesc 는 <br> 같은 태그가 섞여 있지만 아이템 description 도
+                                // 같은 상태로 저장하고 있어 표기를 맞춘다.
+                                description = rune["shortDesc"] as? String ?: rune["longDesc"] as? String,
+                                iconPath = rune["icon"] as? String,
+                                imageUrl = iconUrl(rune["icon"] as? String),
+                                styleId = styleId,
+                                styleNameKo = styleName,
+                                slot = slotIndex,
+                                version = version,
+                            )
+                        }.onFailure { log.warn("룬 파싱 실패: $rune", it) }.getOrNull()
+                    }
+                }
+
+                listOf(styleRow) + runeRows
+            }.onFailure { log.warn("룬 계열 파싱 실패: $style", it) }.getOrDefault(emptyList())
         }
     }
 

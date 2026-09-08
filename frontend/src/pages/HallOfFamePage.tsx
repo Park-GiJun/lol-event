@@ -4,7 +4,7 @@ import { TabPage } from '@/components/ds/TabPage';
 /**
  * 명예의 전당 — 통계라기보다 이야깃거리.
  *
- * 혼돈 지수·떡락 지수·컴백 같은 것들은 154경기 규모에서 통계로는 노이즈에 가깝다.
+ * 난장판·떡락·역전극 같은 것들은 154경기 규모에서 통계로는 노이즈에 가깝다.
  * 그렇다고 지울 것도 아니다. 공식 대회가 아니라 내전이고, 사람들이 사이트를 다시 열어 보는
  * 이유는 대개 이런 쪽이다. 다만 순위표 사이에 섞여 있으면 실력 지표처럼 읽히니 여기로 몰았다.
  *
@@ -19,7 +19,7 @@ const TABS = [
     component: lazy(() => import('./stats-tabs/ComebackTab')) },
   { key: 'defeat',      label: '떡락',     hint: '이기고 있다가 놓친 경기',
     component: lazy(() => import('./stats-tabs/DefeatTab')) },
-  { key: 'chaos',       label: '혼돈',     hint: '킬이 가장 많이 터진 난장판',
+  { key: 'chaos',       label: '난장판',   hint: '킬이 가장 많이 터진 경기',
     component: lazy(() => import('./stats-tabs/ChaosTab')) },
   { key: 'earlygame',   label: '초반',     hint: '초반을 어떻게 굴렸나',
     component: lazy(() => import('./stats-tabs/EarlyGameTab')) },

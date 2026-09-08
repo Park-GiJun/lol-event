@@ -27,17 +27,21 @@ class SyncDataDragonHandler(
         val items = dataDragonAdapter.fetchItems(version)
         dragonDataPort.saveAllItems(items)
 
+        val runes = dataDragonAdapter.fetchRunes(version)
+        dragonDataPort.saveAllRunes(runes)
+
         val spells = dataDragonAdapter.fetchSummonerSpells(version)
         dragonDataPort.saveAllSpells(spells)
 
         cacheStore.warmUp()
 
-        log.info("[DataDragon] 동기화 완료 - 챔피언: ${champions.size}, 아이템: ${items.size}, 스펠: ${spells.size}")
+        log.info("[DataDragon] 동기화 완료 - 챔피언: ${champions.size}, 아이템: ${items.size}, 스펠: ${spells.size}, 룬: ${runes.size}")
         return DragonSyncResult(
             version = version,
             champions = champions.size,
             items = items.size,
-            spells = spells.size
+            spells = spells.size,
+            runes = runes.size
         )
     }
 }

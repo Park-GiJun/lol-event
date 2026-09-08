@@ -45,7 +45,7 @@ export default function EarlyGameTab({ mode }: { mode: string }) {
 
       <div className="section-head">
         <SwordsIcon size={16} />
-        <span className="section-head-title">초반 지배력 랭킹</span>
+        <span className="section-head-title">초반을 누가 주도했나</span>
       </div>
       <div className="table-wrapper">
         <table className="table member-stats-table" style={{ fontSize: 12 }}>

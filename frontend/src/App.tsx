@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { setErrorHandler } from './lib/api/api';
 import { DragonProvider } from './context/DragonContext';
 import { AppLayout } from './components/layout/AppLayout';
@@ -37,7 +37,11 @@ function RedirectParam({ to, param }: { to: string; param: string }) {
 function App() {
   const [error, setError] = useState<{ title: string; message: string } | null>(null);
 
-  setErrorHandler((title, message) => setError({ title, message }));
+  // 렌더 본문에서 모듈 전역을 갈아끼우면 매 렌더마다 핸들러가 새로 박히고,
+  // StrictMode 의 이중 렌더에서는 버려질 렌더의 setState 가 등록된다. 커밋 이후로 옮긴다.
+  useEffect(() => {
+    setErrorHandler((title, message) => setError({ title, message }));
+  }, []);
 
   return (
     <DragonProvider>

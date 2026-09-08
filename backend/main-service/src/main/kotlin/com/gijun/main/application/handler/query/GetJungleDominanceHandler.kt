@@ -15,6 +15,11 @@ class GetJungleDominanceHandler(
     private val cache: StatsCachePort,
 ) : GetJungleDominanceUseCase {
 
+    companion object {
+        /** 파밍형으로 가르는 평균 정글 몹 수. 정글러 표본 상위 25% 경계. */
+        private const val FARMING_JUNGLE_CS = 195.0
+    }
+
     fun r2(v: Double) = (v * 100).toInt() / 100.0
 
     override fun getJungleDominance(mode: String): JungleDominanceResult = cache.getOrCompute("jungle-dominance:$mode") {
@@ -72,16 +77,25 @@ class GetJungleDominanceHandler(
                 val avgJungleCs = acc.totalJungleCs / g
                 val avgVisionPerMin = acc.totalVisionPerMin / g
 
+                // 카정 비율(avgInvadeRatio)은 빼 뒀다.
+                // neutral_minions_killed_enemy_jungle 이 수집분 1,716행 전부 0 이라 항상 0 이 나온다.
+                // 예전에는 이 항에 0.25 를 주고 있어서 점수가 통째로 4분의 3 스케일로 눌려 있었다.
+                // 남은 셋에 비중을 나눠 실제 0~1 범위를 되찾는다. 순위 자체는 예전과 같다
+                // (상수 0 이 빠지는 것이라 상대 순서는 안 바뀐다).
                 val jungleDominance =
-                    avgInvadeRatio * 0.25 +
-                    avgObjShare * 0.30 +
-                    avgKp * 0.30 +
-                    avgVisionPerMin * 0.15
+                    avgObjShare * 0.40 +
+                    avgKp * 0.40 +
+                    avgVisionPerMin * 0.20
 
+                // 태그도 같은 이유로 다시 짰다. 예전 조건은
+                //   "공격형"      = 카정 > 0.15 → 절대 참이 안 됨. 죽은 가지였다.
+                //   "안전 갱킹형" = 킬관여 > 0.6 && 카정 < 0.1 → 뒤 조건이 항상 참이라 사실상 킬관여만 봤다.
+                // 카정 대신 정글 몹 수로 파밍형을 가른다. 기준값 195 는 실제 정글러 309표본의
+                // 상위 25% 경계다(중앙값 171, 최대 351).
                 val playStyleTag = when {
-                    avgInvadeRatio > 0.15 && avgKp > 0.5 -> "공격형"
                     avgObjShare > 0.35 -> "오브젝트 특화"
-                    avgKp > 0.6 && avgInvadeRatio < 0.1 -> "안전 갱킹형"
+                    avgKp > 0.6 -> "갱킹형"
+                    avgJungleCs >= FARMING_JUNGLE_CS -> "파밍형"
                     else -> "밸런스형"
                 }
 

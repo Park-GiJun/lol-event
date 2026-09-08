@@ -79,13 +79,13 @@ export default function ChaosTab({ mode }: { mode: string }) {
   return (
     <div>
       <div className="stat-card" style={{ marginBottom: 'var(--spacing-lg)', maxWidth: 220 }}>
-        <span className="stat-card-label">평균 혼돈 지수</span>
+        <span className="stat-card-label">평균 난장판 점수</span>
         <span className="stat-card-value">{data.avgChaosIndex.toFixed(1)}</span>
       </div>
 
       <div className="section-head">
         <FlameIcon size={16} />
-        <span className="section-head-title">최고 혼돈 경기 TOP 10</span>
+        <span className="section-head-title">가장 난장판이었던 경기 10</span>
       </div>
 
       <div style={{

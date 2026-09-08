@@ -26,7 +26,7 @@ export default function SurvivalTab({ mode }: { mode: string }) {
     <div>
       <div className="section-head">
         <LaneTopIcon size={16} />
-        <span className="section-head-title">생존력 & 탱킹 지수 — 높을수록 팀의 방패</span>
+        <span className="section-head-title">얼마나 잘 버티나 — 높을수록 팀의 방패</span>
       </div>
       <div className="table-wrapper">
         <table className="table member-stats-table">
@@ -35,9 +35,9 @@ export default function SurvivalTab({ mode }: { mode: string }) {
               <th style={{ width: 36 }}>#</th>
               <th>플레이어</th>
               <th className="table-number">판수</th>
-              <th className="table-number">탱킹 기여(%)</th>
-              <th className="table-number">피해 감소율(%)</th>
-              <th className="table-number">생존 지수</th>
+              <th className="table-number">팀이 맞은 딜 중 내 몫</th>
+              <th className="table-number">막아낸 피해 비율</th>
+              <th className="table-number">버티기 점수</th>
             </tr>
           </thead>
           <tbody>

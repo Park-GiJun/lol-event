@@ -169,6 +169,18 @@ export interface ChampionItemStat {
   winRate: number;
 }
 
+export interface ChampionRuneStat {
+  /** 핵심 룬(키스톤) id. */
+  keystone: number;
+  /** 주 계열 id (정밀 8000 / 지배 8100 / 마법 8200 / 영감 8300 / 결의 8400). */
+  primaryStyle: number;
+  /** 보조 계열 id. */
+  subStyle: number;
+  picks: number;
+  wins: number;
+  winRate: number;
+}
+
 export interface ChampionLaneStat {
   position: string;
   games: number;
@@ -191,6 +203,8 @@ export interface ChampionDetailStats {
   winRate: number;
   players: ChampionPlayerStat[];
   itemStats: ChampionItemStat[];
+  /** 룬 정보가 실려 오지 않은 경기만 있으면 빈 배열이다. */
+  runeStats: ChampionRuneStat[];
   laneStats: ChampionLaneStat[];
 }
 

@@ -1,9 +1,11 @@
 package com.gijun.main.infrastructure.adapter.out.persistence.batch
 
 import com.gijun.main.application.port.out.ChampionItemStatsCache
+import com.gijun.main.application.port.out.ChampionRuneStatsCache
 import com.gijun.main.application.port.out.PlayerStatsCache
 import com.gijun.main.application.port.out.StatsCachePersistencePort
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionItemStatsCacheRepository
+import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionRuneStatsCacheRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.PlayerStatsCacheRepository
 import org.springframework.stereotype.Component
 
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Component
 class StatsCacheAdapter(
     private val playerStatsCacheRepository: PlayerStatsCacheRepository,
     private val championItemStatsCacheRepository: ChampionItemStatsCacheRepository,
+    private val championRuneStatsCacheRepository: ChampionRuneStatsCacheRepository,
 ) : StatsCachePersistencePort {
 
     override fun findPlayerCacheByMode(mode: String): List<PlayerStatsCache> =
@@ -46,6 +49,25 @@ class StatsCacheAdapter(
                     picks   = e.picks,
                     wins    = e.wins,
                     winRate = e.winRate,
+                )
+            }
+
+    override fun findChampionRuneCacheByChampionAndMode(
+        champion: String, mode: String,
+    ): List<ChampionRuneStatsCache> =
+        championRuneStatsCacheRepository
+            .findAllByChampionAndMode(champion, mode)
+            .sortedByDescending { it.picks }
+            // 룬 조합은 아이템 칸보다 가짓수가 적다. 상위 5개면 화면에 다 담긴다.
+            .take(5)
+            .map { e ->
+                ChampionRuneStatsCache(
+                    keystone     = e.keystone,
+                    primaryStyle = e.primaryStyle,
+                    subStyle     = e.subStyle,
+                    picks        = e.picks,
+                    wins         = e.wins,
+                    winRate      = e.winRate,
                 )
             }
 }

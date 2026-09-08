@@ -61,10 +61,7 @@ class GetSurrenderAnalysisHandler(
                     riotId = riotId,
                     games = acc.games,
                     surrenderGames = acc.surrenderGames,
-                    earlySurrenderGames = acc.earlySurrenderGames,
-                    causedEarlySurrenderGames = acc.causedEarlySurrenderGames,
                     surrenderRate = r2(acc.surrenderGames / g),
-                    earlySurrenderRate = r2(acc.earlySurrenderGames / g),
                 )
             }
             .sortedByDescending { it.surrenderRate }
@@ -72,9 +69,7 @@ class GetSurrenderAnalysisHandler(
         SurrenderAnalysisResult(
             totalGames = totalGames,
             surrenderGames = overallSurrenderGames,
-            earlySurrenderGames = overallEarlySurrenderGames,
             overallSurrenderRate = if (totalGames > 0) r2(overallSurrenderGames.toDouble() / totalGames) else 0.0,
-            overallEarlySurrenderRate = if (totalGames > 0) r2(overallEarlySurrenderGames.toDouble() / totalGames) else 0.0,
             players = players,
         )
     }

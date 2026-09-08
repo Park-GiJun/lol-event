@@ -23,7 +23,6 @@ class GetLateGameHandler(
         data class Acc(
             var games: Int = 0,
             var totalInhibitorKills: Int = 0,
-            var firstInhibitorGames: Int = 0,
             var totalChampLevel: Int = 0,
             var totalLongestTimeSpentLiving: Long = 0,
             var totalLargestKillingSpree: Int = 0,
@@ -37,7 +36,6 @@ class GetLateGameHandler(
                 val acc = accMap.getOrPut(p.riotId) { Acc() }
                 acc.games++
                 acc.totalInhibitorKills += p.inhibitorKills
-                if (p.firstInhibitorKill || p.firstInhibitorAssist) acc.firstInhibitorGames++
                 acc.totalChampLevel += p.champLevel
                 acc.totalLongestTimeSpentLiving += p.longestTimeSpentLiving
                 acc.totalLargestKillingSpree += p.largestKillingSpree
@@ -50,26 +48,26 @@ class GetLateGameHandler(
             .map { (riotId, acc) ->
                 val g = acc.games.toDouble()
                 val avgInhibitor = r2(acc.totalInhibitorKills / g)
-                val firstInhibitorRate = r2(acc.firstInhibitorGames / g)
                 val avgLevel = r2(acc.totalChampLevel / g)
                 val avgLiving = (acc.totalLongestTimeSpentLiving / acc.games).toInt()
                 val avgSpree = r2(acc.totalLargestKillingSpree / g)
                 val avgMulti = r2(acc.totalLargestMultiKill / g)
 
+                // 첫 억제기 비율(0.15)은 뺐다. first_inhibitor_kill / first_inhibitor_assist 가
+                // 수집분 1,716행 전부 false 라 항상 0 이었고, 그만큼 점수가 눌려 있었다.
+                // 남은 항에 비중을 나눠 다시 1.0 을 채운다. 상수 0 이 빠지는 것이라 순위는 그대로다.
                 val lateGameScore = r2(
-                    avgInhibitor * 0.25 +
-                    firstInhibitorRate * 0.15 +
-                    (avgLevel / 18.0) * 0.20 +
-                    (avgLiving / 600.0).coerceAtMost(1.0) * 0.15 +
-                    (avgSpree / 10.0).coerceAtMost(1.0) * 0.15 +
-                    (avgMulti / 5.0).coerceAtMost(1.0) * 0.10
+                    avgInhibitor * 0.29 +
+                    (avgLevel / 18.0) * 0.23 +
+                    (avgLiving / 600.0).coerceAtMost(1.0) * 0.18 +
+                    (avgSpree / 10.0).coerceAtMost(1.0) * 0.18 +
+                    (avgMulti / 5.0).coerceAtMost(1.0) * 0.12
                 )
 
                 LateGamePlayerEntry(
                     riotId = riotId,
                     games = acc.games,
                     avgInhibitorKills = avgInhibitor,
-                    firstInhibitorRate = firstInhibitorRate,
                     avgChampLevel = avgLevel,
                     avgLongestTimeSpentLiving = avgLiving,
                     avgLargestKillingSpree = avgSpree,

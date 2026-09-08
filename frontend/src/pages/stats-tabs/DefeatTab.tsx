@@ -26,7 +26,7 @@ export default function DefeatTab({ mode }: { mode: string }) {
     <div>
       <div className="section-head">
         <SkullIcon size={16} />
-        <span className="section-head-title">패배 기여도</span>
+        <span className="section-head-title">질 때 어떤 모습이었나</span>
         <span className="section-head-action" style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', fontWeight: 'normal' }}>
           높을수록 팀을 더 힘들게 합니다
         </span>
@@ -39,7 +39,7 @@ export default function DefeatTab({ mode }: { mode: string }) {
               <th>플레이어</th>
               <th className="table-number">판수</th>
               <th className="table-number">패배수</th>
-              <th className="table-number">평균 Defeat Score</th>
+              <th className="table-number">패배 관여 점수</th>
               <th className="table-number">평균 사망</th>
             </tr>
           </thead>

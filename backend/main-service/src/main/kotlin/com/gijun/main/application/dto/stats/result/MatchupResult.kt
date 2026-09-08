@@ -58,10 +58,20 @@ data class ChampionMatchupResult(
     val minGames: Int,
 )
 
+/**
+ * 오브젝트 하나를 챙긴 팀의 승률.
+ *
+ * 챙기는 방식이 두 가지다. 퍼블·첫 드래곤처럼 "먼저" 잡은 팀이 기록되는 것과,
+ * 공허 유충처럼 먼저 표시가 없어 "더 많이" 먹은 팀으로 봐야 하는 것이다.
+ * 화면에서 문구를 다르게 써야 해서 [basis] 로 구분한다.
+ */
 data class ObjectiveStat(
     val objective: String,
     val label: String,
+    /** FIRST = 먼저 챙긴 팀 / MAJORITY = 더 많이 챙긴 팀. */
+    val basis: String,
     val totalGames: Int,
+    /** 그 오브젝트의 주인이 가려진 경기 수. MAJORITY 는 양 팀이 같으면 안 센다. */
     val gamesWithFirst: Int,
     val winsWithFirst: Int,
     val winRateWithFirst: Int,

@@ -31,13 +31,13 @@ export default function VisionDominanceTab({ mode }: { mode: string }) {
         <div className="card-glass" style={{ marginBottom: 'var(--spacing-md)', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
           <EyeIcon size={16} />
           <div>
-            <div className="hero-eyebrow" style={{ marginBottom: 2 }}>시야 지배왕</div>
+            <div className="hero-eyebrow" style={{ marginBottom: 2 }}>시야를 가장 많이 챙긴 사람</div>
             <div style={{ fontWeight: 'var(--font-weight-extrabold)', fontSize: 'var(--font-size-md)', color: 'var(--color-primary)' }}>{visionKing.split('#')[0]}</div>
           </div>
         </div>
       )}
       <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-md)' }}>
-        시야 지수 = 평균 시야 점수 / 게임 수 기준 정규화
+        평균 시야 점수를 경기 수로 고르게 맞춰 매긴 점수다
       </p>
       <div className="table-wrapper">
         <table className="table member-stats-table">
@@ -50,7 +50,7 @@ export default function VisionDominanceTab({ mode }: { mode: string }) {
               <th className="table-number">와드 설치</th>
               <th className="table-number">와드 제거</th>
               <th className="table-number">제어 와드</th>
-              <th className="table-number">시야 지수</th>
+              <th className="table-number">시야 점수 합계</th>
             </tr>
           </thead>
           <tbody>

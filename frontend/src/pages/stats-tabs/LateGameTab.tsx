@@ -37,13 +37,13 @@ export default function LateGameTab({ mode }: { mode: string }) {
         <div className="section-head" style={{ marginBottom: 'var(--spacing-md)' }}>
           <CrownIcon size={16} />
           <div>
-            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', fontWeight: 'var(--font-weight-bold)', letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase' }}>후반 지배왕</div>
+            <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', fontWeight: 'var(--font-weight-bold)', letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase' }}>후반에 가장 강한 사람</div>
             <div style={{ fontWeight: 'var(--font-weight-extrabold)', fontSize: 'var(--font-size-sm)', color: 'var(--color-primary)' }}>{lateGameKing.split('#')[0]}</div>
           </div>
         </div>
       )}
       <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-md)' }}>
-        후반 영향력 — 억제기 파괴, 생존 시간, 킬링 스프리 종합 지수
+        길어진 경기에서의 활약을 억제기 파괴·생존 시간·연속 킬로 묶어 점수로 냈다
       </p>
       <div className="table-wrapper">
         <table className="table member-stats-table">
@@ -54,9 +54,9 @@ export default function LateGameTab({ mode }: { mode: string }) {
               <th className="table-number">판수</th>
               <th className="table-number">억제기 파괴</th>
               <th className="table-number">평균 생존</th>
-              <th className="table-number">킬링 스프리</th>
-              <th className="table-number">최장 스프리</th>
-              <th className="table-number">후반 지수</th>
+              <th className="table-number">연속 킬</th>
+              <th className="table-number">최고 연속 킬</th>
+              <th className="table-number">후반 활약 점수</th>
             </tr>
           </thead>
           <tbody>

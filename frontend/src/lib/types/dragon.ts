@@ -3,6 +3,7 @@ export interface DragonSyncResponse {
   champions: number;
   items: number;
   spells: number;
+  runes: number;
 }
 
 export interface DragonChampion {
@@ -29,5 +30,19 @@ export interface DragonSummonerSpell {
   nameKo: string;
   description: string | null;
   imageUrl: string | null;
+  version: string | null;
+}
+
+export interface DragonRune {
+  runeId: number;
+  runeKey: string;
+  nameKo: string;
+  description: string | null;
+  imageUrl: string | null;
+  /** 소속 계열 id. 계열 자신은 runeId 와 같다. */
+  styleId: number;
+  styleNameKo: string | null;
+  /** 계열 안 줄 번호. 0 = 핵심 룬(키스톤), -1 = 계열 자신. */
+  slot: number;
   version: string | null;
 }

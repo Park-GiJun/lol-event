@@ -4,6 +4,7 @@ import com.gijun.main.application.dto.stats.result.ChampionDetailStats
 import com.gijun.main.application.dto.stats.result.ChampionItemStat
 import com.gijun.main.application.dto.stats.result.ChampionLaneStat
 import com.gijun.main.application.dto.stats.result.ChampionPlayerStat
+import com.gijun.main.application.dto.stats.result.ChampionRuneStat
 import com.gijun.main.application.port.`in`.GetChampionStatsUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.application.port.out.StatsCachePersistencePort
@@ -97,6 +98,35 @@ class GetChampionStatsHandler(
                 .take(6)
         }
 
+        // ── 룬 통계 — 배치 캐시 우선, 없으면 실시간 계산 ────────────
+        // perk0(핵심 룬)이 0 인 참가자는 룬 정보가 안 실려 온 경기다. 세면 "룬 없음"이 1위가 된다.
+        val cachedRunes = statsCachePersistencePort.findChampionRuneCacheByChampionAndMode(championName, mode)
+        val runeStats: List<ChampionRuneStat> = if (cachedRunes.isNotEmpty()) {
+            cachedRunes.map { c ->
+                ChampionRuneStat(
+                    keystone = c.keystone, primaryStyle = c.primaryStyle, subStyle = c.subStyle,
+                    picks = c.picks, wins = c.wins, winRate = c.winRate,
+                )
+            }
+        } else {
+            pairs
+                .filter { (p, _) -> p.perk0 > 0 && p.perkPrimaryStyle > 0 }
+                .groupBy { (p, _) -> Triple(p.perk0, p.perkPrimaryStyle, p.perkSubStyle) }
+                .map { (key, entries) ->
+                    val rWins = entries.count { (p, _) -> p.win }
+                    ChampionRuneStat(
+                        keystone     = key.first,
+                        primaryStyle = key.second,
+                        subStyle     = key.third,
+                        picks        = entries.size,
+                        wins         = rWins,
+                        winRate      = rWins * 100 / entries.size,
+                    )
+                }
+                .sortedByDescending { it.picks }
+                .take(5)
+        }
+
         // ── 라인별 통계 ──────────────────────────────────────────────
         val POSITION_ORDER = listOf("TOP", "JUNGLE", "MID", "BOTTOM", "SUPPORT")
         val laneStats = pairs
@@ -131,6 +161,7 @@ class GetChampionStatsHandler(
             winRate    = totalWins * 100 / totalGames,
             players    = players,
             itemStats  = itemStats,
+            runeStats  = runeStats,
             laneStats  = laneStats,
         )
     }

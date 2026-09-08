@@ -24,7 +24,18 @@ data class ChampionItemStatsCache(
     val winRate: Int,
 )
 
+/** 룬은 (핵심 룬, 주 계열, 보조 계열) 조합 단위로 센다. 아이템처럼 칸별로 세지 않는다. */
+data class ChampionRuneStatsCache(
+    val keystone: Int,
+    val primaryStyle: Int,
+    val subStyle: Int,
+    val picks: Int,
+    val wins: Int,
+    val winRate: Int,
+)
+
 interface StatsCachePersistencePort {
     fun findPlayerCacheByMode(mode: String): List<PlayerStatsCache>
     fun findChampionItemCacheByChampionAndMode(champion: String, mode: String): List<ChampionItemStatsCache>
+    fun findChampionRuneCacheByChampionAndMode(champion: String, mode: String): List<ChampionRuneStatsCache>
 }

@@ -16,7 +16,7 @@ function Diff({ v, digits = 0 }: { v: number; digits?: number }) {
 export function ChampionPage() {
   const { champion = '' } = useParams();
   const { data, isPending, error, refetch } = useChampionPage(champion, 'all');
-  const { champions: dragon, items: itemDict } = useDragon();
+  const { champions: dragon, items: itemDict, runes: runeDict } = useDragon();
 
   if (isPending) {
     return (
@@ -166,6 +166,47 @@ export function ChampionPage() {
                       <td><Rate value={it.winRate} games={it.picks} /></td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {/* 룬은 경기당 조합이 하나뿐이라 채택 수가 곧 그 룬을 든 경기 수다.
+            아이템처럼 한 경기에서 여러 번 세지 않는다. */}
+        {detail.runeStats.length > 0 && (
+          <section className="t-card">
+            <div className="t-card-head">
+              <h2 className="t-card-title">자주 든 룬</h2>
+              <span className="t-card-more">핵심 룬 + 보조 계열</span>
+            </div>
+            <div className="t-tablewrap">
+              <table className="t-table">
+                <thead>
+                  <tr><th>룬</th><th>채택</th><th>승률</th></tr>
+                </thead>
+                <tbody>
+                  {detail.runeStats.map((r) => {
+                    const keystone = runeDict.get(r.keystone);
+                    const sub = runeDict.get(r.subStyle);
+                    return (
+                      <tr key={`${r.keystone}-${r.primaryStyle}-${r.subStyle}`}>
+                        <td>
+                          <span className="t-person">
+                            {keystone?.imageUrl
+                              ? <img className="t-item" src={keystone.imageUrl} alt="" loading="lazy" />
+                              : <span className="t-item" />}
+                            <span className="t-person-name">
+                              {keystone?.nameKo ?? r.keystone}
+                              {sub && <span style={{ color: 'var(--gray-500)' }}> · {sub.nameKo}</span>}
+                            </span>
+                          </span>
+                        </td>
+                        <td className="t-stat-sample">{r.picks}회</td>
+                        <td><Rate value={r.winRate} games={r.picks} /></td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

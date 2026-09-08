@@ -1,6 +1,7 @@
 package com.gijun.main.infrastructure.batch.config
 
 import com.gijun.main.infrastructure.batch.tasklet.ChampionItemStatsAggregationTasklet
+import com.gijun.main.infrastructure.batch.tasklet.ChampionRuneStatsAggregationTasklet
 import com.gijun.main.infrastructure.batch.tasklet.ChampionStatsAggregationTasklet
 import com.gijun.main.infrastructure.batch.tasklet.PlayerStatsAggregationTasklet
 import org.springframework.batch.core.job.Job
@@ -19,6 +20,7 @@ class StatsAggregationJobConfig(
     private val playerStatsTasklet: PlayerStatsAggregationTasklet,
     private val championStatsTasklet: ChampionStatsAggregationTasklet,
     private val championItemStatsTasklet: ChampionItemStatsAggregationTasklet,
+    private val championRuneStatsTasklet: ChampionRuneStatsAggregationTasklet,
 ) {
     companion object {
         const val JOB_NAME = "statsAggregationJob"
@@ -30,6 +32,7 @@ class StatsAggregationJobConfig(
             .start(playerStatsStep())
             .next(championStatsStep())
             .next(championItemStatsStep())
+            .next(championRuneStatsStep())
             .build()
 
     @Bean
@@ -48,5 +51,11 @@ class StatsAggregationJobConfig(
     fun championItemStatsStep(): Step =
         StepBuilder("championItemStatsStep", jobRepository)
             .tasklet(championItemStatsTasklet, transactionManager)
+            .build()
+
+    @Bean
+    fun championRuneStatsStep(): Step =
+        StepBuilder("championRuneStatsStep", jobRepository)
+            .tasklet(championRuneStatsTasklet, transactionManager)
             .build()
 }

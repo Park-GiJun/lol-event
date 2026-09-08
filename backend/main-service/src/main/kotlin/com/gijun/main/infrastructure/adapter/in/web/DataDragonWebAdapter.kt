@@ -3,6 +3,7 @@ package com.gijun.main.infrastructure.adapter.`in`.web
 import com.gijun.common.response.CommonApiResponse
 import com.gijun.main.application.dto.dragon.result.DragonChampionResult
 import com.gijun.main.application.dto.dragon.result.DragonItemResult
+import com.gijun.main.application.dto.dragon.result.DragonRuneResult
 import com.gijun.main.application.dto.dragon.result.DragonSummonerSpellResult
 import com.gijun.main.application.dto.dragon.result.DragonSyncResult
 import com.gijun.main.application.port.`in`.SyncDataDragonUseCase
@@ -62,4 +63,21 @@ class DataDragonWebAdapter(
         @PathVariable spellId: Int
     ): CommonApiResponse<DragonSummonerSpellResult?> =
         CommonApiResponse(success = true, data = cacheStore.getSpell(spellId))
+
+    @Operation(
+        summary = "룬 목록 조회",
+        description = "룬 계열 5종과 그 안의 룬을 한 목록으로 반환합니다. " +
+            "계열 행은 runeId 가 styleId 와 같고 slot 이 -1 입니다. slot 0 이 핵심 룬(키스톤)입니다."
+    )
+    @GetMapping("/runes")
+    fun runes(): CommonApiResponse<List<DragonRuneResult>> =
+        CommonApiResponse(success = true, data = cacheStore.getAllRunes())
+
+    @Operation(summary = "룬 단건 조회")
+    @GetMapping("/runes/{runeId}")
+    fun rune(
+        @Parameter(description = "룬 ID (계열 id 도 조회됩니다)", example = "8005")
+        @PathVariable runeId: Int
+    ): CommonApiResponse<DragonRuneResult?> =
+        CommonApiResponse(success = true, data = cacheStore.getRune(runeId))
 }

@@ -54,7 +54,6 @@ class GetVisionDominanceHandler(
                     avgVisionScore = r2(acc.totalVisionScore / g),
                     avgWardsPlaced = r2(acc.totalWardsPlaced / g),
                     avgWardsKilled = r2(acc.totalWardsKilled / g),
-                    avgSightWardsBought = r2(acc.totalSightWardsBought / g),
                     avgControlWardsBought = r2(acc.totalControlWardsBought / g),
                     wardKillRate = r2(acc.totalWardsKilled.toDouble() / totalWards),
                 )
