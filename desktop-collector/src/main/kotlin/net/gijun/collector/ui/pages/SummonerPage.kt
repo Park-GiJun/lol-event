@@ -3,10 +3,6 @@ package net.gijun.collector.ui.pages
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +19,7 @@ import net.gijun.collector.api.*
 import net.gijun.collector.ui.components.ChampionIcon
 import net.gijun.collector.ui.components.Grid16
 import net.gijun.collector.ui.components.colSpan
+import net.gijun.collector.ui.icons.AppIcons
 import net.gijun.collector.ui.theme.LolColors
 import net.gijun.collector.ui.theme.winRateColor
 
@@ -135,7 +132,7 @@ fun SummonerPage() {
                     shape = RoundedCornerShape(6.dp),
                     modifier = Modifier.colSpan(4),
                 ) {
-                    Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(12.dp))
+                    Icon(AppIcons.Search, contentDescription = null, modifier = Modifier.size(12.dp))
                     Spacer(Modifier.width(4.dp))
                     Text(if (searching) "검색 중..." else "검색", fontSize = 11.sp)
                 }
@@ -352,7 +349,7 @@ private fun MatchRow(m: RecentMatch, searchedRiotId: String) {
             }
             Text(QUEUE_LABEL[m.queueId] ?: "Q${m.queueId}", fontSize = 10.sp, color = LolColors.TextDisabled, modifier = Modifier.width(36.dp))
             Icon(
-                if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                if (expanded) AppIcons.ExpandLess else AppIcons.ExpandMore,
                 contentDescription = null,
                 modifier = Modifier.size(12.dp),
                 tint = LolColors.TextDisabled,

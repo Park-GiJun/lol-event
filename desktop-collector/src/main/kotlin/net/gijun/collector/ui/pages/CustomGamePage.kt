@@ -3,8 +3,6 @@ package net.gijun.collector.ui.pages
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +13,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.awt.Desktop
+import java.net.URI
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import kotlin.math.pow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -25,13 +28,9 @@ import net.gijun.collector.lcu.TeamMemberInfo
 import net.gijun.collector.ui.components.ChampionIcon
 import net.gijun.collector.ui.components.Grid16
 import net.gijun.collector.ui.components.colSpan
+import net.gijun.collector.ui.icons.AppIcons
 import net.gijun.collector.ui.theme.LolColors
 import net.gijun.collector.ui.theme.winRateColor
-import java.awt.Desktop
-import java.net.URI
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import kotlin.math.pow
 
 private data class PlayerData(
     val summonerName: String,
@@ -155,7 +154,7 @@ fun CustomGamePage() {
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
                         border = BorderStroke(1.dp, LolColors.Border),
                     ) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(12.dp), tint = LolColors.TextPrimary)
+                        Icon(AppIcons.Refresh, contentDescription = null, modifier = Modifier.size(12.dp), tint = LolColors.TextPrimary)
                         Spacer(Modifier.width(4.dp))
                         Text(if (loading) "로딩 중..." else "새로고침", fontSize = 11.sp, color = LolColors.TextPrimary)
                     }

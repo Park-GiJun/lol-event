@@ -3,8 +3,6 @@ package net.gijun.collector.ui.pages
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +17,8 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.request.*
+import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -33,10 +33,9 @@ import net.gijun.collector.ui.components.ChampionIcon
 import net.gijun.collector.ui.components.Grid16
 import net.gijun.collector.ui.components.PlayerCard
 import net.gijun.collector.ui.components.colSpan
+import net.gijun.collector.ui.icons.AppIcons
 import net.gijun.collector.ui.theme.LolColors
 import net.gijun.collector.ui.theme.winRateColor
-import kotlin.math.pow
-import kotlin.math.roundToInt
 
 private val positionLabel = mapOf("top" to "탑", "jungle" to "정글", "middle" to "미드", "bottom" to "원딜", "utility" to "서포터", "" to "—")
 
@@ -166,7 +165,7 @@ fun ChampSelectPage() {
                         Text("${s.phase} ${if (s.timer > 0) "${s.timer}s" else ""}", fontSize = 11.sp, color = LolColors.TextSecondary)
                     }
                     IconButton(onClick = { scope.launch { load() } }, enabled = !loading, modifier = Modifier.size(28.dp)) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(12.dp), tint = LolColors.TextPrimary)
+                        Icon(AppIcons.Refresh, contentDescription = null, modifier = Modifier.size(12.dp), tint = LolColors.TextPrimary)
                     }
                 }
             }
@@ -386,7 +385,7 @@ private fun BanRecommendSection(
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.Shield, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
+                Icon(AppIcons.Shield, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
                 Text("밴 추천", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
                 if (lobbyCacheActive) {
                     Text(
@@ -451,7 +450,7 @@ private fun MyPickSection(myTeam: List<ChampSelectSlot>, bannedIds: Set<Int>, pl
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
+                    Icon(AppIcons.Star, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
                     Text("내 픽 추천", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
                 }
                 Text("${positionLabel[myPosition] ?: "—"} · 내전 승률순 (2판↑)", fontSize = 11.sp, color = LolColors.TextSecondary)
@@ -619,7 +618,7 @@ private fun TeamStrengthSection(
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.Analytics, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
+                Icon(AppIcons.Analytics, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
                 Text("팀 전력 분석", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
             }
             Spacer(Modifier.height(12.dp))
@@ -790,7 +789,7 @@ private fun RuneRecommendSection(mySlot: ChampSelectSlot, myStats: PlayerStats?)
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.AutoFixHigh, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
+                Icon(AppIcons.AutoFixHigh, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
                 Text("룬 추천", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
             }
             Spacer(Modifier.height(12.dp))
@@ -869,7 +868,7 @@ private fun RuneRecommendSection(mySlot: ChampSelectSlot, myStats: PlayerStats?)
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                         shape = RoundedCornerShape(6.dp),
                     ) {
-                        Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Icon(AppIcons.AutoAwesome, contentDescription = null, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(4.dp))
                         Text(if (applying) "적용 중..." else "룬 자동 적용", fontSize = 11.sp)
                     }
@@ -960,7 +959,7 @@ private fun DuoSynergySection(duos: List<DuoSynergy>) {
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.Groups, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Win)
+                Icon(AppIcons.Groups, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Win)
                 Text("듀오 시너지 (우리팀)", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Win)
             }
             Spacer(Modifier.height(8.dp))
@@ -999,7 +998,7 @@ private fun RivalMatchupSection(rivals: List<RivalEntry>) {
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.Compare, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Error)
+                Icon(AppIcons.Compare, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Error)
                 Text("라이벌 경고", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Error)
             }
             Spacer(Modifier.height(8.dp))
@@ -1039,7 +1038,7 @@ private fun InternalBanAnalysisSection(data: BanAnalysisResult) {
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.Block, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Warning)
+                Icon(AppIcons.Block, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Warning)
                 Text("내전 밴 분석", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Warning)
             }
             Spacer(Modifier.height(8.dp))
@@ -1080,7 +1079,7 @@ private fun ChampionTierSection(data: ChampionTierResult?) {
     ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.TrendingUp, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
+                Icon(AppIcons.TrendingUp, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
                 Text("내전 챔피언 티어", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
             }
             Spacer(Modifier.height(4.dp))

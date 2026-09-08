@@ -31,7 +31,8 @@ cd desktop-collector
 
 echo.
 echo === Step 1: Build MSI ===
-call gradlew.bat packageMsi
+REM 아이콘은 SVG path 문자열이라 오타가 나도 컴파일은 통과한다. 테스트로 먼저 막는다.
+call gradlew.bat test packageMsi
 if errorlevel 1 (
     echo BUILD FAILED
     exit /b 1

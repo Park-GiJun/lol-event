@@ -3,8 +3,6 @@ package net.gijun.collector.ui.pages
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +17,7 @@ import net.gijun.collector.api.*
 import net.gijun.collector.ui.components.ChampionIcon
 import net.gijun.collector.ui.components.Grid16
 import net.gijun.collector.ui.components.colSpan
+import net.gijun.collector.ui.icons.AppIcons
 import net.gijun.collector.ui.theme.LolColors
 import net.gijun.collector.ui.theme.winRateColor
 
@@ -147,7 +146,7 @@ private fun OverviewSection(overview: OverviewResult?) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.Analytics, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
+                Icon(AppIcons.Analytics, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
                 Text("전체 개요", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
             }
             Spacer(Modifier.height(16.dp))
@@ -192,7 +191,7 @@ private fun EloLeaderboardSection(data: EloLeaderboardResult?) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.Leaderboard, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
+                Icon(AppIcons.Leaderboard, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
                 Text("Elo 리더보드", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
             }
             Spacer(Modifier.height(12.dp))
@@ -251,7 +250,7 @@ private fun AwardsSection(data: AwardsResult?) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.EmojiEvents, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
+                Icon(AppIcons.EmojiEvents, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
                 Text("어워즈", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
             }
             Spacer(Modifier.height(12.dp))
@@ -309,7 +308,7 @@ private fun MultikillSection(data: MultikillHighlightsResult?) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.Whatshot, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Error)
+                Icon(AppIcons.Whatshot, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Error)
                 Text("멀티킬 하이라이트", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
             }
             Spacer(Modifier.height(12.dp))
@@ -371,7 +370,7 @@ private fun BanTrendSection(data: BanAnalysisResult?) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.DoNotDisturb, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Error)
+                Icon(AppIcons.DoNotDisturb, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Error)
                 Text("밴 트렌드", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
             }
             Spacer(Modifier.height(12.dp))
@@ -424,7 +423,7 @@ private fun ChampionTierSection(data: ChampionTierResult?) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.Stars, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Warning)
+                Icon(AppIcons.Stars, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Warning)
                 Text("챔피언 티어", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
             }
             Spacer(Modifier.height(12.dp))
@@ -489,7 +488,7 @@ private fun DuoSynergySection(data: DuoSynergyResult?) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.People, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Info)
+                Icon(AppIcons.People, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Info)
                 Text("듀오 시너지 Top 5", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
             }
             Spacer(Modifier.height(12.dp))
@@ -543,7 +542,7 @@ private fun PlayerStreakSection(streaks: Map<String, PlayerStreakResult>) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.Whatshot, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Loss)
+                Icon(AppIcons.Whatshot, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Loss)
                 Text("플레이어 스트릭", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
             }
             Spacer(Modifier.height(12.dp))
@@ -635,7 +634,7 @@ private fun MvpSection(data: MvpRankingResult?) {
     ) {
         Column(Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Warning)
+                Icon(AppIcons.Star, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Warning)
                 Text("MVP 랭킹", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
             }
             Spacer(Modifier.height(12.dp))

@@ -3,8 +3,6 @@ package net.gijun.collector.ui.pages
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +16,7 @@ import net.gijun.collector.api.*
 import net.gijun.collector.ui.components.ChampionIcon
 import net.gijun.collector.ui.components.Grid16
 import net.gijun.collector.ui.components.colSpan
+import net.gijun.collector.ui.icons.AppIcons
 import net.gijun.collector.ui.theme.LolColors
 
 private val QUEUE_LABEL = mapOf(0 to "커스텀", 3130 to "5v5 내전", 3270 to "칼바람")
@@ -173,7 +172,7 @@ private fun MatchCard(match: MatchListEntry, expanded: Boolean, onToggle: () -> 
                 }
 
                 Icon(
-                    if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    if (expanded) AppIcons.ExpandLess else AppIcons.ExpandMore,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
                     tint = LolColors.TextDisabled,

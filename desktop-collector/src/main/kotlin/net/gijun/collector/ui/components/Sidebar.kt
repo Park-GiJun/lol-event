@@ -6,14 +6,6 @@ import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Layers
-import androidx.compose.material.icons.filled.RadioButtonChecked
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -24,18 +16,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import net.gijun.collector.ui.icons.AppIcons
 import net.gijun.collector.ui.theme.LolColors
 
 enum class Page(val label: String, val icon: ImageVector) {
-    DASHBOARD("내전 대시보드", Icons.Default.Layers),
-    LIVE("실시간 분석", Icons.Default.RadioButtonChecked),
-    MATCHES("경기 기록", Icons.Default.History),
-    COLLECT("매치 수집", Icons.Default.Layers),
-    CUSTOM("내전 분석", Icons.Default.Layers),       // Swords 아이콘 대체
-    SUMMONER("소환사 검색", Icons.Default.Search),
-    DAMAGE_ANALYSIS("데미지 분석", Icons.Default.Whatshot),
-    VISION("시야 분석", Icons.Default.Visibility),
-    SURRENDER("서렌더 분석", Icons.Default.Flag),
+    DASHBOARD("내전 대시보드", AppIcons.Layers),
+    LIVE("실시간 분석", AppIcons.RadioButtonChecked),
+    MATCHES("경기 기록", AppIcons.History),
+    COLLECT("매치 수집", AppIcons.Layers),
+    CUSTOM("내전 분석", AppIcons.Layers),       // Swords 아이콘 대체
+    SUMMONER("소환사 검색", AppIcons.Search),
+    DAMAGE_ANALYSIS("데미지 분석", AppIcons.Whatshot),
+    VISION("시야 분석", AppIcons.Visibility),
+    SURRENDER("서렌더 분석", AppIcons.Flag),
 }
 
 @Composable

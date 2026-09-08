@@ -3,8 +3,6 @@ package net.gijun.collector.ui.pages
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +13,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.abs
+import kotlin.math.max
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -29,10 +29,9 @@ import net.gijun.collector.ui.components.ChampionIcon
 import net.gijun.collector.ui.components.Grid16
 import net.gijun.collector.ui.components.SignedLineChart
 import net.gijun.collector.ui.components.colSpan
+import net.gijun.collector.ui.icons.AppIcons
 import net.gijun.collector.ui.theme.LolColors
 import net.gijun.collector.ui.theme.winRateColor
-import kotlin.math.abs
-import kotlin.math.max
 
 private data class LiveParticipant(
     val summonerName: String,
@@ -241,7 +240,7 @@ fun LiveGamePage() {
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 5.dp),
                     border = BorderStroke(1.dp, LolColors.Border),
                 ) {
-                    Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(12.dp), tint = LolColors.TextPrimary)
+                    Icon(AppIcons.Refresh, contentDescription = null, modifier = Modifier.size(12.dp), tint = LolColors.TextPrimary)
                     Spacer(Modifier.width(4.dp))
                     Text(if (loading) "로딩 중..." else "새로고침", fontSize = 11.sp, color = LolColors.TextPrimary)
                 }
@@ -337,7 +336,7 @@ fun LiveGamePage() {
             ) {
                 Column(Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(Icons.Default.TrendingUp, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
+                        Icon(AppIcons.TrendingUp, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
                         Text("팀 차이", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
                     }
                     Spacer(Modifier.height(12.dp))
@@ -363,7 +362,7 @@ fun LiveGamePage() {
             ) {
                 Column(Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(Icons.Default.HourglassBottom, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
+                        Icon(AppIcons.HourglassBottom, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
                         Text("오브젝트 리스폰", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
                     }
                     Spacer(Modifier.height(12.dp))
@@ -387,7 +386,7 @@ fun LiveGamePage() {
                 ) {
                     Column(Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Icon(Icons.Default.ShowChart, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
+                            Icon(AppIcons.ShowChart, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
                             Text("골드 차이 추이", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
                             Spacer(Modifier.weight(1f))
                             val cur = goldDiff
@@ -430,7 +429,7 @@ fun LiveGamePage() {
             ) {
                 Column(Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(Icons.Default.Timer, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
+                        Icon(AppIcons.Timer, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
                         Text("실시간 스코어", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
                         Spacer(Modifier.weight(1f))
                         Text(
@@ -530,7 +529,7 @@ fun LiveGamePage() {
                 ) {
                     Column(Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Icon(Icons.Default.Notifications, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
+                            Icon(AppIcons.Notifications, contentDescription = null, modifier = Modifier.size(14.dp), tint = LolColors.Primary)
                             Text("게임 이벤트", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = LolColors.Primary)
                         }
                         Spacer(Modifier.height(8.dp))

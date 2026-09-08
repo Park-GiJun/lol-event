@@ -3,9 +3,6 @@ package net.gijun.collector.ui.pages
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Whatshot
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import net.gijun.collector.api.ApiClient
 import net.gijun.collector.api.DamagePlayerEntry
+import net.gijun.collector.ui.icons.AppIcons
 import net.gijun.collector.ui.theme.LolColors
 
 @Composable
@@ -47,7 +45,7 @@ fun DamageAnalysisPage() {
     Column(modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(scrollState)) {
         // 헤더
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Icon(Icons.Default.Whatshot, contentDescription = null, tint = LolColors.Error, modifier = Modifier.size(24.dp))
+            Icon(AppIcons.Whatshot, contentDescription = null, tint = LolColors.Error, modifier = Modifier.size(24.dp))
             Column {
                 Text("데미지 분석", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = LolColors.TextPrimary)
                 Text("물리 / 마법 / 트루 딜 비율 · 탱킹량 · 포탑 딜", fontSize = 13.sp, color = LolColors.TextSecondary)
@@ -63,7 +61,7 @@ fun DamageAnalysisPage() {
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                 border = BorderStroke(1.dp, LolColors.Border),
             ) {
-                Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(12.dp), tint = LolColors.TextPrimary)
+                Icon(AppIcons.Refresh, contentDescription = null, modifier = Modifier.size(12.dp), tint = LolColors.TextPrimary)
                 Spacer(Modifier.width(4.dp))
                 Text(if (loading) "로딩 중..." else "새로고침", fontSize = 11.sp, color = LolColors.TextPrimary)
             }

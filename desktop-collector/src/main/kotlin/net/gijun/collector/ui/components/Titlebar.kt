@@ -7,9 +7,6 @@ import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Minimize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -21,9 +18,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.WindowScope
-import net.gijun.collector.lcu.LcuStatus
-import net.gijun.collector.ui.theme.LolColors
 import java.awt.MouseInfo
+import net.gijun.collector.lcu.LcuStatus
+import net.gijun.collector.ui.icons.AppIcons
+import net.gijun.collector.ui.theme.LolColors
 
 @Composable
 fun WindowScope.Titlebar(
@@ -104,10 +102,10 @@ fun WindowScope.Titlebar(
 
         // 윈도우 컨트롤
         WinButton(onClick = onMinimize) {
-            Icon(Icons.Default.Minimize, contentDescription = "최소화", modifier = Modifier.size(14.dp), tint = LolColors.TextSecondary)
+            Icon(AppIcons.Minimize, contentDescription = "최소화", modifier = Modifier.size(14.dp), tint = LolColors.TextSecondary)
         }
         WinButton(onClick = onClose, isClose = true) {
-            Icon(Icons.Default.Close, contentDescription = "닫기", modifier = Modifier.size(14.dp), tint = LolColors.TextSecondary)
+            Icon(AppIcons.Close, contentDescription = "닫기", modifier = Modifier.size(14.dp), tint = LolColors.TextSecondary)
         }
     }
 }

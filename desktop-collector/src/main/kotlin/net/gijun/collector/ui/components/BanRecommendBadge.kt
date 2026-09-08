@@ -4,8 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import net.gijun.collector.ui.icons.AppIcons
 import net.gijun.collector.ui.theme.LolColors
 
 @Composable
@@ -58,7 +57,7 @@ fun BanRecommendBadge(
             }
         }
         if (isHighThreat) {
-            Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(10.dp), tint = LolColors.Warning)
+            Icon(AppIcons.Star, contentDescription = null, modifier = Modifier.size(10.dp), tint = LolColors.Warning)
         }
     }
 }

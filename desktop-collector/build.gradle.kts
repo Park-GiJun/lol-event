@@ -18,7 +18,6 @@ repositories {
 dependencies {
     implementation(compose.desktop.currentOs)
     implementation(compose.material3)
-    implementation(compose.materialIconsExtended)
 
     // Ktor (HTTP client)
     val ktorVersion = "3.0.3"
@@ -30,6 +29,8 @@ dependencies {
     // Kotlinx
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0")
+
+    testImplementation(kotlin("test"))
 }
 
 kotlin {
@@ -70,3 +71,18 @@ compose.desktop {
         }
     }
 }
+
+// 배포 payload 크기 확인용. ./gradlew.bat printRuntimeSize
+tasks.register("printRuntimeSize") {
+    val cp = configurations.named("runtimeClasspath")
+    doLast {
+        val files = cp.get().files.filter { it.isFile }
+        val total = files.sumOf { it.length() }
+        files.sortedByDescending { it.length() }.take(8).forEach {
+            println("%8d KB  %s".format(it.length() / 1024, it.name))
+        }
+        println("---- 합계: %d MB (%d개 jar)".format(total / 1024 / 1024, files.size))
+    }
+}
+
+tasks.withType<Test> { useJUnitPlatform() }
