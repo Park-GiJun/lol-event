@@ -6,8 +6,8 @@
 # 하는 일:
 #   1. cargo test (실패하면 아무것도 건드리지 않고 멈춘다)
 #   2. patch 버전 자동 증가 (Cargo.toml)
-#   3. git add / commit / push origin master
-#   4. cargo build --release
+#   3. cargo build --release
+#   4. git add / commit / push origin master
 #   5. 자체 서명 인증서로 exe 서명 (인증서가 없으면 건너뜀)
 #   6. 같은 버전의 기존 릴리즈/태그가 있으면 삭제
 #   7. gh release create desktop-v{version} 로 exe 업로드 (--latest)
@@ -88,7 +88,21 @@ if ($NoBump) {
   Set-Content -Path $cargoToml -Value $content -Encoding UTF8 -NoNewline
 }
 
-# ── 3. 커밋 ──────────────────────────────────────
+# ── 3. 빌드 ──────────────────────────────────────
+# 커밋보다 **먼저** 돌린다. 버전이 오르면 Cargo.lock 의 자기 패키지 항목도 같이 바뀌는데,
+# 커밋이 먼저면 그 변경이 항상 커밋 밖에 남아 작업 트리가 매 릴리즈마다 더러워진다.
+# 빌드를 앞에 두면 커밋 하나에 Cargo.toml · Cargo.lock · 소스가 같이 들어가고,
+# 그 커밋이 실제로 업로드되는 exe 와 정확히 같은 상태가 된다.
+Write-Host ""
+Write-Host "=== 릴리즈 빌드 ===" -ForegroundColor Cyan
+Invoke-Native "빌드" { cargo build --release }
+
+$exe = "target\release\LoL-Collector.exe"
+if (-not (Test-Path $exe)) { throw "exe 가 없습니다: $exe" }
+$sizeMb = [math]::Round((Get-Item $exe).Length / 1MB, 1)
+Write-Host "빌드 완료: $exe (${sizeMb}MB)" -ForegroundColor Green
+
+# ── 4. 커밋 ──────────────────────────────────────
 if (-not $NoBump) {
   Push-Location ..
   # 프로젝트 폴더를 통째로 넣는다. Cargo.toml 만 넣으면 소스 변경이 빠진 채
@@ -101,16 +115,6 @@ if (-not $NoBump) {
     Pop-Location
   }
 }
-
-# ── 4. 빌드 ──────────────────────────────────────
-Write-Host ""
-Write-Host "=== 릴리즈 빌드 ===" -ForegroundColor Cyan
-Invoke-Native "빌드" { cargo build --release }
-
-$exe = "target\release\LoL-Collector.exe"
-if (-not (Test-Path $exe)) { throw "exe 가 없습니다: $exe" }
-$sizeMb = [math]::Round((Get-Item $exe).Length / 1MB, 1)
-Write-Host "빌드 완료: $exe (${sizeMb}MB)" -ForegroundColor Green
 
 # ── 5. 서명 ──────────────────────────────────────
 Write-Host ""

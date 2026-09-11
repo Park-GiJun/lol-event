@@ -6,6 +6,7 @@ import type { EloLeaderboardResult, EloRankEntry } from '../../lib/types/stats';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { PlayerLink } from '../../components/common/PlayerLink';
 import { RankBadge } from './shared';
+import { PlacementBadge } from '@/components/ds/PlacementBadge';
 
 /**
  * Elo 구간 이름과 색.
@@ -39,33 +40,6 @@ const GAP_NOTABLE = 50;
 function gapColor(gap: number): string {
   if (Math.abs(gap) < GAP_NOTABLE) return 'var(--color-text-secondary)';
   return gap > 0 ? 'var(--color-win)' : 'var(--color-loss)';
-}
-
-/**
- * 배치 중 표시.
- *
- * 예전에는 배치 구간이 시작되는 자리에 구분선 한 줄을 깔았다. 배치 중은 순위를 매기지 않아
- * Elo 가 거기서 다시 높은 값부터 시작하는데, 그 선이 "여기부터는 다른 표"라고 알려 주는
- * 역할이었다. 다만 선은 표를 두 토막으로 끊어 놓고, 스크롤해서 아래쪽만 보고 있으면
- * 그 사람이 왜 순위가 없는지 알 길이 없다.
- *
- * 뱃지는 줄마다 붙으므로 어디서 보든 이유가 같이 읽힌다.
- */
-function PlacementBadge({ minDuels }: { minDuels: number }) {
-  return (
-    <span
-      title={`라인 맞대결 ${minDuels}회를 채우면 순위에 들어갑니다. 표본이 모자라 순위를 매기지 않습니다.`}
-      style={{
-        marginLeft: 6, padding: '1px 6px', borderRadius: 'var(--radius-sm)',
-        fontSize: 'var(--font-size-xs)', fontWeight: 700, whiteSpace: 'nowrap',
-        color: 'var(--color-text-secondary)',
-        background: 'var(--color-bg-secondary, rgba(0,0,0,0.05))',
-        border: '1px solid var(--color-border)',
-      }}
-    >
-      배치중
-    </span>
-  );
 }
 
 export default function EloTab() {

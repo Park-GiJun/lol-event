@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useLeaderboard } from '@/hooks/useLeaderboard';
 import { PersonLink } from '@/components/ds/Champion';
+import { PlacementBadge } from '@/components/ds/PlacementBadge';
 import { Rate, WinBar } from '@/components/ds/Stat';
 import { InlineError } from '@/components/common/InlineError';
 
@@ -32,9 +33,6 @@ export function PlayersPage() {
     );
   }
 
-  const ranked = filtered.filter((p) => !p.placement);
-  const placement = filtered.filter((p) => p.placement);
-
   return (
     <div className="t-page">
       <div className="t-page-head">
@@ -55,10 +53,16 @@ export function PlayersPage() {
         />
       </div>
 
+      {/*
+        배치 중인 사람도 한 표에 같이 둔다. 순위만 매기지 않을 뿐이다.
+        예전에는 아래에 별도 카드로 떼어 놨는데, 검색으로 사람을 찾을 때 두 표를 다 뒤져야 했고
+        아래쪽 표만 보고 있으면 왜 순위가 없는지 알 길이 없었다. 뱃지가 그 역할을 대신한다.
+        서버가 순위 있는 사람을 먼저 주므로 순서는 그대로 두면 된다.
+      */}
       <section className="t-card">
-        {ranked.length === 0 ? (
+        {filtered.length === 0 ? (
           <p className="t-empty">
-            {q ? '찾는 플레이어가 없습니다.' : '아직 순위를 매길 만큼 경기가 쌓이지 않았습니다.'}
+            {q ? '찾는 플레이어가 없습니다.' : '아직 경기가 쌓이지 않았습니다.'}
           </p>
         ) : (
           <div className="t-tablewrap">
@@ -74,10 +78,17 @@ export function PlayersPage() {
                 </tr>
               </thead>
               <tbody>
-                {ranked.map((p) => (
-                  <tr key={p.riotId}>
-                    <td className="t-rank">{p.rank}</td>
-                    <td><PersonLink riotId={p.riotId} /></td>
+                {filtered.map((p) => (
+                  <tr key={p.riotId} style={p.placement ? { opacity: 0.65 } : undefined}>
+                    <td className="t-rank">
+                      {p.placement
+                        ? <span style={{ color: 'var(--color-text-disabled)' }}>–</span>
+                        : p.rank}
+                    </td>
+                    <td>
+                      <PersonLink riotId={p.riotId} />
+                      {p.placement && <PlacementBadge minDuels={data.minDuels} />}
+                    </td>
                     <td className="t-num"><b>{Math.round(p.laneEloDisplay)}</b></td>
                     {/* winRate 는 0~1 로 온다. 아래 두 컴포넌트는 백분율을 받는다. */}
                     <td><WinBar winRate={p.winRate * 100} /></td>
@@ -95,38 +106,6 @@ export function PlayersPage() {
           </div>
         )}
       </section>
-
-      {/* 배치 중인 사람도 목록에서 지우지 않는다. 순위만 매기지 않을 뿐이다. */}
-      {placement.length > 0 && (
-        <section className="t-card">
-          <div className="t-card-head">
-            <h2 className="t-card-title">배치 중</h2>
-            <span className="t-card-more">라인 맞대결 {data.minDuels}회를 채우면 순위에 들어갑니다</span>
-          </div>
-          <div className="t-tablewrap">
-            <table className="t-table">
-              <thead>
-                <tr>
-                  <th>플레이어</th>
-                  <th className="t-num">Elo</th>
-                  <th>전적</th>
-                </tr>
-              </thead>
-              <tbody>
-                {placement.map((p) => (
-                  <tr key={p.riotId}>
-                    <td><PersonLink riotId={p.riotId} /></td>
-                    <td className="t-num">{Math.round(p.laneEloDisplay)}</td>
-                    <td>
-                      <Rate value={Math.round(p.winRate * 100)} games={p.games} grade={p.sampleGrade} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
     </div>
   );
 }
