@@ -55,11 +55,14 @@ export interface SummonerProfile {
   avgCs: number;
   avgGold: number;
   avgVisionScore: number;
+  /** 실력 레이팅 표시값. 리더보드에 찍히는 것과 같은 숫자다. */
   elo: number;
   /** 배치 중이면 null */
   eloRank: number | null;
   /** 순위가 매겨진 전체 인원. "14위 / 41명" 처럼 쓴다. */
   eloRankedTotal: number;
+  /** 이 사람의 두 레이팅 한 줄. 한 경기도 반영되지 않았으면 null. */
+  rating: EloRankEntry | null;
 }
 
 export interface SummonerStreak {

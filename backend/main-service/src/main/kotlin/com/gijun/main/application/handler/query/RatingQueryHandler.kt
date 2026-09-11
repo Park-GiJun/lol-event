@@ -73,6 +73,8 @@ class RatingQueryHandler(
             laneElo = round2(r.laneElo),
             laneEloDisplay = round2(r.laneEloDisplay),
             laneDuels = r.laneDuels,
+            laneWins = r.laneWins,
+            laneLosses = r.laneDuels - r.laneWins,
             laneWinRate = rate(r.laneWins, r.laneDuels),
             teamElo = round2(r.teamElo),
             teamEloDisplay = round2(r.teamEloDisplay),

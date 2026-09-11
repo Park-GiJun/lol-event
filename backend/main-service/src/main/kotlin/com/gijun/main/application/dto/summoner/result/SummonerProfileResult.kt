@@ -1,6 +1,7 @@
 package com.gijun.main.application.dto.summoner.result
 
 import com.gijun.main.application.dto.stats.result.ChampionStat
+import com.gijun.main.application.dto.stats.result.EloRankEntry
 import com.gijun.main.application.dto.stats.result.LaneStat
 import com.gijun.main.application.dto.stats.result.RecentMatchStat
 
@@ -41,11 +42,19 @@ data class SummonerProfile(
     val avgCs: Double,
     val avgGold: Int,
     val avgVisionScore: Double,
+    /** 실력 레이팅 표시값. 리더보드에 찍히는 것과 같은 숫자다. */
     val elo: Double,
     /** 배치 중이면 null */
     val eloRank: Int?,
     /** 순위가 매겨진 전체 인원. "14위 / 41명" 처럼 쓰라고 같이 준다. */
     val eloRankedTotal: Int,
+    /**
+     * 이 사람의 두 레이팅 한 줄. 리더보드 항목을 그대로 싣는다 — 개인 화면과 리더보드가
+     * 다른 숫자를 보여 주면 안 되므로 계산을 두 벌 두지 않는다.
+     *
+     * 한 경기도 반영되지 않은 사람은 null 이다.
+     */
+    val rating: EloRankEntry?,
 )
 
 data class SummonerStreak(

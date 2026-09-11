@@ -147,6 +147,8 @@ export interface EloRankEntry {
   /** 실력 레이팅 표시값(수축 적용). 화면은 이 값을 쓴다. */
   laneEloDisplay: number;
   laneDuels: number;
+  laneWins: number;
+  laneLosses: number;
   /** 라인 맞대결 승률(0~1). */
   laneWinRate: number;
 

@@ -12,11 +12,14 @@ import com.gijun.main.application.port.`in`.GetPlayerStreakUseCase
 import com.gijun.main.application.port.`in`.GetRivalMatchupUseCase
 import com.gijun.main.application.port.`in`.GetSummonerProfileUseCase
 import com.gijun.main.domain.service.RankingScore
+import com.gijun.main.domain.service.RiotIdNormalizer
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-/** 리더보드에서 순위를 받기 위한 최소 경기 수. RankingStatsWebAdapter 기본값과 맞춘다. */
-/** 리더보드 순위에 들어가기 위한 최소 라인 맞대결 수. 경기 수가 아니다. */
+/**
+ * 리더보드 순위에 들어가기 위한 최소 라인 맞대결 수. 경기 수가 아니다.
+ * RankingStatsWebAdapter 기본값과 맞춘다.
+ */
 private const val ELO_MIN_DUELS = 10
 
 /**
@@ -33,6 +36,7 @@ class GetSummonerProfileHandler(
     private val getEloLeaderboardUseCase: GetEloLeaderboardUseCase,
     private val getDuoStatsUseCase: GetDuoStatsUseCase,
     private val getRivalMatchupUseCase: GetRivalMatchupUseCase,
+    private val normalizer: RiotIdNormalizer,
 ) : GetSummonerProfileUseCase {
 
     override fun getProfile(riotId: String, mode: String): SummonerProfileResult {
@@ -40,9 +44,10 @@ class GetSummonerProfileHandler(
         val streak = getPlayerStreakUseCase.getPlayerStreak(riotId, mode)
         val leaderboard = getEloLeaderboardUseCase.getLeaderboard(ELO_MIN_DUELS)
 
-        val myRank = leaderboard.players
-            .firstOrNull { it.riotId == riotId && !it.placement }
-            ?.rank
+        // 리더보드는 정규 이름으로 키를 잡는다. 부계정 이름으로 들어온 주소도 같은 줄을 찾아야 한다.
+        val canonicalId = normalizer.canonical(riotId)
+        val myRating = leaderboard.players.firstOrNull { it.riotId == canonicalId }
+        val myRank = myRating?.takeIf { !it.placement }?.rank
 
         val profile = SummonerProfile(
             riotId = detail.riotId,
@@ -63,6 +68,7 @@ class GetSummonerProfileHandler(
             elo = detail.elo,
             eloRank = myRank,
             eloRankedTotal = leaderboard.rankedCount,
+            rating = myRating,
         )
 
         return SummonerProfileResult(

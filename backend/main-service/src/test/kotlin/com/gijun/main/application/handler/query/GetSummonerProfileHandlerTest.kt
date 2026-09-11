@@ -1,6 +1,7 @@
 package com.gijun.main.application.handler.query
 
 import com.gijun.main.domain.service.RankingScore
+import com.gijun.main.domain.service.RiotIdNormalizer
 import com.gijun.main.application.dto.stats.result.DuoStat
 import com.gijun.main.application.dto.stats.result.DuoStatsResult
 import com.gijun.main.application.dto.stats.result.EloLeaderboardResult
@@ -62,6 +63,8 @@ class GetSummonerProfileHandlerTest {
             override fun getRivalMatchups(mode: String, minGames: Int) =
                 RivalMatchupResult(rivalries, rivalries.firstOrNull())
         },
+        // 별명 표는 비워 둔다. 이 테스트가 보는 건 순위 찾기지 정규화가 아니다.
+        normalizer = RiotIdNormalizer(emptyMap()),
     )
 
     private fun rival(p1: String, p2: String, games: Int, p1Wins: Int) = RivalMatchupEntry(
@@ -147,7 +150,8 @@ class GetSummonerProfileHandlerTest {
         sampleGrade: String,
     ) = EloRankEntry(
         rank = rank, riotId = riotId,
-        laneElo = laneElo, laneEloDisplay = laneElo, laneDuels = laneDuels, laneWinRate = 0.5,
+        laneElo = laneElo, laneEloDisplay = laneElo, laneDuels = laneDuels,
+        laneWins = laneDuels / 2, laneLosses = laneDuels - laneDuels / 2, laneWinRate = 0.5,
         teamElo = laneElo, teamEloDisplay = laneElo, teamGames = laneDuels, winRate = 0.5,
         gap = 0.0, placement = placement, mainPosition = "MID",
         elo = laneElo, games = laneDuels, wins = laneDuels / 2, losses = laneDuels - laneDuels / 2,
@@ -161,6 +165,36 @@ class GetSummonerProfileHandlerTest {
             rankedCount = 0,
         ).getProfile(me, "all")
 
+        assertNull(result.profile.eloRank)
+    }
+
+    @Test
+    fun `개인 화면에 리더보드와 같은 레이팅 줄이 그대로 실린다`() {
+        // 개인 화면과 리더보드가 다른 숫자를 보여 주면 안 된다. 계산을 두 벌 두지 않고
+        // 리더보드 항목을 그대로 싣는 이유다.
+        val mine = rankEntry(2, me, 1620.0, 24, placement = false, sampleGrade = "MEDIUM")
+        val result = handler(
+            leaderboard = listOf(rankEntry(1, "1등#KR1", 1700.0, 40, placement = false, sampleGrade = "HIGH"), mine),
+            rankedCount = 2,
+        ).getProfile(me, "all")
+
+        assertEquals(mine, result.profile.rating)
+    }
+
+    @Test
+    fun `배치 중이어도 레이팅 줄은 내려준다 — 순위만 없다`() {
+        val mine = rankEntry(0, me, 1510.0, 2, placement = true, sampleGrade = "INSUFFICIENT")
+        val result = handler(leaderboard = listOf(mine), rankedCount = 0).getProfile(me, "all")
+
+        assertNull(result.profile.eloRank)
+        assertEquals(2, result.profile.rating?.laneDuels)
+    }
+
+    @Test
+    fun `한 경기도 반영되지 않은 사람은 레이팅 줄이 없다`() {
+        val result = handler(leaderboard = emptyList(), rankedCount = 0).getProfile(me, "all")
+
+        assertNull(result.profile.rating)
         assertNull(result.profile.eloRank)
     }
 

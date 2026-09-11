@@ -8,6 +8,7 @@ import { fmt, parseRiotId } from '@/lib/lol';
 import type { SummonerOpponent, SummonerTeammate } from '@/lib/types/page';
 import { positionLabel } from '@/lib/position';
 import { LaneForm } from './summoner/LaneForm';
+import type { EloRankEntry } from '@/lib/types/stats';
 
 type Tab = 'overview' | 'champions' | 'people';
 
@@ -16,6 +17,49 @@ const TABS: [Tab, string][] = [
   ['champions', '챔피언'],
   ['people', '같이 한 사람'],
 ];
+
+/**
+ * 개인 레이팅 두 칸.
+ *
+ * 실력(laneElo)과 전적(teamElo)을 **나란히 놓되 합치지 않는다**. 이 내전은 편성자가 팀을
+ * 직접 짜기 때문에 팀 승패에는 실력이 아니라 편성자의 추정 오차가 남고, 두 값을 하나로
+ * 섞으면 실력 레이팅이 그 오차로 오염된다. 그래서 화면에서도 끝까지 두 칸이다.
+ *
+ * 편차(gap = 전적 − 실력)는 그 둘이 얼마나 어긋나 있는지다. 양수가 크면 "라인 실적에 비해
+ * 이기는 팀에 자주 들어갔다", 음수가 크면 그 반대다. 팀을 짤 때 참고하라고 같이 보여 준다.
+ */
+function RatingStats({ rating }: { rating: EloRankEntry }) {
+  const gap = Math.round(rating.gap);
+  const gapColor = Math.abs(gap) < 50
+    ? 'var(--color-text-secondary)'
+    : gap > 0 ? 'var(--color-win)' : 'var(--color-loss)';
+
+  return (
+    <>
+      <Stat
+        label="실력 Elo"
+        value={Math.round(rating.laneEloDisplay)}
+        sample={
+          rating.laneDuels > 0
+            ? `라인 ${rating.laneWins}승 ${rating.laneLosses}패 · ${Math.round(rating.laneWinRate * 100)}%`
+            : '라인 맞대결 없음'
+        }
+      />
+      <Stat
+        label="전적 Elo"
+        value={Math.round(rating.teamEloDisplay)}
+        sample={
+          <>
+            편차{' '}
+            <b style={{ color: gapColor }} title="전적 Elo − 실력 Elo. 크게 벌어져 있으면 편성자의 평가와 라인 실적이 어긋나 있다는 뜻이다.">
+              {gap > 0 ? '+' : ''}{gap}
+            </b>
+          </>
+        }
+      />
+    </>
+  );
+}
 
 function ago(ms: number) {
   const days = Math.floor((Date.now() - ms) / 86400000);
@@ -70,7 +114,9 @@ export function SummonerPage() {
             <span className="t-stat-label">
               {profile.eloRank
                 ? `Elo ${profile.eloRank}위 / ${profile.eloRankedTotal}명`
-                : `배치 중 · ${profile.games}경기`}
+                // 배치 기준은 경기 수가 아니라 라인 맞대결 수다.
+                : `배치 중 · 라인 ${profile.rating?.laneDuels ?? 0}대결`}
+              {profile.rating?.mainPosition && ` · ${positionLabel(profile.rating.mainPosition)}`}
             </span>
             <h1 className="t-stat-value t-stat-hero" style={{ fontSize: 32 }}>
               {name}
@@ -78,7 +124,9 @@ export function SummonerPage() {
             </h1>
           </div>
 
-          <Stat label="Elo" value={Math.round(profile.elo)} />
+          {profile.rating
+            ? <RatingStats rating={profile.rating} />
+            : <Stat label="실력 Elo" value={Math.round(profile.elo)} />}
           <Stat
             label="전적"
             value={`${profile.wins}승 ${profile.losses}패`}

@@ -17,6 +17,8 @@ data class EloRankEntry(
     /** 실력 레이팅 표시값(수축 적용). 정렬·표시는 이 값 기준이다. */
     val laneEloDisplay: Double,
     val laneDuels: Int,
+    val laneWins: Int,
+    val laneLosses: Int,
     /** 라인 맞대결 승률(0~1). */
     val laneWinRate: Double,
 
