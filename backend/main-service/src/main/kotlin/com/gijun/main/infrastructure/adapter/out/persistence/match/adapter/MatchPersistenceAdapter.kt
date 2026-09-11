@@ -2,12 +2,16 @@ package com.gijun.main.infrastructure.adapter.out.persistence.match.adapter
 
 import com.gijun.main.application.port.out.MatchPeriodSummary
 import com.gijun.main.application.port.out.MatchPersistencePort
+import com.gijun.main.application.port.out.PositionCount
+import com.gijun.main.domain.model.match.LaneMethod
 import com.gijun.main.domain.model.match.Match
 import com.gijun.main.infrastructure.adapter.out.persistence.match.entity.MatchEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.match.entity.MatchParticipantEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.match.entity.MatchTeamEntity
+import com.gijun.main.infrastructure.adapter.out.persistence.match.entity.MatchTimelineEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.match.repository.MatchJpaRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.match.repository.MatchParticipantJpaRepository
+import com.gijun.main.infrastructure.adapter.out.persistence.match.repository.MatchTimelineRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -16,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 class MatchPersistenceAdapter(
     private val repo: MatchJpaRepository,
     private val participantRepo: MatchParticipantJpaRepository,
+    private val timelineRepo: MatchTimelineRepository,
 ) : MatchPersistencePort {
 
     @Transactional
@@ -68,6 +73,29 @@ class MatchPersistenceAdapter(
                 }
             }
     }
+
+    @Transactional
+    override fun saveTimelineRaw(matchId: String, raw: String) {
+        timelineRepo.save(MatchTimelineEntity(matchId = matchId, raw = raw))
+    }
+
+    override fun findTimelineRaw(matchIds: Collection<String>): Map<String, String> =
+        matchIds.chunked(IN_CLAUSE_CHUNK)
+            .flatMap { timelineRepo.findAllByMatchIdIn(it) }
+            .associate { it.matchId to it.raw }
+
+    @Transactional
+    override fun updateLaneMethods(updates: Map<String, LaneMethod>) {
+        updates.entries
+            .groupBy({ it.value }, { it.key })
+            .forEach { (method, ids) ->
+                ids.chunked(IN_CLAUSE_CHUNK).forEach { chunk ->
+                    repo.updateLaneMethodIn(chunk, method)
+                }
+            }
+    }
+
+    override fun findPositionCounts(): List<PositionCount> = participantRepo.findPositionCounts()
 
     private companion object {
         const val IN_CLAUSE_CHUNK = 1_000

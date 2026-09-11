@@ -137,12 +137,27 @@ class GetSummonerProfileHandlerTest {
         assertEquals(75, teammate.winRate)
     }
 
+    /** 리더보드 한 줄. 이 테스트가 보는 건 rank / riotId / placement 뿐이라 나머지는 그럴듯한 값으로 채운다. */
+    private fun rankEntry(
+        rank: Int,
+        riotId: String,
+        laneElo: Double,
+        laneDuels: Int,
+        placement: Boolean,
+        sampleGrade: String,
+    ) = EloRankEntry(
+        rank = rank, riotId = riotId,
+        laneElo = laneElo, laneEloDisplay = laneElo, laneDuels = laneDuels, laneWinRate = 0.5,
+        teamElo = laneElo, teamEloDisplay = laneElo, teamGames = laneDuels, winRate = 0.5,
+        gap = 0.0, placement = placement, mainPosition = "MID",
+        elo = laneElo, games = laneDuels, wins = laneDuels / 2, losses = laneDuels - laneDuels / 2,
+        winStreak = 0, lossStreak = 0, sampleGrade = sampleGrade,
+    )
+
     @Test
     fun `배치 중이면 Elo 순위를 주지 않는다`() {
         val result = handler(
-            leaderboard = listOf(
-                EloRankEntry(0, me, 1010.0, 2, 1, 1, 50.0, 0, 0, placement = true, sampleGrade = "INSUFFICIENT"),
-            ),
+            leaderboard = listOf(rankEntry(0, me, 1510.0, 2, placement = true, sampleGrade = "INSUFFICIENT")),
             rankedCount = 0,
         ).getProfile(me, "all")
 
@@ -153,8 +168,8 @@ class GetSummonerProfileHandlerTest {
     fun `순위에 든 경우 전체 인원과 함께 순위를 준다`() {
         val result = handler(
             leaderboard = listOf(
-                EloRankEntry(1, "1등#KR1", 1200.0, 40, 25, 15, 62.5, 1, 0, placement = false, sampleGrade = "HIGH"),
-                EloRankEntry(2, me, 1100.0, 20, 12, 8, 60.0, 2, 0, placement = false, sampleGrade = "MEDIUM"),
+                rankEntry(1, "1등#KR1", 1700.0, 40, placement = false, sampleGrade = "HIGH"),
+                rankEntry(2, me, 1600.0, 20, placement = false, sampleGrade = "MEDIUM"),
             ),
             rankedCount = 2,
         ).getProfile(me, "all")

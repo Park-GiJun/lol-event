@@ -307,9 +307,15 @@ impl SummonerPage {
                             let sign = if e.delta >= 0.0 { "+" } else { "" };
                             ui::num(ui, format!("{sign}{:.0}", e.delta), color)
                         });
-                        // 라인전 점수 0.5 가 호각. 같은 승리에서도 변동폭이 갈리는 근거다.
+                        // 라인 맞대결 결과. 이게 실제로 라인 레이팅을 움직인 신호다.
+                        // (예전의 lane_performance 점수는 검증에서 탈락해 사라졌다.)
                         ui::cell(ui, 86.0, |ui| {
-                            ui::muted(ui, format!("라인전 {:.0}", e.lane_performance * 100.0))
+                            let text = match e.lane_result.as_str() {
+                                "WIN" => "라인 승",
+                                "LOSS" => "라인 패",
+                                _ => "라인 -",
+                            };
+                            ui::muted(ui, text.to_owned())
                         });
                         ui::cell(ui, 56.0, |ui| {
                             ui::muted(ui, ui::short_date_kst(e.game_creation))

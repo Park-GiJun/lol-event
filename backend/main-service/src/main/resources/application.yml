@@ -42,6 +42,18 @@ management:
       slo:
         http.server.requests: 50ms, 100ms, 200ms, 500ms, 1s
 
+# riotId 정규화 — 같은 사람이 부계정·개명으로 여러 줄이 되는 것을 한 줄로 합친다.
+# 키가 별명, 값이 정규 이름이다. 하드코딩하지 않고 여기서 관리한다:
+# 참가자 명단은 운영 중에 계속 바뀌는 값이라, 이름 하나 합치자고 배포를 다시 하는 구조는 오래 못 간다.
+#
+# riotId 에는 '#' 이 들어가서 YAML 맵 키로 그대로 쓰면 주석으로 잘린다.
+# Spring Boot 의 대괄호 표기로 키를 원문 그대로 보존한다.
+#
+# 표를 고친 뒤에는 POST /api/admin/elo/reset 으로 재집계해야 기존 점수가 합쳐진다.
+riot-id:
+  aliases:
+    "[달렸노#KR1]": "qkzxfh#KR1"
+
 riot:
   api:
     key: ${RIOT_API_KEY:RGAPI-f03ce321-61e7-4ea3-96c9-4d8892b85949}

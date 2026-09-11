@@ -81,9 +81,10 @@ export function HomePage() {
                     <tr key={p.riotId}>
                       <td className="t-rank">{p.rank}</td>
                       <td><PersonLink riotId={p.riotId} /></td>
-                      <td className="t-num"><b>{Math.round(p.elo)}</b></td>
+                      <td className="t-num"><b>{Math.round(p.laneEloDisplay)}</b></td>
                       <td>
-                        <Rate value={Math.round(p.winRate)} games={p.games} grade={p.sampleGrade} />
+                        {/* winRate 는 0~1 로 온다. Rate 는 백분율을 받는다. */}
+                        <Rate value={Math.round(p.winRate * 100)} games={p.games} grade={p.sampleGrade} />
                       </td>
                     </tr>
                   ))}

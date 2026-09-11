@@ -113,7 +113,7 @@ impl DashboardPage {
             |ui| {
                 let slot = self.elo.lock();
                 if let Some(d) = slot.value.as_ref() {
-                    ui::muted(ui, format!("{}판 이상", d.min_games));
+                    ui::muted(ui, format!("라인 {}대결 이상", d.min_duels));
                 }
             },
             |ui| {

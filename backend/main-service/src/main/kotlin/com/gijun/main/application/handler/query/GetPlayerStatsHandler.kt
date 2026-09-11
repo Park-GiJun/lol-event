@@ -5,8 +5,10 @@ import com.gijun.main.application.dto.stats.result.LaneStat
 import com.gijun.main.application.dto.stats.result.PlayerDetailStatsResult
 import com.gijun.main.application.dto.stats.result.RecentMatchStat
 import com.gijun.main.application.port.`in`.GetPlayerStatsUseCase
-import com.gijun.main.application.port.out.EloPort
 import com.gijun.main.application.port.out.MatchPersistencePort
+import com.gijun.main.application.port.out.PlayerRatingPort
+import com.gijun.main.domain.service.RatingMath
+import com.gijun.main.domain.service.RiotIdNormalizer
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import com.gijun.main.application.port.out.StatsCachePort
@@ -15,14 +17,19 @@ import com.gijun.main.application.port.out.StatsCachePort
 @Transactional(readOnly = true)
 class GetPlayerStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
-    private val eloPort: EloPort,
+    private val playerRatingPort: PlayerRatingPort,
+    private val normalizer: RiotIdNormalizer,
     private val cache: StatsCachePort,
 ) : GetPlayerStatsUseCase {
 
     override fun getPlayerStats(riotId: String, mode: String, lane: String?): PlayerDetailStatsResult = cache.getOrCompute("player-stats:$riotId:$mode:$lane") {
-        val allElos = eloPort.findAll().sortedByDescending { it.elo }
-        val playerElo = allElos.firstOrNull { it.riotId == riotId }
-        val eloRank = allElos.indexOfFirst { it.riotId == riotId }.takeIf { it >= 0 }?.plus(1)
+        // 화면이 "Elo" 라고 부르는 값은 이제 실력 레이팅(laneElo)이다. 순위도 그 표시값 기준이다.
+        // 이 DTO 의 elo 는 **표시값**이다 — 리더보드와 같은 숫자가 보여야 하므로 수축을 먹여 내려준다.
+        // 원값이 필요하면 /api/admin/elo 를 쓴다.
+        val canonicalId = normalizer.canonical(riotId)
+        val allRatings = playerRatingPort.findAll().sortedByDescending { it.laneEloDisplay }
+        val playerRating = allRatings.firstOrNull { it.riotId == canonicalId }
+        val eloRank = allRatings.indexOfFirst { it.riotId == canonicalId }.takeIf { it >= 0 }?.plus(1)
 
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
@@ -62,7 +69,7 @@ class GetPlayerStatsHandler(
             riotId = riotId, games = 0, wins = 0, losses = 0, winRate = 0,
             avgKills = 0.0, avgDeaths = 0.0, avgAssists = 0.0, kda = 0.0,
             avgDamage = 0, avgCs = 0.0, avgGold = 0, avgVisionScore = 0.0,
-            elo = playerElo?.elo ?: 1500.0, eloRank = eloRank,
+            elo = playerRating?.laneEloDisplay ?: RatingMath.START, eloRank = eloRank,
             championStats = emptyList(), recentMatches = emptyList(), laneStats = emptyList(),
         )
 
@@ -136,7 +143,7 @@ class GetPlayerStatsHandler(
             avgCs      = r1(filteredEntries.sumOf { it.cs }.toDouble() / games),
             avgGold    = filteredEntries.sumOf { it.gold } / games,
             avgVisionScore = r1(filteredEntries.sumOf { it.visionScore }.toDouble() / games),
-            elo        = playerElo?.elo ?: 1500.0,
+            elo        = playerRating?.laneEloDisplay ?: RatingMath.START,
             eloRank    = eloRank,
             championStats = championStats,
             recentMatches = recentMatches,

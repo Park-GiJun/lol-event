@@ -11,6 +11,8 @@ class MatchParticipantEntity(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "match_db_id", nullable = false)
     val match: MatchEntity,
+    /** 타임라인 `participantFrames` 의 키. 수집 시점에 타임라인을 같이 받기 전 경기는 0 이다. */
+    @Column(nullable = false) val participantId: Int = 0,
     @Column val puuid: String? = null,
     @Column(nullable = false) val riotId: String,
     @Column(nullable = false) val champion: String,
@@ -110,7 +112,8 @@ class MatchParticipantEntity(
     @Column val assignedPosition: String = ""
 ) {
     fun toDomain() = MatchParticipant(
-        id = id, puuid = puuid, riotId = riotId, champion = champion, championId = championId,
+        id = id, participantId = participantId,
+        puuid = puuid, riotId = riotId, champion = champion, championId = championId,
         team = team, teamId = teamId, spell1Id = spell1Id, spell2Id = spell2Id, win = win,
         kills = kills, deaths = deaths, assists = assists, damage = damage, cs = cs, gold = gold, visionScore = visionScore,
         champLevel = champLevel, doubleKills = doubleKills, tripleKills = tripleKills,
@@ -163,6 +166,7 @@ class MatchParticipantEntity(
     companion object {
         fun from(domain: MatchParticipant, match: MatchEntity) = MatchParticipantEntity(
             match = match,
+            participantId = domain.participantId,
             puuid = domain.puuid, riotId = domain.riotId, champion = domain.champion, championId = domain.championId,
             team = domain.team, teamId = domain.teamId, spell1Id = domain.spell1Id, spell2Id = domain.spell2Id, win = domain.win,
             kills = domain.kills, deaths = domain.deaths, assists = domain.assists,

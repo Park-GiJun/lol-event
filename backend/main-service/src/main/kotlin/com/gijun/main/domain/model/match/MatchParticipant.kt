@@ -2,6 +2,12 @@ package com.gijun.main.domain.model.match
 
 data class MatchParticipant(
     val id: Long = 0,
+    /**
+     * LCU 가 경기 안에서 부여하는 1~10 번호. 타임라인 `participantFrames` 의 키와 같은 값이라,
+     * 이게 없으면 프레임과 사람을 이을 수 없다 — 타임라인 저장 이전에 수집된 경기는 0 이고
+     * 그 경우 라인 점수가 자동으로 LEGACY_FINAL 로 내려간다.
+     */
+    val participantId: Int = 0,
     val puuid: String? = null,
     val riotId: String,
     val champion: String,

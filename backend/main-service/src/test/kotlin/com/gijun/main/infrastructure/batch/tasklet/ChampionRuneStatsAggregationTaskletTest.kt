@@ -2,6 +2,8 @@ package com.gijun.main.infrastructure.batch.tasklet
 
 import com.gijun.main.application.port.out.MatchPeriodSummary
 import com.gijun.main.application.port.out.MatchPersistencePort
+import com.gijun.main.application.port.out.PositionCount
+import com.gijun.main.domain.model.match.LaneMethod
 import com.gijun.main.domain.model.match.Match
 import com.gijun.main.domain.model.match.MatchParticipant
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.ChampionRuneStatsCacheEntity
@@ -71,6 +73,10 @@ class ChampionRuneStatsAggregationTaskletTest {
             override fun countByQueueIds(queueIds: List<Int>) = 1L
             override fun findAllOrderedByGameCreation() = listOf(match)
             override fun updateAssignedPositions(updates: Map<Long, String>) {}
+            override fun saveTimelineRaw(matchId: String, raw: String) {}
+            override fun findTimelineRaw(matchIds: Collection<String>) = emptyMap<String, String>()
+            override fun updateLaneMethods(updates: Map<String, LaneMethod>) {}
+            override fun findPositionCounts() = emptyList<PositionCount>()
         }
         return ChampionRuneStatsAggregationTasklet(port, repo)
     }

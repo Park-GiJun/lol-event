@@ -11,6 +11,8 @@ import type {
   DuoStat,
   PlayerDetailStats,
   LaneStat,
+  EloRankEntry,
+  EloLeaderboardResult,
 } from '../lib/types/stats';
 import type { ReassignPositionsResult } from '../lib/types/member';
 import { PlayerLink } from '../components/common/PlayerLink';
@@ -90,7 +92,7 @@ export function AdminPage() {
   const [eloResetMsg, setEloResetMsg] = useState('');
   const [posReassigning, setPosReassigning] = useState(false);
   const [posReassignMsg, setPosReassignMsg] = useState('');
-  const [eloLeaderboard, setEloLeaderboard] = useState<{ rank: number; riotId: string; elo: number; games: number }[]>([]);
+  const [eloLeaderboard, setEloLeaderboard] = useState<EloRankEntry[]>([]);
   const [eloLoading, setEloLoading] = useState(false);
 
   // data
@@ -135,7 +137,7 @@ export function AdminPage() {
   async function loadEloLeaderboard() {
     setEloLoading(true);
     try {
-      const res = await api.get<{ players: { rank: number; riotId: string; elo: number; games: number }[] }>('/stats/elo');
+      const res = await api.get<EloLeaderboardResult>('/stats/elo');
       setEloLeaderboard(res.players);
     } catch { /* 조용히 실패 */ }
     finally { setEloLoading(false); }
@@ -394,8 +396,8 @@ export function AdminPage() {
                       #{entry.rank}
                     </td>
                     <td style={{ fontWeight: 600 }}><PlayerLink riotId={entry.riotId}>{entry.riotId}</PlayerLink></td>
-                    <td className={`table-number ${entry.elo >= 1100 ? 'elo-score--high' : entry.elo < 900 ? 'elo-score--low' : 'elo-score--mid'}`}>
-                      {entry.elo.toFixed(1)}
+                    <td className={`table-number ${entry.laneEloDisplay >= 1600 ? 'elo-score--high' : entry.laneEloDisplay < 1400 ? 'elo-score--low' : 'elo-score--mid'}`}>
+                      {entry.laneEloDisplay.toFixed(1)}
                     </td>
                     <td className="table-number text-secondary">{entry.games}판</td>
                   </tr>

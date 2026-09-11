@@ -15,7 +15,8 @@ import org.springframework.transaction.annotation.Transactional
 private const val TOP_PLAYERS = 10
 private const val TOP_CHAMPIONS = 10
 private const val RECENT_MATCHES = 5
-private const val ELO_MIN_GAMES = 5
+/** 리더보드 순위에 들어가기 위한 최소 라인 맞대결 수. 경기 수가 아니다. */
+private const val ELO_MIN_DUELS = 10
 private const val TIER_MIN_GAMES = 5
 
 @Service
@@ -32,7 +33,7 @@ class GetHomeHandler(
         val queueIds = modeToQueueIds(mode)
         val recent = matchPersistencePort.findPageWithParticipants(queueIds, 0, RECENT_MATCHES)
 
-        val leaderboard = getEloLeaderboardUseCase.getLeaderboard(ELO_MIN_GAMES)
+        val leaderboard = getEloLeaderboardUseCase.getLeaderboard(ELO_MIN_DUELS)
         val tier = getChampionTierUseCase.getChampionTier(mode, TIER_MIN_GAMES)
 
         // 기간과 등장 인원은 집계 쿼리로 센다. 이것 하나 때문에 전체 경기를 로드하지 않는다.

@@ -18,6 +18,17 @@ data class MatchInput(
     val mapId: Int? = null,
     val seasonId: Int? = null,
     val platformId: String? = null,
+    /**
+     * `/lol-match-history/v1/game-timelines/{gameId}` 응답 **원본을 JSON 문자열 그대로**.
+     * 수집기가 best-effort 로 같이 보낸다. 없으면 라인 판정이 자동으로 LEGACY_FINAL 로 내려갈 뿐,
+     * 매치 저장은 그대로 진행된다.
+     *
+     * 객체가 아니라 문자열로 받는 이유: Spring Boot 4 의 HTTP 계층은 Jackson 3(tools.jackson) 이고
+     * 이 프로젝트의 나머지 코드는 Jackson 2 를 쓴다. DTO 에 어느 쪽 `JsonNode` 를 써도 한쪽에서 깨진다.
+     * 문자열은 어느 구현에도 매이지 않고, "가공하지 말 것"이라는 요구에도 가장 충실하다 — 받은 바이트
+     * 그대로 저장된다.
+     */
+    val timelineRaw: String? = null,
     val participants: List<ParticipantInput>,
     val teams: List<TeamInput> = emptyList()
 ) {
@@ -26,12 +37,15 @@ data class MatchInput(
         gameCreation = gameCreation, gameDuration = gameDuration,
         gameMode = gameMode, gameType = gameType, gameVersion = gameVersion,
         mapId = mapId, seasonId = seasonId, platformId = platformId,
+        timelineRaw = timelineRaw?.takeIf { it.isNotBlank() && it != "null" },
         participants = participants.map { it.toDomain() }.toMutableList(),
         teams = teams.map { it.toDomain() }.toMutableList()
     )
 }
 
 data class ParticipantInput(
+    /** 타임라인 `participantFrames` 의 키(1~10). 타임라인과 사람을 잇는 유일한 고리다. */
+    val participantId: Int = 0,
     val puuid: String?,
     val riotId: String,
     val champion: String,
@@ -101,6 +115,7 @@ data class ParticipantInput(
     val role: String? = null
 ) {
     fun toDomain() = MatchParticipant(
+        participantId = participantId,
         puuid = puuid, riotId = riotId, champion = champion, championId = championId,
         team = team, teamId = teamId, spell1Id = spell1Id, spell2Id = spell2Id, win = win,
         kills = kills, deaths = deaths, assists = assists, damage = damage, cs = cs, gold = gold, visionScore = visionScore,

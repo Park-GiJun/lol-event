@@ -14,6 +14,8 @@ use crate::net::http;
 
 const MAX_GAMES: i32 = 500;
 const PAGE: i32 = 20;
+/// 한 번에 올릴 매치 수. 타임라인 원본까지 실어 보내므로 한 묶음이 1~2MB 를 넘지 않게 잡는다.
+const UPLOAD_BATCH: usize = 20;
 const SLEEP: Duration = Duration::from_millis(200);
 
 /// 커스텀(0) · 5v5 내전(3130) · 칼바람 내전(3270).
@@ -136,6 +138,9 @@ fn participant_json(
     };
 
     let mut o = Map::new();
+    // 타임라인 participantFrames 의 키. 이게 없으면 프레임과 사람을 이을 수 없어서
+    // 백엔드가 15분 기준 라인 판정을 포기하고 경기 종료 시점 누적값으로 내려간다.
+    o.insert("participantId".into(), json!(n(p, "participantId")));
     o.insert(
         "puuid".into(),
         json!(identity.get("puuid").and_then(Value::as_str).unwrap_or("")),
@@ -428,6 +433,28 @@ where
                 .map(|arr| arr.iter().map(|t| team_json(t, &champs)).collect())
                 .unwrap_or_default();
 
+            // 타임라인은 best-effort 다. 실패해도 경기 저장은 그대로 진행한다 —
+            // 없으면 백엔드가 라인 판정을 경기 종료 시점 기준으로 내린다.
+            //
+            // 과거 경기 백필은 하지 않는다. LCU 매치 히스토리는 최근 경기만 보관하므로
+            // 오래된 경기에는 애초에 타임라인이 없다.
+            tokio::time::sleep(SLEEP).await;
+            let timeline = match lcu::get(
+                &creds,
+                &format!("/lol-match-history/v1/game-timelines/{game_id}"),
+            )
+            .await
+            {
+                Ok(v) => v,
+                Err(e) => {
+                    log(
+                        LogKind::Warn,
+                        format!("{match_id} 타임라인 조회 실패 — {e} (경기는 그대로 저장)"),
+                    );
+                    Value::Null
+                }
+            };
+
             let game_creation = n(game, "gameCreation");
             new_matches.push(json!({
                 "matchId": match_id,
@@ -442,6 +469,9 @@ where
                 "platformId": s(&detail, "platformId").map_or(Value::Null, Value::String),
                 "participants": participants,
                 "teams": teams,
+                // 원본 그대로 보낸다. 가공은 백엔드 몫이다.
+                // 객체가 아니라 문자열로 싣는다 — 백엔드가 받은 바이트를 그대로 jsonb 에 넣는다.
+                "timelineRaw": if timeline.is_null() { Value::Null } else { json!(timeline.to_string()) },
             }));
 
             log(
@@ -465,12 +495,35 @@ where
         LogKind::Info,
         format!("서버 전송 중 ({}건)...", new_matches.len()),
     );
-    match crate::api::post_matches(new_matches).await {
-        Ok((saved, skipped)) => log(
-            LogKind::Done,
-            format!("완료 — {saved}건 저장, {skipped}건 중복 스킵"),
-        ),
-        Err(e) => log(LogKind::Error, format!("서버 전송 실패 — {e}")),
+
+    // 나눠서 보낸다. 타임라인 원본이 경기당 60KB 급이라 500경기를 한 요청에 담으면 30MB 를 넘고,
+    // 앞단 nginx 의 client_max_body_size 에 걸려 통째로 실패한다. 나눠 두면 한 묶음이 실패해도
+    // 나머지는 들어가고, 재수집 때 중복 스킵으로 넘어간다.
+    let total = new_matches.len();
+    let mut saved_total = 0i64;
+    let mut skipped_total = 0i64;
+    let mut failed = 0usize;
+    for batch in new_matches.chunks(UPLOAD_BATCH) {
+        match crate::api::post_matches(batch.to_vec()).await {
+            Ok((saved, skipped)) => {
+                saved_total += saved;
+                skipped_total += skipped;
+            }
+            Err(e) => {
+                failed += batch.len();
+                log(LogKind::Error, format!("서버 전송 실패 ({}건) — {e}", batch.len()));
+            }
+        }
+    }
+
+    let summary = format!("완료 — {saved_total}건 저장, {skipped_total}건 중복 스킵");
+    if failed > 0 {
+        log(
+            LogKind::Error,
+            format!("{summary} · {failed}건 전송 실패 (전체 {total}건)"),
+        );
+    } else {
+        log(LogKind::Done, summary);
     }
     Ok(())
 }

@@ -15,7 +15,8 @@ function PlayerPopupContent({ riotId, data }: { riotId: string; data: PlayerDeta
   const wrColor = wr >= 60 ? 'var(--color-win)' : wr >= 50 ? 'var(--color-primary)' : 'var(--color-loss)';
   const kdaColor = data.kda >= 4 ? 'var(--color-win)' : data.kda >= 2.5 ? 'var(--color-primary)' : 'var(--color-text-primary)';
   const eloVal = Number.isFinite(data.elo) ? data.elo : null;
-  const eloColor = (eloVal ?? 0) >= 1200 ? 'var(--color-win)' : (eloVal ?? 0) >= 1000 ? 'var(--color-primary)' : 'var(--color-loss)';
+  // 시작점이 1500 이라 경계도 같이 옮겼다. 1500 = 아무것도 안 한 사람의 자리다.
+  const eloColor = (eloVal ?? 0) >= 1700 ? 'var(--color-win)' : (eloVal ?? 0) >= 1500 ? 'var(--color-primary)' : 'var(--color-loss)';
 
   return (
     <div className="popup-player" onClick={() => navigate(`/players/${encodeURIComponent(riotId)}`)}>

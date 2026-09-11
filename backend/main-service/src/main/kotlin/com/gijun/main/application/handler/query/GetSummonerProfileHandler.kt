@@ -16,7 +16,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 /** 리더보드에서 순위를 받기 위한 최소 경기 수. RankingStatsWebAdapter 기본값과 맞춘다. */
-private const val ELO_MIN_GAMES = 5
+/** 리더보드 순위에 들어가기 위한 최소 라인 맞대결 수. 경기 수가 아니다. */
+private const val ELO_MIN_DUELS = 10
 
 /**
  * 관계 지표는 1경기부터 전부 집계해서 내려보낸다.
@@ -37,7 +38,7 @@ class GetSummonerProfileHandler(
     override fun getProfile(riotId: String, mode: String): SummonerProfileResult {
         val detail = getPlayerStatsUseCase.getPlayerStats(riotId, mode)
         val streak = getPlayerStreakUseCase.getPlayerStreak(riotId, mode)
-        val leaderboard = getEloLeaderboardUseCase.getLeaderboard(ELO_MIN_GAMES)
+        val leaderboard = getEloLeaderboardUseCase.getLeaderboard(ELO_MIN_DUELS)
 
         val myRank = leaderboard.players
             .firstOrNull { it.riotId == riotId && !it.placement }

@@ -25,14 +25,17 @@ class RankingStatsWebAdapter(
 ) {
     @Operation(
         summary = "Elo 리더보드",
-        description = "Elo 순위를 반환합니다. minGames 미만은 배치 중(rank=0)으로 분류돼 목록 뒤로 밀립니다."
+        description = "실력 레이팅(laneElo) 표시값 기준 순위를 반환합니다. " +
+            "minDuels 미만은 배치 중(rank=0)으로 분류돼 목록 뒤로 밀립니다. " +
+            "기준이 경기 수가 아니라 **라인 맞대결 수** 인 점에 주의하세요. 포지션이 깨진 경기나 " +
+            "칼바람은 맞대결이 성립하지 않아 실력 표본이 되지 못합니다."
     )
     @GetMapping("/elo")
     fun getEloLeaderboard(
-        @Parameter(description = "순위에 들어가기 위한 최소 경기 수", example = "5")
-        @RequestParam(defaultValue = "3") minGames: Int,
+        @Parameter(description = "순위에 들어가기 위한 최소 라인 맞대결 수", example = "10")
+        @RequestParam(defaultValue = "10") minDuels: Int,
     ): CommonApiResponse<EloLeaderboardResult> =
-        CommonApiResponse.success(getEloLeaderboardUseCase.getLeaderboard(minGames))
+        CommonApiResponse.success(getEloLeaderboardUseCase.getLeaderboard(minDuels))
 
     @Operation(
         summary = "MVP 점수 랭킹",

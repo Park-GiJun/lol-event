@@ -2,6 +2,7 @@ package com.gijun.main.infrastructure.adapter.out.persistence.match.adapter
 
 import com.gijun.main.infrastructure.adapter.out.persistence.match.repository.MatchJpaRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.match.repository.MatchParticipantJpaRepository
+import com.gijun.main.infrastructure.adapter.out.persistence.match.repository.MatchTimelineRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -46,7 +47,12 @@ class MatchPersistenceAdapterTest {
         arrayOf(MatchJpaRepository::class.java),
     ) { _, method, _ -> error("테스트가 예상하지 못한 호출: ${method.name}") } as MatchJpaRepository
 
-    private val adapter = MatchPersistenceAdapter(matchRepo, participantRepo)
+    private val timelineRepo: MatchTimelineRepository = Proxy.newProxyInstance(
+        MatchTimelineRepository::class.java.classLoader,
+        arrayOf(MatchTimelineRepository::class.java),
+    ) { _, method, _ -> error("테스트가 예상하지 못한 호출: ${method.name}") } as MatchTimelineRepository
+
+    private val adapter = MatchPersistenceAdapter(matchRepo, participantRepo, timelineRepo)
 
     @Test
     fun `포지션별로 묶어서 포지션 종류만큼만 UPDATE 한다`() {

@@ -41,7 +41,7 @@ export function PlayersPage() {
         <h1 className="t-page-title">플레이어</h1>
         <p className="t-page-sub">
           순위 {data.rankedCount}명 · 배치 중 {data.placementCount}명
-          {' · '}순위에 들려면 {data.minGames}경기 이상
+          {' · '}순위에 들려면 라인 맞대결 {data.minDuels}회 이상
         </p>
       </div>
 
@@ -78,10 +78,11 @@ export function PlayersPage() {
                   <tr key={p.riotId}>
                     <td className="t-rank">{p.rank}</td>
                     <td><PersonLink riotId={p.riotId} /></td>
-                    <td className="t-num"><b>{Math.round(p.elo)}</b></td>
-                    <td><WinBar winRate={p.winRate} /></td>
+                    <td className="t-num"><b>{Math.round(p.laneEloDisplay)}</b></td>
+                    {/* winRate 는 0~1 로 온다. 아래 두 컴포넌트는 백분율을 받는다. */}
+                    <td><WinBar winRate={p.winRate * 100} /></td>
                     <td>
-                      <Rate value={Math.round(p.winRate)} games={p.games} grade={p.sampleGrade} />
+                      <Rate value={Math.round(p.winRate * 100)} games={p.games} grade={p.sampleGrade} />
                     </td>
                     <td>
                       {p.winStreak > 1 && <span className="t-chip t-chip-win">{p.winStreak}연승</span>}
@@ -100,7 +101,7 @@ export function PlayersPage() {
         <section className="t-card">
           <div className="t-card-head">
             <h2 className="t-card-title">배치 중</h2>
-            <span className="t-card-more">{data.minGames}경기를 채우면 순위에 들어갑니다</span>
+            <span className="t-card-more">라인 맞대결 {data.minDuels}회를 채우면 순위에 들어갑니다</span>
           </div>
           <div className="t-tablewrap">
             <table className="t-table">
@@ -115,9 +116,9 @@ export function PlayersPage() {
                 {placement.map((p) => (
                   <tr key={p.riotId}>
                     <td><PersonLink riotId={p.riotId} /></td>
-                    <td className="t-num">{Math.round(p.elo)}</td>
+                    <td className="t-num">{Math.round(p.laneEloDisplay)}</td>
                     <td>
-                      <Rate value={Math.round(p.winRate)} games={p.games} grade={p.sampleGrade} />
+                      <Rate value={Math.round(p.winRate * 100)} games={p.games} grade={p.sampleGrade} />
                     </td>
                   </tr>
                 ))}

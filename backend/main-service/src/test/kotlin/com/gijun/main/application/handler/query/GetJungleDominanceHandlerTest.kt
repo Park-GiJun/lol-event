@@ -2,6 +2,8 @@ package com.gijun.main.application.handler.query
 
 import com.gijun.main.application.port.out.MatchPeriodSummary
 import com.gijun.main.application.port.out.MatchPersistencePort
+import com.gijun.main.application.port.out.PositionCount
+import com.gijun.main.domain.model.match.LaneMethod
 import com.gijun.main.application.port.out.StatsCachePort
 import com.gijun.main.domain.model.match.Match
 import com.gijun.main.domain.model.match.MatchParticipant
@@ -66,6 +68,10 @@ class GetJungleDominanceHandlerTest {
             override fun countByQueueIds(queueIds: List<Int>) = 1L
             override fun findAllOrderedByGameCreation() = listOf(match)
             override fun updateAssignedPositions(updates: Map<Long, String>) {}
+            override fun saveTimelineRaw(matchId: String, raw: String) {}
+            override fun findTimelineRaw(matchIds: Collection<String>) = emptyMap<String, String>()
+            override fun updateLaneMethods(updates: Map<String, LaneMethod>) {}
+            override fun findPositionCounts() = emptyList<PositionCount>()
         }
         val cache = object : StatsCachePort {
             override fun <T> getOrCompute(key: String, compute: () -> T): T = compute()

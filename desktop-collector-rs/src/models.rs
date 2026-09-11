@@ -381,26 +381,56 @@ pub struct BanEntry {
 #[serde(default, rename_all = "camelCase")]
 pub struct EloLeaderboardResult {
     pub players: Vec<EloEntry>,
-    pub min_games: i32,
+    /// 순위에 들어가기 위한 최소 **라인 맞대결 수**. 경기 수가 아니다.
+    pub min_duels: i32,
     pub ranked_count: i32,
     pub placement_count: i32,
 }
 
+/// 리더보드 한 줄.
+///
+/// 실력 레이팅(`lane_elo`)과 전적 레이팅(`team_elo`)은 끝까지 별개다. 합쳐 쓰지 말 것 —
+/// 이 내전은 편성자가 팀을 직접 짜서, 팀 승패에는 실력이 아니라 편성자의 추정 오차가 남는다.
+///
+/// 표시·정렬은 `lane_elo_display`(수축 적용)를 쓰고, 계산에 넣을 일이 있으면 원값을 쓴다.
 #[derive(Debug, Clone, Default, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct EloEntry {
     /// 배치 중인 플레이어는 0. 순위를 매기지 않는다.
     pub rank: i32,
     pub riot_id: String,
+
+    /// 실력 레이팅 원값.
+    pub lane_elo: f64,
+    /// 실력 레이팅 표시값(수축 적용). 화면은 이 값을 쓴다.
+    pub lane_elo_display: f64,
+    pub lane_duels: i32,
+    /// 라인 맞대결 승률(0~1).
+    pub lane_win_rate: f64,
+
+    /// 전적 레이팅 원값.
+    pub team_elo: f64,
+    pub team_elo_display: f64,
+    pub team_games: i32,
+    /// 팀 승률(0~1).
+    pub win_rate: f64,
+
+    /// `team_elo - lane_elo`. 절댓값이 크면 편성자의 평가와 라인 실적이 어긋나 있다는 뜻이다.
+    pub gap: f64,
+
+    /// 라인 맞대결 표본 미달. 목록에는 남기되 순위에서는 뺀다.
+    pub placement: bool,
+    pub main_position: Option<String>,
+
+    /// `lane_elo` 와 같은 값.
     pub elo: f64,
+    /// `team_games` 와 같은 값.
     pub games: i32,
     pub wins: i32,
     pub losses: i32,
-    pub win_rate: f64,
+    /// 표시 전용. 레이팅 산식에는 쓰이지 않는다.
     pub win_streak: i32,
     pub loss_streak: i32,
-    /// 최소 경기 수 미달. 목록에는 남기되 순위에서는 뺀다.
-    pub placement: bool,
     pub sample_grade: SampleGrade,
 }
 
@@ -415,6 +445,7 @@ pub struct EloHistoryResult {
     pub history: Vec<EloHistoryEntry>,
 }
 
+/// `elo_*` 는 **실력 레이팅(laneElo)** 이다. 전적 레이팅은 `team_elo_*` 로 따로 온다.
 #[derive(Debug, Clone, Default, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct EloHistoryEntry {
@@ -423,9 +454,14 @@ pub struct EloHistoryEntry {
     pub elo_after: f64,
     pub delta: f64,
     pub win: bool,
-    /// 같은 포지션 상대와 비교한 라인전 점수(0~1, 0.5가 호각).
-    /// 같은 승리에서 Elo 변동폭이 갈리는 근거다.
-    pub lane_performance: f64,
+    /// WIN / LOSS / NONE. NONE 은 라인 맞대결이 성립하지 않은 경기다
+    /// (칼바람이거나 한 포지션에 두 명이 잡혀 상대를 특정할 수 없는 경기).
+    pub lane_result: String,
+    /// 라인 상대. 대결이 없었으면 None.
+    pub lane_opponent: Option<String>,
+    pub team_elo_before: f64,
+    pub team_elo_after: f64,
+    pub team_delta: f64,
     pub game_creation: i64,
 }
 

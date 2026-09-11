@@ -312,6 +312,9 @@ fn team_card(ui: &mut egui::Ui, title: &str, color: egui::Color32, players: &[Pl
     );
 }
 
+/// 신규 플레이어 시작 점수. 백엔드 `RatingMath.START` 와 같은 값이어야 한다.
+const START_ELO: f64 = 1500.0;
+
 /// Elo 차이를 승률로 바꾼다 (표준 Elo 기대 승률).
 fn win_probability(mine: f64, theirs: f64) -> f64 {
     1.0 / (1.0 + 10f64.powf(-(mine - theirs) / 400.0))
@@ -320,8 +323,8 @@ fn win_probability(mine: f64, theirs: f64) -> f64 {
 fn average_elo(players: &[PlayerData]) -> (f64, usize) {
     let elos: Vec<f64> = players.iter().filter_map(PlayerData::elo).collect();
     if elos.is_empty() {
-        // 표본이 없으면 기준점(1000)으로 둔다. 그래야 승률이 50%로 나온다.
-        (1000.0, 0)
+        // 표본이 없으면 기준점(1500)으로 둔다. 그래야 승률이 50%로 나온다.
+        (START_ELO, 0)
     } else {
         (elos.iter().sum::<f64>() / elos.len() as f64, elos.len())
     }
@@ -558,19 +561,19 @@ mod tests {
     #[test]
     fn average_elo_falls_back_to_baseline() {
         let no_stats = vec![PlayerData::default()];
-        assert_eq!(average_elo(&no_stats), (1000.0, 0));
+        assert_eq!(average_elo(&no_stats), (1500.0, 0));
 
         let with_stats = vec![
             PlayerData {
                 stats: Some(PlayerStats {
-                    elo: Some(1200.0),
+                    elo: Some(1700.0),
                     ..Default::default()
                 }),
                 ..Default::default()
             },
             PlayerData {
                 stats: Some(PlayerStats {
-                    elo: Some(1000.0),
+                    elo: Some(1500.0),
                     ..Default::default()
                 }),
                 ..Default::default()
@@ -584,7 +587,7 @@ mod tests {
                 ..Default::default()
             },
         ];
-        assert_eq!(average_elo(&with_stats), (1100.0, 2));
+        assert_eq!(average_elo(&with_stats), (1600.0, 2));
     }
 
     #[test]

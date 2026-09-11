@@ -103,11 +103,11 @@ pub fn win_rate_color(wr: f64) -> Color32 {
     }
 }
 
-/// 내전 Elo 색.
+/// 내전 Elo 색. 시작점이 1500 이라 경계도 같이 옮겼다 — 1500 이 "아무것도 안 한 사람"의 자리다.
 pub fn elo_color(elo: Option<f64>) -> Color32 {
     match elo {
-        Some(e) if e >= 1200.0 => BLUE_600,
-        Some(e) if e >= 1000.0 => BLUE_500,
+        Some(e) if e >= 1700.0 => BLUE_600,
+        Some(e) if e >= 1500.0 => BLUE_500,
         Some(_) => GRAY_600,
         None => GRAY_400,
     }

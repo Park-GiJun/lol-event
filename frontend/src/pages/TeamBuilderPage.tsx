@@ -29,9 +29,9 @@ function calcExpectedWR(
     return sum + (allStats.find(s => s.riotId === id)?.winRate ?? 50);
   }, 0) / members.length / 100;
 
-  // Elo 보정 (1000 기준, 최대 ±8%)
-  const avgElo = members.reduce((sum, id) => sum + (eloMap.get(id) ?? 1000), 0) / members.length;
-  const eloBonus = Math.max(-0.08, Math.min(0.08, (avgElo - 1000) / 500 * 0.08));
+  // Elo 보정 (1500 기준, 최대 ±8%)
+  const avgElo = members.reduce((sum, id) => sum + (eloMap.get(id) ?? 1500), 0) / members.length;
+  const eloBonus = Math.max(-0.08, Math.min(0.08, (avgElo - 1500) / 500 * 0.08));
 
   // KDA 보정 (3.0 기준, 최대 ±4%)
   const avgKDA = members.reduce((sum, id) => {
@@ -153,7 +153,9 @@ export function TeamBuilderPage() {
     if (dr.status === 'fulfilled') setDuoData((dr.value as DuoStatsResult).duos);
     if (er.status === 'fulfilled') {
       const map = new Map<string, number>();
-      (er.value as EloLeaderboardResult).players.forEach(p => map.set(p.riotId, p.elo));
+      // 편성 보조는 계산이라 표시값이 아니라 **원값**을 쓴다. 수축값을 계산에 되먹이면
+      // 표본 적은 사람이 실제보다 평범해 보여 균형이 흐려진다.
+      (er.value as EloLeaderboardResult).players.forEach(p => map.set(p.riotId, p.laneElo));
       setEloMap(map);
     }
     setLoading(false);
@@ -245,7 +247,7 @@ export function TeamBuilderPage() {
                 .filter(d => members.includes(d.player1) && members.includes(d.player2))
                 .sort((a, b) => b.winRate - a.winRate);
               const avgElo = members.length
-                ? members.reduce((s, id) => s + (eloMap.get(id) ?? 1000), 0) / members.length
+                ? members.reduce((s, id) => s + (eloMap.get(id) ?? 1500), 0) / members.length
                 : null;
               const wrColor = wr >= 0.6 ? 'var(--color-win)' : wr < 0.45 ? 'var(--color-loss)' : meta.main;
 

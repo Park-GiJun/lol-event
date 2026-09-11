@@ -1,6 +1,6 @@
 package com.gijun.main.infrastructure.adapter.`in`.messaging
 
-import com.gijun.main.application.port.`in`.CalculateEloForMatchUseCase
+import com.gijun.main.application.port.`in`.CalculateRatingForMatchUseCase
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 class EloCalculateConsumer(
-    private val calculateEloForMatchUseCase: CalculateEloForMatchUseCase,
+    private val calculateRatingForMatchUseCase: CalculateRatingForMatchUseCase,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -20,7 +20,7 @@ class EloCalculateConsumer(
     fun onEloCalculate(record: ConsumerRecord<String, String>) {
         val matchId = record.key()
         try {
-            calculateEloForMatchUseCase.calculateForMatch(matchId)
+            calculateRatingForMatchUseCase.calculateForMatch(matchId)
             log.info("Elo 계산 완료: $matchId")
         } catch (e: Exception) {
             log.error("Elo 계산 실패: $matchId — ${e.message}", e)
