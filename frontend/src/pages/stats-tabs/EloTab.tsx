@@ -1,5 +1,5 @@
 import { TrophyIcon } from '@/components/icons/LolIcons';
-import { Fragment, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
 import type { EloLeaderboardResult, EloRankEntry } from '../../lib/types/stats';
@@ -27,6 +27,47 @@ function eloTier(elo: number): { label: string; color: string } {
   return                  { label: 'Bronze',     color: '#8A5524' };
 }
 
+/**
+ * 편차에 색을 줄 기준. 이보다 작으면 노이즈라 회색으로 둔다.
+ *
+ * 한 경기의 팀 Elo 변동이 K=16 기준 최대 16점이라, 50 이면 서너 경기가 한 방향으로
+ * 쏠려야 닿는 값이다. 그쯤 돼야 "편성자의 평가와 라인 실적이 어긋나 있다"고 말할 수 있다.
+ */
+const GAP_NOTABLE = 50;
+
+/** 양수면 라인 실적에 비해 이기는 팀에 자주 들어갔다는 뜻, 음수면 그 반대다. */
+function gapColor(gap: number): string {
+  if (Math.abs(gap) < GAP_NOTABLE) return 'var(--color-text-secondary)';
+  return gap > 0 ? 'var(--color-win)' : 'var(--color-loss)';
+}
+
+/**
+ * 배치 중 표시.
+ *
+ * 예전에는 배치 구간이 시작되는 자리에 구분선 한 줄을 깔았다. 배치 중은 순위를 매기지 않아
+ * Elo 가 거기서 다시 높은 값부터 시작하는데, 그 선이 "여기부터는 다른 표"라고 알려 주는
+ * 역할이었다. 다만 선은 표를 두 토막으로 끊어 놓고, 스크롤해서 아래쪽만 보고 있으면
+ * 그 사람이 왜 순위가 없는지 알 길이 없다.
+ *
+ * 뱃지는 줄마다 붙으므로 어디서 보든 이유가 같이 읽힌다.
+ */
+function PlacementBadge({ minDuels }: { minDuels: number }) {
+  return (
+    <span
+      title={`라인 맞대결 ${minDuels}회를 채우면 순위에 들어갑니다. 표본이 모자라 순위를 매기지 않습니다.`}
+      style={{
+        marginLeft: 6, padding: '1px 6px', borderRadius: 'var(--radius-sm)',
+        fontSize: 'var(--font-size-xs)', fontWeight: 700, whiteSpace: 'nowrap',
+        color: 'var(--color-text-secondary)',
+        background: 'var(--color-bg-secondary, rgba(0,0,0,0.05))',
+        border: '1px solid var(--color-border)',
+      }}
+    >
+      배치중
+    </span>
+  );
+}
+
 export default function EloTab() {
   const navigate = useNavigate();
   const [data, setData] = useState<EloLeaderboardResult | null>(null);
@@ -51,6 +92,14 @@ export default function EloTab() {
         <TrophyIcon size={16} />
         <span className="section-head-title">Elo 랭킹</span>
       </div>
+      <p style={{
+        fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)',
+        margin: '0 0 var(--spacing-sm)', lineHeight: 1.6,
+      }}>
+        <b>실력</b>은 같은 자리 상대와의 라인 맞대결로만, <b>전적</b>은 팀 승패로만 움직입니다.
+        둘을 합치지 않는 이유는 이 내전이 편성자가 팀을 직접 짜는 방식이라, 팀 승패에는 실력이 아니라
+        편성자의 추정 오차가 남기 때문입니다. 순위는 <b>실력</b> 기준입니다.
+      </p>
       <div className="table-wrapper">
         <table className="table member-stats-table">
           <thead>
@@ -58,34 +107,20 @@ export default function EloTab() {
               <th style={{ width: 48 }}>순위</th>
               <th>플레이어</th>
               <th>티어</th>
-              <th className="table-number">Elo</th>
+              <th className="table-number">실력 Elo</th>
               <th className="table-number">라인</th>
+              <th className="table-number">전적 Elo</th>
+              <th className="table-number">편차</th>
               <th className="table-number">판수</th>
             </tr>
           </thead>
           <tbody>
-            {data.players.map((entry: EloRankEntry, i: number) => {
+            {data.players.map((entry: EloRankEntry) => {
               // 표시·정렬 기준은 수축을 먹인 표시값이다. 원값은 표본이 적으면 과하게 튄다.
               const tier = eloTier(entry.laneEloDisplay);
-              // 배치 중은 순위를 매기지 않아 Elo 가 여기서 다시 높은 값부터 시작한다.
-              // 구분선 없이 이어 붙이면 767 다음에 1085 가 나와 정렬이 깨진 것처럼 보인다.
-              const firstPlacement = entry.placement && !data.players[i - 1]?.placement;
               return (
-                <Fragment key={entry.riotId}>
-                {firstPlacement && (
-                  <tr>
-                    <td colSpan={6} style={{
-                      padding: '14px 10px 6px', fontSize: 'var(--font-size-xs)', fontWeight: 700,
-                      color: 'var(--color-text-secondary)', borderTop: '1px solid var(--color-border)',
-                    }}>
-                      배치 중 · 라인 맞대결 {data.minDuels}회 미만 {data.placementCount}명
-                      <span style={{ fontWeight: 500, marginLeft: 6, color: 'var(--color-text-disabled)' }}>
-                        표본이 모자라 순위를 매기지 않습니다
-                      </span>
-                    </td>
-                  </tr>
-                )}
                 <tr
+                  key={entry.riotId}
                   className="member-stats-row"
                   style={entry.placement ? { opacity: 0.65 } : undefined}
                   onClick={() => navigate(`/player-stats/${encodeURIComponent(entry.riotId)}`)}>
@@ -103,6 +138,7 @@ export default function EloTab() {
                         #{entry.riotId.split('#')[1]}
                       </span>
                     </PlayerLink>
+                    {entry.placement && <PlacementBadge minDuels={data.minDuels} />}
                   </td>
                   <td>
                     <span style={{ fontSize: 'var(--font-size-xs)', fontWeight: 700, color: tier.color,
@@ -114,14 +150,23 @@ export default function EloTab() {
                   <td className="table-number" style={{ fontWeight: 700, color: tier.color }}>
                     {entry.laneEloDisplay.toFixed(1)}
                   </td>
-                  <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>
+                  <td
+                    className="table-number"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                    title={`라인 ${entry.laneWins}승 ${entry.laneLosses}패 · ${Math.round(entry.laneWinRate * 100)}%`}
+                  >
                     {entry.laneDuels}
+                  </td>
+                  <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>
+                    {entry.teamEloDisplay.toFixed(1)}
+                  </td>
+                  <td className="table-number" style={{ color: gapColor(entry.gap), fontWeight: Math.abs(entry.gap) >= GAP_NOTABLE ? 700 : 400 }}>
+                    {entry.gap > 0 ? '+' : ''}{Math.round(entry.gap)}
                   </td>
                   <td className="table-number" style={{ color: 'var(--color-text-secondary)' }}>
                     {entry.games}
                   </td>
                 </tr>
-                </Fragment>
               );
             })}
           </tbody>
