@@ -4,12 +4,13 @@
 #   .\release.ps1
 #
 # 하는 일:
-#   1. patch 버전 자동 증가 (Cargo.toml)
-#   2. git add / commit / push origin master
-#   3. cargo build --release
-#   4. 자체 서명 인증서로 exe 서명 (인증서가 없으면 건너뜀)
-#   5. 같은 버전의 기존 릴리즈/태그가 있으면 삭제
-#   6. gh release create desktop-v{version} 로 exe 업로드 (--latest)
+#   1. cargo test (실패하면 아무것도 건드리지 않고 멈춘다)
+#   2. patch 버전 자동 증가 (Cargo.toml)
+#   3. git add / commit / push origin master
+#   4. cargo build --release
+#   5. 자체 서명 인증서로 exe 서명 (인증서가 없으면 건너뜀)
+#   6. 같은 버전의 기존 릴리즈/태그가 있으면 삭제
+#   7. gh release create desktop-v{version} 로 exe 업로드 (--latest)
 #
 # MSI 도 msiexec 도 없다. 앱이 스스로 exe 를 갈아 끼우므로 업데이트 때
 # UAC 승격이 일어나지 않고, 그래서 보안 경고도 뜨지 않는다.
@@ -18,7 +19,18 @@ param(
   # 버전을 올리지 않고 현재 버전 그대로 다시 올릴 때.
   [switch]$NoBump,
   # 빌드와 서명까지만 하고 GitHub 에는 올리지 않을 때.
-  [switch]$SkipPublish
+  [switch]$SkipPublish,
+  # 테스트 게이트를 건너뛴다. **코드가 미덥지 않을 때 쓰라고 있는 스위치가 아니다.**
+  #
+  # 이 기계에서 테스트를 아예 실행할 수 없을 때를 위한 탈출구다. Smart App Control 이
+  # 켜져 있으면 갓 빌드한 서명 없는 테스트 바이너리를 커널이 막아서
+  # (os error 4551 "애플리케이션 제어 정책에서 이 파일을 차단했습니다")
+  # cargo test 가 코드와 무관하게 실패한다. 정책을 끄는 건 비가역이라
+  # 그것 때문에 릴리즈를 못 하는 상황을 피하려고 둔다.
+  #
+  # 쓰기 전에 테스트가 어디서든 통과하는 것을 눈으로 확인해라.
+  # 최소한 cargo test --no-run 으로 컴파일은 확인하고 넘어간다.
+  [switch]$SkipTests
 )
 
 $ErrorActionPreference = "Stop"
@@ -42,7 +54,21 @@ function Invoke-Native {
   if ($LASTEXITCODE -ne 0) { throw "$What 실패 (exit $LASTEXITCODE)" }
 }
 
-# ── 1. 버전 ──────────────────────────────────────
+# ── 1. 테스트 ────────────────────────────────────
+# 커밋보다 **먼저** 돌린다. 순서가 뒤집혀 있으면 테스트가 깨졌을 때
+# 이미 버전이 오르고 커밋이 푸시된 뒤라, 실제로는 존재하지 않는 릴리즈를 가리키는
+# "release(collector): vX.Y.Z" 커밋이 원격에 남는다. 여기서 멈추면 아무것도 건드리지 않는다.
+Write-Host ""
+if ($SkipTests) {
+  Write-Host "=== 테스트 건너뜀 (-SkipTests) ===" -ForegroundColor Yellow
+  # 실행은 못 해도 컴파일은 확인한다. 이것마저 깨지면 릴리즈할 코드가 아니다.
+  Invoke-Native "테스트 컴파일 — 릴리즈를 중단합니다" { cargo test --no-run --quiet }
+} else {
+  Write-Host "=== 테스트 ===" -ForegroundColor Cyan
+  Invoke-Native "테스트 — 릴리즈를 중단합니다" { cargo test --quiet }
+}
+
+# ── 2. 버전 ──────────────────────────────────────
 $cargoToml = "Cargo.toml"
 $content = Get-Content $cargoToml -Raw -Encoding UTF8
 if ($content -notmatch '(?m)^version = "(\d+)\.(\d+)\.(\d+)"') {
@@ -62,7 +88,7 @@ if ($NoBump) {
   Set-Content -Path $cargoToml -Value $content -Encoding UTF8 -NoNewline
 }
 
-# ── 2. 커밋 ──────────────────────────────────────
+# ── 3. 커밋 ──────────────────────────────────────
 if (-not $NoBump) {
   Push-Location ..
   # 프로젝트 폴더를 통째로 넣는다. Cargo.toml 만 넣으면 소스 변경이 빠진 채
@@ -76,11 +102,7 @@ if (-not $NoBump) {
   }
 }
 
-# ── 3. 빌드 ──────────────────────────────────────
-Write-Host ""
-Write-Host "=== 테스트 ===" -ForegroundColor Cyan
-Invoke-Native "테스트 — 릴리즈를 중단합니다" { cargo test --quiet }
-
+# ── 4. 빌드 ──────────────────────────────────────
 Write-Host ""
 Write-Host "=== 릴리즈 빌드 ===" -ForegroundColor Cyan
 Invoke-Native "빌드" { cargo build --release }
@@ -90,7 +112,7 @@ if (-not (Test-Path $exe)) { throw "exe 가 없습니다: $exe" }
 $sizeMb = [math]::Round((Get-Item $exe).Length / 1MB, 1)
 Write-Host "빌드 완료: $exe (${sizeMb}MB)" -ForegroundColor Green
 
-# ── 4. 서명 ──────────────────────────────────────
+# ── 5. 서명 ──────────────────────────────────────
 Write-Host ""
 Write-Host "=== 서명 ===" -ForegroundColor Cyan
 Invoke-Native "서명" { & "$PSScriptRoot\scripts\sign.ps1" -Path $exe }
@@ -101,7 +123,7 @@ if ($SkipPublish) {
   exit 0
 }
 
-# ── 5~6. GitHub 릴리즈 ───────────────────────────
+# ── 6~7. GitHub 릴리즈 ───────────────────────────
 Invoke-Native "gh CLI 확인" { gh --version *> $null }
 
 $tag = "desktop-v$version"
