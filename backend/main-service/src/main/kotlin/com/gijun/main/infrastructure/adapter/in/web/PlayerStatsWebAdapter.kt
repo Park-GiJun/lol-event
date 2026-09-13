@@ -5,6 +5,7 @@ import com.gijun.main.application.dto.stats.result.GrowthCurveResult
 import com.gijun.main.application.dto.stats.result.PlayerComparisonResult
 import com.gijun.main.application.dto.stats.result.PlayerDetailStatsResult
 import com.gijun.main.application.dto.stats.result.PlayerEloHistoryResult
+import com.gijun.main.application.dto.stats.result.PlayerTimelineResult
 import com.gijun.main.application.dto.stats.result.StatsResult
 import com.gijun.main.application.dto.stats.result.StreakResult
 import com.gijun.main.application.port.`in`.GetEloHistoryUseCase
@@ -12,6 +13,7 @@ import com.gijun.main.application.port.`in`.GetGrowthCurveUseCase
 import com.gijun.main.application.port.`in`.GetPlayerComparisonUseCase
 import com.gijun.main.application.port.`in`.GetPlayerStatsUseCase
 import com.gijun.main.application.port.`in`.GetPlayerStreakUseCase
+import com.gijun.main.application.port.`in`.GetPlayerTimelineUseCase
 import com.gijun.main.application.port.`in`.GetStatsUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -28,6 +30,7 @@ class PlayerStatsWebAdapter(
     private val getEloHistoryUseCase: GetEloHistoryUseCase,
     private val getGrowthCurveUseCase: GetGrowthCurveUseCase,
     private val getPlayerComparisonUseCase: GetPlayerComparisonUseCase,
+    private val getPlayerTimelineUseCase: GetPlayerTimelineUseCase,
 ) {
     @Operation(summary = "플레이어 랭킹 테이블", description = "모드별 플레이어 통계 랭킹을 반환합니다")
     @GetMapping
@@ -72,6 +75,18 @@ class PlayerStatsWebAdapter(
     ): CommonApiResponse<PlayerEloHistoryResult> =
         CommonApiResponse.success(getEloHistoryUseCase.getHistory(
             java.net.URLDecoder.decode(riotId, "UTF-8"), limit
+        ))
+
+    @Operation(
+        summary = "플레이어 타임라인 지표",
+        description = "타임라인이 있는 경기에서의 15분 라인 격차, 초반 킬·데스, 분별 골드 격차 곡선을 반환합니다"
+    )
+    @GetMapping("/player/{riotId}/timeline")
+    fun getPlayerTimeline(
+        @PathVariable riotId: String,
+    ): CommonApiResponse<PlayerTimelineResult> =
+        CommonApiResponse.success(getPlayerTimelineUseCase.getPlayerTimeline(
+            java.net.URLDecoder.decode(riotId, "UTF-8")
         ))
 
     @GetMapping("/player/{riotId}/growth-curve")

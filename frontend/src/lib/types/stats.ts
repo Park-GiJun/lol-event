@@ -998,3 +998,76 @@ export interface ChampionMatchupResult {
   /** 개별 상성에 적용된 최소 표본. 화면에 밝힌다. */
   minGames: number;
 }
+
+// ────────── 타임라인 지표 ──────────
+//
+// 타임라인은 새 수집기로 받은 경기에만 있다. 모집단이 전체 경기보다 훨씬 작으니 경기 수를 늘 같이 보여 준다.
+// 비율(…Rate)은 0~100, 격차(…Diff)는 "나 − 같은 자리 상대"다.
+
+export interface TimelinePlayerEntry {
+  riotId: string;
+  /** 타임라인이 있는 경기 수. */
+  games: number;
+  /** 그중 라인 상대가 있어 격차를 잴 수 있었던 경기 수. */
+  laneGames: number;
+  mainPosition: string | null;
+  avgGoldDiff15: number | null;
+  avgCsDiff15: number | null;
+  avgXpDiff15: number | null;
+  laneLeadRate: number | null;
+  avgCsAt10: number | null;
+  avgEarlyKills: number;
+  avgEarlyDeaths: number;
+  avgEarlyAssists: number;
+  avgSoloKills: number;
+  firstBloodRate: number;
+  avgFirstDeathMinute: number | null;
+}
+
+export interface TimelineStatsResult {
+  games: number;
+  /** 15분 골드가 앞선 팀의 승률. */
+  goldLeadWinRate: number | null;
+  goldLeadGames: number;
+  /** 15분에 1,500골드 이상 뒤지고도 이긴 경기 수. */
+  comebackGames: number;
+  avgTeamGoldGapAt15: number;
+  players: TimelinePlayerEntry[];
+}
+
+export interface GoldDiffPoint {
+  minute: number;
+  avgGoldDiff: number;
+  games: number;
+}
+
+export interface PlayerTimelineGame {
+  matchId: string;
+  gameCreation: number;
+  champion: string;
+  championId: number;
+  position: string;
+  win: boolean;
+  opponentRiotId: string | null;
+  opponentChampion: string | null;
+  opponentChampionId: number | null;
+  goldDiff15: number | null;
+  csDiff15: number | null;
+  xpDiff15: number | null;
+  earlyKills: number;
+  earlyDeaths: number;
+  earlyAssists: number;
+  soloKills: number;
+  /** index = 분. */
+  goldDiffByMinute: number[];
+}
+
+export interface PlayerTimelineResult {
+  riotId: string;
+  summary: TimelinePlayerEntry | null;
+  goldDiffRank: number | null;
+  rankedPlayers: number;
+  goldDiffCurve: GoldDiffPoint[];
+  /** 최신순. */
+  games: PlayerTimelineGame[];
+}

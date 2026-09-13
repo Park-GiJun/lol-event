@@ -13,6 +13,8 @@ const TABS = [
     component: lazy(() => import('./stats-tabs/PositionTab')) },
   { key: 'pospool',  label: '포지션 풀',  hint: '누가 어느 자리를 얼마나 소화하는가',
     component: lazy(() => import('./stats-tabs/PositionPoolTab')) },
+  { key: 'timeline', label: '초반 격차', hint: '같은 자리 상대와 15분에 골드 · CS · 경험치가 얼마나 벌어졌나. 타임라인이 있는 경기(새 수집기)만 센다',
+    component: lazy(() => import('./stats-tabs/TimelineTab')) },
   { key: 'duo',      label: '듀오',      hint: '같은 팀으로 뛰었을 때의 전적. 표본이 적은 조합은 승률이 흔들리니 판수를 같이 본다',
     component: lazy(() => import('./stats-tabs/DuoTab')) },
   { key: 'rival',    label: '라이벌',    hint: '상대 팀으로 맞붙은 전적',

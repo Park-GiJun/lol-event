@@ -8,6 +8,7 @@ import { fmt, parseRiotId } from '@/lib/lol';
 import type { SummonerOpponent, SummonerTeammate } from '@/lib/types/page';
 import { positionLabel } from '@/lib/position';
 import { LaneForm } from './summoner/LaneForm';
+import { TimelineStats } from './summoner/TimelineStats';
 import type { EloRankEntry } from '@/lib/types/stats';
 
 type Tab = 'overview' | 'champions' | 'people';
@@ -166,6 +167,7 @@ export function SummonerPage() {
       {tab === 'overview' && (
         <>
           <LaneForm riotId={riotId} />
+          <TimelineStats riotId={riotId} />
           <section className="t-card">
             <div className="t-card-head"><h2 className="t-card-title">포지션</h2></div>
             {positionStats.length === 0 ? (
