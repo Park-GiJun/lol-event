@@ -52,7 +52,11 @@ export function TimelineStats({ riotId }: { riotId: string }) {
         <Stat
           label="라인 우세"
           value={s.laneLeadRate == null ? '-' : `${s.laneLeadRate}%`}
-          sample={`${s.laneGames}경기 중`}
+          sample={
+            s.leadWinRate != null
+              ? `${s.laneGames}경기 중 · 앞섰을 때 승률 ${s.leadWinRate}%`
+              : `${s.laneGames}경기 중`
+          }
         />
         <Stat
           label="15분 전 K / D / A"

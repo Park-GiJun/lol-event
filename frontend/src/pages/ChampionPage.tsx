@@ -6,6 +6,7 @@ import { Rate, Stat, TierBadge, WinBar } from '@/components/ds/Stat';
 import { InlineError } from '@/components/common/InlineError';
 import { positionLabel } from '@/lib/position';
 import { LaneStrengthSection } from './champion/LaneStrength';
+import { ChampionTimeline } from './champion/ChampionTimeline';
 
 /** 표 안에서 쓰는 짧은 격차 표기. 양수는 파랑, 음수는 빨강. */
 function Diff({ v, digits = 0 }: { v: number; digits?: number }) {
@@ -223,6 +224,8 @@ export function ChampionPage() {
         </div>
         <LaneStrengthSection laneStrength={laneStrength} />
       </section>
+
+      <ChampionTimeline champion={detail.champion} />
 
       <div className="t-grid">
         <section className="t-card">

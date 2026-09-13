@@ -1003,25 +1003,50 @@ export interface ChampionMatchupResult {
 //
 // 타임라인은 새 수집기로 받은 경기에만 있다. 모집단이 전체 경기보다 훨씬 작으니 경기 수를 늘 같이 보여 준다.
 // 비율(…Rate)은 0~100, 격차(…Diff)는 "나 − 같은 자리 상대"다.
+// 선수·포지션·챔피언 어느 단위로 묶든 같은 TimelineAverages 를 쓴다.
 
-export interface TimelinePlayerEntry {
-  riotId: string;
+export interface TimelineAverages {
   /** 타임라인이 있는 경기 수. */
   games: number;
   /** 그중 라인 상대가 있어 격차를 잴 수 있었던 경기 수. */
   laneGames: number;
-  mainPosition: string | null;
+  winRate: number;
   avgGoldDiff15: number | null;
   avgCsDiff15: number | null;
   avgXpDiff15: number | null;
+  /** 15분 골드가 라인 상대보다 앞선 경기 비율. */
   laneLeadRate: number | null;
+  /** 15분에 라인 상대보다 앞섰던 경기의 승률. */
+  leadWinRate: number | null;
+  leadGames: number;
   avgCsAt10: number | null;
+  avgGoldAt15: number | null;
   avgEarlyKills: number;
   avgEarlyDeaths: number;
   avgEarlyAssists: number;
   avgSoloKills: number;
   firstBloodRate: number;
   avgFirstDeathMinute: number | null;
+}
+
+export interface TimelinePlayerEntry {
+  riotId: string;
+  /** 전체 표에서는 가장 많이 선 포지션, 라인별 표에서는 그 라인. */
+  position: string | null;
+  stats: TimelineAverages;
+}
+
+export interface TimelinePositionEntry {
+  position: string;
+  stats: TimelineAverages;
+}
+
+export interface TimelineChampionEntry {
+  champion: string;
+  championId: number;
+  stats: TimelineAverages;
+  /** 경기 수 내림차순. */
+  byPosition: TimelinePositionEntry[];
 }
 
 export interface TimelineStatsResult {
@@ -1033,6 +1058,19 @@ export interface TimelineStatsResult {
   comebackGames: number;
   avgTeamGoldGapAt15: number;
   players: TimelinePlayerEntry[];
+  /** TOP → SUPPORT 순. */
+  positions: TimelinePositionEntry[];
+}
+
+export interface TimelineLaneResult {
+  position: string;
+  summary: TimelineAverages | null;
+  players: TimelinePlayerEntry[];
+}
+
+export interface TimelineChampionsResult {
+  games: number;
+  champions: TimelineChampionEntry[];
 }
 
 export interface GoldDiffPoint {
@@ -1064,9 +1102,11 @@ export interface PlayerTimelineGame {
 
 export interface PlayerTimelineResult {
   riotId: string;
-  summary: TimelinePlayerEntry | null;
+  summary: TimelineAverages | null;
   goldDiffRank: number | null;
   rankedPlayers: number;
+  byPosition: TimelinePositionEntry[];
+  byChampion: TimelineChampionEntry[];
   goldDiffCurve: GoldDiffPoint[];
   /** 최신순. */
   games: PlayerTimelineGame[];

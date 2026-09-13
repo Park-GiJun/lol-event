@@ -3,11 +3,14 @@ import { POSITION_ICON } from '@/components/icons/positionIcon';
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../lib/api/api';
-import type { LaneLeaderboardResult, PlayerLaneStat } from '../../lib/types/stats';
+import type { LaneLeaderboardResult, PlayerLaneStat, TimelineAverages } from '../../lib/types/stats';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { useDragon } from '../../context/DragonContext';
 import { PlayerLink } from '../../components/common/PlayerLink';
 import { ChampionLink } from '../../components/common/ChampionLink';
+import { Stat } from '@/components/ds/Stat';
+import { Diff15 } from '@/components/ds/Timeline15';
+import { useTimelineLane } from '@/hooks/usePlayerTimeline';
 import { RankBadge, ChampImg, WinRateBar } from './shared';
 
 /** 라인마다 대표로 하나 더 보여줄 열. 키는 백엔드 Position 과 같아야 한다. */
@@ -20,12 +23,35 @@ const LANE_KEY_COL: Record<Position, { key: keyof PlayerLaneStat; label: string;
 };
 const LANES = POSITIONS;
 
+/**
+ * 그 라인의 15분 평균. 라인 평균이라 격차는 0 근처라서 절댓값 지표와
+ * "라인을 이긴 쪽이 게임도 이겼나"를 보여 준다.
+ */
+function LaneTimelineSummary({ lane, summary }: { lane: string; summary: TimelineAverages }) {
+  const s = summary;
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, margin: '0 0 var(--spacing-md)' }}>
+      <Stat label="타임라인 경기" value={s.games} sample={`${positionLabel(lane)} · 15분 지표 기준`} />
+      <Stat
+        label="15분 라인 이긴 쪽 승률"
+        value={s.leadWinRate == null ? '-' : `${s.leadWinRate}%`}
+        sample={`${s.leadGames}경기`}
+      />
+      <Stat label="CS@10" value={s.avgCsAt10 ?? '-'} />
+      <Stat label="골드@15" value={s.avgGoldAt15 == null ? '-' : Math.round(s.avgGoldAt15).toLocaleString()} />
+      <Stat label="15분 전 K / D" value={`${s.avgEarlyKills} / ${s.avgEarlyDeaths}`} sample={`퍼블 관여 ${s.firstBloodRate}%`} />
+    </div>
+  );
+}
+
 export default function LaneTab({ mode }: { mode: string }) {
   const navigate = useNavigate();
   const { champions } = useDragon();
   const [selectedLane, setSelectedLane] = useState<string>('TOP');
   const [data, setData] = useState<LaneLeaderboardResult | null>(null);
   const [loading, setLoading] = useState(false);
+  // 15분 지표는 부가 열이다. 못 불러오면 그 열만 '-' 로 비운다.
+  const { data: timeline } = useTimelineLane(selectedLane, mode);
 
   const load = useCallback(async (lane: string) => {
     setLoading(true);
@@ -37,6 +63,9 @@ export default function LaneTab({ mode }: { mode: string }) {
   useEffect(() => { load(selectedLane); }, [load, selectedLane]);
 
   const keyCol = LANE_KEY_COL[selectedLane as Position];
+  const timelineByPlayer = new Map(
+    (timeline?.position === selectedLane ? timeline.players : []).map(p => [p.riotId, p.stats]),
+  );
 
   return (
     <div>
@@ -54,6 +83,10 @@ export default function LaneTab({ mode }: { mode: string }) {
         })}
       </div>
 
+      {timeline?.position === selectedLane && timeline.summary && (
+        <LaneTimelineSummary lane={selectedLane} summary={timeline.summary} />
+      )}
+
       {loading ? <LoadingCenter /> : !data ? null : (
         <div className="table-wrapper">
           <table className="table member-stats-table">
@@ -68,12 +101,15 @@ export default function LaneTab({ mode }: { mode: string }) {
                 <th className="table-number">K/D/A</th>
                 <th className="table-number">평균 딜량</th>
                 <th className="table-number">{keyCol.label}</th>
+                <th className="table-number" title="이 라인에서 15분에 상대 라이너보다 골드가 얼마나 앞섰나 (타임라인이 있는 경기만)">골드차@15</th>
+                <th className="table-number" title="15분 골드가 상대보다 앞선 경기 비율 (타임라인이 있는 경기만)">라인 우세</th>
               </tr>
             </thead>
             <tbody>
               {data.players.map((p: PlayerLaneStat, i) => {
                 const champName = p.topChampion ?? '';
                 const nameKo = p.topChampionId ? (champions.get(p.topChampionId)?.nameKo ?? champName) : champName;
+                const t = timelineByPlayer.get(p.riotId);
                 return (
                   <tr key={p.riotId} className="member-stats-row"
                     onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}>
@@ -106,11 +142,13 @@ export default function LaneTab({ mode }: { mode: string }) {
                     </td>
                     <td className="table-number">{p.avgDamage.toLocaleString()}</td>
                     <td className="table-number">{keyCol.format(p[keyCol.key] as number)}</td>
+                    <td className="table-number"><Diff15 value={t?.avgGoldDiff15} games={t?.laneGames} /></td>
+                    <td className="table-number">{t?.laneLeadRate == null ? '-' : `${t.laneLeadRate}%`}</td>
                   </tr>
                 );
               })}
               {data.players.length === 0 && (
-                <tr><td colSpan={9} style={{ textAlign: 'center', padding: 'var(--spacing-2xl) 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
+                <tr><td colSpan={11} style={{ textAlign: 'center', padding: 'var(--spacing-2xl) 0', color: 'var(--color-text-secondary)' }}>데이터 없음</td></tr>
               )}
             </tbody>
           </table>

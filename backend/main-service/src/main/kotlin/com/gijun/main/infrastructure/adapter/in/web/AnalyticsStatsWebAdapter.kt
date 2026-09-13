@@ -9,6 +9,8 @@ import com.gijun.main.application.dto.stats.result.ObjectiveCorrelationResult
 import com.gijun.main.application.dto.stats.result.OverviewStats
 import com.gijun.main.application.dto.stats.result.SessionReportResult
 import com.gijun.main.application.dto.stats.result.TimePatternResult
+import com.gijun.main.application.dto.stats.result.TimelineChampionsResult
+import com.gijun.main.application.dto.stats.result.TimelineLaneResult
 import com.gijun.main.application.dto.stats.result.TimelineStatsResult
 import com.gijun.main.application.dto.stats.result.WeeklyAwardsResult
 import com.gijun.main.application.port.`in`.GetBanAnalysisUseCase
@@ -109,4 +111,22 @@ class AnalyticsStatsWebAdapter(
         @RequestParam(defaultValue = "normal") mode: String,
     ): CommonApiResponse<TimelineStatsResult> =
         CommonApiResponse.success(getTimelineStatsUseCase.getTimelineStats(mode))
+
+    @Operation(summary = "라인별 타임라인 지표", description = "그 라인에서 뛴 경기만 센 라인 평균과 선수별 15분 지표")
+    @GetMapping("/timeline/lane")
+    fun getTimelineLane(
+        @Parameter(description = "TOP / JUNGLE / MID / ADC / SUPPORT", example = "TOP")
+        @RequestParam lane: String,
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<TimelineLaneResult> =
+        CommonApiResponse.success(getTimelineStatsUseCase.getTimelineLane(lane, mode))
+
+    @Operation(summary = "챔피언별 타임라인 지표", description = "챔피언별·챔피언×포지션별 15분 지표. champion 을 주면 그 챔피언만")
+    @GetMapping("/timeline/champions")
+    fun getTimelineChampions(
+        @RequestParam(defaultValue = "normal") mode: String,
+        @Parameter(description = "챔피언 영문명", example = "Ahri")
+        @RequestParam(required = false) champion: String?,
+    ): CommonApiResponse<TimelineChampionsResult> =
+        CommonApiResponse.success(getTimelineStatsUseCase.getTimelineChampions(mode, champion))
 }

@@ -5,6 +5,8 @@ import { useDragon } from '@/context/DragonContext';
 import { ChampionIcon } from '@/components/ds/Champion';
 import { Rate, TierBadge, WinBar } from '@/components/ds/Stat';
 import { InlineError } from '@/components/common/InlineError';
+import { Diff15 } from '@/components/ds/Timeline15';
+import { useTimelineChampions } from '@/hooks/usePlayerTimeline';
 
 const MIN_GAMES = 5;
 
@@ -13,6 +15,12 @@ export function ChampionListPage() {
   const { champions: dragon } = useDragon();
   const [q, setQ] = useState('');
   const [showAll, setShowAll] = useState(false);
+  // 15분 지표는 부가 열이다. 못 불러오면 그 열만 '-' 로 비운다.
+  const { data: timelineData } = useTimelineChampions('all');
+  const timeline = useMemo(
+    () => new Map((timelineData?.champions ?? []).map((c) => [c.champion, c.stats])),
+    [timelineData],
+  );
 
   const rows = useMemo(() => {
     const list = data?.tierList ?? [];
@@ -88,6 +96,9 @@ export function ChampionListPage() {
                   <th>전적</th>
                   <th className="t-num">KDA</th>
                   <th className="t-num">평균 딜</th>
+                  <th className="t-num" title="15분에 같은 라인 상대보다 골드가 얼마나 앞섰나. 타임라인이 있는 경기(새 수집기)만 센다">
+                    골드차@15
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -114,6 +125,12 @@ export function ChampionListPage() {
                     </td>
                     <td className="t-num">{c.kda}</td>
                     <td className="t-num">{Math.round(c.avgDamage).toLocaleString()}</td>
+                    <td className="t-num">
+                      <Diff15
+                        value={timeline.get(c.champion)?.avgGoldDiff15}
+                        games={timeline.get(c.champion)?.laneGames}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -9,6 +9,11 @@ import type { SummonerOpponent, SummonerTeammate } from '@/lib/types/page';
 import { positionLabel } from '@/lib/position';
 import { LaneForm } from './summoner/LaneForm';
 import { TimelineStats } from './summoner/TimelineStats';
+import { usePlayerTimeline } from '@/hooks/usePlayerTimeline';
+import { Diff15 } from '@/components/ds/Timeline15';
+
+/** 전체 경기 기준인 다른 열과 표본이 다르다는 걸 열 제목 툴팁으로 밝힌다. */
+const TIMELINE_COL_HINT = '15분 지표. 타임라인이 있는 경기(새 수집기)만 센다';
 import type { EloRankEntry } from '@/lib/types/stats';
 
 type Tab = 'overview' | 'champions' | 'people';
@@ -74,6 +79,10 @@ export function SummonerPage() {
   const { riotId = '' } = useParams();
   const [tab, setTab] = useState<Tab>('overview');
   const { data, isPending, error, refetch } = useSummoner(riotId, 'all');
+  // 15분 지표는 표에 붙는 부가 열이다. TimelineStats 카드와 같은 쿼리라 한 번만 받는다.
+  const { data: timeline } = usePlayerTimeline(riotId);
+  const timelineByPosition = new Map((timeline?.byPosition ?? []).map((p) => [p.position, p.stats]));
+  const timelineByChampion = new Map((timeline?.byChampion ?? []).map((c) => [c.champion, c.stats]));
 
   if (isPending) {
     return (
@@ -183,19 +192,26 @@ export function SummonerPage() {
                       <th className="t-num">KDA</th>
                       <th className="t-num">평균 CS</th>
                       <th className="t-num">평균 딜</th>
+                      <th className="t-num" title={TIMELINE_COL_HINT}>골드차@15</th>
+                      <th className="t-num" title={TIMELINE_COL_HINT}>CS@10</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {positionStats.map((p) => (
-                      <tr key={p.position}>
-                        <td><b>{positionLabel(p.position)}</b></td>
-                        <td><WinBar winRate={p.winRate} /></td>
-                        <td><Rate value={p.winRate} games={p.games} /></td>
-                        <td className="t-num">{p.kda}</td>
-                        <td className="t-num">{p.avgCs}</td>
-                        <td className="t-num">{p.avgDamage.toLocaleString()}</td>
-                      </tr>
-                    ))}
+                    {positionStats.map((p) => {
+                      const t = timelineByPosition.get(p.position);
+                      return (
+                        <tr key={p.position}>
+                          <td><b>{positionLabel(p.position)}</b></td>
+                          <td><WinBar winRate={p.winRate} /></td>
+                          <td><Rate value={p.winRate} games={p.games} /></td>
+                          <td className="t-num">{p.kda}</td>
+                          <td className="t-num">{p.avgCs}</td>
+                          <td className="t-num">{p.avgDamage.toLocaleString()}</td>
+                          <td className="t-num"><Diff15 value={t?.avgGoldDiff15} games={t?.laneGames} /></td>
+                          <td className="t-num">{t?.avgCsAt10 ?? '-'}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -251,21 +267,28 @@ export function SummonerPage() {
                   <th className="t-num">KDA</th>
                   <th className="t-num">평균 CS</th>
                   <th className="t-num">평균 딜</th>
+                  <th className="t-num" title={TIMELINE_COL_HINT}>골드차@15</th>
+                  <th className="t-num" title={TIMELINE_COL_HINT}>CS@10</th>
                 </tr>
               </thead>
               <tbody>
-                {championStats.map((c) => (
-                  <tr key={c.champion}>
-                    <td>
-                      <ChampionLabel championId={c.championId} champion={c.champion} />
-                    </td>
-                    <td><WinBar winRate={c.winRate} /></td>
-                    <td><Rate value={c.winRate} games={c.games} /></td>
-                    <td className="t-num">{c.kda}</td>
-                    <td className="t-num">{c.avgCs}</td>
-                    <td className="t-num">{c.avgDamage.toLocaleString()}</td>
-                  </tr>
-                ))}
+                {championStats.map((c) => {
+                  const t = timelineByChampion.get(c.champion);
+                  return (
+                    <tr key={c.champion}>
+                      <td>
+                        <ChampionLabel championId={c.championId} champion={c.champion} />
+                      </td>
+                      <td><WinBar winRate={c.winRate} /></td>
+                      <td><Rate value={c.winRate} games={c.games} /></td>
+                      <td className="t-num">{c.kda}</td>
+                      <td className="t-num">{c.avgCs}</td>
+                      <td className="t-num">{c.avgDamage.toLocaleString()}</td>
+                      <td className="t-num"><Diff15 value={t?.avgGoldDiff15} games={t?.laneGames} /></td>
+                      <td className="t-num">{t?.avgCsAt10 ?? '-'}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
