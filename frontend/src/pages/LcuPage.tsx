@@ -1,18 +1,48 @@
+import { useQuery } from '@tanstack/react-query';
 import { BarChartIcon, DownloadIcon, EyeIcon, GamepadIcon, MonitorIcon, RefreshIcon, ShieldIcon, ZapIcon } from '@/components/icons/LolIcons';
 import { Button } from '../components/common/Button';
 
-const INSTALLER_URL = 'https://lol.gijun.net/downloads/lol-collector.msi';
+/*
+ * 수집기는 GitHub Releases 에서 바로 받는다.
+ *
+ * 예전에는 배포 때 런처 MSI 를 사이트의 /downloads 로 복사해 두고 그걸 링크했는데,
+ * 본체가 Rust 단일 exe 로 바뀐 뒤로 MSI 는 필요 없어졌고 페이지 문구도 옛 버전에 멈춰 있었다.
+ * `releases/latest/download/<자산>` 은 GitHub 가 항상 --latest 릴리즈로 돌려 주므로
+ * 새 버전을 올려도 이 파일은 손대지 않아도 된다. (--latest 는 본체 릴리즈에만 붙인다.)
+ */
+const REPO = 'Park-GiJun/lol-event';
+const LATEST = `https://github.com/${REPO}/releases/latest`;
+const EXE_URL = `${LATEST}/download/LoL-Collector.exe`;
+const CERT_URL = `${LATEST}/download/LoL-Collector.cer`;
+const TRUST_BAT_URL = `${LATEST}/download/trust-cert.bat`;
+
+/** 버전 표시용. 실패해도 다운로드 링크는 그대로 동작하므로 조용히 숨긴다. */
+function useLatestVersion() {
+  return useQuery({
+    queryKey: ['collector-latest-version'],
+    queryFn: async () => {
+      const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`);
+      if (!res.ok) throw new Error(`GitHub ${res.status}`);
+      const body: { tag_name: string } = await res.json();
+      return body.tag_name.replace(/^desktop-/, '');
+    },
+    staleTime: 10 * 60 * 1000,
+    retry: false,
+  });
+}
 
 const FEATURES = [
-  { icon: ZapIcon, title: '자동 수집', desc: '게임 종료 감지 30초 후 자동 수집 · 서버 전송' },
+  { icon: ZapIcon, title: '자동 수집', desc: '게임 종료 감지 후 자동 수집 · 서버 전송 (타임라인 포함)' },
   { icon: EyeIcon, title: '챔프셀렉트 분석', desc: '상대 모스트픽 · 밴 추천 · 카운터픽 · 팀 전력 비교' },
   { icon: BarChartIcon, title: '내전 대시보드', desc: 'Elo 리더보드 · 어워즈 · MVP · 멀티킬 하이라이트' },
   { icon: GamepadIcon, title: '라이브 게임', desc: '실시간 킬/CS/레벨 · 게임 이벤트 피드' },
   { icon: ShieldIcon, title: '로비 캐시', desc: '대기방 10명 데이터 캐싱 챔프셀렉트에서 활용' },
-  { icon: RefreshIcon, title: '자동 업데이트', desc: '새 버전 자동 감지 · 원클릭 업데이트' },
+  { icon: RefreshIcon, title: '자동 업데이트', desc: '실행 시 새 버전 자동 감지 · 관리자 권한 없이 교체' },
 ];
 
 export function LcuPage() {
+  const { data: version } = useLatestVersion();
+
   return (
     <div className="t-page">
       <div className="hero-banner" style={{ marginBottom: 'var(--spacing-lg)' }}>
@@ -34,10 +64,10 @@ export function LcuPage() {
           </div>
           <div>
             <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text-primary)' }}>
-              LoL 내전 수집기 <span style={{ color: 'var(--color-primary)' }}>v1.0.0</span>
+              LoL 내전 수집기{version && <> <span style={{ color: 'var(--color-primary)' }}>{version}</span></>}
             </div>
             <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-              Compose Desktop · Windows 전용 · 시스템 트레이 상주
+              Windows 전용 · 설치 없이 실행 파일 하나 · 시스템 트레이 상주
             </div>
           </div>
         </div>
@@ -48,11 +78,14 @@ export function LcuPage() {
           서버에 전송합니다. 챔피언 셀렉트 분석, 라이브 게임 모니터링, 내전 대시보드를 제공합니다.
         </p>
 
-        <a href={INSTALLER_URL} download style={{ display: 'inline-block' }}>
+        <a href={EXE_URL} style={{ display: 'inline-block' }}>
           <Button variant="primary" size="md">
-            <DownloadIcon size={15} /> 수집기 다운로드 (.msi)
+            <DownloadIcon size={15} /> 수집기 다운로드 (.exe)
           </Button>
         </a>
+        <div style={{ marginTop: 'var(--spacing-xs)', fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
+          <a href={LATEST} target="_blank" rel="noreferrer">릴리즈 노트 · 이전 버전</a>
+        </div>
       </div>
 
       {/* 주요 기능 */}
@@ -84,9 +117,12 @@ export function LcuPage() {
           <span className="section-head-title">설치 및 사용</span>
         </div>
         <ol className="lcu-step-list">
-          <li>위 버튼으로 <strong className="lcu-step-highlight">.msi 설치 파일</strong> 다운로드</li>
-          <li>설치 실행 → Windows 시작 프로그램에 자동 등록됨</li>
-          <li>수집기 실행 — 시스템 트레이에 아이콘 표시</li>
+          <li>위 버튼으로 <strong className="lcu-step-highlight">LoL-Collector.exe</strong> 다운로드</li>
+          <li>
+            실행 — "Windows의 PC 보호" 창이 뜨면 <strong className="lcu-step-highlight">추가 정보 → 실행</strong>
+            (처음 한 번만. 이후 자동 업데이트는 경고 없이 진행됩니다)
+          </li>
+          <li>첫 실행 때 스스로 설치되고 바탕화면 · 시작 메뉴에 바로가기가 생깁니다. 받은 exe 는 지워도 됩니다</li>
           <li>LoL 클라이언트 로그인 → 수집기가 자동으로 LCU 연결</li>
           <li>
             <strong className="lcu-step-highlight">자동 수집 모드</strong>:
@@ -100,8 +136,9 @@ export function LcuPage() {
           background: 'rgba(200, 170, 110, 0.06)', borderRadius: 'var(--radius-md)',
           border: '1px solid rgba(200, 170, 110, 0.18)',
           fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)', lineHeight: 1.6,
-        }}><strong style={{ color: 'var(--color-primary)' }}>Tip</strong>: 수집기를 실행한 상태로 LoL을
-          플레이하면 모든 내전 데이터가 자동으로 수집됩니다. 별도의 수동 조작이 필요 없습니다.
+        }}><strong style={{ color: 'var(--color-primary)' }}>선택</strong>: "알 수 없는 게시자" 표시를 없애려면{' '}
+          <a href={CERT_URL}>LoL-Collector.cer</a> 와 <a href={TRUST_BAT_URL}>trust-cert.bat</a> 을
+          같은 폴더에 받은 뒤, trust-cert.bat 을 관리자 권한으로 한 번 실행하세요.
         </div>
       </div>
     </div>
