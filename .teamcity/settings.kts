@@ -16,10 +16,12 @@ object Build : BuildType({
     // 컨테이너를 다섯에서 둘로 줄였다. 배경은 frontend/nginx.conf 주석 참고.
     //   lol-eureka / lol-api-gateway / lol-lcu-service 제거
     //   → nginx(정적 + API 프록시) + main-service 만 남는다.
+    //
+    // 데스크탑 수집기는 여기서 다루지 않는다. Rust 단일 exe 를 desktop-collector-rs/release.ps1 이
+    // GitHub Releases 에 올리고, 사이트(LcuPage.tsx)는 releases/latest 로 바로 링크한다.
     artifactRules = """
         backend/main-service/build/libs/*.jar => jars/
         frontend/dist/** => frontend-dist/
-        desktop-collector/build/compose/binaries/main/msi/*.msi => desktop-collector-dist/
     """.trimIndent()
 
     params {
@@ -29,9 +31,6 @@ object Build : BuildType({
             checked = "true", unchecked = "false")
         checkbox("build.frontend", "true",
             label = "[빌드] Frontend", description = "React 앱 빌드",
-            checked = "true", unchecked = "false")
-        checkbox("build.desktop", "false",
-            label = "[빌드] Desktop Collector", description = "Compose Desktop 수집기 MSI 빌드",
             checked = "true", unchecked = "false")
 
         // 배포 항목
@@ -89,31 +88,6 @@ object Build : BuildType({
             }
         }
         script {
-            id = "desktop_build"
-            name = "Desktop Collector - Package MSI (Windows only)"
-            scriptContent = """
-                #!/bin/bash
-                echo "=== Desktop Collector MSI 빌드 ==="
-                # MSI 패키징은 Windows 전용 (jpackage + WiX 필요)
-                # Linux CI에서는 스킵하고, 로컬 빌드된 MSI가 있으면 그대로 사용
-                if ls desktop-collector/build/compose/binaries/main/msi/*.msi 1>/dev/null 2>&1; then
-                    echo "기존 MSI 파일 발견 — 빌드 스킵"
-                    ls -lh desktop-collector/build/compose/binaries/main/msi/*.msi
-                else
-                    echo "MSI 파일 없음 — Windows에서 로컬 빌드 후 커밋하세요:"
-                    echo "  cd desktop-collector"
-                    echo "  set JAVA_HOME=C:\\Users\\tpgj9\\.jdks\\ms-25.0.2"
-                    echo "  gradlew.bat packageMsi"
-                    echo "  git add build/compose/binaries/main/msi/"
-                    echo ""
-                    echo "또는 installer/ 디렉토리에 미리 빌드된 MSI를 배치하세요"
-                fi
-            """.trimIndent()
-            conditions {
-                equals("build.desktop", "true")
-            }
-        }
-        script {
             id = "deploy"
             name = "Deploy - Services to Host"
             scriptContent = """
@@ -122,7 +96,6 @@ object Build : BuildType({
 
                 DEPLOY_BACKEND="%build.backend%"
                 DEPLOY_FRONTEND="%build.frontend%"
-                DEPLOY_DESKTOP="%build.desktop%"
                 DO_MAIN="%deploy.main%"
                 DO_FRONTEND="%deploy.frontend%"
 
@@ -161,41 +134,6 @@ object Build : BuildType({
                 if [ "${'$'}DEPLOY_FRONTEND" = "true" ]; then
                     rm -rf ${'$'}DEPLOY_DIR/frontend-dist
                     cp -r frontend/dist ${'$'}DEPLOY_DIR/frontend-dist
-                    mkdir -p ${'$'}DEPLOY_DIR/frontend-dist/downloads
-
-                    # 사용자가 다운받는 진입점은 항상 런처(launcher-v*) MSI다.
-                    # 본체(desktop-v*) MSI는 런처가 GitHub Releases에서 직접 받으므로 웹사이트에 둘 필요 없다.
-                    # 파일명은 frontend(LcuPage.tsx)와의 호환을 위해 lol-collector.msi 그대로 유지한다.
-                    MSI_DEPLOYED=false
-
-                    echo "GitHub Releases에서 최신 Launcher MSI 확인 중 (launcher-v* 태그)..."
-                    # GitHub의 download URL은 항상 releases/download/<tag>/<asset> 형식.
-                    # URL에 /launcher-v 가 들어간 .msi만 필터링하면 본체(desktop-v*)와 안 섞인다.
-                    # API는 published 내림차순이라 head -1이 가장 최신 launcher 릴리즈.
-                    LAUNCHER_MSI_URL=${'$'}(curl -s https://api.github.com/repos/Park-GiJun/lol-event/releases \
-                        | grep -o '"browser_download_url": *"[^"]*\/launcher-v[^"]*\.msi"' \
-                        | head -1 | cut -d'"' -f4)
-
-                    if [ -n "${'$'}LAUNCHER_MSI_URL" ]; then
-                        echo "Launcher MSI 발견: ${'$'}LAUNCHER_MSI_URL"
-                        curl -sL "${'$'}LAUNCHER_MSI_URL" -o ${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi
-                        if [ ${'$'}? -eq 0 ] && [ -s "${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi" ]; then
-                            MSI_DEPLOYED=true
-                            MSI_VERSION=${'$'}(echo "${'$'}LAUNCHER_MSI_URL" | grep -oP '\d+\.\d+\.\d+' | head -1 || echo "unknown")
-                            echo "Launcher MSI 다운로드 완료 (v${'$'}MSI_VERSION)"
-                        fi
-                    fi
-
-                    # 폴백: 기존 배포된 파일 재사용
-                    if [ "${'$'}MSI_DEPLOYED" = "false" ] && [ -f "${'$'}DEPLOY_DIR/frontend-dist/downloads/lol-collector.msi" ]; then
-                        echo "기존 배포된 MSI 파일 재사용 (launcher-v* 릴리즈를 못 찾음)"
-                        MSI_DEPLOYED=true
-                    fi
-
-                    if [ "${'$'}MSI_DEPLOYED" = "false" ]; then
-                        echo "WARNING: Launcher MSI를 찾을 수 없음 — desktop-launcher/release.bat을 먼저 실행해 launcher-v* 릴리즈를 만드세요"
-                    fi
-
                     echo "Frontend dist 복사 완료"
                 fi
 
