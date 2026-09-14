@@ -49,10 +49,11 @@ management:
 # riotId 에는 '#' 이 들어가서 YAML 맵 키로 그대로 쓰면 주석으로 잘린다.
 # Spring Boot 의 대괄호 표기로 키를 원문 그대로 보존한다.
 #
-# 표를 고친 뒤에는 POST /api/admin/elo/reset 으로 재집계해야 기존 점수가 합쳐진다.
+# 표를 고친 뒤에는 POST /api/admin/elo/reset 으로 재집계해야 기존 점수가 합쳐진다(또는 나뉜다).
+# 서로 다른 사람을 넣으면 두 사람의 레이팅·통계가 한 줄로 섞인다. 본인 확인 후에만 추가한다.
+#   예) "[부계정#KR1]": "본계정#KR1"
 riot-id:
-  aliases:
-    "[달렸노#KR1]": "qkzxfh#KR1"
+  aliases: {}
 
 riot:
   api:

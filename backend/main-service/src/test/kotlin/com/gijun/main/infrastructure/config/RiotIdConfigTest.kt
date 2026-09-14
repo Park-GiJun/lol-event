@@ -27,11 +27,11 @@ class RiotIdConfigTest {
     @Test
     fun `대괄호 표기로 준 별명 키는 원문 그대로 실린다`() {
         runner
-            .withPropertyValues("riot-id.aliases[달렸노#KR1]=qkzxfh#KR1")
+            .withPropertyValues("riot-id.aliases[부계정#KR1]=본계정#KR1")
             .run { context ->
                 val normalizer = context.getBean(RiotIdNormalizer::class.java)
-                assertEquals("qkzxfh#KR1", normalizer.canonical("달렸노#KR1"))
-                assertEquals("qkzxfh#KR1", normalizer.canonical("qkzxfh#KR1"))
+                assertEquals("본계정#KR1", normalizer.canonical("부계정#KR1"))
+                assertEquals("본계정#KR1", normalizer.canonical("본계정#KR1"))
                 assertEquals("남#KR1", normalizer.canonical("남#KR1"))
             }
     }

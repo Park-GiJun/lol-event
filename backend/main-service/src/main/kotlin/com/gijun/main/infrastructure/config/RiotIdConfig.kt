@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration
  * ```yaml
  * riot-id:
  *   aliases:
- *     "[달렸노#KR1]": "qkzxfh#KR1"
+ *     "[부계정#KR1]": "본계정#KR1"
  * ```
  */
 @ConfigurationProperties(prefix = "riot-id")

@@ -189,18 +189,18 @@ class RatingEngineTest {
 
     @Test
     fun `별명은 정규 이름으로 합쳐져 한 줄로 쌓인다`() {
-        val normalizer = RiotIdNormalizer(mapOf("달렸노#KR1" to "qkzxfh#KR1"))
+        val normalizer = RiotIdNormalizer(mapOf("부계정#KR1" to "본계정#KR1"))
         val roster = (
             positions.mapIndexed { i, pos ->
-                player(if (i == 0) "달렸노#KR1" else "blue$i#KR1", i + 1, 100, pos, true)
+                player(if (i == 0) "부계정#KR1" else "blue$i#KR1", i + 1, 100, pos, true)
             } + positions.mapIndexed { i, pos -> player("red$i#KR1", i + 6, 200, pos, false) }
             )
         val m = match(participants = roster)
         val outcome = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap(), normalizer::canonical)!!
 
-        assertNull(outcome.ratings.firstOrNull { it.riotId == "달렸노#KR1" })
-        assertNotNull(outcome.ratings.firstOrNull { it.riotId == "qkzxfh#KR1" })
-        assertEquals("qkzxfh#KR1", outcome.histories.first { it.laneOpponent == "red0#KR1" }.riotId)
+        assertNull(outcome.ratings.firstOrNull { it.riotId == "부계정#KR1" })
+        assertNotNull(outcome.ratings.firstOrNull { it.riotId == "본계정#KR1" })
+        assertEquals("본계정#KR1", outcome.histories.first { it.laneOpponent == "red0#KR1" }.riotId)
     }
 
     // ────────── 히스토리 ──────────

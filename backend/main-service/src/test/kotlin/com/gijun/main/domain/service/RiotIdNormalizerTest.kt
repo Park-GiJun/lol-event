@@ -13,9 +13,9 @@ class RiotIdNormalizerTest {
 
     @Test
     fun `별명은 정규 이름으로 바뀐다`() {
-        val n = RiotIdNormalizer(mapOf("달렸노#KR1" to "qkzxfh#KR1"))
-        assertEquals("qkzxfh#KR1", n.canonical("달렸노#KR1"))
-        assertEquals("qkzxfh#KR1", n.canonical("qkzxfh#KR1"))
+        val n = RiotIdNormalizer(mapOf("부계정#KR1" to "본계정#KR1"))
+        assertEquals("본계정#KR1", n.canonical("부계정#KR1"))
+        assertEquals("본계정#KR1", n.canonical("본계정#KR1"))
     }
 
     @Test
@@ -39,10 +39,10 @@ class RiotIdNormalizerTest {
 
     @Test
     fun `같은 사람이 두 이름으로 들어오면 하나로 접힌다`() {
-        val n = RiotIdNormalizer(mapOf("달렸노#KR1" to "qkzxfh#KR1"))
+        val n = RiotIdNormalizer(mapOf("부계정#KR1" to "본계정#KR1"))
         assertEquals(
-            listOf("qkzxfh#KR1", "다른사람#KR1"),
-            n.canonicalDistinct(listOf("달렸노#KR1", "qkzxfh#KR1", "다른사람#KR1")),
+            listOf("본계정#KR1", "다른사람#KR1"),
+            n.canonicalDistinct(listOf("부계정#KR1", "본계정#KR1", "다른사람#KR1")),
         )
     }
 }
