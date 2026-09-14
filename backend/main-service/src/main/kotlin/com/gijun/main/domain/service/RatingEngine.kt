@@ -45,20 +45,18 @@ object RatingEngine {
         match.participants.size == FULL_ROSTER && match.gameDuration > MIN_DURATION_SEC
 
     /**
-     * @param current 정규화된 riotId -> 현재 레이팅. 없는 사람은 기본값에서 시작한다.
-     * @param normalize riotId 정규화 함수. [RiotIdNormalizer.canonical] 을 넘긴다.
+     * @param current riotId -> 현재 레이팅. 없는 사람은 기본값에서 시작한다.
      * @return 승패를 판정할 수 없거나 한쪽 팀이 비었으면 null
      */
     fun rate(
         match: Match,
         scored: LaneScores.Scored,
         current: Map<String, PlayerRating>,
-        normalize: (String) -> String,
         now: LocalDateTime = LocalDateTime.now(),
     ): Outcome? {
         val players = match.participants
             .filter { it.riotId.isNotBlank() }
-            .distinctBy { normalize(it.riotId) }
+            .distinctBy { it.riotId }
 
         val blue = players.filter { it.teamId == TEAM_BLUE }
         val red = players.filter { it.teamId == TEAM_RED }
@@ -70,11 +68,10 @@ object RatingEngine {
         if (blueWon == redWon) return null
 
         fun ratingOf(riotId: String): PlayerRating {
-            val id = normalize(riotId)
-            return current[id] ?: PlayerRating(riotId = id)
+            return current[riotId] ?: PlayerRating(riotId = riotId)
         }
 
-        val before = players.associate { normalize(it.riotId) to ratingOf(it.riotId) }
+        val before = players.associate { it.riotId to ratingOf(it.riotId) }
         val after = before.toMutableMap()
 
         // ── 라인 Elo — 경기당 5회 ──
@@ -83,8 +80,8 @@ object RatingEngine {
         var duelCount = 0
 
         for ((pa, pb) in LaneScores.duels(match)) {
-            val a = normalize(pa.riotId)
-            val b = normalize(pb.riotId)
+            val a = pa.riotId
+            val b = pb.riotId
             if (a == b) continue
 
             val sa = scored.scores[pa.riotId] ?: continue
@@ -122,8 +119,8 @@ object RatingEngine {
         }
 
         // ── 팀 Elo — 경기당 1회, 팀 전원 같은 (S - E) ──
-        val blueIds = blue.map { normalize(it.riotId) }
-        val redIds = red.map { normalize(it.riotId) }
+        val blueIds = blue.map { it.riotId }
+        val redIds = red.map { it.riotId }
         val blueAvg = blueIds.mapNotNull { before[it]?.teamElo }.average()
         val redAvg = redIds.mapNotNull { before[it]?.teamElo }.average()
         val expectedBlue = RatingMath.expected(blueAvg, redAvg)
@@ -148,7 +145,7 @@ object RatingEngine {
         applyTeam(redIds, !blueWon, 1.0 - expectedBlue)
 
         val histories = players.map { p ->
-            val id = normalize(p.riotId)
+            val id = p.riotId
             val b = before.getValue(id)
             val a = after.getValue(id)
             RatingHistory(

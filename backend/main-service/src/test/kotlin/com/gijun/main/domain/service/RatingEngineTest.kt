@@ -54,7 +54,6 @@ class RatingEngineTest {
         scores = m.participants.associate { it.riotId to if (it.teamId == 100) 2.0 else 1.0 },
     )
 
-    private fun identity(riotId: String) = riotId
 
     // ────────── 재생 대상 필터 ──────────
 
@@ -72,7 +71,7 @@ class RatingEngineTest {
         val aram = match(queueId = LaneScores.ARAM_QUEUE_ID)
         assertTrue(RatingEngine.isRatable(aram))
 
-        val outcome = RatingEngine.rate(aram, blueWinsEveryLane(aram), emptyMap(), ::identity)!!
+        val outcome = RatingEngine.rate(aram, blueWinsEveryLane(aram), emptyMap())!!
         assertEquals(0, outcome.duelCount)
         assertTrue(outcome.ratings.all { it.laneDuels == 0 })
         assertTrue(outcome.ratings.all { it.teamGames == 1 })
@@ -83,7 +82,7 @@ class RatingEngineTest {
     @Test
     fun `라인 맞대결은 경기당 다섯 번 일어난다`() {
         val m = match()
-        val outcome = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap(), ::identity)!!
+        val outcome = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap())!!
 
         assertEquals(5, outcome.duelCount)
         assertTrue(outcome.ratings.all { it.laneDuels == 1 })
@@ -92,7 +91,7 @@ class RatingEngineTest {
     @Test
     fun `쌍 안에서 주고받은 점수의 합은 0이다`() {
         val m = match()
-        val outcome = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap(), ::identity)!!
+        val outcome = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap())!!
 
         val total = outcome.ratings.sumOf { it.laneElo - RatingMath.START }
         assertTrue(abs(total) < 1e-9, "라인 Elo 총합이 0이 아니다: $total")
@@ -101,14 +100,14 @@ class RatingEngineTest {
     @Test
     fun `배치 구간에서는 K가 크다`() {
         val m = match()
-        val fresh = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap(), ::identity)!!
+        val fresh = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap())!!
         val freshDelta = fresh.ratings.first { it.riotId == "blue0#KR1" }.laneElo - RatingMath.START
 
         // 양쪽 다 배치를 벗어난 상태로 같은 경기를 돌린다.
         val seasoned = m.participants.associate {
             it.riotId to PlayerRating(riotId = it.riotId, laneDuels = 50, teamGames = 50)
         }
-        val settled = RatingEngine.rate(m, blueWinsEveryLane(m), seasoned, ::identity)!!
+        val settled = RatingEngine.rate(m, blueWinsEveryLane(m), seasoned)!!
         val settledDelta = settled.ratings.first { it.riotId == "blue0#KR1" }.laneElo - RatingMath.START
 
         assertEquals(RatingMath.K_PLACEMENT * 0.5, freshDelta, 1e-9)
@@ -120,7 +119,7 @@ class RatingEngineTest {
         // 한쪽만 배치를 벗어났으면 아직 배치 K 를 쓴다. 그래야 쌍 안에서 합이 0으로 남는다.
         val m = match()
         val mixed = mapOf("blue0#KR1" to PlayerRating(riotId = "blue0#KR1", laneDuels = 99))
-        val outcome = RatingEngine.rate(m, blueWinsEveryLane(m), mixed, ::identity)!!
+        val outcome = RatingEngine.rate(m, blueWinsEveryLane(m), mixed)!!
 
         val a = outcome.ratings.first { it.riotId == "blue0#KR1" }.laneElo - RatingMath.START
         val b = outcome.ratings.first { it.riotId == "red0#KR1" }.laneElo - RatingMath.START
@@ -133,7 +132,7 @@ class RatingEngineTest {
         // 무승부를 반반으로 나누면 "정보 없음"을 "호각"으로 바꿔 쓰는 셈이라 표본만 늘고 신호는 없다.
         val m = match()
         val tied = LaneScores.Scored(LaneMethod.LEGACY_FINAL, m.participants.associate { it.riotId to 1.0 })
-        val outcome = RatingEngine.rate(m, tied, emptyMap(), ::identity)!!
+        val outcome = RatingEngine.rate(m, tied, emptyMap())!!
 
         assertEquals(0, outcome.duelCount)
         assertTrue(outcome.ratings.all { it.laneDuels == 0 && it.laneElo == RatingMath.START })
@@ -145,7 +144,7 @@ class RatingEngineTest {
     fun `라인에서 이기고 팀이 지는 경우가 성립한다`() {
         // 두 레이팅이 독립이라는 것의 실제 모습이다.
         val m = match(blueWins = false)
-        val outcome = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap(), ::identity)!!
+        val outcome = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap())!!
 
         val blue = outcome.ratings.first { it.riotId == "blue0#KR1" }
         assertTrue(blue.laneElo > RatingMath.START, "라인은 이겼는데 laneElo 가 오르지 않았다")
@@ -157,7 +156,7 @@ class RatingEngineTest {
     @Test
     fun `팀 레이팅은 경기당 한 번, 팀 전원이 같은 방향으로 움직인다`() {
         val m = match()
-        val outcome = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap(), ::identity)!!
+        val outcome = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap())!!
 
         val blues = outcome.ratings.filter { it.riotId.startsWith("blue") }
         assertEquals(1, blues.map { it.teamElo }.distinct().size)
@@ -175,8 +174,8 @@ class RatingEngineTest {
                 laneElo = if (it.teamId == 100) 2_500.0 else 500.0,
             )
         }
-        val skewedOutcome = RatingEngine.rate(m, blueWinsEveryLane(m), skewed, ::identity)!!
-        val flatOutcome = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap(), ::identity)!!
+        val skewedOutcome = RatingEngine.rate(m, blueWinsEveryLane(m), skewed)!!
+        val flatOutcome = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap())!!
 
         assertEquals(
             flatOutcome.ratings.first { it.riotId == "blue0#KR1" }.teamElo,
@@ -185,30 +184,12 @@ class RatingEngineTest {
         )
     }
 
-    // ────────── 계정 병합 ──────────
-
-    @Test
-    fun `별명은 정규 이름으로 합쳐져 한 줄로 쌓인다`() {
-        val normalizer = RiotIdNormalizer(mapOf("부계정#KR1" to "본계정#KR1"))
-        val roster = (
-            positions.mapIndexed { i, pos ->
-                player(if (i == 0) "부계정#KR1" else "blue$i#KR1", i + 1, 100, pos, true)
-            } + positions.mapIndexed { i, pos -> player("red$i#KR1", i + 6, 200, pos, false) }
-            )
-        val m = match(participants = roster)
-        val outcome = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap(), normalizer::canonical)!!
-
-        assertNull(outcome.ratings.firstOrNull { it.riotId == "부계정#KR1" })
-        assertNotNull(outcome.ratings.firstOrNull { it.riotId == "본계정#KR1" })
-        assertEquals("본계정#KR1", outcome.histories.first { it.laneOpponent == "red0#KR1" }.riotId)
-    }
-
     // ────────── 히스토리 ──────────
 
     @Test
     fun `맞대결이 없었던 경기는 NONE 으로 남는다`() {
         val aram = match(queueId = LaneScores.ARAM_QUEUE_ID)
-        val outcome = RatingEngine.rate(aram, blueWinsEveryLane(aram), emptyMap(), ::identity)!!
+        val outcome = RatingEngine.rate(aram, blueWinsEveryLane(aram), emptyMap())!!
 
         assertTrue(outcome.histories.all { it.laneResult == LaneResult.NONE })
         assertTrue(outcome.histories.all { it.laneOpponent == null })
@@ -220,6 +201,6 @@ class RatingEngineTest {
     @Test
     fun `승패를 판정할 수 없으면 아무것도 반영하지 않는다`() {
         val broken = match().participants.map { it.copy(win = false) }
-        assertNull(RatingEngine.rate(match(participants = broken), blueWinsEveryLane(match()), emptyMap(), ::identity))
+        assertNull(RatingEngine.rate(match(participants = broken), blueWinsEveryLane(match()), emptyMap()))
     }
 }

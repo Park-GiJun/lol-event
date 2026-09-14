@@ -7,9 +7,6 @@ import java.time.LocalDateTime
  * 한 사람의 두 레이팅. 둘은 끝까지 섞이지 않는다 — laneElo 계산에 teamElo 가 들어가면 안 되고,
  * 그 반대도 마찬가지다. 이유는 [RatingMath] 참고.
  *
- * `riotId` 는 [com.gijun.main.domain.service.RiotIdNormalizer] 를 통과한 **정규 이름**이다.
- * 같은 사람이 부계정으로 잡히면 여기서 이미 한 줄로 합쳐져 있다.
- *
  * `laneWins` / `teamWins` 는 명세의 엔티티 정의에는 없지만 `/api/stats/elo` 가
  * `laneWinRate` 와 `winRate` 를 내려주려면 있어야 한다. 매 조회마다 경기를 다시 훑는 대신
  * 갱신할 때 같이 센다.

@@ -12,7 +12,6 @@ import com.gijun.main.domain.model.rating.PlayerRating
 import com.gijun.main.domain.service.LaneScores
 import com.gijun.main.domain.service.RatingEngine
 import com.gijun.main.domain.service.RatingMath
-import com.gijun.main.domain.service.RiotIdNormalizer
 import com.gijun.main.domain.service.TimelineParser
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -36,7 +35,6 @@ import kotlin.math.sqrt
 @Transactional(readOnly = true)
 class RatingValidationHandler(
     private val matchPersistencePort: MatchPersistencePort,
-    private val normalizer: RiotIdNormalizer,
 ) : ValidateRatingUseCase {
 
     private companion object {
@@ -89,7 +87,7 @@ class RatingValidationHandler(
 
                 // ── 반영 ──
                 val scored = LaneScores.of(match, TimelineParser.parse(raws[match.matchId]))
-                val outcome = RatingEngine.rate(match, scored, ratings, normalizer::canonical)
+                val outcome = RatingEngine.rate(match, scored, ratings)
                 if (outcome != null) {
                     outcome.ratings.forEach { ratings[it.riotId] = it }
                     outcome.histories.forEach { h ->
@@ -135,7 +133,7 @@ class RatingValidationHandler(
         fun avg(teamId: Int) = match.participants
             .filter { it.teamId == teamId && it.riotId.isNotBlank() }
             .map { p ->
-                val r = ratings[normalizer.canonical(p.riotId)]
+                val r = ratings[p.riotId]
                 if (r == null) RatingMath.START else select(r)
             }
             .ifEmpty { listOf(RatingMath.START) }
@@ -157,7 +155,7 @@ class RatingValidationHandler(
     private fun sameTeams(a: Match, b: Match): Boolean {
         fun side(m: Match, teamId: Int) = m.participants
             .filter { it.teamId == teamId && it.riotId.isNotBlank() }
-            .map { normalizer.canonical(it.riotId) }
+            .map { it.riotId }
             .toSet()
 
         val aBlue = side(a, RatingEngine.TEAM_BLUE)

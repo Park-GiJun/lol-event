@@ -13,7 +13,6 @@ import com.gijun.main.application.port.out.RatingHistoryPort
 import com.gijun.main.domain.model.rating.PlayerRating
 import com.gijun.main.domain.service.RankingScore
 import com.gijun.main.domain.service.RatingMath
-import com.gijun.main.domain.service.RiotIdNormalizer
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -23,16 +22,15 @@ class RatingQueryHandler(
     private val playerRatingPort: PlayerRatingPort,
     private val ratingHistoryPort: RatingHistoryPort,
     private val matchPersistencePort: MatchPersistencePort,
-    private val normalizer: RiotIdNormalizer,
 ) : GetRatingUseCase, GetEloLeaderboardUseCase, GetEloHistoryUseCase {
 
     override fun getAll(): List<PlayerRating> = playerRatingPort.findAll()
 
     override fun getByRiotId(riotId: String): PlayerRating? =
-        playerRatingPort.findByRiotId(normalizer.canonical(riotId))
+        playerRatingPort.findByRiotId(riotId)
 
     override fun getHistory(riotId: String, limit: Int): PlayerEloHistoryResult {
-        val id = normalizer.canonical(riotId)
+        val id = riotId
         val ranked = rankedOrder()
         val mine = ranked.firstOrNull { it.riotId == id }
 
@@ -107,7 +105,7 @@ class RatingQueryHandler(
     /** 가장 많이 뛴 포지션. 별명은 정규 이름으로 합쳐서 센다. */
     private fun mainPositions(): Map<String, String> =
         matchPersistencePort.findPositionCounts()
-            .groupBy({ normalizer.canonical(it.riotId) }, { it.position to it.games })
+            .groupBy({ it.riotId }, { it.position to it.games })
             .mapValues { (_, rows) ->
                 rows.groupBy({ it.first }, { it.second })
                     .mapValues { (_, counts) -> counts.sum() }

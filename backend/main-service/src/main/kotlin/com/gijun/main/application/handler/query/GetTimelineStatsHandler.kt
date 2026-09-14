@@ -15,7 +15,6 @@ import com.gijun.main.application.port.`in`.GetTimelineStatsUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.application.port.out.StatsCachePort
 import com.gijun.main.domain.model.match.Position
-import com.gijun.main.domain.service.RiotIdNormalizer
 import com.gijun.main.domain.service.TimelineMetrics
 import com.gijun.main.domain.service.TimelineParser
 import org.springframework.stereotype.Service
@@ -27,15 +26,12 @@ import kotlin.math.roundToInt
  *
  * 타임라인은 새 수집기로 받은 경기에만 있다. 여기 나오는 모든 수치의 모집단은
  * "전체 경기"가 아니라 "타임라인이 있는 경기"다 — 결과에 경기 수를 빠짐없이 싣는 이유다.
- *
- * riotId 는 [RiotIdNormalizer] 로 합쳐서 센다. 개인 화면은 레이팅과 같은 이름 체계를 쓰기 때문이다.
  */
 @Service
 @Transactional(readOnly = true)
 class GetTimelineStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val cache: StatsCachePort,
-    private val normalizer: RiotIdNormalizer,
 ) : GetTimelineStatsUseCase, GetPlayerTimelineUseCase {
 
     override fun getTimelineStats(mode: String): TimelineStatsResult = cache.getOrCompute("timeline-stats:$mode") {
@@ -77,7 +73,7 @@ class GetTimelineStatsHandler(
     }
 
     override fun getPlayerTimeline(riotId: String): PlayerTimelineResult {
-        val id = normalizer.canonical(riotId)
+        val id = riotId
         // 개인 화면은 모드 구분이 없다 (칼바람은 라인이 없어 어차피 격차가 안 나온다).
         val mine = lines(metrics(MODE)).filter { it.riotId == id }
 
@@ -142,7 +138,7 @@ class GetTimelineStatsHandler(
 
     private fun lines(metrics: List<TimelineMetrics.MatchMetrics>): List<Line> =
         metrics.flatMap { m ->
-            m.players.map { Line(normalizer.canonical(it.riotId), m.matchId, m.gameCreation, it) }
+            m.players.map { Line(it.riotId, m.matchId, m.gameCreation, it) }
         }
 
     /** 15분 골드 격차 순. 격차를 못 잰 사람(라인 상대가 없던 사람)은 뒤로. */

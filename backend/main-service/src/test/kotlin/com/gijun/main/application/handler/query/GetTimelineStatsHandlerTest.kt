@@ -8,7 +8,6 @@ import com.gijun.main.domain.model.match.LaneMethod
 import com.gijun.main.domain.model.match.Match
 import com.gijun.main.domain.model.match.MatchParticipant
 import com.gijun.main.domain.model.match.Position
-import com.gijun.main.domain.service.RiotIdNormalizer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -48,7 +47,7 @@ class GetTimelineStatsHandlerTest {
         return """{"frames":[$frames]}"""
     }
 
-    private fun handler(aliases: Map<String, String> = emptyMap()): GetTimelineStatsHandler {
+    private fun handler(): GetTimelineStatsHandler {
         val match = Match(
             matchId = "KR_1", queueId = 3130, gameCreation = 1, gameDuration = 1_000,
             participants = roster().toMutableList(),
@@ -74,7 +73,7 @@ class GetTimelineStatsHandlerTest {
             override fun evictAll() {}
             override fun evictByPrefix(prefix: String) {}
         }
-        return GetTimelineStatsHandler(port, cache, RiotIdNormalizer(aliases))
+        return GetTimelineStatsHandler(port, cache)
     }
 
     @Test
@@ -112,10 +111,10 @@ class GetTimelineStatsHandlerTest {
     }
 
     @Test
-    fun `개인 결과는 별명을 합친 이름으로 찾고 포지션 챔피언별로 쪼갠다`() {
-        val result = handler(aliases = mapOf("p1#KR1" to "본캐#KR1")).getPlayerTimeline("p1#KR1")
+    fun `개인 결과는 riotId 로 찾고 포지션 챔피언별로 쪼갠다`() {
+        val result = handler().getPlayerTimeline("p1#KR1")
 
-        assertEquals("본캐#KR1", result.riotId)
+        assertEquals("p1#KR1", result.riotId)
         assertEquals(1, result.summary?.games)
         assertEquals(1, result.goldDiffRank)
         assertEquals(listOf("TOP"), result.byPosition.map { it.position })

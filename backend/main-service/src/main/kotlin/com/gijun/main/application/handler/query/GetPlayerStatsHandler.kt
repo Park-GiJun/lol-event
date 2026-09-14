@@ -8,7 +8,6 @@ import com.gijun.main.application.port.`in`.GetPlayerStatsUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.application.port.out.PlayerRatingPort
 import com.gijun.main.domain.service.RatingMath
-import com.gijun.main.domain.service.RiotIdNormalizer
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import com.gijun.main.application.port.out.StatsCachePort
@@ -18,7 +17,6 @@ import com.gijun.main.application.port.out.StatsCachePort
 class GetPlayerStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val playerRatingPort: PlayerRatingPort,
-    private val normalizer: RiotIdNormalizer,
     private val cache: StatsCachePort,
 ) : GetPlayerStatsUseCase {
 
@@ -26,10 +24,9 @@ class GetPlayerStatsHandler(
         // 화면이 "Elo" 라고 부르는 값은 이제 실력 레이팅(laneElo)이다. 순위도 그 표시값 기준이다.
         // 이 DTO 의 elo 는 **표시값**이다 — 리더보드와 같은 숫자가 보여야 하므로 수축을 먹여 내려준다.
         // 원값이 필요하면 /api/admin/elo 를 쓴다.
-        val canonicalId = normalizer.canonical(riotId)
         val allRatings = playerRatingPort.findAll().sortedByDescending { it.laneEloDisplay }
-        val playerRating = allRatings.firstOrNull { it.riotId == canonicalId }
-        val eloRank = allRatings.indexOfFirst { it.riotId == canonicalId }.takeIf { it >= 0 }?.plus(1)
+        val playerRating = allRatings.firstOrNull { it.riotId == riotId }
+        val eloRank = allRatings.indexOfFirst { it.riotId == riotId }.takeIf { it >= 0 }?.plus(1)
 
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 

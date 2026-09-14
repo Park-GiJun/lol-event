@@ -12,7 +12,6 @@ import com.gijun.main.domain.model.rating.PlayerRating
 import com.gijun.main.domain.model.rating.RatingHistory
 import com.gijun.main.domain.service.LaneScores
 import com.gijun.main.domain.service.RatingEngine
-import com.gijun.main.domain.service.RiotIdNormalizer
 import com.gijun.main.domain.service.TimelineParser
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -27,7 +26,6 @@ class RatingCommandHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val playerRatingPort: PlayerRatingPort,
     private val ratingHistoryPort: RatingHistoryPort,
-    private val normalizer: RiotIdNormalizer,
 ) : CalculateRatingForMatchUseCase, ResetAndRecalculateRatingUseCase {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -70,11 +68,11 @@ class RatingCommandHandler(
             return
         }
 
-        val ids = normalizer.canonicalDistinct(match.participants.map { it.riotId }.filter { it.isNotBlank() })
+        val ids = match.participants.map { it.riotId }.filter { it.isNotBlank() }.distinct()
         val current = playerRatingPort.findAllByRiotIds(ids).associateBy { it.riotId }
 
         val scored = scoreLanes(match, matchPersistencePort.findTimelineRaw(listOf(matchId))[matchId])
-        val outcome = RatingEngine.rate(match, scored, current, normalizer::canonical)
+        val outcome = RatingEngine.rate(match, scored, current)
             ?: run { log.warn("레이팅 계산 skip — 승패를 판정할 수 없다: $matchId"); return }
 
         playerRatingPort.saveAll(outcome.ratings)
@@ -116,7 +114,7 @@ class RatingCommandHandler(
             val raws = matchPersistencePort.findTimelineRaw(chunk.map { it.matchId })
             for (match in chunk) {
                 val scored = scoreLanes(match, raws[match.matchId])
-                val outcome = RatingEngine.rate(match, scored, ratings, normalizer::canonical) ?: continue
+                val outcome = RatingEngine.rate(match, scored, ratings) ?: continue
                 outcome.ratings.forEach { ratings[it.riotId] = it }
                 histories += outcome.histories
                 methods[match.matchId] = outcome.method

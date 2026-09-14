@@ -1,7 +1,6 @@
 package com.gijun.main.application.handler.query
 
 import com.gijun.main.domain.service.RankingScore
-import com.gijun.main.domain.service.RiotIdNormalizer
 import com.gijun.main.application.dto.stats.result.DuoStat
 import com.gijun.main.application.dto.stats.result.DuoStatsResult
 import com.gijun.main.application.dto.stats.result.EloLeaderboardResult
@@ -63,8 +62,6 @@ class GetSummonerProfileHandlerTest {
             override fun getRivalMatchups(mode: String, minGames: Int) =
                 RivalMatchupResult(rivalries, rivalries.firstOrNull())
         },
-        // 별명 표는 비워 둔다. 이 테스트가 보는 건 순위 찾기지 정규화가 아니다.
-        normalizer = RiotIdNormalizer(emptyMap()),
     )
 
     private fun rival(p1: String, p2: String, games: Int, p1Wins: Int) = RivalMatchupEntry(
