@@ -7,6 +7,7 @@ import { calcMvp, fmt } from '@/lib/lol';
 import type { Match, Participant } from '@/lib/types/match';
 import { byPosition, positionLabel } from '@/lib/position';
 import { ParticipantDetail, Highlights } from './match-detail/ParticipantDetail';
+import { MatchTimelineCard } from './match-detail/MatchTimelineCard';
 import { DragonIcon, BaronIcon, TurretIcon, NexusIcon } from '@/components/icons/LolIcons';
 
 
@@ -186,6 +187,8 @@ export function MatchDetailPage() {
           </div>
         </div>
       </section>
+
+      <MatchTimelineCard matchId={match.matchId} />
 
       <TeamTable match={match} team="blue" aceId={aceId} maxDamage={maxDamage} openId={openId} onToggle={toggle} />
       <TeamTable match={match} team="red" aceId={aceId} maxDamage={maxDamage} openId={openId} onToggle={toggle} />

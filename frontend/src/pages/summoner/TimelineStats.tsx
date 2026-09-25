@@ -1,10 +1,10 @@
-import { useId } from 'react';
 import { Link } from 'react-router-dom';
 import { usePlayerTimeline } from '@/hooks/usePlayerTimeline';
 import { ChampionIcon } from '@/components/ds/Champion';
+import { DivergingArea, MapScatter, Sparkline } from '@/components/ds/Chart';
 import { Stat } from '@/components/ds/Stat';
 import { diffColor, signed } from '@/lib/timeline';
-import type { GoldDiffPoint, PlayerTimelineGame } from '@/lib/types/stats';
+import type { PlayerTimelineGame, PlayerTimelineResult } from '@/lib/types/stats';
 
 /**
  * 초반 격차 카드 — 타임라인이 있는 경기에서만 나오는 개인 지표.
@@ -70,7 +70,15 @@ export function TimelineStats({ riotId }: { riotId: string }) {
         />
       </div>
 
-      {data.goldDiffCurve.length > 1 && <GoldDiffCurve points={data.goldDiffCurve} />}
+      {data.goldDiffCurve.length > 1 && (
+        <DivergingArea
+          label="분별 평균 골드 격차"
+          unit="분"
+          points={data.goldDiffCurve.map(p => ({ at: p.minute, value: p.avgGoldDiff, note: `${p.games}경기` }))}
+        />
+      )}
+
+      <Movement data={data} />
 
       {data.games.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 16 }}>
@@ -81,88 +89,80 @@ export function TimelineStats({ riotId }: { riotId: string }) {
   );
 }
 
-/** 눈금 최댓값. 500 단위로 올려 잡아 축 숫자가 읽기 좋게 한다. */
-function niceScale(values: number[]): number {
-  const max = Math.max(0, ...values.map(Math.abs));
-  return Math.max(500, Math.ceil(max / 500) * 500);
-}
-
 /**
- * 분별 평균 골드 격차. 기준선(호각) 위는 이긴 색, 아래는 진 색으로 칠한다.
- * 뒤로 갈수록 그 시간까지 간 경기가 줄어든다 — 점마다 경기 수를 툴팁에 단다.
+ * 좌표에서 나온 지표와 데스 히트맵.
+ *
+ * 위의 15분 격차와 **표를 나눠 둔 이유**가 있다. 격차는 요청 시 계산한 값이고, 여기 있는
+ * 것은 배치가 미리 접어 둔 값이다. 게다가 프레임은 분당 1점이라 체류 비율의 신뢰도가
+ * 이벤트 좌표(데스 위치)보다 낮다 — 두 계열을 한 표에 섞으면 그 차이가 가려진다.
  */
-function GoldDiffCurve({ points }: { points: GoldDiffPoint[] }) {
-  const id = useId();
-  const W = 600;
-  const H = 150;
-  const PAD = 6;
-  const mid = H / 2;
-  const maxMinute = points[points.length - 1].minute || 1;
-  const scale = niceScale(points.map(p => p.avgGoldDiff));
+function Movement({ data }: { data: PlayerTimelineResult }) {
+  const stats = data.positionStats;
+  const heatmap = data.deathHeatmap;
 
-  const x = (minute: number) => (minute / maxMinute) * W;
-  const y = (v: number) => mid - (v / scale) * (mid - PAD);
-
-  const line = points.map(p => `${x(p.minute)},${y(p.avgGoldDiff)}`).join(' ');
-  const area = `M${x(points[0].minute)},${mid} L${line.replace(/ /g, ' L')} L${x(maxMinute)},${mid} Z`;
-  const ticks = [5, 10, 15, 20, 25, 30].filter(m => m < maxMinute);
+  // 배치가 아직 안 돌았다. 빈 화면 대신 그 사실을 알린다.
+  if (!stats) {
+    return (
+      <p className="t-empty" style={{ textAlign: 'left', marginTop: 18 }}>
+        동선 지표는 집계 대기 중입니다. 매일 새벽에 갱신됩니다.
+      </p>
+    );
+  }
 
   return (
-    <div style={{ marginTop: 18 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 4 }}>
-        <span>분별 평균 골드 격차</span>
-        <span style={{ fontVariantNumeric: 'tabular-nums' }}>±{scale.toLocaleString()}</span>
+    <div style={{ marginTop: 22 }}>
+      <div className="t-card-head" style={{ marginBottom: 10 }}>
+        <h3 className="t-card-title" style={{ fontSize: 'var(--font-size-sm)' }}>동선</h3>
+        <span className="t-card-more">{stats.games}경기 · 프레임 {stats.framesSampled.toLocaleString()}점</span>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" role="img" aria-label="분별 평균 골드 격차">
-        <defs>
-          <clipPath id={`${id}-up`}><rect x="0" y="0" width={W} height={mid} /></clipPath>
-          <clipPath id={`${id}-down`}><rect x="0" y={mid} width={W} height={mid} /></clipPath>
-        </defs>
 
-        {ticks.map(m => (
-          <line key={m} x1={x(m)} x2={x(m)} y1={0} y2={H} stroke="var(--color-border)" strokeWidth={1} vectorEffect="non-scaling-stroke" />
-        ))}
-        <line x1={0} x2={W} y1={mid} y2={mid} stroke="var(--color-border)" strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 28, alignItems: 'flex-start' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 28, flex: '1 1 260px' }}>
+          <Stat
+            label="라인 점유"
+            value={stats.laneShareRate == null ? '-' : `${stats.laneShareRate}%`}
+            sample={stats.laneShareRate == null ? '정글은 라인이 없다' : '라인전(15분) 동안'}
+          />
+          <Stat
+            label="라인 이탈"
+            value={stats.roamRate == null ? '-' : `${stats.roamRate}%`}
+            sample="귀환은 빼고 센다"
+          />
+          <Stat label="상대 진영" value={`${stats.enemyHalfRate}%`} sample="경기 전체" />
+          <Stat
+            label="상대 정글"
+            value={`${stats.counterJungleRate}%`}
+            sample="상대 진영 중 정글만"
+          />
+          <Stat
+            label="한타"
+            value={`${stats.teamfights}회`}
+            sample={`킬 ${stats.teamfightKills} · 데스 ${stats.teamfightDeaths}`}
+          />
+        </div>
 
-        <path d={area} fill="var(--color-win)" fillOpacity={0.18} clipPath={`url(#${id}-up)`} />
-        <path d={area} fill="var(--color-loss)" fillOpacity={0.18} clipPath={`url(#${id}-down)`} />
-        <polyline points={line} fill="none" stroke="var(--color-text-primary)" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
-
-        {/* 툴팁용 투명 막대. 점을 직접 찍으면 preserveAspectRatio="none" 에 눌려 타원이 된다. */}
-        {points.map(p => (
-          <rect key={p.minute} x={x(p.minute) - W / maxMinute / 2} y={0} width={W / maxMinute} height={H} fill="transparent">
-            <title>{`${p.minute}분 · ${signed(p.avgGoldDiff)} (${p.games}경기)`}</title>
-          </rect>
-        ))}
-      </svg>
-      <div style={{ position: 'relative', height: 16, fontSize: 11, color: 'var(--color-text-secondary)' }}>
-        {ticks.map(m => (
-          <span key={m} style={{ position: 'absolute', left: `${(m / maxMinute) * 100}%`, transform: 'translateX(-50%)' }}>
-            {m}분
-          </span>
-        ))}
+        <div style={{ flex: '0 0 auto' }}>
+          <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 6 }}>죽은 자리</div>
+          {heatmap && heatmap.cells.length > 0 ? (
+            <MapScatter
+              label="죽은 자리 히트맵"
+              grid={heatmap.grid}
+              cells={heatmap.cells.map(c => ({ x: c.x, y: c.y, count: c.count }))}
+              size={260}
+            />
+          ) : (
+            <p className="t-empty" style={{ textAlign: 'left' }}>집계 대기 중</p>
+          )}
+        </div>
       </div>
+
+      <p className="t-stat-sample" style={{ display: 'block', marginTop: 10 }}>
+        체류 비율은 분 단위 스냅샷이라 짧은 이동은 잡히지 않는다. 죽은 자리는 실제 좌표라 정확하다.
+      </p>
     </div>
   );
 }
 
-/** 경기 한 줄에 붙는 작은 곡선. 축은 경기마다 따로 잡는다 — 모양만 본다. */
-function Sparkline({ values }: { values: number[] }) {
-  if (values.length < 2) return null;
-  const W = 80;
-  const H = 24;
-  const scale = niceScale(values);
-  const pts = values
-    .map((v, i) => `${(i / (values.length - 1)) * W},${H / 2 - (v / scale) * (H / 2 - 1)}`)
-    .join(' ');
-  const last = values[values.length - 1];
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} aria-hidden>
-      <line x1={0} x2={W} y1={H / 2} y2={H / 2} stroke="var(--color-border)" strokeDasharray="2 2" />
-      <polyline points={pts} fill="none" stroke={diffColor(last)} strokeWidth={1.5} />
-    </svg>
-  );
-}
 
 function GameRow({ game: g }: { game: PlayerTimelineGame }) {
   return (

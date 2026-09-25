@@ -31,8 +31,8 @@ const TABS = [
     component: lazy(() => import('./stats-tabs/GameLengthTab')) },
   { key: 'timepattern', label: '시간대',   hint: '몇 시에 강한가',
     component: lazy(() => import('./stats-tabs/TimePatternTab')) },
-  { key: 'sessions',    label: '세션',     hint: '하루에 몰아서 한 날들',
-    component: lazy(() => import('./stats-tabs/SessionsTab')) },
+  // 세션 탭은 /sessions 전용 화면으로 옮겼다. 요약만 보여 주던 카드였는데,
+  // 하루를 파고들 자리(경기 목록·사람별 집계·한타)가 탭 하나에 다 들어가지 않는다.
 ];
 
 export function HallOfFamePage() {

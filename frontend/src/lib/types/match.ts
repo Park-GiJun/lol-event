@@ -209,3 +209,131 @@ export interface MatchPage {
   totalPages: number;
   hasNext: boolean;
 }
+
+// ──────────────── 경기 타임라인 ────────────────
+//
+// GET /api/matches/{matchId}/timeline
+//
+// 단위 규약
+//  - 시간은 ms. `...ByMinute` 목록은 **index = 분**이다.
+//  - 좌표는 0~14,870 (협곡 미니맵 스케일). y 는 위로 갈수록 커진다 — 그리려면 뒤집어야 한다.
+//  - 비율은 0~100.
+//
+// 응답이 100KB 급이라 경기 상세 화면에서만 부른다. 목록에는 싣지 않는다.
+
+export interface MapPointDto {
+  x: number;
+  y: number;
+}
+
+export interface MatchTimeline {
+  matchId: string;
+  /**
+   * false 면 아래 목록이 전부 비어 있다. 404 가 아닌 것은 의도된 것이다 —
+   * 타임라인은 새 수집기로 받은 경기에만 있고 그 이전 경기는 영구히 없다.
+   */
+  hasTimeline: boolean;
+  durationMs: number;
+  /** 프레임이 있는 마지막 분. 곡선의 x축 끝이다. */
+  lastMinute: number;
+  teams: TeamTimelineSeries[];
+  /** 블루 − 레드. index = 분. */
+  teamGoldDiffByMinute: number[];
+  participants: ParticipantTimelineSeries[];
+  kills: KillEntry[];
+  objectives: ObjectiveEntry[];
+  teamFights: TeamFightEntry[];
+}
+
+export interface TeamTimelineSeries {
+  teamId: number;
+  win: boolean;
+  goldByMinute: number[];
+  xpByMinute: number[];
+  csByMinute: number[];
+  /** 작을수록 뭉쳐 있다. 자기 기지 안의 프레임은 빠진다. */
+  spreadByMinute: (number | null)[];
+  avgSpread: number | null;
+}
+
+export interface ParticipantTimelineSeries {
+  /** 타임라인 프레임의 키(1~10). */
+  participantId: number;
+  riotId: string;
+  champion: string;
+  championId: number;
+  teamId: number;
+  position: string;
+  win: boolean;
+  goldByMinute: number[];
+  xpByMinute: number[];
+  csByMinute: number[];
+  levelByMinute: number[];
+  /** 손에 든 골드. 뚝 떨어지는 분이 아이템을 산 시점이다. */
+  currentGoldByMinute: number[];
+  /** 라인 상대가 없었으면 빈 목록. */
+  goldDiffByMinute: number[];
+  /** index = 분. null 은 그 프레임에 좌표가 없었다는 뜻이다. */
+  positionsByMinute: (MapPointDto | null)[];
+  laneShareRate: number | null;
+  roamRate: number | null;
+  enemyHalfRate: number;
+  counterJungleRate: number;
+  framesSampled: number;
+  goldDiff15: number | null;
+  csDiff15: number | null;
+  xpDiff15: number | null;
+  earlyKills: number;
+  earlyDeaths: number;
+  earlyAssists: number;
+  soloKills: number;
+  firstDeathMs: number | null;
+}
+
+export interface KillEntry {
+  timestampMs: number;
+  minute: number;
+  /** 0이면 사람이 아니다 — 포탑이나 미니언이 막타를 쳤다. */
+  killerParticipantId: number;
+  victimParticipantId: number;
+  assistParticipantIds: number[];
+  /** 킬을 올린 팀. 희생자의 팀을 뒤집어 구한 값이다. */
+  killingTeamId: number | null;
+  at: MapPointDto | null;
+  region: string | null;
+}
+
+/** 오브젝트와 건물을 "먹은 팀" 관점으로 통일한 항목. 백엔드가 건물 팀을 이미 뒤집어 준다. */
+export interface ObjectiveEntry {
+  timestampMs: number;
+  minute: number;
+  /** DRAGON, BARON_NASHOR, RIFTHERALD, HORDE, TOWER_BUILDING, INHIBITOR_BUILDING … */
+  kind: string;
+  /** 드래곤 원소(FIRE_DRAGON 등). 해당 없으면 빈 값. */
+  subType: string;
+  /** 포탑의 라인(TOP_LANE 등). 해당 없으면 빈 값. */
+  lane: string;
+  towerType: string;
+  killingTeamId: number | null;
+  killerParticipantId: number;
+  assistParticipantIds: number[];
+  at: MapPointDto | null;
+}
+
+export interface TeamFightEntry {
+  startMs: number;
+  endMs: number;
+  startMinute: number;
+  team100Kills: number;
+  team200Kills: number;
+  /** 동수면 null — 교환으로 끝난 교전이다. */
+  winnerTeamId: number | null;
+  openedByTeamId: number | null;
+  participantIds: number[];
+  at: MapPointDto | null;
+  region: string | null;
+  /** false 면 킬 3개 미만이다. 솔로킬·2인 교전도 목록에는 들어온다. */
+  isTeamFight: boolean;
+  /** 교전 직후 넘어간 오브젝트의 종류. */
+  objectiveKinds: string[];
+}

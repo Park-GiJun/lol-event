@@ -14,6 +14,8 @@ const ChampionListPage = lazy(() => import('./pages/ChampionListPage').then(m =>
 const ChampionPage = lazy(() => import('./pages/ChampionPage').then(m => ({ default: m.ChampionPage })));
 const MatchesPage = lazy(() => import('./pages/MatchesPage').then(m => ({ default: m.MatchesPage })));
 const MatchDetailPage = lazy(() => import('./pages/MatchDetailPage').then(m => ({ default: m.MatchDetailPage })));
+const SessionsPage = lazy(() => import('./pages/SessionsPage').then(m => ({ default: m.SessionsPage })));
+const SessionDetailPage = lazy(() => import('./pages/SessionDetailPage').then(m => ({ default: m.SessionDetailPage })));
 
 // 아직 개편 전인 화면. 새 셸 안에서 그대로 동작한다.
 const MembersPage = lazy(() => import('./pages/MembersPage').then(m => ({ default: m.MembersPage })));
@@ -59,6 +61,9 @@ function App() {
 
               <Route path="matches" element={<MatchesPage />} />
               <Route path="matches/:matchId" element={<MatchDetailPage />} />
+
+              <Route path="sessions" element={<SessionsPage />} />
+              <Route path="sessions/:date" element={<SessionDetailPage />} />
 
               <Route path="rankings" element={<RankingsPage />} />
               <Route path="player-analysis" element={<PlayerAnalysisPage />} />

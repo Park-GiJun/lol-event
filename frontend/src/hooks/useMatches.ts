@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api/api';
-import type { Match, MatchPage } from '@/lib/types/match';
+import type { Match, MatchPage, MatchTimeline } from '@/lib/types/match';
 
 const PAGE_SIZE = 20;
 
@@ -26,5 +26,20 @@ export function useMatch(matchId: string) {
     queryKey: ['match', matchId],
     queryFn: () => api.get<Match>(`/matches/${encodeURIComponent(matchId)}`),
     enabled: !!matchId,
+  });
+}
+
+/**
+ * 경기 타임라인. 골드 곡선·킬 좌표·오브젝트·교전 구간이 한 번에 온다.
+ *
+ * 부가 정보라 실패해도 화면을 막지 않게 retry 를 한 번만 한다. 타임라인이 없는 경기도
+ * 404 가 아니라 `hasTimeline: false` 로 정상 응답이 오므로, 그건 에러가 아니라 빈 상태다.
+ */
+export function useMatchTimeline(matchId: string) {
+  return useQuery({
+    queryKey: ['match', matchId, 'timeline'],
+    queryFn: () => api.get<MatchTimeline>(`/matches/${encodeURIComponent(matchId)}/timeline`),
+    enabled: !!matchId,
+    retry: 1,
   });
 }

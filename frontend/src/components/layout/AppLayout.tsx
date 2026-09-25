@@ -1,4 +1,4 @@
-import { BarChartIcon, CloseIcon, ListIcon, MedalIcon, MenuIcon, RadioIcon, RefreshIcon, SearchIcon, ShieldIcon, ShuffleIcon, SwordsIcon, TargetIcon, TrendingUpIcon, TrophyIcon, UserIcon, UsersIcon, UsersThreeIcon } from '@/components/icons/LolIcons';
+import { BarChartIcon, CalendarIcon, CloseIcon, ListIcon, MedalIcon, MenuIcon, RadioIcon, RefreshIcon, SearchIcon, ShieldIcon, ShuffleIcon, SwordsIcon, TargetIcon, TrendingUpIcon, TrophyIcon, UserIcon, UsersIcon, UsersThreeIcon } from '@/components/icons/LolIcons';
 import type { IconComponent } from '@/components/icons/LolIcons';
 import { useCallback, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -21,6 +21,7 @@ const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
       { to: '/players', icon: UserIcon, label: '플레이어' },
       { to: '/champions', icon: TrophyIcon, label: '챔피언' },
       { to: '/matches', icon: ListIcon, label: '경기' },
+      { to: '/sessions', icon: CalendarIcon, label: '세션' },
     ],
   },
   {
@@ -61,6 +62,7 @@ const TITLES: [string, string][] = [
   ['/players', '플레이어'],
   ['/champions', '챔피언'],
   ['/matches', '경기'],
+  ['/sessions', '세션'],
   ['/rankings', '리더보드'],
   ['/members', '멤버 관리'],
   ['/team-builder', '팀 빌더'],

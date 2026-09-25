@@ -673,8 +673,15 @@ export interface PlayerComparisonResult {
 }
 
 // 세션 분석
+/**
+ * 세션 하나. 세션은 **오전 6시에 시작하는 하루**다 — 새벽 경기는 전날 세션에 들어간다.
+ * 자정으로 자르면 23:40 에 시작한 판과 00:20 에 끝난 판이 갈려서 그렇게 뒀다.
+ */
 export interface SessionEntry {
+  /** `yyyy-MM-dd`. 세션 상세의 식별자다. */
   date: string;
+  /** 그 세션의 경기들. 시작 시각 오름차순. */
+  matchIds: string[];
   games: number;
   totalDurationMin: number;
   sessionMvp: string | null;
@@ -688,6 +695,66 @@ export interface SessionEntry {
 export interface SessionReportResult {
   sessions: SessionEntry[];
   totalSessions: number;
+}
+
+export interface SessionMatchEntry {
+  matchId: string;
+  gameCreation: number;
+  durationSec: number;
+  winnerTeamId: number | null;
+  totalKills: number;
+  hasTimeline: boolean;
+  /** 스파크라인용. 블루 − 레드, index = 분. 타임라인이 없으면 빈 목록. */
+  teamGoldDiffByMinute: number[];
+  /** 15분 팀 골드 격차(블루 − 레드). 타임라인이 없으면 null. */
+  goldDiffAt15: number | null;
+}
+
+export interface SessionPlayerEntry {
+  riotId: string;
+  games: number;
+  wins: number;
+  kills: number;
+  deaths: number;
+  assists: number;
+  kda: number;
+  /** 타임라인이 있는 경기만. 없으면 null. */
+  avgGoldDiff15: number | null;
+  laneGames: number;
+  earlyKills: number;
+  earlyDeaths: number;
+  soloKills: number;
+}
+
+export interface SessionStreak {
+  riotId: string;
+  length: number;
+}
+
+export interface SessionDetailResult {
+  date: string;
+  games: number;
+  /** 그중 타임라인이 있는 경기 수. 아래 타임라인 수치 전부의 분모다. */
+  timelineGames: number;
+  firstGameAt: number;
+  lastGameAt: number;
+  totalDurationMin: number;
+  totalKills: number;
+  pentaKills: number;
+  team100Wins: number;
+  team200Wins: number;
+  matches: SessionMatchEntry[];
+  players: SessionPlayerEntry[];
+  teamFights: number;
+  team100FightWins: number;
+  team200FightWins: number;
+  /** 팀이 매 판 바뀌므로 **사람** 기준이다. 2연승부터 기록으로 본다. */
+  longestWinStreak: SessionStreak | null;
+  longestLossStreak: SessionStreak | null;
+  /** 15분에 가장 크게 뒤지고도 이긴 경기. */
+  biggestComeback: SessionMatchEntry | null;
+  longestGame: SessionMatchEntry | null;
+  shortestGame: SessionMatchEntry | null;
 }
 
 // 챔피언 티어리스트
@@ -1110,4 +1177,50 @@ export interface PlayerTimelineResult {
   goldDiffCurve: GoldDiffPoint[];
   /** 최신순. */
   games: PlayerTimelineGame[];
+  /** 좌표·한타 지표. 배치가 아직 안 돌았으면 null — "집계 대기 중"을 띄운다. */
+  positionStats: PlayerPositionStats | null;
+  deathHeatmap: HeatmapGrid | null;
+}
+
+// ──────────────── 좌표 지표 ────────────────
+//
+// 위의 15분 격차와 **신뢰도가 다르다.** 프레임은 분당 1점이라 체류 비율은 실제 시간의
+// 비율이 아니라 분 경계에 어디 있었는지의 비율이다 — 30초짜리 갱킹은 사라지거나 1분으로
+// 과대 집계된다. 반면 킬·데스 좌표는 실제 이벤트 좌표라 정확하다.
+// 두 계열을 같은 표에 섞어 놓지 마라.
+
+export interface PlayerPositionStats {
+  /** 이 지표들의 모집단. 타임라인이 있는 경기 수다. */
+  games: number;
+  /** 좌표가 있는 프레임 수(0분 제외). 모든 비율의 분모다. */
+  framesSampled: number;
+  /** 라인전 동안 자기 라인에 있던 비율(0~100). **정글은 null** (0 이 아니다). */
+  laneShareRate: number | null;
+  /** 자기 라인도 자기 기지도 아닌 곳에 있던 비율(0~100). 귀환은 빠진다. 정글은 null. */
+  roamRate: number | null;
+  enemyHalfRate: number;
+  /** 상대 진영 중 정글에 있던 비율(0~100). 카운터 정글의 대리 지표. */
+  counterJungleRate: number;
+  /** 킬 3개 이상인 교전에 낀 횟수. */
+  teamfights: number;
+  teamfightKills: number;
+  teamfightDeaths: number;
+  aggregatedAt: number;
+}
+
+/** 히트맵. 좌표를 격자로 접어 담는다. */
+export interface HeatmapGrid {
+  /** 한 변의 칸 수. 좌표를 비율로 바꿀 때 쓴다. */
+  grid: number;
+  cells: HeatmapCellEntry[];
+  /** null 이면 배치가 아직 안 돌았다. cells 가 빈 것과 구분해야 "집계 대기 중"을 띄운다. */
+  aggregatedAt: number | null;
+}
+
+export interface HeatmapCellEntry {
+  /** EARLY(0~15분) / MID(15~25) / LATE(25+). */
+  phase: string;
+  x: number;
+  y: number;
+  count: number;
 }
