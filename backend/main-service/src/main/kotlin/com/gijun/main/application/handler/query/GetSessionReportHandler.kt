@@ -4,6 +4,7 @@ import com.gijun.main.application.dto.stats.result.SessionEntry
 import com.gijun.main.application.dto.stats.result.SessionReportResult
 import com.gijun.main.application.port.`in`.GetSessionReportUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
+import com.gijun.main.domain.service.SessionClock
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import com.gijun.main.application.port.out.StatsCachePort
@@ -15,17 +16,17 @@ class GetSessionReportHandler(
     private val cache: StatsCachePort,
 ) : GetSessionReportUseCase {
 
-    override fun getSessionReport(mode: String): SessionReportResult = cache.getOrCompute("session-report:$mode") {
+    /**
+     * 캐시 키에 `v2` 가 붙은 이유: 세션 경계가 자정에서 오전 6시로 바뀌었다
+     * ([SessionClock.DAY_START_HOUR]). 키를 그대로 두면 배포 직후 5분간 옛 경계로 묶인
+     * 응답이 그대로 나간다.
+     */
+    override fun getSessionReport(mode: String): SessionReportResult = cache.getOrCompute("session-report:v2:$mode") {
         val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
         fun r2(v: Double) = (v * 100).toInt() / 100.0
 
-        val kstZone = java.time.ZoneId.of("Asia/Seoul")
-
-        val byDate = matches.groupBy { match ->
-            java.time.Instant.ofEpochMilli(match.gameCreation)
-                .atZone(kstZone).toLocalDate()
-        }
+        val byDate = matches.groupBy { SessionClock.sessionDate(it.gameCreation) }
 
         val sessions = byDate.entries
             .sortedByDescending { it.key }
@@ -70,6 +71,7 @@ class GetSessionReportHandler(
 
                 SessionEntry(
                     date = date.toString(),
+                    matchIds = dayMatches.sortedBy { it.gameCreation }.map { it.matchId },
                     games = dayMatches.size,
                     totalDurationMin = totalDurationSec / 60,
                     sessionMvp = mvpEntry?.riotId,

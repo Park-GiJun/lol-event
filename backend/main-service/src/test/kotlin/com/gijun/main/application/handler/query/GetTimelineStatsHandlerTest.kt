@@ -62,6 +62,8 @@ class GetTimelineStatsHandlerTest {
             override fun deleteByMatchId(matchId: String) {}
             override fun countByQueueIds(queueIds: List<Int>) = 1L
             override fun findAllOrderedByGameCreation() = listOf(match)
+            override fun findInPeriodWithParticipants(queueIds: List<Int>, fromMs: Long, untilMs: Long) =
+                listOf(match).filter { it.gameCreation in fromMs until untilMs }
             override fun updateAssignedPositions(updates: Map<Long, String>) {}
             override fun saveTimelineRaw(matchId: String, raw: String) {}
             override fun findTimelineRaw(matchIds: Collection<String>) = mapOf("KR_1" to raw())

@@ -16,6 +16,7 @@ import com.gijun.main.application.dto.stats.result.ObjectiveCorrelationResult
 import com.gijun.main.application.dto.stats.result.PositionBadgeResult
 import com.gijun.main.application.dto.stats.result.PositionChampionPoolResult
 import com.gijun.main.application.dto.stats.result.RivalMatchupResult
+import com.gijun.main.application.dto.stats.result.SessionDetailResult
 import com.gijun.main.application.dto.stats.result.SessionReportResult
 import com.gijun.main.application.dto.stats.result.SupportImpactResult
 import com.gijun.main.application.dto.stats.result.SurrenderAnalysisResult
@@ -70,6 +71,17 @@ interface GetPositionBadgeUseCase {
 
 interface GetSessionReportUseCase {
     fun getSessionReport(mode: String): SessionReportResult
+}
+
+interface GetSessionDetailUseCase {
+    /**
+     * 하루치 내전 상세. [date] 는 `yyyy-MM-dd`.
+     *
+     * 그 세션에 경기가 없으면 null 이다 — 세션 목록에서 넘어오는 화면이라 없는 날짜는 실제
+     * 오류이고, 404 가 행동으로 이어진다. (경기 타임라인과 다른 판단이다. 거기는 타임라인이
+     * 없는 경기가 정상이라 빈 결과를 준다.)
+     */
+    fun getSessionDetail(date: String, mode: String): SessionDetailResult?
 }
 
 interface GetGameLengthTendencyUseCase {

@@ -32,6 +32,22 @@ interface MatchJpaRepository : JpaRepository<MatchEntity, Long> {
     @Query("SELECT DISTINCT m FROM MatchEntity m LEFT JOIN FETCH m.participants ORDER BY m.gameCreation ASC")
     fun findAllWithParticipantsOrderedByGameCreation(): List<MatchEntity>
 
+    /**
+     * 기간 안에 시작한 경기. 세션 상세처럼 하루만 보는 화면 전용이다.
+     *
+     * 끝을 **열린 구간**으로 둔다 — 닫으면 다음 세션의 첫 경기가 양쪽에 들어간다.
+     */
+    @Query(
+        "SELECT DISTINCT m FROM MatchEntity m LEFT JOIN FETCH m.participants " +
+            "WHERE m.queueId IN :queueIds AND m.gameCreation >= :fromMs AND m.gameCreation < :untilMs " +
+            "ORDER BY m.gameCreation ASC"
+    )
+    fun findAllWithParticipantsInPeriod(
+        @Param("queueIds") queueIds: List<Int>,
+        @Param("fromMs") fromMs: Long,
+        @Param("untilMs") untilMs: Long,
+    ): List<MatchEntity>
+
     @Query("SELECT MIN(m.gameCreation) FROM MatchEntity m WHERE m.queueId IN :queueIds")
     fun findFirstGameCreation(queueIds: List<Int>): Long?
 

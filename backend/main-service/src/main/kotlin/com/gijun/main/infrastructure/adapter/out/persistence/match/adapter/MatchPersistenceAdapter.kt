@@ -61,6 +61,9 @@ class MatchPersistenceAdapter(
     override fun findAllOrderedByGameCreation(): List<Match> =
         repo.findAllWithParticipantsOrderedByGameCreation().map { it.toDomain() }
 
+    override fun findInPeriodWithParticipants(queueIds: List<Int>, fromMs: Long, untilMs: Long): List<Match> =
+        repo.findAllWithParticipantsInPeriod(queueIds, fromMs, untilMs).map { it.toDomain() }
+
     @Transactional
     override fun updateAssignedPositions(updates: Map<Long, String>) {
         // 포지션별로 묶어 UPDATE 를 5방 이내로 줄인다. IN 목록이 너무 길면 파라미터 한도에

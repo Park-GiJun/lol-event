@@ -1,5 +1,6 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
+import com.gijun.common.exception.DomainNotFoundException
 import com.gijun.common.response.CommonApiResponse
 import com.gijun.main.application.dto.stats.result.BanAnalysisResult
 import com.gijun.main.application.dto.stats.result.ComebackIndexResult
@@ -7,6 +8,7 @@ import com.gijun.main.application.dto.stats.result.EarlyGameDominanceResult
 import com.gijun.main.application.dto.stats.result.GameLengthTendencyResult
 import com.gijun.main.application.dto.stats.result.ObjectiveCorrelationResult
 import com.gijun.main.application.dto.stats.result.OverviewStats
+import com.gijun.main.application.dto.stats.result.SessionDetailResult
 import com.gijun.main.application.dto.stats.result.SessionReportResult
 import com.gijun.main.application.dto.stats.result.TimePatternResult
 import com.gijun.main.application.dto.stats.result.TimelineChampionsResult
@@ -19,6 +21,7 @@ import com.gijun.main.application.port.`in`.GetEarlyGameDominanceUseCase
 import com.gijun.main.application.port.`in`.GetGameLengthTendencyUseCase
 import com.gijun.main.application.port.`in`.GetObjectiveCorrelationUseCase
 import com.gijun.main.application.port.`in`.GetOverviewStatsUseCase
+import com.gijun.main.application.port.`in`.GetSessionDetailUseCase
 import com.gijun.main.application.port.`in`.GetSessionReportUseCase
 import com.gijun.main.application.port.`in`.GetTimePatternUseCase
 import com.gijun.main.application.port.`in`.GetTimelineStatsUseCase
@@ -35,6 +38,7 @@ class AnalyticsStatsWebAdapter(
     private val getOverviewStatsUseCase: GetOverviewStatsUseCase,
     private val getWeeklyAwardsUseCase: GetWeeklyAwardsUseCase,
     private val getSessionReportUseCase: GetSessionReportUseCase,
+    private val getSessionDetailUseCase: GetSessionDetailUseCase,
     private val getTimePatternUseCase: GetTimePatternUseCase,
     private val getGameLengthTendencyUseCase: GetGameLengthTendencyUseCase,
     private val getEarlyGameDominanceUseCase: GetEarlyGameDominanceUseCase,
@@ -61,6 +65,23 @@ class AnalyticsStatsWebAdapter(
         @RequestParam(defaultValue = "normal") mode: String,
     ): CommonApiResponse<SessionReportResult> =
         CommonApiResponse.success(getSessionReportUseCase.getSessionReport(mode))
+
+    @Operation(
+        summary = "세션 상세 조회",
+        description = "하루치 내전을 경기 목록·사람별 집계·한타 수까지 반환합니다. " +
+            "세션은 오전 6시에 시작하는 하루입니다 — 새벽 경기는 전날 세션에 들어갑니다. " +
+            "그 날짜에 경기가 없으면 404, 날짜 형식이 틀리면 400 입니다.",
+    )
+    @GetMapping("/sessions/{date}")
+    fun getSessionDetail(
+        @Parameter(description = "세션 날짜 (yyyy-MM-dd)", example = "2026-09-14")
+        @PathVariable date: String,
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<SessionDetailResult> =
+        CommonApiResponse.success(
+            getSessionDetailUseCase.getSessionDetail(date, mode)
+                ?: throw DomainNotFoundException("그 날짜에 경기가 없습니다: $date")
+        )
 
     @GetMapping("/time-pattern")
     fun getTimePattern(

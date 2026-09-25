@@ -13,6 +13,7 @@ import com.gijun.main.domain.model.rating.PlayerRating
 import com.gijun.main.domain.service.LaneScores
 import com.gijun.main.domain.service.RatingEngine
 import com.gijun.main.domain.service.RatingMath
+import com.gijun.main.domain.service.SessionClock
 import com.gijun.main.domain.service.TimelineParser
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -40,8 +41,13 @@ class RatingValidationHandler(
 ) : ValidateRatingUseCase {
 
     private companion object {
-        /** 이 간격 이상 끊기면 새 세션. */
-        const val SESSION_GAP_MS = 6L * 60 * 60 * 1000
+        /**
+         * 이 간격 이상 끊기면 새 세션.
+         *
+         * 세션 리포트의 날짜 기준([SessionClock.sessionDate])과 **다른 질문에 답한다.**
+         * 왜 두 정의가 공존하는지는 [SessionClock] KDoc 에 적어 뒀다 — 통일하지 마라.
+         */
+        const val SESSION_GAP_MS = SessionClock.SESSION_GAP_MS
 
         /** 반분 신뢰도에서 한쪽 반이 이 수 미만이면 그 사람은 뺀다. */
         const val MIN_DUELS_PER_HALF = 5

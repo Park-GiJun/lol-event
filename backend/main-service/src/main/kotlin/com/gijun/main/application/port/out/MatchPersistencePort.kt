@@ -18,6 +18,14 @@ interface MatchPersistencePort {
     fun countByQueueIds(queueIds: List<Int>): Long
     fun findAllOrderedByGameCreation(): List<Match>
 
+    /**
+     * `[fromMs, untilMs)` 사이에 시작한 경기. 시작 시각 오름차순.
+     *
+     * 세션 상세처럼 하루만 보는 화면 전용이다. 전체를 로드해 메모리에서 거르면 날짜 하나짜리
+     * 화면이 전체 경기를 스캔한다.
+     */
+    fun findInPeriodWithParticipants(queueIds: List<Int>, fromMs: Long, untilMs: Long): List<Match>
+
     /** 참가자들의 assignedPosition 만 일괄 갱신 (포지션 백필용). key = participantId, value = Position.name */
     fun updateAssignedPositions(updates: Map<Long, String>)
 
