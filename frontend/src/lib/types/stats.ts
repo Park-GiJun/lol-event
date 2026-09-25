@@ -1138,6 +1138,30 @@ export interface TimelineLaneResult {
 export interface TimelineChampionsResult {
   games: number;
   champions: TimelineChampionEntry[];
+  /** 분별 평균 골드 격차. **champion 을 지정해 부를 때만 채워진다.** */
+  curve: GoldDiffPoint[];
+  /** 그 챔피언이 나온 경기. 최신순. 위와 같은 조건이다. */
+  matches: TimelineChampionGame[];
+}
+
+/**
+ * 챔피언이 나온 한 경기.
+ *
+ * 표본이 적을 때 평균을 억지로 내지 않고 판을 그대로 늘어놓기 위한 것이다 — 챔피언 하나는
+ * 보통 한두 판이라, 평균보다 "그 판이 어땠나"가 정직하다.
+ */
+export interface TimelineChampionGame {
+  matchId: string;
+  gameCreation: number;
+  riotId: string;
+  position: string;
+  win: boolean;
+  goldDiff15: number | null;
+  csDiff15: number | null;
+  opponentChampion: string | null;
+  opponentChampionId: number | null;
+  /** index = 분. 라인 상대가 없었으면 빈 목록. */
+  goldDiffByMinute: number[];
 }
 
 export interface GoldDiffPoint {

@@ -8,6 +8,7 @@ import com.gijun.main.application.dto.stats.result.PlayerTimelineGame
 import com.gijun.main.application.dto.stats.result.PlayerTimelineResult
 import com.gijun.main.application.dto.stats.result.TimelineAverages
 import com.gijun.main.application.dto.stats.result.TimelineChampionEntry
+import com.gijun.main.application.dto.stats.result.TimelineChampionGame
 import com.gijun.main.application.dto.stats.result.TimelineChampionsResult
 import com.gijun.main.application.dto.stats.result.TimelineLaneResult
 import com.gijun.main.application.dto.stats.result.TimelinePlayerEntry
@@ -77,7 +78,30 @@ class GetTimelineStatsHandler(
             TimelineChampionsResult(games = metrics.size, champions = champions(lines(metrics)))
         }
         if (champion.isNullOrBlank()) return all
-        return all.copy(champions = all.champions.filter { it.champion.equals(champion.trim(), ignoreCase = true) })
+
+        val name = champion.trim()
+        return cache.getOrCompute("timeline-champion-detail:$name:$mode") {
+            val mine = lines(metrics(mode)).filter { it.line.champion.equals(name, ignoreCase = true) }
+            all.copy(
+                champions = all.champions.filter { it.champion.equals(name, ignoreCase = true) },
+                curve = curve(mine),
+                // 표본이 적을 때 평균을 억지로 내지 않고 판을 그대로 보여 주기 위한 목록이다.
+                matches = mine.map { l ->
+                    TimelineChampionGame(
+                        matchId = l.matchId,
+                        gameCreation = l.gameCreation,
+                        riotId = l.riotId,
+                        position = l.line.position,
+                        win = l.line.win,
+                        goldDiff15 = l.line.goldDiff15,
+                        csDiff15 = l.line.csDiff15,
+                        opponentChampion = l.line.opponentChampion,
+                        opponentChampionId = l.line.opponentChampionId,
+                        goldDiffByMinute = l.line.goldDiffByMinute,
+                    )
+                },
+            )
+        }
     }
 
     /**
@@ -96,11 +120,6 @@ class GetTimelineStatsHandler(
         val ranked = getTimelineStats(MODE).players.filter { it.stats.avgGoldDiff15 != null }
         val rank = ranked.indexOfFirst { it.riotId == id }.takeIf { it >= 0 }?.plus(1)
 
-        val curve = (0..TimelineMetrics.CURVE_MAX_MINUTE).mapNotNull { minute ->
-            val values = mine.mapNotNull { it.line.goldDiffByMinute.getOrNull(minute) }
-            if (values.isEmpty()) null else GoldDiffPoint(minute, r1(values.average()), values.size)
-        }
-
         PlayerTimelineResult(
             riotId = id,
             summary = mine.takeIf { it.isNotEmpty() }?.let(::averages),
@@ -108,7 +127,7 @@ class GetTimelineStatsHandler(
             rankedPlayers = ranked.size,
             byPosition = byPosition(mine, order = null),
             byChampion = champions(mine),
-            goldDiffCurve = curve,
+            goldDiffCurve = curve(mine),
             positionStats = snapshot?.let { c ->
                 PlayerPositionStats(
                     games = c.games,
@@ -210,6 +229,18 @@ class GetTimelineStatsHandler(
                 )
             }
             .sortedByDescending { it.stats.games }
+
+    /**
+     * 분별 평균 골드 격차.
+     *
+     * 뒤로 갈수록 그 시간까지 간 경기가 줄어든다 — 점마다 표본 수를 같이 실어서 화면이
+     * "30분 곡선이 1경기짜리"라는 걸 숨기지 않게 한다.
+     */
+    private fun curve(lines: List<Line>): List<GoldDiffPoint> =
+        (0..TimelineMetrics.CURVE_MAX_MINUTE).mapNotNull { minute ->
+            val values = lines.mapNotNull { it.line.goldDiffByMinute.getOrNull(minute) }
+            if (values.isEmpty()) null else GoldDiffPoint(minute, r1(values.average()), values.size)
+        }
 
     private fun mainPosition(lines: List<Line>): String? =
         lines.map { it.line.position }.filter { it.isNotBlank() }

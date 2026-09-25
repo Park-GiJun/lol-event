@@ -84,6 +84,33 @@ data class TimelineChampionsResult(
     val games: Int,
     /** 경기 수 내림차순. */
     val champions: List<TimelineChampionEntry>,
+    /**
+     * 분별 평균 골드 격차. **`champion` 을 지정해 부를 때만 채운다** — 챔피언마다 곡선을
+     * 계산해 전부 실으면 목록 응답이 쓸데없이 커진다.
+     */
+    val curve: List<GoldDiffPoint> = emptyList(),
+    /** 그 챔피언이 나온 경기. 최신순. 위와 같은 이유로 `champion` 지정 시에만 채운다. */
+    val matches: List<TimelineChampionGame> = emptyList(),
+)
+
+/**
+ * 챔피언이 나온 한 경기.
+ *
+ * 표본이 적을 때 평균을 억지로 내지 않고 판을 그대로 늘어놓기 위한 것이다 — 17판 표본에서
+ * 챔피언 하나는 보통 한두 판이라, 평균보다 "그 판이 어땠나"가 정직하다.
+ */
+data class TimelineChampionGame(
+    val matchId: String,
+    val gameCreation: Long,
+    val riotId: String,
+    val position: String,
+    val win: Boolean,
+    val goldDiff15: Int?,
+    val csDiff15: Int?,
+    val opponentChampion: String?,
+    val opponentChampionId: Int?,
+    /** index = 분. 라인 상대가 없었으면 빈 목록. */
+    val goldDiffByMinute: List<Int>,
 )
 
 data class PlayerTimelineResult(

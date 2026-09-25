@@ -1,7 +1,12 @@
+import { Link } from 'react-router-dom';
 import { useTimelineChampions } from '@/hooks/usePlayerTimeline';
+import { ChampionIcon } from '@/components/ds/Champion';
+import { DivergingArea, Sparkline } from '@/components/ds/Chart';
 import { Stat } from '@/components/ds/Stat';
 import { Diff15 } from '@/components/ds/Timeline15';
 import { positionLabel } from '@/lib/position';
+import { diffColor, signed } from '@/lib/timeline';
+import type { TimelineChampionGame } from '@/lib/types/stats';
 
 /**
  * 챔피언 15분 지표.
@@ -79,6 +84,70 @@ export function ChampionTimeline({ champion }: { champion: string }) {
           </table>
         </div>
       )}
+
+      {data && data.curve.length > 1 && (
+        <DivergingArea
+          label="분별 평균 골드 격차"
+          unit="분"
+          points={data.curve.map(p => ({ at: p.minute, value: p.avgGoldDiff, note: `${p.games}경기` }))}
+        />
+      )}
+
+      {data && data.matches.length > 0 && <Matches matches={data.matches} />}
     </section>
+  );
+}
+
+/**
+ * 이 챔피언이 나온 판들.
+ *
+ * 표본이 적을 때 평균을 억지로 내지 않는다 — 챔피언 하나는 보통 한두 판이라, 평균 한 줄보다
+ * 판을 늘어놓는 쪽이 정직하다. 표본이 차면 위의 평균 카드가 의미를 갖는다.
+ */
+function Matches({ matches }: { matches: TimelineChampionGame[] }) {
+  return (
+    <div style={{ marginTop: 18 }}>
+      <div style={{ fontSize: 12, color: 'var(--color-text-secondary)', marginBottom: 8 }}>
+        나온 판 {matches.length}개
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {matches.map(m => (
+          <Link
+            key={`${m.matchId}-${m.riotId}`}
+            to={`/matches/${encodeURIComponent(m.matchId)}`}
+            className={`t-result ${m.win ? 't-result-win' : 't-result-loss'}`}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+              padding: '8px 12px', borderRadius: 10, background: 'var(--gray-50)',
+              textDecoration: 'none', color: 'inherit',
+            }}
+          >
+            <span style={{ width: 20, fontWeight: 700, color: m.win ? 'var(--color-win)' : 'var(--color-loss)' }}>
+              {m.win ? '승' : '패'}
+            </span>
+            <span style={{ minWidth: 110 }}>{m.riotId.split('#')[0]}</span>
+            <span className="t-stat-sample" style={{ minWidth: 44 }}>{positionLabel(m.position)}</span>
+
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 120 }}>
+              {m.opponentChampionId != null ? (
+                <>
+                  <span className="t-stat-sample">vs</span>
+                  <ChampionIcon championId={m.opponentChampionId} champion={m.opponentChampion ?? undefined} size="sm" />
+                </>
+              ) : (
+                <span className="t-stat-sample">라인 상대 없음</span>
+              )}
+            </span>
+
+            <span style={{ fontVariantNumeric: 'tabular-nums', minWidth: 90 }} title="15분 골드 격차">
+              골드 <b style={{ color: diffColor(m.goldDiff15, 100) }}>{signed(m.goldDiff15)}</b>
+            </span>
+            <span className="t-stat-sample" title="15분 CS 격차">CS {signed(m.csDiff15)}</span>
+
+            <span style={{ marginLeft: 'auto' }}><Sparkline values={m.goldDiffByMinute} /></span>
+          </Link>
+        ))}
+      </div>
+    </div>
   );
 }
