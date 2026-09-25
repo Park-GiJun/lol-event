@@ -32,10 +32,10 @@ class RatingCommandHandler(
 
     private companion object {
         /**
-         * 타임라인을 몇 경기씩 묶어 읽을지. 경기당 60KB 급이라 500경기를 한 번에 들면
-         * 30MB 가 힙에 얹힌다. 재집계는 한 번 도는 관리 작업이라 왕복 몇 번을 더 감수하는 쪽이 낫다.
+         * 타임라인을 몇 경기씩 묶어 읽을지. 재집계는 한 번 도는 관리 작업이라 왕복 몇 번을
+         * 더 감수하는 쪽이 낫다. 왜 나눠야 하는지는 [TimelineParser.CHUNK_SIZE] 에 적어 뒀다.
          */
-        const val TIMELINE_CHUNK = 50
+        const val TIMELINE_CHUNK = TimelineParser.CHUNK_SIZE
     }
 
     // ────────── 경기 한 판 ──────────

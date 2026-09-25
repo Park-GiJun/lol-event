@@ -6,6 +6,7 @@ import com.gijun.main.application.dto.stats.result.SplitHalfReliability
 import com.gijun.main.application.dto.stats.result.ValidationScope
 import com.gijun.main.application.port.`in`.ValidateRatingUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
+import com.gijun.main.application.port.out.StatsCachePort
 import com.gijun.main.domain.model.match.Match
 import com.gijun.main.domain.model.rating.LaneResult
 import com.gijun.main.domain.model.rating.PlayerRating
@@ -35,6 +36,7 @@ import kotlin.math.sqrt
 @Transactional(readOnly = true)
 class RatingValidationHandler(
     private val matchPersistencePort: MatchPersistencePort,
+    private val cache: StatsCachePort,
 ) : ValidateRatingUseCase {
 
     private companion object {
@@ -44,10 +46,18 @@ class RatingValidationHandler(
         /** 반분 신뢰도에서 한쪽 반이 이 수 미만이면 그 사람은 뺀다. */
         const val MIN_DUELS_PER_HALF = 5
 
-        const val TIMELINE_CHUNK = 50
+        /** 왜 청크로 나눠 읽는지는 [TimelineParser.CHUNK_SIZE] 에 적어 뒀다. */
+        const val TIMELINE_CHUNK = TimelineParser.CHUNK_SIZE
     }
 
-    override fun validate(warmup: Int, excludeRepeatedTeams: Boolean): RatingValidationResult {
+    /**
+     * 전체 경기를 처음부터 재생하고 타임라인도 전부 다시 파싱한다. 예전에는 캐시 키가 없어서
+     * 관리자 화면을 열 때마다 그 비용을 그대로 다시 냈다. 파라미터가 결과를 바꾸므로 키에 싣는다.
+     */
+    override fun validate(warmup: Int, excludeRepeatedTeams: Boolean): RatingValidationResult =
+        cache.getOrCompute("rating-validation:$warmup:$excludeRepeatedTeams") { replay(warmup, excludeRepeatedTeams) }
+
+    private fun replay(warmup: Int, excludeRepeatedTeams: Boolean): RatingValidationResult {
         val all = matchPersistencePort.findAllOrderedByGameCreation()
         val matches = all.filter(RatingEngine::isRatable)
 

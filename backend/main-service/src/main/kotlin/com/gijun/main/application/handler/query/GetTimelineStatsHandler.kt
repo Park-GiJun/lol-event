@@ -72,7 +72,14 @@ class GetTimelineStatsHandler(
         return all.copy(champions = all.champions.filter { it.champion.equals(champion.trim(), ignoreCase = true) })
     }
 
-    override fun getPlayerTimeline(riotId: String): PlayerTimelineResult {
+    /**
+     * 개인 타임라인. 사람마다 전체 경기의 라인을 다시 묶으므로 자기 캐시 키가 필요하다.
+     *
+     * 안쪽에서 [metrics] / [getTimelineStats] 의 `getOrCompute` 를 다시 부르는데, 중첩은 안전하다 —
+     * 키가 다르면 다른 스트라이프 락이고, 해시가 같은 스트라이프에 떨어져도 `synchronized` 는
+     * 같은 스레드에 재진입 가능하다. (데드락으로 의심하기 쉬운 자리라 남겨 둔다.)
+     */
+    override fun getPlayerTimeline(riotId: String): PlayerTimelineResult = cache.getOrCompute("player-timeline:$riotId") {
         val id = riotId
         // 개인 화면은 모드 구분이 없다 (칼바람은 라인이 없어 어차피 격차가 안 나온다).
         val mine = lines(metrics(MODE)).filter { it.riotId == id }
@@ -85,7 +92,7 @@ class GetTimelineStatsHandler(
             if (values.isEmpty()) null else GoldDiffPoint(minute, r1(values.average()), values.size)
         }
 
-        return PlayerTimelineResult(
+        PlayerTimelineResult(
             riotId = id,
             summary = mine.takeIf { it.isNotEmpty() }?.let(::averages),
             goldDiffRank = rank,
@@ -127,12 +134,20 @@ class GetTimelineStatsHandler(
         val line: TimelineMetrics.PlayerLine,
     )
 
-    /** 최신순. 원본 파싱이 무거워서 경기 단위 결과를 따로 캐시한다. */
+    /**
+     * 최신순. 원본 파싱이 무거워서 경기 단위 결과를 따로 캐시한다.
+     *
+     * 청크로 나눠 읽는 이유는 힙이다. 원본을 한 번에 들어올리면 raw 문자열 전체와 파싱 중인
+     * JsonNode 트리가 같은 시점에 살아 있다. 청크 안에서 [raws] 가 바로 죽으므로
+     * 살아남는 건 [TimelineMetrics.MatchMetrics] 뿐이다.
+     */
     private fun metrics(mode: String): List<TimelineMetrics.MatchMetrics> = cache.getOrCompute("timeline-metrics:$mode") {
-        val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
-        val raws = matchPersistencePort.findTimelineRaw(matches.map { it.matchId })
-        matches
-            .mapNotNull { m -> raws[m.matchId]?.let { TimelineMetrics.of(m, TimelineParser.parse(it)) } }
+        matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
+            .chunked(TimelineParser.CHUNK_SIZE)
+            .flatMap { chunk ->
+                val raws = matchPersistencePort.findTimelineRaw(chunk.map { it.matchId })
+                chunk.mapNotNull { m -> raws[m.matchId]?.let { TimelineMetrics.of(m, TimelineParser.parse(it)) } }
+            }
             .sortedByDescending { it.gameCreation }
     }
 
