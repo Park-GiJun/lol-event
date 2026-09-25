@@ -3,8 +3,10 @@ package com.gijun.main.infrastructure.adapter.`in`.web
 import com.gijun.common.response.CommonApiResponse
 import com.gijun.main.application.dto.match.command.SaveMatchesCommand
 import com.gijun.main.application.dto.match.result.MatchPageResult
+import com.gijun.main.application.dto.match.result.MatchTimelineResult
 import com.gijun.main.application.dto.match.result.SaveMatchesResult
 import com.gijun.main.application.port.`in`.DeleteMatchUseCase
+import com.gijun.main.application.port.`in`.GetMatchTimelineUseCase
 import com.gijun.main.application.port.`in`.GetMatchesUseCase
 import com.gijun.main.application.port.`in`.SaveMatchesUseCase
 import io.swagger.v3.oas.annotations.Operation
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*
 class MatchWebAdapter(
     private val saveMatchesUseCase: SaveMatchesUseCase,
     private val getMatchesUseCase: GetMatchesUseCase,
+    private val getMatchTimelineUseCase: GetMatchTimelineUseCase,
     private val deleteMatchUseCase: DeleteMatchUseCase
 ) {
     @Operation(
@@ -59,6 +62,23 @@ class MatchWebAdapter(
     ): CommonApiResponse<com.gijun.main.application.dto.match.result.MatchResult> =
         CommonApiResponse.success(
             getMatchesUseCase.getById(matchId)
+                ?: throw com.gijun.common.exception.DomainNotFoundException("경기를 찾을 수 없습니다: $matchId")
+        )
+
+    @Operation(
+        summary = "경기 단건 타임라인 조회",
+        description = "골드 곡선, 킬·오브젝트 좌표, 교전 구간을 반환합니다. " +
+            "타임라인이 없는 경기는 404 가 아니라 hasTimeline=false 인 빈 결과를 돌려줍니다 — " +
+            "타임라인은 새 수집기로 받은 경기에만 있고 이전 경기는 영구히 없습니다(백필 불가). " +
+            "경기 자체가 없을 때만 404 입니다.",
+    )
+    @GetMapping("/{matchId}/timeline")
+    fun getTimeline(
+        @Parameter(description = "조회할 경기 ID", example = "KR_8126722699")
+        @PathVariable matchId: String
+    ): CommonApiResponse<MatchTimelineResult> =
+        CommonApiResponse.success(
+            getMatchTimelineUseCase.getMatchTimeline(matchId)
                 ?: throw com.gijun.common.exception.DomainNotFoundException("경기를 찾을 수 없습니다: $matchId")
         )
 
