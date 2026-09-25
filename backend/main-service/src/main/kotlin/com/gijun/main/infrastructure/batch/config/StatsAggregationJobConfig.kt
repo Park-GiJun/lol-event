@@ -4,6 +4,7 @@ import com.gijun.main.infrastructure.batch.tasklet.ChampionItemStatsAggregationT
 import com.gijun.main.infrastructure.batch.tasklet.ChampionRuneStatsAggregationTasklet
 import com.gijun.main.infrastructure.batch.tasklet.ChampionStatsAggregationTasklet
 import com.gijun.main.infrastructure.batch.tasklet.PlayerStatsAggregationTasklet
+import com.gijun.main.infrastructure.batch.tasklet.TimelineStatsAggregationTasklet
 import org.springframework.batch.core.job.Job
 import org.springframework.batch.core.step.Step
 import org.springframework.batch.core.job.builder.JobBuilder
@@ -21,6 +22,7 @@ class StatsAggregationJobConfig(
     private val championStatsTasklet: ChampionStatsAggregationTasklet,
     private val championItemStatsTasklet: ChampionItemStatsAggregationTasklet,
     private val championRuneStatsTasklet: ChampionRuneStatsAggregationTasklet,
+    private val timelineStatsTasklet: TimelineStatsAggregationTasklet,
 ) {
     companion object {
         const val JOB_NAME = "statsAggregationJob"
@@ -33,6 +35,8 @@ class StatsAggregationJobConfig(
             .next(championStatsStep())
             .next(championItemStatsStep())
             .next(championRuneStatsStep())
+            // 타임라인 집계는 제일 느리고 제일 새롭다. 앞의 네 Step 을 막지 않도록 끝에 둔다.
+            .next(timelineStatsStep())
             .build()
 
     @Bean
@@ -57,5 +61,11 @@ class StatsAggregationJobConfig(
     fun championRuneStatsStep(): Step =
         StepBuilder("championRuneStatsStep", jobRepository)
             .tasklet(championRuneStatsTasklet, transactionManager)
+            .build()
+
+    @Bean
+    fun timelineStatsStep(): Step =
+        StepBuilder("timelineStatsStep", jobRepository)
+            .tasklet(timelineStatsTasklet, transactionManager)
             .build()
 }

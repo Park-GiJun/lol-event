@@ -1,8 +1,15 @@
 package com.gijun.main.application.handler.query
 
+import com.gijun.main.application.port.out.ChampionItemStatsCache
+import com.gijun.main.application.port.out.ChampionRuneStatsCache
+import com.gijun.main.application.port.out.ChampionTimelineStatsCache
+import com.gijun.main.application.port.out.HeatmapCell
 import com.gijun.main.application.port.out.MatchPeriodSummary
 import com.gijun.main.application.port.out.MatchPersistencePort
+import com.gijun.main.application.port.out.PlayerStatsCache
+import com.gijun.main.application.port.out.PlayerTimelineStatsCache
 import com.gijun.main.application.port.out.PositionCount
+import com.gijun.main.application.port.out.StatsCachePersistencePort
 import com.gijun.main.application.port.out.StatsCachePort
 import com.gijun.main.domain.model.match.LaneMethod
 import com.gijun.main.domain.model.match.Match
@@ -75,7 +82,21 @@ class GetTimelineStatsHandlerTest {
             override fun evictAll() {}
             override fun evictByPrefix(prefix: String) {}
         }
-        return GetTimelineStatsHandler(port, cache)
+        // 좌표·한타 지표와 히트맵은 배치가 채우는 것이라 여기서는 "배치 전" 상태를 흉낸다.
+        // 그 값들이 없어도 15분 격차 계열이 정상으로 나오는지가 이 테스트의 관심사다.
+        val snapshots = object : StatsCachePersistencePort {
+            override fun findPlayerCacheByMode(mode: String) = emptyList<PlayerStatsCache>()
+            override fun findChampionItemCacheByChampionAndMode(champion: String, mode: String) =
+                emptyList<ChampionItemStatsCache>()
+            override fun findChampionRuneCacheByChampionAndMode(champion: String, mode: String) =
+                emptyList<ChampionRuneStatsCache>()
+            override fun findPlayerTimelineCache(riotId: String, mode: String): PlayerTimelineStatsCache? = null
+            override fun findChampionTimelineCache(champion: String, mode: String) =
+                emptyList<ChampionTimelineStatsCache>()
+            override fun findHeatmap(mode: String, scopeType: String, scopeKey: String, kind: String) =
+                emptyList<HeatmapCell>()
+        }
+        return GetTimelineStatsHandler(port, cache, snapshots)
     }
 
     @Test

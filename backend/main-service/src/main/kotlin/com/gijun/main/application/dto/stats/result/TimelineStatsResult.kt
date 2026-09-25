@@ -99,6 +99,59 @@ data class PlayerTimelineResult(
     val goldDiffCurve: List<GoldDiffPoint>,
     /** 최신순. */
     val games: List<PlayerTimelineGame>,
+    /**
+     * 좌표·한타 지표. 배치가 아직 안 돌았으면 null 이다.
+     *
+     * 15분 격차 계열과 달리 요청 시 계산하지 않는다 — 프레임 전수를 순회해야 나오는 값이라
+     * 매 요청에 돌릴 비용이 아니다.
+     */
+    val positionStats: PlayerPositionStats?,
+    /** 죽은 자리 히트맵. 배치 전이면 빈 목록이고, 화면은 "집계 대기 중"을 띄운다. */
+    val deathHeatmap: HeatmapGrid?,
+)
+
+/**
+ * 좌표에서 나온 지표. 비율은 0~100.
+ *
+ * **분모([framesSampled])를 반드시 화면에 같이 내보내라.** 프레임은 분당 1점이라 이 비율은
+ * 실제 시간의 비율이 아니라 분 경계에 어디 있었는지의 비율이다 — 자세한 한계는
+ * [com.gijun.main.domain.service.PositionMetrics] 머리 주석에 있다.
+ */
+data class PlayerPositionStats(
+    /** 이 지표들의 모집단. 타임라인이 있는 경기 수다. */
+    val games: Int,
+    val framesSampled: Int,
+    /** 라인전 동안 자기 라인에 있던 비율. **정글·포지션 미상은 null** (0 이 아니다). */
+    val laneShareRate: Double?,
+    val roamRate: Double?,
+    val enemyHalfRate: Double,
+    val counterJungleRate: Double,
+    /** 킬 3개 이상인 교전에 낀 횟수. */
+    val teamfights: Int,
+    val teamfightKills: Int,
+    val teamfightDeaths: Int,
+    /** 이 값이 집계된 시각. 실시간 계산이 아니라는 표시이기도 하다. */
+    val aggregatedAt: Long,
+)
+
+/**
+ * 히트맵. 좌표를 격자로 접어 담는다 — 원본 좌표를 그대로 내보내면 응답이 커지고
+ * 화면은 어차피 뭉쳐 그린다.
+ */
+data class HeatmapGrid(
+    /** 한 변의 칸 수. 좌표를 비율로 바꿀 때 쓴다. */
+    val grid: Int,
+    val cells: List<HeatmapCellEntry>,
+    /** 배치 전이면 null. [cells] 가 비어 있는 것과 구분해야 "집계 대기 중"을 띄울 수 있다. */
+    val aggregatedAt: Long?,
+)
+
+data class HeatmapCellEntry(
+    /** EARLY(0~15분) / MID(15~25) / LATE(25+). */
+    val phase: String,
+    val x: Int,
+    val y: Int,
+    val count: Int,
 )
 
 data class GoldDiffPoint(

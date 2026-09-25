@@ -1,6 +1,9 @@
 package com.gijun.main.application.handler.query
 
 import com.gijun.main.application.dto.stats.result.GoldDiffPoint
+import com.gijun.main.application.dto.stats.result.HeatmapCellEntry
+import com.gijun.main.application.dto.stats.result.HeatmapGrid
+import com.gijun.main.application.dto.stats.result.PlayerPositionStats
 import com.gijun.main.application.dto.stats.result.PlayerTimelineGame
 import com.gijun.main.application.dto.stats.result.PlayerTimelineResult
 import com.gijun.main.application.dto.stats.result.TimelineAverages
@@ -13,10 +16,14 @@ import com.gijun.main.application.dto.stats.result.TimelineStatsResult
 import com.gijun.main.application.port.`in`.GetPlayerTimelineUseCase
 import com.gijun.main.application.port.`in`.GetTimelineStatsUseCase
 import com.gijun.main.application.port.out.MatchPersistencePort
+import com.gijun.main.application.port.out.StatsCachePersistencePort
 import com.gijun.main.application.port.out.StatsCachePort
 import com.gijun.main.domain.model.match.Position
 import com.gijun.main.domain.service.TimelineMetrics
 import com.gijun.main.domain.service.TimelineParser
+import com.gijun.main.application.port.out.HeatmapKind
+import com.gijun.main.application.port.out.HeatmapScope
+import com.gijun.main.application.port.out.HEATMAP_GRID
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import kotlin.math.roundToInt
@@ -32,6 +39,7 @@ import kotlin.math.roundToInt
 class GetTimelineStatsHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val cache: StatsCachePort,
+    private val statsCachePersistencePort: StatsCachePersistencePort,
 ) : GetTimelineStatsUseCase, GetPlayerTimelineUseCase {
 
     override fun getTimelineStats(mode: String): TimelineStatsResult = cache.getOrCompute("timeline-stats:$mode") {
@@ -83,6 +91,7 @@ class GetTimelineStatsHandler(
         val id = riotId
         // 개인 화면은 모드 구분이 없다 (칼바람은 라인이 없어 어차피 격차가 안 나온다).
         val mine = lines(metrics(MODE)).filter { it.riotId == id }
+        val snapshot = statsCachePersistencePort.findPlayerTimelineCache(id, MODE)
 
         val ranked = getTimelineStats(MODE).players.filter { it.stats.avgGoldDiff15 != null }
         val rank = ranked.indexOfFirst { it.riotId == id }.takeIf { it >= 0 }?.plus(1)
@@ -100,6 +109,21 @@ class GetTimelineStatsHandler(
             byPosition = byPosition(mine, order = null),
             byChampion = champions(mine),
             goldDiffCurve = curve,
+            positionStats = snapshot?.let { c ->
+                PlayerPositionStats(
+                    games = c.games,
+                    framesSampled = c.framesSampled,
+                    laneShareRate = c.laneShareRate,
+                    roamRate = c.roamRate,
+                    enemyHalfRate = c.enemyHalfRate,
+                    counterJungleRate = c.counterJungleRate,
+                    teamfights = c.teamfights,
+                    teamfightKills = c.teamfightKills,
+                    teamfightDeaths = c.teamfightDeaths,
+                    aggregatedAt = c.aggregatedAt,
+                )
+            },
+            deathHeatmap = heatmap(HeatmapScope.PLAYER.name, id, HeatmapKind.DEATH.name, snapshot?.aggregatedAt),
             games = mine.take(RECENT_GAMES).map { l ->
                 PlayerTimelineGame(
                     matchId = l.matchId,
@@ -218,6 +242,20 @@ class GetTimelineStatsHandler(
                 .takeIf { it.isNotEmpty() }?.let { d -> r1(d.average() / 60_000.0) },
         )
     }
+
+    /**
+     * 히트맵. **live fallback 이 없다** — 격자 집계는 프레임·이벤트 전수를 순회해야 나오므로
+     * 요청 시 돌릴 비용이 아니다. 배치 전이면 `aggregatedAt = null` 로 내려보내 화면이
+     * "집계 대기 중"과 "정말 데이터가 없음"을 구분할 수 있게 한다.
+     */
+    private fun heatmap(scopeType: String, scopeKey: String, kind: String, aggregatedAt: Long?): HeatmapGrid =
+        HeatmapGrid(
+            grid = HEATMAP_GRID,
+            cells = statsCachePersistencePort.findHeatmap(MODE, scopeType, scopeKey, kind)
+                .map { HeatmapCellEntry(it.phase, it.gridX, it.gridY, it.count) },
+            // 히트맵과 좌표 지표는 같은 배치가 같은 시점에 쓴다. 그 시각이 없으면 아직 안 돌았다.
+            aggregatedAt = aggregatedAt,
+        )
 
     private fun avgOrNull(values: List<Int>): Double? =
         values.takeIf { it.isNotEmpty() }?.let { r1(it.average()) }
