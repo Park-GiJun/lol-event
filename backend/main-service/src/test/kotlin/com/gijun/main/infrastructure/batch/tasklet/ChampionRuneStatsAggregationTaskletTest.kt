@@ -22,28 +22,31 @@ import java.lang.reflect.Proxy
  * 세면 "룬 없음" 조합이 채택 1위로 올라온다. 그걸 막는지가 핵심이다.
  */
 class ChampionRuneStatsAggregationTaskletTest {
-
     private val saved = mutableListOf<ChampionRuneStatsCacheEntity>()
     private val deletedModes = mutableListOf<String>()
 
     @Suppress("UNCHECKED_CAST")
-    private val repo: ChampionRuneStatsCacheRepository = Proxy.newProxyInstance(
-        ChampionRuneStatsCacheRepository::class.java.classLoader,
-        arrayOf(ChampionRuneStatsCacheRepository::class.java),
-    ) { _, method, args ->
-        when (method.name) {
-            "saveAll" -> {
-                val batch = (args[0] as Iterable<ChampionRuneStatsCacheEntity>).toList()
-                saved += batch
-                batch
+    private val repo: ChampionRuneStatsCacheRepository =
+        Proxy.newProxyInstance(
+            ChampionRuneStatsCacheRepository::class.java.classLoader,
+            arrayOf(ChampionRuneStatsCacheRepository::class.java),
+        ) { _, method, args ->
+            when (method.name) {
+                "saveAll" -> {
+                    val batch = (args[0] as Iterable<ChampionRuneStatsCacheEntity>).toList()
+                    saved += batch
+                    batch
+                }
+                "deleteAllByMode" -> {
+                    deletedModes += args[0] as String
+                    null
+                }
+                "toString" -> "FakeChampionRuneStatsCacheRepository"
+                "hashCode" -> System.identityHashCode(this)
+                "equals" -> false
+                else -> error("테스트가 예상하지 못한 호출: ${method.name}")
             }
-            "deleteAllByMode" -> { deletedModes += args[0] as String; null }
-            "toString" -> "FakeChampionRuneStatsCacheRepository"
-            "hashCode" -> System.identityHashCode(this)
-            "equals" -> false
-            else -> error("테스트가 예상하지 못한 호출: ${method.name}")
-        }
-    } as ChampionRuneStatsCacheRepository
+        } as ChampionRuneStatsCacheRepository
 
     private fun p(
         champion: String,
@@ -53,33 +56,67 @@ class ChampionRuneStatsAggregationTaskletTest {
         sub: Int,
         riotId: String = "나#KR1",
     ) = MatchParticipant(
-        riotId = riotId, champion = champion, team = "BLUE", win = win,
-        perk0 = perk0, perkPrimaryStyle = primary, perkSubStyle = sub,
+        riotId = riotId,
+        champion = champion,
+        team = "BLUE",
+        win = win,
+        perk0 = perk0,
+        perkPrimaryStyle = primary,
+        perkSubStyle = sub,
     )
 
     private fun tasklet(participants: List<MatchParticipant>): ChampionRuneStatsAggregationTasklet {
-        val match = Match(
-            matchId = "KR_1", queueId = 0, gameCreation = 1, gameDuration = 1800,
-            participants = participants.toMutableList(),
-        )
-        val port = object : MatchPersistencePort {
-            override fun save(match: Match) = match
-            override fun existsByMatchId(matchId: String) = false
-            override fun findByMatchId(matchId: String): Match? = null
-            override fun findAllWithParticipants(queueIds: List<Int>) = listOf(match)
-            override fun findPageWithParticipants(queueIds: List<Int>, page: Int, size: Int) = listOf(match)
-            override fun findPeriodSummary(queueIds: List<Int>) = MatchPeriodSummary(null, null, 0, 0)
-            override fun deleteByMatchId(matchId: String) {}
-            override fun countByQueueIds(queueIds: List<Int>) = 1L
-            override fun findAllOrderedByGameCreation() = listOf(match)
-            override fun findInPeriodWithParticipants(queueIds: List<Int>, fromMs: Long, untilMs: Long) =
-                listOf(match).filter { it.gameCreation in fromMs until untilMs }
-            override fun updateAssignedPositions(updates: Map<Long, String>) {}
-            override fun saveTimelineRaw(matchId: String, raw: String) {}
-            override fun findTimelineRaw(matchIds: Collection<String>) = emptyMap<String, String>()
-            override fun updateLaneMethods(updates: Map<String, LaneMethod>) {}
-            override fun findPositionCounts() = emptyList<PositionCount>()
-        }
+        val match =
+            Match(
+                matchId = "KR_1",
+                queueId = 0,
+                gameCreation = 1,
+                gameDuration = 1800,
+                participants = participants.toMutableList(),
+            )
+        val port =
+            object : MatchPersistencePort {
+                override fun save(match: Match) = match
+
+                override fun existsByMatchId(matchId: String) = false
+
+                override fun findByMatchId(matchId: String): Match? = null
+
+                override fun findAllWithParticipants(queueIds: List<Int>) = listOf(match)
+
+                override fun findPageWithParticipants(
+                    queueIds: List<Int>,
+                    page: Int,
+                    size: Int,
+                ) = listOf(match)
+
+                override fun findPeriodSummary(queueIds: List<Int>) = MatchPeriodSummary(null, null, 0, 0)
+
+                override fun deleteByMatchId(matchId: String) {}
+
+                override fun countByQueueIds(queueIds: List<Int>) = 1L
+
+                override fun findAllOrderedByGameCreation() = listOf(match)
+
+                override fun findInPeriodWithParticipants(
+                    queueIds: List<Int>,
+                    fromMs: Long,
+                    untilMs: Long,
+                ) = listOf(match).filter { it.gameCreation in fromMs until untilMs }
+
+                override fun updateAssignedPositions(updates: Map<Long, String>) {}
+
+                override fun saveTimelineRaw(
+                    matchId: String,
+                    raw: String,
+                ) {}
+
+                override fun findTimelineRaw(matchIds: Collection<String>) = emptyMap<String, String>()
+
+                override fun updateLaneMethods(updates: Map<String, LaneMethod>) {}
+
+                override fun findPositionCounts() = emptyList<PositionCount>()
+            }
         return ChampionRuneStatsAggregationTasklet(port, repo)
     }
 
@@ -88,11 +125,13 @@ class ChampionRuneStatsAggregationTaskletTest {
 
     @Test
     fun `같은 조합은 한 줄로 묶고 승률을 낸다`() {
-        tasklet(listOf(
-            p("Ahri", win = true,  perk0 = 8214, primary = 8200, sub = 8100),
-            p("Ahri", win = false, perk0 = 8214, primary = 8200, sub = 8100),
-            p("Ahri", win = true,  perk0 = 8214, primary = 8200, sub = 8100),
-        )).aggregate()
+        tasklet(
+            listOf(
+                p("Ahri", win = true, perk0 = 8214, primary = 8200, sub = 8100),
+                p("Ahri", win = false, perk0 = 8214, primary = 8200, sub = 8100),
+                p("Ahri", win = true, perk0 = 8214, primary = 8200, sub = 8100),
+            ),
+        ).aggregate()
 
         val row = normalRows().single()
         assertEquals("Ahri", row.champion)
@@ -104,10 +143,12 @@ class ChampionRuneStatsAggregationTaskletTest {
 
     @Test
     fun `키스톤이 같아도 보조 계열이 다르면 다른 줄이다`() {
-        tasklet(listOf(
-            p("Ahri", win = true, perk0 = 8214, primary = 8200, sub = 8100),
-            p("Ahri", win = true, perk0 = 8214, primary = 8200, sub = 8300),
-        )).aggregate()
+        tasklet(
+            listOf(
+                p("Ahri", win = true, perk0 = 8214, primary = 8200, sub = 8100),
+                p("Ahri", win = true, perk0 = 8214, primary = 8200, sub = 8300),
+            ),
+        ).aggregate()
 
         val rows = normalRows()
         assertEquals(2, rows.size)
@@ -118,11 +159,13 @@ class ChampionRuneStatsAggregationTaskletTest {
     @Test
     fun `룬 정보가 없는 참가자는 세지 않는다`() {
         // perk0 == 0 은 룬이 안 실려 온 경기다. 세면 "룬 없음"이 1위로 올라온다.
-        tasklet(listOf(
-            p("Ahri", win = true, perk0 = 0,    primary = 0,    sub = 0),
-            p("Ahri", win = true, perk0 = 0,    primary = 0,    sub = 0),
-            p("Ahri", win = true, perk0 = 8214, primary = 8200, sub = 8100),
-        )).aggregate()
+        tasklet(
+            listOf(
+                p("Ahri", win = true, perk0 = 0, primary = 0, sub = 0),
+                p("Ahri", win = true, perk0 = 0, primary = 0, sub = 0),
+                p("Ahri", win = true, perk0 = 8214, primary = 8200, sub = 8100),
+            ),
+        ).aggregate()
 
         val rows = normalRows()
         assertEquals(1, rows.size)
@@ -134,19 +177,23 @@ class ChampionRuneStatsAggregationTaskletTest {
     @Test
     fun `주 계열만 비어 있어도 세지 않는다`() {
         // perk0 는 실려 왔는데 계열이 0 인 반쪽짜리 행도 걸러야 한다.
-        tasklet(listOf(
-            p("Ahri", win = true, perk0 = 8214, primary = 0, sub = 0),
-        )).aggregate()
+        tasklet(
+            listOf(
+                p("Ahri", win = true, perk0 = 8214, primary = 0, sub = 0),
+            ),
+        ).aggregate()
 
         assertTrue(normalRows().isEmpty())
     }
 
     @Test
     fun `챔피언이 다르면 따로 센다`() {
-        tasklet(listOf(
-            p("Ahri", win = true, perk0 = 8214, primary = 8200, sub = 8100),
-            p("Zed",  win = true, perk0 = 8112, primary = 8100, sub = 8000),
-        )).aggregate()
+        tasklet(
+            listOf(
+                p("Ahri", win = true, perk0 = 8214, primary = 8200, sub = 8100),
+                p("Zed", win = true, perk0 = 8112, primary = 8100, sub = 8000),
+            ),
+        ).aggregate()
 
         assertEquals(setOf("Ahri", "Zed"), normalRows().map { it.champion }.toSet())
     }

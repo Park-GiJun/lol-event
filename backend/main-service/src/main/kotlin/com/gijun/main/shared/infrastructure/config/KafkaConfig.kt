@@ -14,34 +14,37 @@ import org.springframework.kafka.core.KafkaTemplate
 class KafkaConfig(
     @Value("\${spring.kafka.bootstrap-servers}") private val bootstrapServers: String,
 ) {
-
     @Bean
     fun kafkaTemplate(): KafkaTemplate<String, String> {
-        val config = mapOf<String, Any>(
-            ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
-            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-        )
+        val config =
+            mapOf<String, Any>(
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+            )
         return KafkaTemplate(DefaultKafkaProducerFactory(config))
     }
 
     @Bean
     fun matchEventsTopic(): NewTopic =
-        TopicBuilder.name("lol.match.events")
+        TopicBuilder
+            .name("lol.match.events")
             .partitions(3)
             .replicas(1)
             .build()
 
     @Bean
     fun statsRebuildTopic(): NewTopic =
-        TopicBuilder.name("lol.stats.rebuild")
+        TopicBuilder
+            .name("lol.stats.rebuild")
             .partitions(1)
             .replicas(1)
             .build()
 
     @Bean
     fun eloCalculateTopic(): NewTopic =
-        TopicBuilder.name("lol.elo.calculate")
+        TopicBuilder
+            .name("lol.elo.calculate")
             .partitions(3)
             .replicas(1)
             .build()

@@ -10,5 +10,8 @@ interface GetHomeUseCase {
 
 interface GetChampionPageUseCase {
     /** 챔피언 화면 한 장에 필요한 것을 한 번에 반환한다. */
-    fun getChampionPage(champion: String, mode: String): ChampionPageResult
+    fun getChampionPage(
+        champion: String,
+        mode: String,
+    ): ChampionPageResult
 }

@@ -22,14 +22,17 @@ class RatingQueryHandler(
     private val playerRatingPort: PlayerRatingPort,
     private val ratingHistoryPort: RatingHistoryPort,
     private val matchPersistencePort: MatchPersistencePort,
-) : GetRatingUseCase, GetEloLeaderboardUseCase, GetEloHistoryUseCase {
-
+) : GetRatingUseCase,
+    GetEloLeaderboardUseCase,
+    GetEloHistoryUseCase {
     override fun getAll(): List<PlayerRating> = playerRatingPort.findAll()
 
-    override fun getByRiotId(riotId: String): PlayerRating? =
-        playerRatingPort.findByRiotId(riotId)
+    override fun getByRiotId(riotId: String): PlayerRating? = playerRatingPort.findByRiotId(riotId)
 
-    override fun getHistory(riotId: String, limit: Int): PlayerEloHistoryResult {
+    override fun getHistory(
+        riotId: String,
+        limit: Int,
+    ): PlayerEloHistoryResult {
         val id = riotId
         val ranked = rankedOrder()
         val mine = ranked.firstOrNull { it.riotId == id }
@@ -38,16 +41,22 @@ class RatingQueryHandler(
             riotId = id,
             currentElo = mine?.laneElo ?: RatingMath.START,
             eloRank = ranked.indexOfFirst { it.riotId == id }.takeIf { it >= 0 }?.plus(1),
-            history = ratingHistoryPort.findByRiotId(id, limit).map {
-                EloHistoryEntry(
-                    matchId = it.matchId,
-                    eloBefore = it.laneBefore, eloAfter = it.laneAfter, delta = it.laneDelta,
-                    win = it.win,
-                    laneResult = it.laneResult.name, laneOpponent = it.laneOpponent,
-                    teamEloBefore = it.teamBefore, teamEloAfter = it.teamAfter, teamDelta = it.teamDelta,
-                    gameCreation = it.gameCreation,
-                )
-            },
+            history =
+                ratingHistoryPort.findByRiotId(id, limit).map {
+                    EloHistoryEntry(
+                        matchId = it.matchId,
+                        eloBefore = it.laneBefore,
+                        eloAfter = it.laneAfter,
+                        delta = it.laneDelta,
+                        win = it.win,
+                        laneResult = it.laneResult.name,
+                        laneOpponent = it.laneOpponent,
+                        teamEloBefore = it.teamBefore,
+                        teamEloAfter = it.teamAfter,
+                        teamDelta = it.teamDelta,
+                        gameCreation = it.gameCreation,
+                    )
+                },
         )
     }
 
@@ -65,7 +74,10 @@ class RatingQueryHandler(
         val sorted = rankedOrder()
         val (ranked, placement) = sorted.partition { it.laneDuels >= minDuels }
 
-        fun entry(r: PlayerRating, rank: Int) = EloRankEntry(
+        fun entry(
+            r: PlayerRating,
+            rank: Int,
+        ) = EloRankEntry(
             rank = rank,
             riotId = r.riotId,
             laneElo = round2(r.laneElo),
@@ -99,24 +111,28 @@ class RatingQueryHandler(
     }
 
     /** 정렬 기본값은 라인 레이팅 **표시값**이다. 원값으로 정렬하면 표본 적은 사람이 위로 튄다. */
-    private fun rankedOrder(): List<PlayerRating> =
-        playerRatingPort.findAll().sortedByDescending { it.laneEloDisplay }
+    private fun rankedOrder(): List<PlayerRating> = playerRatingPort.findAll().sortedByDescending { it.laneEloDisplay }
 
     /** 가장 많이 뛴 포지션. 별명은 정규 이름으로 합쳐서 센다. */
     private fun mainPositions(): Map<String, String> =
-        matchPersistencePort.findPositionCounts()
+        matchPersistencePort
+            .findPositionCounts()
             .groupBy({ it.riotId }, { it.position to it.games })
             .mapValues { (_, rows) ->
-                rows.groupBy({ it.first }, { it.second })
+                rows
+                    .groupBy({ it.first }, { it.second })
                     .mapValues { (_, counts) -> counts.sum() }
-                    .maxByOrNull { it.value }?.key
-            }
-            .filterValues { it != null }
-            .mapValues { it.value!! }
+                    .maxByOrNull { it.value }
+                    ?.key
+            }.mapNotNull { (riotId, position) -> position?.let { riotId to it } }
+            .toMap()
 
-    private fun rate(part: Int, total: Int): Double =
-        if (total <= 0) 0.0 else round3(part.toDouble() / total)
+    private fun rate(
+        part: Int,
+        total: Int,
+    ): Double = if (total <= 0) 0.0 else round3(part.toDouble() / total)
 
     private fun round2(v: Double) = Math.round(v * 100) / 100.0
+
     private fun round3(v: Double) = Math.round(v * 1000) / 1000.0
 }

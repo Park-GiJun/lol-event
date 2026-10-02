@@ -17,7 +17,6 @@ class StatsRebuildConsumer(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val lastLaunchedAt = AtomicLong(0L)
-    private val THROTTLE_MS = 5 * 60 * 1000L  // 5분
 
     @KafkaListener(topics = ["lol.stats.rebuild"], groupId = "stats-rebuild-consumer")
     fun onRebuildSignal(record: ConsumerRecord<String, String>) {
@@ -32,5 +31,10 @@ class StatsRebuildConsumer(
         lastLaunchedAt.set(now)
         log.info("통계 재집계 트리거 — matchId=${record.key()}")
         scheduler.launchJob(reason = "kafka-trigger")
+    }
+
+    private companion object {
+        /** 5분. 매치가 연달아 들어와도 재집계는 이 간격으로 한 번만 돈다. */
+        private const val THROTTLE_MS = 5 * 60 * 1000L
     }
 }

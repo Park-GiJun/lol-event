@@ -11,10 +11,14 @@ import java.time.ZonedDateTime
  * **00시 14판** 이라, 자정 기준에서는 그 14판이 다음 날로 떨어져 있었다.
  */
 class SessionClockTest {
-
     /** KST 로 이 시각인 경기의 epoch ms. */
-    private fun kst(year: Int, month: Int, day: Int, hour: Int, minute: Int = 0): Long =
-        ZonedDateTime.of(year, month, day, hour, minute, 0, 0, SessionClock.ZONE).toInstant().toEpochMilli()
+    private fun kst(
+        year: Int,
+        month: Int,
+        day: Int,
+        hour: Int,
+        minute: Int = 0,
+    ): Long = ZonedDateTime.of(year, month, day, hour, minute, 0, 0, SessionClock.ZONE).toInstant().toEpochMilli()
 
     @Test
     fun `저녁 경기는 그날 세션이다`() {

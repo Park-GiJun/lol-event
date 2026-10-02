@@ -30,15 +30,16 @@ data class MatchSummaryResult(
     val teams: List<TeamSummaryResult>,
 ) {
     companion object {
-        fun from(domain: Match) = MatchSummaryResult(
-            matchId = domain.matchId,
-            queueId = domain.queueId,
-            gameCreation = domain.gameCreation,
-            gameDuration = domain.gameDuration,
-            gameMode = domain.gameMode,
-            participants = domain.participants.map { ParticipantSummaryResult.from(it) },
-            teams = domain.teams.map { TeamSummaryResult.from(it) },
-        )
+        fun from(domain: Match) =
+            MatchSummaryResult(
+                matchId = domain.matchId,
+                queueId = domain.queueId,
+                gameCreation = domain.gameCreation,
+                gameDuration = domain.gameDuration,
+                gameMode = domain.gameMode,
+                participants = domain.participants.map { ParticipantSummaryResult.from(it) },
+                teams = domain.teams.map { TeamSummaryResult.from(it) },
+            )
     }
 }
 
@@ -63,37 +64,48 @@ data class ParticipantSummaryResult(
     val perkPrimaryStyle: Int,
     val perkSubStyle: Int,
     val perk0: Int,
-    val item0: Int, val item1: Int, val item2: Int,
-    val item3: Int, val item4: Int, val item5: Int, val item6: Int,
+    val item0: Int,
+    val item1: Int,
+    val item2: Int,
+    val item3: Int,
+    val item4: Int,
+    val item5: Int,
+    val item6: Int,
     /** 목록의 포지션 표기는 이 값만 쓴다. 원본 lane/role 은 내려보내지 않는다. */
     val assignedPosition: String,
 ) {
     companion object {
-        fun from(domain: MatchParticipant) = ParticipantSummaryResult(
-            puuid = domain.puuid,
-            riotId = domain.riotId,
-            champion = domain.champion,
-            championId = domain.championId,
-            team = domain.team,
-            teamId = domain.teamId,
-            win = domain.win,
-            kills = domain.kills,
-            deaths = domain.deaths,
-            assists = domain.assists,
-            damage = domain.damage,
-            cs = domain.cs,
-            gold = domain.gold,
-            visionScore = domain.visionScore,
-            champLevel = domain.champLevel,
-            spell1Id = domain.spell1Id,
-            spell2Id = domain.spell2Id,
-            perkPrimaryStyle = domain.perkPrimaryStyle,
-            perkSubStyle = domain.perkSubStyle,
-            perk0 = domain.perk0,
-            item0 = domain.item0, item1 = domain.item1, item2 = domain.item2,
-            item3 = domain.item3, item4 = domain.item4, item5 = domain.item5, item6 = domain.item6,
-            assignedPosition = domain.assignedPosition,
-        )
+        fun from(domain: MatchParticipant) =
+            ParticipantSummaryResult(
+                puuid = domain.puuid,
+                riotId = domain.riotId,
+                champion = domain.champion,
+                championId = domain.championId,
+                team = domain.team,
+                teamId = domain.teamId,
+                win = domain.win,
+                kills = domain.kills,
+                deaths = domain.deaths,
+                assists = domain.assists,
+                damage = domain.damage,
+                cs = domain.cs,
+                gold = domain.gold,
+                visionScore = domain.visionScore,
+                champLevel = domain.champLevel,
+                spell1Id = domain.spell1Id,
+                spell2Id = domain.spell2Id,
+                perkPrimaryStyle = domain.perkPrimaryStyle,
+                perkSubStyle = domain.perkSubStyle,
+                perk0 = domain.perk0,
+                item0 = domain.item0,
+                item1 = domain.item1,
+                item2 = domain.item2,
+                item3 = domain.item3,
+                item4 = domain.item4,
+                item5 = domain.item5,
+                item6 = domain.item6,
+                assignedPosition = domain.assignedPosition,
+            )
     }
 }
 
@@ -105,12 +117,13 @@ data class TeamSummaryResult(
     val towerKills: Int,
 ) {
     companion object {
-        fun from(domain: MatchTeam) = TeamSummaryResult(
-            teamId = domain.teamId,
-            win = domain.win,
-            baronKills = domain.baronKills,
-            dragonKills = domain.dragonKills,
-            towerKills = domain.towerKills,
-        )
+        fun from(domain: MatchTeam) =
+            TeamSummaryResult(
+                teamId = domain.teamId,
+                win = domain.win,
+                baronKills = domain.baronKills,
+                dragonKills = domain.dragonKills,
+                towerKills = domain.towerKills,
+            )
     }
 }

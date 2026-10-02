@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 
 interface PositionHeatmapCacheRepository : JpaRepository<PositionHeatmapCacheEntity, Long> {
-
     /** 히트맵 한 장. 인덱스가 정확히 이 조건을 받는다. */
     fun findAllByModeAndScopeTypeAndScopeKeyAndKind(
         mode: String,

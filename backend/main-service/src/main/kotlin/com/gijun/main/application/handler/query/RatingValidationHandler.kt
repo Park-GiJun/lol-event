@@ -39,7 +39,6 @@ class RatingValidationHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val cache: StatsCachePort,
 ) : ValidateRatingUseCase {
-
     private companion object {
         /**
          * 이 간격 이상 끊기면 새 세션.
@@ -60,10 +59,16 @@ class RatingValidationHandler(
      * 전체 경기를 처음부터 재생하고 타임라인도 전부 다시 파싱한다. 예전에는 캐시 키가 없어서
      * 관리자 화면을 열 때마다 그 비용을 그대로 다시 냈다. 파라미터가 결과를 바꾸므로 키에 싣는다.
      */
-    override fun validate(warmup: Int, excludeRepeatedTeams: Boolean): RatingValidationResult =
+    override fun validate(
+        warmup: Int,
+        excludeRepeatedTeams: Boolean,
+    ): RatingValidationResult =
         cache.getOrCompute("rating-validation:$warmup:$excludeRepeatedTeams") { replay(warmup, excludeRepeatedTeams) }
 
-    private fun replay(warmup: Int, excludeRepeatedTeams: Boolean): RatingValidationResult {
+    private fun replay(
+        warmup: Int,
+        excludeRepeatedTeams: Boolean,
+    ): RatingValidationResult {
         val all = matchPersistencePort.findAllOrderedByGameCreation()
         val matches = all.filter(RatingEngine::isRatable)
 
@@ -146,14 +151,14 @@ class RatingValidationHandler(
         ratings: Map<String, PlayerRating>,
         select: (PlayerRating) -> Double,
     ): Double {
-        fun avg(teamId: Int) = match.participants
-            .filter { it.teamId == teamId && it.riotId.isNotBlank() }
-            .map { p ->
-                val r = ratings[p.riotId]
-                if (r == null) RatingMath.START else select(r)
-            }
-            .ifEmpty { listOf(RatingMath.START) }
-            .average()
+        fun avg(teamId: Int) =
+            match.participants
+                .filter { it.teamId == teamId && it.riotId.isNotBlank() }
+                .map { p ->
+                    val r = ratings[p.riotId]
+                    if (r == null) RatingMath.START else select(r)
+                }.ifEmpty { listOf(RatingMath.START) }
+                .average()
 
         return RatingMath.expected(avg(RatingEngine.TEAM_BLUE), avg(RatingEngine.TEAM_RED))
     }
@@ -168,8 +173,14 @@ class RatingValidationHandler(
     }
 
     /** 직전 경기와 같은 분할인가. 진영만 바뀐 경우도 같은 것으로 본다. */
-    private fun sameTeams(a: Match, b: Match): Boolean {
-        fun side(m: Match, teamId: Int) = m.participants
+    private fun sameTeams(
+        a: Match,
+        b: Match,
+    ): Boolean {
+        fun side(
+            m: Match,
+            teamId: Int,
+        ) = m.participants
             .filter { it.teamId == teamId && it.riotId.isNotBlank() }
             .map { it.riotId }
             .toSet()
@@ -193,36 +204,54 @@ class RatingValidationHandler(
         private var teamLoss = 0.0
         private var teamHits = 0.0
 
-        fun add(blueWon: Boolean, laneP: Double, teamP: Double) {
+        fun add(
+            blueWon: Boolean,
+            laneP: Double,
+            teamP: Double,
+        ) {
             games++
-            baseLoss += logLoss(blueWon, 0.5); baseHits += hit(blueWon, 0.5)
-            laneLoss += logLoss(blueWon, laneP); laneHits += hit(blueWon, laneP)
-            teamLoss += logLoss(blueWon, teamP); teamHits += hit(blueWon, teamP)
+            baseLoss += logLoss(blueWon, 0.5)
+            baseHits += hit(blueWon, 0.5)
+            laneLoss += logLoss(blueWon, laneP)
+            laneHits += hit(blueWon, laneP)
+            teamLoss += logLoss(blueWon, teamP)
+            teamHits += hit(blueWon, teamP)
         }
 
-        fun toScope() = ValidationScope(
-            games = games,
-            baseline = metrics(baseLoss, baseHits),
-            laneElo = metrics(laneLoss, laneHits),
-            teamElo = metrics(teamLoss, teamHits),
-        )
+        fun toScope() =
+            ValidationScope(
+                games = games,
+                baseline = metrics(baseLoss, baseHits),
+                laneElo = metrics(laneLoss, laneHits),
+                teamElo = metrics(teamLoss, teamHits),
+            )
 
-        private fun metrics(loss: Double, hits: Double) = PredictionMetrics(
+        private fun metrics(
+            loss: Double,
+            hits: Double,
+        ) = PredictionMetrics(
             logLoss = if (games == 0) 0.0 else round4(loss / games),
             accuracy = if (games == 0) 0.0 else round4(hits / games),
         )
 
-        private fun logLoss(y: Boolean, p: Double): Double {
+        private fun logLoss(
+            y: Boolean,
+            p: Double,
+        ): Double {
             val clamped = p.coerceIn(EPS, 1 - EPS)
             return if (y) -ln(clamped) else -ln(1 - clamped)
         }
 
         /** 정확히 0.5 면 동전 던지기라 절반만 맞은 것으로 센다. */
-        private fun hit(y: Boolean, p: Double): Double = when {
-            p == 0.5 -> 0.5
-            (p > 0.5) == y -> 1.0
-            else -> 0.0
-        }
+        private fun hit(
+            y: Boolean,
+            p: Double,
+        ): Double =
+            when {
+                p == 0.5 -> 0.5
+                (p > 0.5) == y -> 1.0
+                else -> 0.0
+            }
 
         private fun round4(v: Double) = Math.round(v * 10_000) / 10_000.0
 
@@ -235,12 +264,16 @@ class RatingValidationHandler(
     // ────────── 반분 신뢰도 ──────────
 
     private fun splitHalf(duels: Map<String, List<Boolean>>): SplitHalfReliability {
-        val pairs = duels.values.mapNotNull { results ->
-            val odd = results.filterIndexed { i, _ -> i % 2 == 0 }
-            val even = results.filterIndexed { i, _ -> i % 2 == 1 }
-            if (odd.size < MIN_DUELS_PER_HALF || even.size < MIN_DUELS_PER_HALF) null
-            else odd.count { it }.toDouble() / odd.size to even.count { it }.toDouble() / even.size
-        }
+        val pairs =
+            duels.values.mapNotNull { results ->
+                val odd = results.filterIndexed { i, _ -> i % 2 == 0 }
+                val even = results.filterIndexed { i, _ -> i % 2 == 1 }
+                if (odd.size < MIN_DUELS_PER_HALF || even.size < MIN_DUELS_PER_HALF) {
+                    null
+                } else {
+                    odd.count { it }.toDouble() / odd.size to even.count { it }.toDouble() / even.size
+                }
+            }
 
         val r = pearson(pairs)
         return SplitHalfReliability(

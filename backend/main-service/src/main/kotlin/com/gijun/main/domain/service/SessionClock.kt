@@ -17,7 +17,6 @@ import java.time.ZoneId
  *   쉬워서, 하루에 두 번 모인 날을 날짜로 합치면 그게 바로 막으려던 누출이 된다.
  */
 object SessionClock {
-
     val ZONE: ZoneId = ZoneId.of("Asia/Seoul")
 
     /**
@@ -44,7 +43,11 @@ object SessionClock {
 
     /** 이 경기가 속한 세션의 날짜. */
     fun sessionDate(gameCreationMs: Long): LocalDate =
-        Instant.ofEpochMilli(gameCreationMs).atZone(ZONE).minusHours(DAY_START_HOUR).toLocalDate()
+        Instant
+            .ofEpochMilli(gameCreationMs)
+            .atZone(ZONE)
+            .minusHours(DAY_START_HOUR)
+            .toLocalDate()
 
     /**
      * [date] 세션의 `[시작, 끝)` epoch ms. 기간 조회 쿼리에 그대로 넣는다.
@@ -52,8 +55,19 @@ object SessionClock {
      * 끝이 열린 구간인 것이 중요하다 — 닫으면 다음 세션의 첫 경기가 양쪽에 들어간다.
      */
     fun rangeMs(date: LocalDate): Pair<Long, Long> {
-        val from = date.atStartOfDay(ZONE).plusHours(DAY_START_HOUR).toInstant().toEpochMilli()
-        val until = date.plusDays(1).atStartOfDay(ZONE).plusHours(DAY_START_HOUR).toInstant().toEpochMilli()
+        val from =
+            date
+                .atStartOfDay(ZONE)
+                .plusHours(DAY_START_HOUR)
+                .toInstant()
+                .toEpochMilli()
+        val until =
+            date
+                .plusDays(1)
+                .atStartOfDay(ZONE)
+                .plusHours(DAY_START_HOUR)
+                .toInstant()
+                .toEpochMilli()
         return from to until
     }
 }

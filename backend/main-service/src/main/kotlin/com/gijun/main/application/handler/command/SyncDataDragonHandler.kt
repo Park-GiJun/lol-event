@@ -12,9 +12,8 @@ import org.springframework.stereotype.Service
 class SyncDataDragonHandler(
     private val dataDragonAdapter: DataDragonFetchPort,
     private val dragonDataPort: DragonDataPort,
-    private val cacheStore: DataDragonCachePort
+    private val cacheStore: DataDragonCachePort,
 ) : SyncDataDragonUseCase {
-
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun sync(): DragonSyncResult {
@@ -41,7 +40,7 @@ class SyncDataDragonHandler(
             champions = champions.size,
             items = items.size,
             spells = spells.size,
-            runes = runes.size
+            runes = runes.size,
         )
     }
 }

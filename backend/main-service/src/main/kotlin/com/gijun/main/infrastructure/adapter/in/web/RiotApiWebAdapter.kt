@@ -1,12 +1,17 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import com.gijun.main.application.port.out.MemberPersistencePort
 import com.gijun.main.application.port.out.RiotApiPort
+import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 data class RiotProfileResult(
     val riotId: String,
@@ -44,7 +49,9 @@ class RiotApiWebAdapter(
 
     @Operation(summary = "플레이어 라이엇 프로필 조회 (랭크 + 숙련도)")
     @GetMapping("/profile/{riotId}")
-    fun getProfile(@PathVariable riotId: String): CommonApiResponse<RiotProfileResult> {
+    fun getProfile(
+        @PathVariable riotId: String,
+    ): CommonApiResponse<RiotProfileResult> {
         val member = memberPersistencePort.findAll().firstOrNull { it.riotId == riotId }
         val puuid = member?.puuid
 
@@ -52,46 +59,68 @@ class RiotApiWebAdapter(
             return CommonApiResponse.success(RiotProfileResult(riotId, null, null, null, null, null, emptyList()))
         }
 
-        val summoner = try { riotApiPort.getSummonerByPuuid(puuid) } catch (e: Exception) {
-            log.warn("Summoner 조회 실패: ${e.message}")
-            null
-        }
+        val summoner =
+            try {
+                riotApiPort.getSummonerByPuuid(puuid)
+            } catch (e: Exception) {
+                log.warn("Summoner 조회 실패: ${e.message}")
+                null
+            }
 
-        val rankedEntries = if (summoner != null) {
-            try { riotApiPort.getRankedEntries(summoner.id) } catch (e: Exception) {
-                log.warn("랭크 조회 실패: ${e.message}")
+        val rankedEntries =
+            if (summoner != null) {
+                try {
+                    riotApiPort.getRankedEntries(summoner.id)
+                } catch (e: Exception) {
+                    log.warn("랭크 조회 실패: ${e.message}")
+                    emptyList()
+                }
+            } else {
                 emptyList()
             }
-        } else emptyList()
 
-        val mastery = try { riotApiPort.getChampionMastery(puuid, 10) } catch (e: Exception) {
-            log.warn("숙련도 조회 실패: ${e.message}")
-            emptyList()
-        }
+        val mastery =
+            try {
+                riotApiPort.getChampionMastery(puuid, 10)
+            } catch (e: Exception) {
+                log.warn("숙련도 조회 실패: ${e.message}")
+                emptyList()
+            }
 
         val solo = rankedEntries.find { it.queueType == "RANKED_SOLO_5x5" }
         val flex = rankedEntries.find { it.queueType == "RANKED_FLEX_SR" }
 
-        fun toRankedInfoDto(entry: com.gijun.main.application.port.out.RankedEntry?) = entry?.let {
-            val total = it.wins + it.losses
-            RankedInfoDto(it.tier, it.rank, it.leaguePoints, it.wins, it.losses,
-                if (total > 0) (it.wins.toDouble() / total * 100) else 0.0)
-        }
+        fun toRankedInfoDto(entry: com.gijun.main.application.port.out.RankedEntry?) =
+            entry?.let {
+                val total = it.wins + it.losses
+                RankedInfoDto(
+                    it.tier,
+                    it.rank,
+                    it.leaguePoints,
+                    it.wins,
+                    it.losses,
+                    if (total > 0) (it.wins.toDouble() / total * 100) else 0.0,
+                )
+            }
 
-        return CommonApiResponse.success(RiotProfileResult(
-            riotId = riotId,
-            puuid = puuid,
-            summonerLevel = summoner?.summonerLevel,
-            profileIconId = summoner?.profileIconId,
-            soloRank = toRankedInfoDto(solo),
-            flexRank = toRankedInfoDto(flex),
-            topMastery = mastery.map { MasteryInfoDto(it.championId, it.championLevel, it.championPoints) },
-        ))
+        return CommonApiResponse.success(
+            RiotProfileResult(
+                riotId = riotId,
+                puuid = puuid,
+                summonerLevel = summoner?.summonerLevel,
+                profileIconId = summoner?.profileIconId,
+                soloRank = toRankedInfoDto(solo),
+                flexRank = toRankedInfoDto(flex),
+                topMastery = mastery.map { MasteryInfoDto(it.championId, it.championLevel, it.championPoints) },
+            ),
+        )
     }
 
     @Operation(summary = "복수 플레이어 라이엇 프로필 일괄 조회")
     @PostMapping("/profiles/bulk")
-    fun getProfilesBulk(@RequestBody request: BulkProfileRequest): CommonApiResponse<Map<String, RiotProfileResult>> {
+    fun getProfilesBulk(
+        @RequestBody request: BulkProfileRequest,
+    ): CommonApiResponse<Map<String, RiotProfileResult>> {
         val results = mutableMapOf<String, RiotProfileResult>()
         for (rid in request.riotIds.take(10)) {
             try {
@@ -105,4 +134,6 @@ class RiotApiWebAdapter(
     }
 }
 
-data class BulkProfileRequest(val riotIds: List<String> = emptyList())
+data class BulkProfileRequest(
+    val riotIds: List<String> = emptyList(),
+)

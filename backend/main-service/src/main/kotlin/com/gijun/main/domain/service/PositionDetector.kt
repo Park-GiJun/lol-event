@@ -31,12 +31,16 @@ import com.gijun.main.domain.model.match.Position
  * 1:1 순열을 고른다. 항상 5개 포지션이 정확히 하나씩 채워지는 것을 보장한다.
  */
 object PositionDetector {
-
     private const val SMITE_SPELL_ID = 11
 
-    private val LANE_POSITIONS = listOf(
-        Position.TOP, Position.JUNGLE, Position.MID, Position.ADC, Position.SUPPORT
-    )
+    private val LANE_POSITIONS =
+        listOf(
+            Position.TOP,
+            Position.JUNGLE,
+            Position.MID,
+            Position.ADC,
+            Position.SUPPORT,
+        )
     private val REQUIRED_POSITIONS = LANE_POSITIONS.toSet()
 
     /**
@@ -45,22 +49,24 @@ object PositionDetector {
      */
     fun isTeamPositioned(team: List<MatchParticipant>): Boolean {
         if (team.size != 5) return false
-        val positions = team.mapNotNull { p ->
-            p.assignedPosition.takeIf { it.isNotBlank() }?.let {
-                runCatching { Position.valueOf(it.uppercase()) }.getOrNull()
+        val positions =
+            team.mapNotNull { p ->
+                p.assignedPosition.takeIf { it.isNotBlank() }?.let {
+                    runCatching { Position.valueOf(it.uppercase()) }.getOrNull()
+                }
             }
-        }
         return positions.size == 5 && positions.toSet() == REQUIRED_POSITIONS
     }
 
     /**
      * 팀원에게 포지션을 배정한다. riotId -> Position.
      */
-    fun assignPositions(team: List<MatchParticipant>): Map<String, Position> = when {
-        team.isEmpty() -> emptyMap()
-        team.size == 5 -> optimalAssignment(team)
-        else           -> greedyAssignment(team)
-    }
+    fun assignPositions(team: List<MatchParticipant>): Map<String, Position> =
+        when {
+            team.isEmpty() -> emptyMap()
+            team.size == 5 -> optimalAssignment(team)
+            else -> greedyAssignment(team)
+        }
 
     /**
      * 매치 전체(양 팀)의 참가자에 assignedPosition 을 채워 새 리스트로 반환한다.
@@ -96,15 +102,22 @@ object PositionDetector {
             }
         }
         claims.forEach { (slot, players) ->
-            players.singleOrNull()?.let { locked[it] = slot; lockedSlots += slot }
+            players.singleOrNull()?.let {
+                locked[it] = slot
+                lockedSlots += slot
+            }
         }
 
         // 2순위: 역할 장화가 정글을 못 잡은 팀에서만 스마이트로 보완.
         // 실데이터 308팀 중 307팀이 "스마이트 정확히 1명"이라 사실상 확정 신호다.
         val jungleSlot = LANE_POSITIONS.indexOf(Position.JUNGLE)
         if (jungleSlot !in lockedSlots) {
-            team.indices.singleOrNull { feats[it].smite && locked[it] == -1 }
-                ?.let { locked[it] = jungleSlot; lockedSlots += jungleSlot }
+            team.indices
+                .singleOrNull { feats[it].smite && locked[it] == -1 }
+                ?.let {
+                    locked[it] = jungleSlot
+                    lockedSlots += jungleSlot
+                }
         }
 
         var bestScore = Double.NEGATIVE_INFINITY
@@ -120,7 +133,7 @@ object PositionDetector {
         }
 
         val result = mutableMapOf<String, Position>()
-        val perm = bestPerm!!
+        val perm = checkNotNull(bestPerm) { "포지션 순열이 하나도 평가되지 않았다" }
         for (i in 0 until 5) result[team[i].riotId] = LANE_POSITIONS[perm[i]]
         return result
     }
@@ -128,10 +141,17 @@ object PositionDetector {
     /** 표준 5인이 아닌 팀(예: 비정상 데이터) — 가장 점수 높은 (플레이어,포지션) 쌍부터 greedy 로 1:1 배정. */
     private fun greedyAssignment(team: List<MatchParticipant>): Map<String, Position> {
         val feats = teamFeatures(team)
-        data class Cell(val idx: Int, val pos: Position, val score: Double)
-        val cells = team.indices.flatMap { i ->
-            LANE_POSITIONS.map { pos -> Cell(i, pos, fitScore(team[i], feats[i], pos)) }
-        }.sortedByDescending { it.score }
+
+        data class Cell(
+            val idx: Int,
+            val pos: Position,
+            val score: Double,
+        )
+        val cells =
+            team.indices
+                .flatMap { i ->
+                    LANE_POSITIONS.map { pos -> Cell(i, pos, fitScore(team[i], feats[i], pos)) }
+                }.sortedByDescending { it.score }
 
         val assigned = mutableMapOf<String, Position>()
         val takenPlayers = mutableSetOf<Int>()
@@ -139,7 +159,8 @@ object PositionDetector {
         for (c in cells) {
             if (c.idx in takenPlayers || c.pos in takenPositions) continue
             assigned[team[c.idx].riotId] = c.pos
-            takenPlayers.add(c.idx); takenPositions.add(c.pos)
+            takenPlayers.add(c.idx)
+            takenPositions.add(c.pos)
             if (takenPlayers.size == team.size) break
         }
         // 포지션이 다 떨어졌는데 남은 플레이어 → UNKNOWN
@@ -196,7 +217,11 @@ object PositionDetector {
      * 플레이어가 특정 포지션에 얼마나 맞는지 점수화.
      * lane/role 힌트는 +1.0 의 약한 가중치 — 강한 플레이 신호(스마이트=+3.0)는 잘못된 힌트를 덮어쓴다.
      */
-    private fun fitScore(p: MatchParticipant, f: Feat, pos: Position): Double {
+    private fun fitScore(
+        p: MatchParticipant,
+        f: Feat,
+        pos: Position,
+    ): Double {
         val smiteBonus = if (f.smite) 1.0 else 0.0
 
         // lane 힌트에서 JUNGLE 만 버린다. 실데이터에서 lane=JUNGLE 태깅이 458명인데
@@ -208,19 +233,20 @@ object PositionDetector {
         // 물리/마법 피해 비중은 일부러 쓰지 않는다. 그건 포지션이 아니라 챔피언 고유 속성이라
         // 카이사 미드, 직스 원딜 같은 내전 오프메타 픽에서 정확히 틀린다. 같은 이유로 챔피언 정체성도
         // 쓰지 않는다. 여기 특징들은 전부 "그 판에서 실제로 무엇을 했나"(CS 위치, 시야, 탱킹)만 본다.
-        val base = when (pos) {
-            Position.JUNGLE ->
-                3.0 * smiteBonus + 2.5 * f.nJungleCs + 0.8 * f.nObjDmg - 1.0 * f.nLaneCs
-            Position.SUPPORT ->
-                1.5 * f.nVision + 1.0 * f.nWards + 1.2 * (1 - f.nGold) + 1.0 * (1 - f.nLaneCs) - 2.0 * smiteBonus
-            Position.ADC ->
-                1.2 * f.nLaneCs + 1.2 * f.nDamage + 0.8 * f.nGold - 0.5 * f.nVision - 2.0 * smiteBonus
-            Position.MID ->
-                1.2 * f.nDamage + 0.6 * f.nLaneCs - 0.8 * f.nJungleCs - 0.3 * f.nVision - 1.5 * smiteBonus
-            Position.TOP ->
-                1.2 * f.nTank + 0.7 * f.nLaneCs - 0.4 * f.nVision - 0.8 * f.nJungleCs - 1.5 * smiteBonus
-            Position.UNKNOWN -> 0.0
-        }
+        val base =
+            when (pos) {
+                Position.JUNGLE ->
+                    3.0 * smiteBonus + 2.5 * f.nJungleCs + 0.8 * f.nObjDmg - 1.0 * f.nLaneCs
+                Position.SUPPORT ->
+                    1.5 * f.nVision + 1.0 * f.nWards + 1.2 * (1 - f.nGold) + 1.0 * (1 - f.nLaneCs) - 2.0 * smiteBonus
+                Position.ADC ->
+                    1.2 * f.nLaneCs + 1.2 * f.nDamage + 0.8 * f.nGold - 0.5 * f.nVision - 2.0 * smiteBonus
+                Position.MID ->
+                    1.2 * f.nDamage + 0.6 * f.nLaneCs - 0.8 * f.nJungleCs - 0.3 * f.nVision - 1.5 * smiteBonus
+                Position.TOP ->
+                    1.2 * f.nTank + 0.7 * f.nLaneCs - 0.4 * f.nVision - 0.8 * f.nJungleCs - 1.5 * smiteBonus
+                Position.UNKNOWN -> 0.0
+            }
         return base + laneHint
     }
 
@@ -240,38 +266,46 @@ object PositionDetector {
      * 나머지 넷이 확정되면 자동으로 남은 자리를 가져간다. 306개 5인 팀 중 272팀(88.9%)이
      * 이 방식만으로 전원 확정됐고, 같은 포지션을 두 명이 주장하는 충돌은 한 건도 없었다.
      */
-    private fun roleBoundPosition(itemId: Int): Position? = when (itemId) {
-        1209 -> Position.JUNGLE
-        1206 -> Position.MID
-        1208 -> Position.SUPPORT
-        1220, 1221 -> Position.TOP
-        else -> null
-    }
+    private fun roleBoundPosition(itemId: Int): Position? =
+        when (itemId) {
+            1209 -> Position.JUNGLE
+            1206 -> Position.MID
+            1208 -> Position.SUPPORT
+            1220, 1221 -> Position.TOP
+            else -> null
+        }
 
     /** lane/role 기반 약한 힌트 (배정의 1순위 강제값이 아니라 동점 보정용). */
-    fun primaryPosition(p: MatchParticipant): Position? = when {
-        p.lane == "TOP"                                 -> Position.TOP
-        p.lane == "JUNGLE"                              -> Position.JUNGLE
-        p.lane == "MIDDLE"                              -> Position.MID
-        p.lane == "BOTTOM" && p.role == "CARRY"         -> Position.ADC
-        p.lane == "BOTTOM" && p.role == "DUO_CARRY"     -> Position.ADC
-        p.lane == "BOTTOM" && p.role == "SUPPORT"       -> Position.SUPPORT
-        p.lane == "BOTTOM" && p.role == "DUO_SUPPORT"   -> Position.SUPPORT
-        else                                            -> null
-    }
+    fun primaryPosition(p: MatchParticipant): Position? =
+        when {
+            p.lane == "TOP" -> Position.TOP
+            p.lane == "JUNGLE" -> Position.JUNGLE
+            p.lane == "MIDDLE" -> Position.MID
+            p.lane == "BOTTOM" && p.role == "CARRY" -> Position.ADC
+            p.lane == "BOTTOM" && p.role == "DUO_CARRY" -> Position.ADC
+            p.lane == "BOTTOM" && p.role == "SUPPORT" -> Position.SUPPORT
+            p.lane == "BOTTOM" && p.role == "DUO_SUPPORT" -> Position.SUPPORT
+            else -> null
+        }
 
     // ─────────────────────────────────────────────────────────────
     //  유틸리티
     // ─────────────────────────────────────────────────────────────
 
-    private fun normalize(value: Double, all: List<Double>): Double {
+    private fun normalize(
+        value: Double,
+        all: List<Double>,
+    ): Double {
         val min = all.min()
         val max = all.max()
         return if (max == min) 0.5 else (value - min) / (max - min)
     }
 
     /** Heap's algorithm — arr 의 모든 순열을 visit 으로 콜백. */
-    private inline fun permutations(arr: IntArray, visit: (IntArray) -> Unit) {
+    private inline fun permutations(
+        arr: IntArray,
+        visit: (IntArray) -> Unit,
+    ) {
         val n = arr.size
         val c = IntArray(n)
         visit(arr)
@@ -279,7 +313,9 @@ object PositionDetector {
         while (i < n) {
             if (c[i] < i) {
                 val swapIdx = if (i % 2 == 0) 0 else c[i]
-                val tmp = arr[swapIdx]; arr[swapIdx] = arr[i]; arr[i] = tmp
+                val tmp = arr[swapIdx]
+                arr[swapIdx] = arr[i]
+                arr[i] = tmp
                 visit(arr)
                 c[i]++
                 i = 0

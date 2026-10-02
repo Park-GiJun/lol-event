@@ -1,0 +1,42 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+indent_style = space
+indent_size = 4
+max_line_length = 140
+
+# ktlint (1.5.x) - 프로젝트 컨벤션
+ktlint_standard_no-wildcard-imports = enabled
+ktlint_standard_max-line-length = enabled
+ktlint_standard_no-trailing-spaces = enabled
+ktlint_standard_final-newline = enabled
+ktlint_standard_indent = enabled
+
+ktlint_standard_trailing-comma-on-declaration-site = enabled
+ktlint_standard_trailing-comma-on-call-site = enabled
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+
+# package-name 룰: `in` / `out` 패키지(application.port.in/out) 사용중 — 비활성
+ktlint_standard_package-name = disabled
+
+# filename 룰: 비활성. `*Commands.kt` / `*Dtos.kt` / `*Results.kt` 처럼 클래스가 하나뿐이어도
+# 묶음 의도로 이름 붙인 파일이 있다.
+ktlint_standard_filename = disabled
+
+# import 순서: alphabetical (IDEA 기본). aliases 는 그룹 끝.
+ij_kotlin_imports_layout = *,java.**,javax.**,kotlin.**,^
+
+[*.{yml,yaml,json}]
+indent_style = space
+indent_size = 2
+
+[*.sql]
+indent_style = space
+indent_size = 4

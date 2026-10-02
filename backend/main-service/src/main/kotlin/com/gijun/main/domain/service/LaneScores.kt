@@ -14,7 +14,6 @@ import com.gijun.main.domain.model.match.MatchTimeline
  * 사용 가능한 첫 번째 방법을 쓴다.
  */
 object LaneScores {
-
     /** 경험치 1 = 골드 1. */
     const val W_XP = 1.0
 
@@ -47,12 +46,18 @@ object LaneScores {
     const val ARAM_QUEUE_ID = 3270
 
     /** riotId -> 라인 점수. [method] 는 이 경기에 실제로 쓰인 판정 방법이다. */
-    data class Scored(val method: LaneMethod, val scores: Map<String, Double>)
+    data class Scored(
+        val method: LaneMethod,
+        val scores: Map<String, Double>,
+    )
 
     /**
      * @param timeline `game-timelines` 원본을 파싱한 것. 없으면 null 을 넘긴다.
      */
-    fun of(match: Match, timeline: MatchTimeline?): Scored {
+    fun of(
+        match: Match,
+        timeline: MatchTimeline?,
+    ): Scored {
         timelineScores(match, timeline)?.let { return Scored(LaneMethod.TIMELINE_15, it) }
         return Scored(LaneMethod.LEGACY_FINAL, legacyScores(match))
     }
@@ -81,15 +86,19 @@ object LaneScores {
     // ────────── T1: 타임라인 15분 프레임 ──────────
 
     /** 쓸 수 없으면 null 을 돌려 다음 방법으로 넘긴다. */
-    private fun timelineScores(match: Match, timeline: MatchTimeline?): Map<String, Double>? {
+    private fun timelineScores(
+        match: Match,
+        timeline: MatchTimeline?,
+    ): Map<String, Double>? {
         if (timeline == null || timeline.isEmpty) return null
 
         val frame = lanePhaseFrame(timeline) ?: return null
 
         // participantId 는 신규 수집부터 저장한다. 과거 경기는 0 이라 프레임과 이을 수 없다.
-        val byParticipantId = match.participants
-            .filter { it.riotId.isNotBlank() && it.participantId > 0 }
-            .associateBy { it.participantId }
+        val byParticipantId =
+            match.participants
+                .filter { it.riotId.isNotBlank() && it.participantId > 0 }
+                .associateBy { it.participantId }
         if (byParticipantId.size != match.participants.count { it.riotId.isNotBlank() }) return null
 
         val scores = mutableMapOf<String, Double>()

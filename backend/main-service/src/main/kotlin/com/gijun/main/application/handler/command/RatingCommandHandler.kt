@@ -26,8 +26,8 @@ class RatingCommandHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val playerRatingPort: PlayerRatingPort,
     private val ratingHistoryPort: RatingHistoryPort,
-) : CalculateRatingForMatchUseCase, ResetAndRecalculateRatingUseCase {
-
+) : CalculateRatingForMatchUseCase,
+    ResetAndRecalculateRatingUseCase {
     private val log = LoggerFactory.getLogger(javaClass)
 
     private companion object {
@@ -42,13 +42,17 @@ class RatingCommandHandler(
 
     @Transactional
     override fun calculateForMatch(matchId: String) {
-        val match = matchPersistencePort.findByMatchId(matchId)
-            ?: run { log.warn("레이팅 계산 skip — 매치 없음: $matchId"); return }
+        val match =
+            matchPersistencePort.findByMatchId(matchId)
+                ?: run {
+                    log.warn("레이팅 계산 skip — 매치 없음: $matchId")
+                    return
+                }
 
         if (!RatingEngine.isRatable(match)) {
             log.info(
                 "레이팅 계산 skip — 재생 대상 아님: $matchId " +
-                    "(참가자 ${match.participants.size}명, ${match.gameDuration}초)"
+                    "(참가자 ${match.participants.size}명, ${match.gameDuration}초)",
             )
             return
         }
@@ -68,12 +72,20 @@ class RatingCommandHandler(
             return
         }
 
-        val ids = match.participants.map { it.riotId }.filter { it.isNotBlank() }.distinct()
+        val ids =
+            match.participants
+                .map { it.riotId }
+                .filter { it.isNotBlank() }
+                .distinct()
         val current = playerRatingPort.findAllByRiotIds(ids).associateBy { it.riotId }
 
         val scored = scoreLanes(match, matchPersistencePort.findTimelineRaw(listOf(matchId))[matchId])
-        val outcome = RatingEngine.rate(match, scored, current)
-            ?: run { log.warn("레이팅 계산 skip — 승패를 판정할 수 없다: $matchId"); return }
+        val outcome =
+            RatingEngine.rate(match, scored, current)
+                ?: run {
+                    log.warn("레이팅 계산 skip — 승패를 판정할 수 없다: $matchId")
+                    return
+                }
 
         playerRatingPort.saveAll(outcome.ratings)
         ratingHistoryPort.saveAll(outcome.histories)
@@ -81,7 +93,7 @@ class RatingCommandHandler(
 
         log.debug(
             "레이팅 갱신 — matchId=$matchId, ${outcome.method}, " +
-                "라인 대결 ${outcome.duelCount}쌍, 대상 ${outcome.ratings.size}명"
+                "라인 대결 ${outcome.duelCount}쌍, 대상 ${outcome.ratings.size}명",
         )
     }
 
@@ -127,19 +139,22 @@ class RatingCommandHandler(
         ratingHistoryPort.saveAll(histories)
         matchPersistencePort.updateLaneMethods(methods)
 
-        val result = RecalculateResult(
-            totalMatches = all.size,
-            ratedMatches = counted,
-            players = ratings.size,
-            laneDuels = duels,
-            methodCounts = methods.values.groupingBy { it.name }.eachCount(),
-        )
+        val result =
+            RecalculateResult(
+                totalMatches = all.size,
+                ratedMatches = counted,
+                players = ratings.size,
+                laneDuels = duels,
+                methodCounts = methods.values.groupingBy { it.name }.eachCount(),
+            )
         log.info("레이팅 재집계 완료 — $result")
         return result
     }
 
     // ────────── 공통 ──────────
 
-    private fun scoreLanes(match: Match, timelineRaw: String?): LaneScores.Scored =
-        LaneScores.of(match, TimelineParser.parse(timelineRaw))
+    private fun scoreLanes(
+        match: Match,
+        timelineRaw: String?,
+    ): LaneScores.Scored = LaneScores.of(match, TimelineParser.parse(timelineRaw))
 }

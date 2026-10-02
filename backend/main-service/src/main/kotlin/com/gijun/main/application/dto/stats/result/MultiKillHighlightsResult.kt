@@ -4,7 +4,7 @@ data class MultiKillEvent(
     val riotId: String,
     val champion: String,
     val championId: Int,
-    val multiKillType: String,  // "PENTA", "QUADRA", "TRIPLE", "DOUBLE"
+    val multiKillType: String, // "PENTA", "QUADRA", "TRIPLE", "DOUBLE"
     val matchId: String,
     val gameCreation: Long,
 )
@@ -20,7 +20,7 @@ data class PlayerMultiKillStat(
 )
 
 data class MultiKillHighlightsResult(
-    val pentaKillEvents: List<MultiKillEvent>,      // 전체 펜타킬 이벤트 (최신순)
-    val recentHighlights: List<MultiKillEvent>,     // 최근 쿼드라 이상 이벤트 20개
-    val playerRankings: List<PlayerMultiKillStat>,  // 플레이어별 멀티킬 합계 (펜타킬 내림차순)
+    val pentaKillEvents: List<MultiKillEvent>, // 전체 펜타킬 이벤트 (최신순)
+    val recentHighlights: List<MultiKillEvent>, // 최근 쿼드라 이상 이벤트 20개
+    val playerRankings: List<PlayerMultiKillStat>, // 플레이어별 멀티킬 합계 (펜타킬 내림차순)
 )

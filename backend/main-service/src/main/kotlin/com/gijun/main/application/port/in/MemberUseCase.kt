@@ -7,6 +7,7 @@ import com.gijun.main.application.dto.member.result.MemberResult
 
 interface RegisterMemberUseCase {
     fun register(command: RegisterMemberCommand): MemberResult
+
     fun registerBulk(command: RegisterBulkCommand): BulkRegisterResult
 }
 

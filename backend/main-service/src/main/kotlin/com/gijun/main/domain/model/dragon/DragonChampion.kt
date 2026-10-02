@@ -7,5 +7,5 @@ data class DragonChampion(
     val titleKo: String?,
     val imageFull: String?,
     val imageUrl: String?,
-    val version: String?
+    val version: String?,
 )

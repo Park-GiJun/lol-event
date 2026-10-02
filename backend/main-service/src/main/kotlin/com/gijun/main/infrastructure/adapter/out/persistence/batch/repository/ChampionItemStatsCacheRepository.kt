@@ -6,8 +6,10 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 
 interface ChampionItemStatsCacheRepository : JpaRepository<ChampionItemStatsCacheEntity, Long> {
-
-    fun findAllByChampionAndMode(champion: String, mode: String): List<ChampionItemStatsCacheEntity>
+    fun findAllByChampionAndMode(
+        champion: String,
+        mode: String,
+    ): List<ChampionItemStatsCacheEntity>
 
     @Modifying
     @Query("DELETE FROM ChampionItemStatsCacheEntity e WHERE e.mode = :mode")

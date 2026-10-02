@@ -24,10 +24,12 @@ import java.util.concurrent.atomic.AtomicLong
  */
 @Component
 class StatsQueryCache : StatsCachePort {
-
     private val log = LoggerFactory.getLogger(javaClass)
 
-    private data class CacheEntry<T>(val value: T, val expiresAt: Long)
+    private data class CacheEntry<T>(
+        val value: T,
+        val expiresAt: Long,
+    )
 
     private val store = ConcurrentHashMap<String, CacheEntry<*>>()
 
@@ -45,7 +47,10 @@ class StatsQueryCache : StatsCachePort {
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T> getOrCompute(key: String, compute: () -> T): T {
+    override fun <T> getOrCompute(
+        key: String,
+        compute: () -> T,
+    ): T {
         val now = System.currentTimeMillis()
         (store[key] as? CacheEntry<T>)?.let { if (it.expiresAt > now) return it.value }
 

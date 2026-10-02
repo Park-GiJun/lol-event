@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional(readOnly = true)
-class GetMembersHandler(private val memberPersistencePort: MemberPersistencePort) : GetMembersUseCase {
+class GetMembersHandler(
+    private val memberPersistencePort: MemberPersistencePort,
+) : GetMembersUseCase {
     override fun getAll(): List<MemberResult> = memberPersistencePort.findAll().map { MemberResult.from(it) }
 }

@@ -1,6 +1,5 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import com.gijun.main.application.dto.stats.result.GrowthCurveResult
 import com.gijun.main.application.dto.stats.result.PlayerComparisonResult
 import com.gijun.main.application.dto.stats.result.PlayerDetailStatsResult
@@ -15,10 +14,15 @@ import com.gijun.main.application.port.`in`.GetPlayerStatsUseCase
 import com.gijun.main.application.port.`in`.GetPlayerStreakUseCase
 import com.gijun.main.application.port.`in`.GetPlayerTimelineUseCase
 import com.gijun.main.application.port.`in`.GetStatsUseCase
+import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "Player Stats", description = "플레이어별 통계 API")
 @RestController
@@ -36,9 +40,8 @@ class PlayerStatsWebAdapter(
     @GetMapping
     fun getStats(
         @Parameter(description = "경기 모드 (normal=5v5내전, aram=칼바람, all=전체)", example = "normal")
-        @RequestParam(defaultValue = "normal") mode: String
-    ): CommonApiResponse<StatsResult> =
-        CommonApiResponse.success(getStatsUseCase.getStats(mode))
+        @RequestParam(defaultValue = "normal") mode: String,
+    ): CommonApiResponse<StatsResult> = CommonApiResponse.success(getStatsUseCase.getStats(mode))
 
     @Operation(summary = "플레이어 개인 상세 통계")
     @GetMapping("/player/{riotId}")
@@ -49,13 +52,17 @@ class PlayerStatsWebAdapter(
         @Parameter(description = "포지션 필터 (TOP/JUNGLE/MID/BOTTOM/SUPPORT), 미입력 시 전체")
         @RequestParam(required = false) lane: String? = null,
     ): CommonApiResponse<PlayerDetailStatsResult> =
-        CommonApiResponse.success(getPlayerStatsUseCase.getPlayerStats(
-            java.net.URLDecoder.decode(riotId, "UTF-8"), mode, lane
-        ))
+        CommonApiResponse.success(
+            getPlayerStatsUseCase.getPlayerStats(
+                java.net.URLDecoder.decode(riotId, "UTF-8"),
+                mode,
+                lane,
+            ),
+        )
 
     @Operation(
         summary = "플레이어 연승/연패 기록",
-        description = "플레이어의 현재 연승/연패, 역대 최장 연승/연패, 최근 10경기 폼을 반환합니다"
+        description = "플레이어의 현재 연승/연패, 역대 최장 연승/연패, 최근 10경기 폼을 반환합니다",
     )
     @GetMapping("/player/{riotId}/streak")
     fun getPlayerStreak(
@@ -63,9 +70,12 @@ class PlayerStatsWebAdapter(
         @PathVariable riotId: String,
         @RequestParam(defaultValue = "all") mode: String,
     ): CommonApiResponse<StreakResult> =
-        CommonApiResponse.success(getPlayerStreakUseCase.getPlayerStreak(
-            java.net.URLDecoder.decode(riotId, "UTF-8"), mode
-        ))
+        CommonApiResponse.success(
+            getPlayerStreakUseCase.getPlayerStreak(
+                java.net.URLDecoder.decode(riotId, "UTF-8"),
+                mode,
+            ),
+        )
 
     @Operation(summary = "플레이어 Elo 변동 내역", description = "최근 N개 경기의 Elo 변동 히스토리를 반환합니다")
     @GetMapping("/player/{riotId}/elo-history")
@@ -73,30 +83,38 @@ class PlayerStatsWebAdapter(
         @PathVariable riotId: String,
         @RequestParam(defaultValue = "30") limit: Int,
     ): CommonApiResponse<PlayerEloHistoryResult> =
-        CommonApiResponse.success(getEloHistoryUseCase.getHistory(
-            java.net.URLDecoder.decode(riotId, "UTF-8"), limit
-        ))
+        CommonApiResponse.success(
+            getEloHistoryUseCase.getHistory(
+                java.net.URLDecoder.decode(riotId, "UTF-8"),
+                limit,
+            ),
+        )
 
     @Operation(
         summary = "플레이어 타임라인 지표",
-        description = "타임라인이 있는 경기에서의 15분 라인 격차, 초반 킬·데스, 분별 골드 격차 곡선을 반환합니다"
+        description = "타임라인이 있는 경기에서의 15분 라인 격차, 초반 킬·데스, 분별 골드 격차 곡선을 반환합니다",
     )
     @GetMapping("/player/{riotId}/timeline")
     fun getPlayerTimeline(
         @PathVariable riotId: String,
     ): CommonApiResponse<PlayerTimelineResult> =
-        CommonApiResponse.success(getPlayerTimelineUseCase.getPlayerTimeline(
-            java.net.URLDecoder.decode(riotId, "UTF-8")
-        ))
+        CommonApiResponse.success(
+            getPlayerTimelineUseCase.getPlayerTimeline(
+                java.net.URLDecoder.decode(riotId, "UTF-8"),
+            ),
+        )
 
     @GetMapping("/player/{riotId}/growth-curve")
     fun getGrowthCurve(
         @PathVariable riotId: String,
         @RequestParam(defaultValue = "all") mode: String,
     ): CommonApiResponse<GrowthCurveResult> =
-        CommonApiResponse.success(getGrowthCurveUseCase.getGrowthCurve(
-            java.net.URLDecoder.decode(riotId, "UTF-8"), mode
-        ))
+        CommonApiResponse.success(
+            getGrowthCurveUseCase.getGrowthCurve(
+                java.net.URLDecoder.decode(riotId, "UTF-8"),
+                mode,
+            ),
+        )
 
     @GetMapping("/compare")
     fun getPlayerComparison(
@@ -104,9 +122,11 @@ class PlayerStatsWebAdapter(
         @RequestParam player2: String,
         @RequestParam(defaultValue = "normal") mode: String,
     ): CommonApiResponse<PlayerComparisonResult> =
-        CommonApiResponse.success(getPlayerComparisonUseCase.getPlayerComparison(
-            java.net.URLDecoder.decode(player1, "UTF-8"),
-            java.net.URLDecoder.decode(player2, "UTF-8"),
-            mode,
-        ))
+        CommonApiResponse.success(
+            getPlayerComparisonUseCase.getPlayerComparison(
+                java.net.URLDecoder.decode(player1, "UTF-8"),
+                java.net.URLDecoder.decode(player2, "UTF-8"),
+                mode,
+            ),
+        )
 }

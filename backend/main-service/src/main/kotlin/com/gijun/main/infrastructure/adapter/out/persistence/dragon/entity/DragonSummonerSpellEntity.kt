@@ -1,7 +1,12 @@
 package com.gijun.main.infrastructure.adapter.out.persistence.dragon.entity
 
 import com.gijun.main.domain.model.dragon.DragonSummonerSpell
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import java.time.LocalDateTime
 
 @Entity
@@ -16,17 +21,29 @@ class DragonSummonerSpellEntity(
     @Column var imageFull: String? = null,
     @Column var imageUrl: String? = null,
     @Column var version: String? = null,
-    @Column(nullable = false) var updatedAt: LocalDateTime = LocalDateTime.now()
+    @Column(nullable = false) var updatedAt: LocalDateTime = LocalDateTime.now(),
 ) {
-    fun toDomain() = DragonSummonerSpell(
-        spellId = spellId, spellKey = spellKey, nameKo = nameKo, description = description,
-        imageFull = imageFull, imageUrl = imageUrl, version = version
-    )
+    fun toDomain() =
+        DragonSummonerSpell(
+            spellId = spellId,
+            spellKey = spellKey,
+            nameKo = nameKo,
+            description = description,
+            imageFull = imageFull,
+            imageUrl = imageUrl,
+            version = version,
+        )
 
     companion object {
-        fun from(domain: DragonSummonerSpell) = DragonSummonerSpellEntity(
-            spellId = domain.spellId, spellKey = domain.spellKey, nameKo = domain.nameKo,
-            description = domain.description, imageFull = domain.imageFull, imageUrl = domain.imageUrl, version = domain.version
-        )
+        fun from(domain: DragonSummonerSpell) =
+            DragonSummonerSpellEntity(
+                spellId = domain.spellId,
+                spellKey = domain.spellKey,
+                nameKo = domain.nameKo,
+                description = domain.description,
+                imageFull = domain.imageFull,
+                imageUrl = domain.imageUrl,
+                version = domain.version,
+            )
     }
 }

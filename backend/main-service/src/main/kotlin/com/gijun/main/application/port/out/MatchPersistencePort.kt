@@ -5,17 +5,27 @@ import com.gijun.main.domain.model.match.Match
 
 interface MatchPersistencePort {
     fun existsByMatchId(matchId: String): Boolean
+
     fun findByMatchId(matchId: String): Match?
+
     fun save(match: Match): Match
+
     fun findAllWithParticipants(queueIds: List<Int>): List<Match>
 
     /** 최신순 한 페이지만 참가자까지 채워서 반환한다. 목록 화면 전용. */
-    fun findPageWithParticipants(queueIds: List<Int>, page: Int, size: Int): List<Match>
+    fun findPageWithParticipants(
+        queueIds: List<Int>,
+        page: Int,
+        size: Int,
+    ): List<Match>
 
     /** 기록 기간과 등장 인원. 전체 경기를 로드하지 않고 집계 쿼리로 센다. */
     fun findPeriodSummary(queueIds: List<Int>): MatchPeriodSummary
+
     fun deleteByMatchId(matchId: String)
+
     fun countByQueueIds(queueIds: List<Int>): Long
+
     fun findAllOrderedByGameCreation(): List<Match>
 
     /**
@@ -24,7 +34,11 @@ interface MatchPersistencePort {
      * 세션 상세처럼 하루만 보는 화면 전용이다. 전체를 로드해 메모리에서 거르면 날짜 하나짜리
      * 화면이 전체 경기를 스캔한다.
      */
-    fun findInPeriodWithParticipants(queueIds: List<Int>, fromMs: Long, untilMs: Long): List<Match>
+    fun findInPeriodWithParticipants(
+        queueIds: List<Int>,
+        fromMs: Long,
+        untilMs: Long,
+    ): List<Match>
 
     /** 참가자들의 assignedPosition 만 일괄 갱신 (포지션 백필용). key = participantId, value = Position.name */
     fun updateAssignedPositions(updates: Map<Long, String>)
@@ -33,7 +47,10 @@ interface MatchPersistencePort {
      * `game-timelines` 원본 저장. 같은 matchId 로 다시 부르면 덮어쓴다.
      * 타임라인 수집은 best-effort 라 실패해도 매치 저장 자체는 이미 끝나 있다.
      */
-    fun saveTimelineRaw(matchId: String, raw: String)
+    fun saveTimelineRaw(
+        matchId: String,
+        raw: String,
+    )
 
     /** matchId -> 타임라인 원본. 없는 경기는 키 자체가 빠진다. */
     fun findTimelineRaw(matchIds: Collection<String>): Map<String, String>
@@ -48,7 +65,11 @@ interface MatchPersistencePort {
     fun findPositionCounts(): List<PositionCount>
 }
 
-data class PositionCount(val riotId: String, val position: String, val games: Long)
+data class PositionCount(
+    val riotId: String,
+    val position: String,
+    val games: Long,
+)
 
 data class MatchPeriodSummary(
     val firstMatchAt: Long?,

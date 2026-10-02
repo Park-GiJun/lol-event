@@ -12,9 +12,8 @@ import org.springframework.stereotype.Component
 class DataDragonStartupRunner(
     private val syncDataDragonUseCase: SyncDataDragonUseCase,
     private val dragonDataPort: DragonDataPort,
-    private val cacheStore: DataDragonCacheStore
+    private val cacheStore: DataDragonCacheStore,
 ) : ApplicationRunner {
-
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun run(args: ApplicationArguments) {
@@ -26,7 +25,9 @@ class DataDragonStartupRunner(
             } else {
                 // 처음 기동이면 DataDragon에서 동기화
                 val result = syncDataDragonUseCase.sync()
-                log.info("[DataDragon] 초기 동기화 완료: version=${result.version}, 챔피언=${result.champions}, 아이템=${result.items}, 스펠=${result.spells}")
+                log.info(
+                    "[DataDragon] 초기 동기화 완료: version=${result.version}, 챔피언=${result.champions}, 아이템=${result.items}, 스펠=${result.spells}",
+                )
             }
         }.onFailure {
             log.error("[DataDragon] 시작 시 데이터 로드 실패 - 캐시 없이 기동합니다", it)

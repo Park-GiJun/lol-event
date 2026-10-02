@@ -14,9 +14,11 @@ import java.lang.reflect.Proxy
  * 배정 결과는 포지션 다섯 종뿐이므로 포지션별로 묶여 나가야 한다.
  */
 class MatchPersistenceAdapterTest {
-
     /** updateAssignedPositionIn 호출만 받아 적는 기록기. */
-    private class RecordedUpdate(val ids: List<Long>, val pos: String)
+    private class RecordedUpdate(
+        val ids: List<Long>,
+        val pos: String,
+    )
 
     private val recorded = mutableListOf<RecordedUpdate>()
 
@@ -24,45 +26,49 @@ class MatchPersistenceAdapterTest {
      * JpaRepository 는 메서드가 많아 손으로 구현하기 번거롭고, Mockito 의 captor 는
      * Kotlin 의 non-null 파라미터에 null 을 물려 터진다. 프록시로 필요한 한 메서드만 받는다.
      */
-    private val participantRepo: MatchParticipantJpaRepository = Proxy.newProxyInstance(
-        MatchParticipantJpaRepository::class.java.classLoader,
-        arrayOf(MatchParticipantJpaRepository::class.java),
-    ) { _, method, args ->
-        when (method.name) {
-            "updateAssignedPositionIn" -> {
-                @Suppress("UNCHECKED_CAST")
-                val ids = (args[0] as Collection<Long>).toList()
-                recorded += RecordedUpdate(ids, args[1] as String)
-                ids.size
+    private val participantRepo: MatchParticipantJpaRepository =
+        Proxy.newProxyInstance(
+            MatchParticipantJpaRepository::class.java.classLoader,
+            arrayOf(MatchParticipantJpaRepository::class.java),
+        ) { _, method, args ->
+            when (method.name) {
+                "updateAssignedPositionIn" -> {
+                    @Suppress("UNCHECKED_CAST")
+                    val ids = (args[0] as Collection<Long>).toList()
+                    recorded += RecordedUpdate(ids, args[1] as String)
+                    ids.size
+                }
+                "toString" -> "FakeMatchParticipantJpaRepository"
+                "hashCode" -> System.identityHashCode(this)
+                "equals" -> false
+                else -> error("테스트가 예상하지 못한 호출: ${method.name}")
             }
-            "toString" -> "FakeMatchParticipantJpaRepository"
-            "hashCode" -> System.identityHashCode(this)
-            "equals" -> false
-            else -> error("테스트가 예상하지 못한 호출: ${method.name}")
-        }
-    } as MatchParticipantJpaRepository
+        } as MatchParticipantJpaRepository
 
-    private val matchRepo: MatchJpaRepository = Proxy.newProxyInstance(
-        MatchJpaRepository::class.java.classLoader,
-        arrayOf(MatchJpaRepository::class.java),
-    ) { _, method, _ -> error("테스트가 예상하지 못한 호출: ${method.name}") } as MatchJpaRepository
+    private val matchRepo: MatchJpaRepository =
+        Proxy.newProxyInstance(
+            MatchJpaRepository::class.java.classLoader,
+            arrayOf(MatchJpaRepository::class.java),
+        ) { _, method, _ -> error("테스트가 예상하지 못한 호출: ${method.name}") } as MatchJpaRepository
 
-    private val timelineRepo: MatchTimelineRepository = Proxy.newProxyInstance(
-        MatchTimelineRepository::class.java.classLoader,
-        arrayOf(MatchTimelineRepository::class.java),
-    ) { _, method, _ -> error("테스트가 예상하지 못한 호출: ${method.name}") } as MatchTimelineRepository
+    private val timelineRepo: MatchTimelineRepository =
+        Proxy.newProxyInstance(
+            MatchTimelineRepository::class.java.classLoader,
+            arrayOf(MatchTimelineRepository::class.java),
+        ) { _, method, _ -> error("테스트가 예상하지 못한 호출: ${method.name}") } as MatchTimelineRepository
 
     private val adapter = MatchPersistenceAdapter(matchRepo, participantRepo, timelineRepo)
 
     @Test
     fun `포지션별로 묶어서 포지션 종류만큼만 UPDATE 한다`() {
-        val updates = buildMap {
-            (1L..300L).forEach { put(it, "TOP") }
-            (301L..600L).forEach { put(it, "JUNGLE") }
-            (601L..900L).forEach { put(it, "MID") }
-            (901L..1200L).forEach { put(it, "ADC") }
-            (1201L..1500L).forEach { put(it, "SUPPORT") }
-        }
+        val updates =
+            buildMap {
+                (1L..300L).forEach { put(it, "TOP") }
+                (301L..600L).forEach { put(it, "JUNGLE") }
+                (601L..900L).forEach { put(it, "MID") }
+                (901L..1200L).forEach { put(it, "ADC") }
+                (1201L..1500L).forEach { put(it, "SUPPORT") }
+            }
 
         adapter.updateAssignedPositions(updates)
 

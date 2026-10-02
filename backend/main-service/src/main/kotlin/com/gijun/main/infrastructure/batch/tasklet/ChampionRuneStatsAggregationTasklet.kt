@@ -30,11 +30,13 @@ class ChampionRuneStatsAggregationTasklet(
     private val matchPersistencePort: MatchPersistencePort,
     private val championRuneStatsCacheRepository: ChampionRuneStatsCacheRepository,
 ) : Tasklet {
-
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional
-    override fun execute(contribution: StepContribution, chunkContext: ChunkContext): RepeatStatus {
+    override fun execute(
+        contribution: StepContribution,
+        chunkContext: ChunkContext,
+    ): RepeatStatus {
         aggregate()
         return RepeatStatus.FINISHED
     }
@@ -47,7 +49,10 @@ class ChampionRuneStatsAggregationTasklet(
         for (mode in modes) {
             val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
-            data class RuneAcc(var picks: Int = 0, var wins: Int = 0)
+            data class RuneAcc(
+                var picks: Int = 0,
+                var wins: Int = 0,
+            )
             // (champion, keystone, primaryStyle, subStyle) → 집계
             val runeMap = mutableMapOf<RuneKey, RuneAcc>()
             var skipped = 0
@@ -67,19 +72,20 @@ class ChampionRuneStatsAggregationTasklet(
 
             championRuneStatsCacheRepository.deleteAllByMode(mode)
 
-            val snapshots = runeMap.map { (key, acc) ->
-                ChampionRuneStatsCacheEntity(
-                    champion     = key.champion,
-                    mode         = mode,
-                    keystone     = key.keystone,
-                    primaryStyle = key.primaryStyle,
-                    subStyle     = key.subStyle,
-                    picks        = acc.picks,
-                    wins         = acc.wins,
-                    winRate      = if (acc.picks > 0) acc.wins * 100 / acc.picks else 0,
-                    aggregatedAt = now,
-                )
-            }
+            val snapshots =
+                runeMap.map { (key, acc) ->
+                    ChampionRuneStatsCacheEntity(
+                        champion = key.champion,
+                        mode = mode,
+                        keystone = key.keystone,
+                        primaryStyle = key.primaryStyle,
+                        subStyle = key.subStyle,
+                        picks = acc.picks,
+                        wins = acc.wins,
+                        winRate = if (acc.picks > 0) acc.wins * 100 / acc.picks else 0,
+                        aggregatedAt = now,
+                    )
+                }
 
             championRuneStatsCacheRepository.saveAll(snapshots)
             log.info("[ChampionRuneStats] mode=$mode → ${snapshots.size}개 룬 조합 집계 완료 (룬 정보 없는 참가자 ${skipped}명 제외)")

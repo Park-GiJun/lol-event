@@ -6,7 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 
 interface RatingHistoryRepository : JpaRepository<RatingHistoryEntity, Long> {
-    fun findByRiotIdOrderByGameCreationDesc(riotId: String, pageable: Pageable): List<RatingHistoryEntity>
+    fun findByRiotIdOrderByGameCreationDesc(
+        riotId: String,
+        pageable: Pageable,
+    ): List<RatingHistoryEntity>
+
     fun existsByMatchId(matchId: String): Boolean
 
     @Query("SELECT MAX(h.gameCreation) FROM RatingHistoryEntity h")

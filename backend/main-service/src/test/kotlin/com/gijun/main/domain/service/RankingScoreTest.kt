@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class RankingScoreTest {
-
     @Test
     fun `경기가 없으면 사전 평균을 그대로 돌려준다`() {
         assertEquals(50.0, RankingScore.shrunkWinRate(wins = 0, games = 0))

@@ -36,8 +36,10 @@ class GetSummonerProfileHandler(
     private val getDuoStatsUseCase: GetDuoStatsUseCase,
     private val getRivalMatchupUseCase: GetRivalMatchupUseCase,
 ) : GetSummonerProfileUseCase {
-
-    override fun getProfile(riotId: String, mode: String): SummonerProfileResult {
+    override fun getProfile(
+        riotId: String,
+        mode: String,
+    ): SummonerProfileResult {
         val detail = getPlayerStatsUseCase.getPlayerStats(riotId, mode)
         val streak = getPlayerStreakUseCase.getPlayerStreak(riotId, mode)
         val leaderboard = getEloLeaderboardUseCase.getLeaderboard(ELO_MIN_DUELS)
@@ -45,37 +47,39 @@ class GetSummonerProfileHandler(
         val myRating = leaderboard.players.firstOrNull { it.riotId == riotId }
         val myRank = myRating?.takeIf { !it.placement }?.rank
 
-        val profile = SummonerProfile(
-            riotId = detail.riotId,
-            games = detail.games,
-            wins = detail.wins,
-            losses = detail.losses,
-            winRate = detail.winRate,
-            adjustedWinRate = round2(RankingScore.shrunkWinRate(detail.wins, detail.games)),
-            sampleGrade = RankingScore.sampleGrade(detail.games),
-            kda = detail.kda,
-            avgKills = detail.avgKills,
-            avgDeaths = detail.avgDeaths,
-            avgAssists = detail.avgAssists,
-            avgDamage = detail.avgDamage,
-            avgCs = detail.avgCs,
-            avgGold = detail.avgGold,
-            avgVisionScore = detail.avgVisionScore,
-            elo = detail.elo,
-            eloRank = myRank,
-            eloRankedTotal = leaderboard.rankedCount,
-            rating = myRating,
-        )
+        val profile =
+            SummonerProfile(
+                riotId = detail.riotId,
+                games = detail.games,
+                wins = detail.wins,
+                losses = detail.losses,
+                winRate = detail.winRate,
+                adjustedWinRate = round2(RankingScore.shrunkWinRate(detail.wins, detail.games)),
+                sampleGrade = RankingScore.sampleGrade(detail.games),
+                kda = detail.kda,
+                avgKills = detail.avgKills,
+                avgDeaths = detail.avgDeaths,
+                avgAssists = detail.avgAssists,
+                avgDamage = detail.avgDamage,
+                avgCs = detail.avgCs,
+                avgGold = detail.avgGold,
+                avgVisionScore = detail.avgVisionScore,
+                elo = detail.elo,
+                eloRank = myRank,
+                eloRankedTotal = leaderboard.rankedCount,
+                rating = myRating,
+            )
 
         return SummonerProfileResult(
             profile = profile,
-            streak = SummonerStreak(
-                current = streak.currentStreak,
-                type = streak.currentStreakType,
-                longestWin = streak.longestWinStreak,
-                longestLoss = streak.longestLossStreak,
-                recentForm = streak.recentForm,
-            ),
+            streak =
+                SummonerStreak(
+                    current = streak.currentStreak,
+                    type = streak.currentStreakType,
+                    longestWin = streak.longestWinStreak,
+                    longestLoss = streak.longestLossStreak,
+                    recentForm = streak.recentForm,
+                ),
             championStats = detail.championStats,
             positionStats = detail.laneStats,
             recentMatches = detail.recentMatches,
@@ -88,8 +92,13 @@ class GetSummonerProfileHandler(
      * 듀오 통계에서 이 소환사가 낀 쌍만 골라 상대방 관점으로 뒤집는다.
      * 같은 팀이라 승패는 둘이 공유하므로 wins 를 그대로 쓸 수 있다.
      */
-    private fun teammatesOf(riotId: String, mode: String): List<SummonerTeammate> =
-        getDuoStatsUseCase.getDuoStats(mode, RELATION_MIN_GAMES).duos
+    private fun teammatesOf(
+        riotId: String,
+        mode: String,
+    ): List<SummonerTeammate> =
+        getDuoStatsUseCase
+            .getDuoStats(mode, RELATION_MIN_GAMES)
+            .duos
             .filter { it.player1 == riotId || it.player2 == riotId }
             .map { duo ->
                 SummonerTeammate(
@@ -100,15 +109,19 @@ class GetSummonerProfileHandler(
                     adjustedWinRate = duo.adjustedWinRate,
                     sampleGrade = duo.sampleGrade,
                 )
-            }
-            .sortedByDescending { it.games }
+            }.sortedByDescending { it.games }
 
     /**
      * 라이벌 전적은 player1 관점으로 저장돼 있다.
      * 이 소환사가 player2 쪽이면 승패를 뒤집어야 한다.
      */
-    private fun opponentsOf(riotId: String, mode: String): List<SummonerOpponent> =
-        getRivalMatchupUseCase.getRivalMatchups(mode, RELATION_MIN_GAMES).rivalries
+    private fun opponentsOf(
+        riotId: String,
+        mode: String,
+    ): List<SummonerOpponent> =
+        getRivalMatchupUseCase
+            .getRivalMatchups(mode, RELATION_MIN_GAMES)
+            .rivalries
             .filter { it.player1 == riotId || it.player2 == riotId }
             .map { rival ->
                 val isPlayer1 = rival.player1 == riotId
@@ -123,8 +136,7 @@ class GetSummonerProfileHandler(
                     adjustedWinRate = round2(RankingScore.shrunkWinRate(wins, rival.games)),
                     sampleGrade = RankingScore.sampleGrade(rival.games),
                 )
-            }
-            .sortedByDescending { it.games }
+            }.sortedByDescending { it.games }
 
     private fun round2(v: Double) = (v * 100).toInt() / 100.0
 }

@@ -25,7 +25,6 @@ import kotlin.math.roundToInt
  * 화면에서 이 두 계열을 같은 표에 섞지 마라.
  */
 object PositionMetrics {
-
     /** 라인전 구간의 끝. [LaneScores] 의 15분 판정과 같은 경계를 쓴다. */
     const val LANE_PHASE_MS = 900_000L
 
@@ -38,7 +37,10 @@ object PositionMetrics {
     private const val FIRST_COUNTED_MINUTE = 1
 
     /** 어느 팀에서 어느 자리를 맡았나. 타임라인만으로는 알 수 없어 밖에서 받는다. */
-    data class Slot(val teamId: Int, val position: Position)
+    data class Slot(
+        val teamId: Int,
+        val position: Position,
+    )
 
     data class PlayerPosition(
         val participantId: Int,
@@ -92,7 +94,10 @@ object PositionMetrics {
     }
 
     /** 좌표가 하나도 없으면 null — 옛 수집기로 받은 경기가 여기로 떨어진다. */
-    fun of(timeline: MatchTimeline, roster: Map<Int, Slot>): MatchPositions? {
+    fun of(
+        timeline: MatchTimeline,
+        roster: Map<Int, Slot>,
+    ): MatchPositions? {
         val samples = samples(timeline)
         if (samples.isEmpty()) return null
 
@@ -107,7 +112,11 @@ object PositionMetrics {
     // ────────── 표본 ──────────
 
     /** 한 사람의 한 프레임. 좌표가 없는 프레임과 0분은 애초에 담지 않는다. */
-    private class Sample(val minute: Int, val participantId: Int, val at: MapPoint)
+    private class Sample(
+        val minute: Int,
+        val participantId: Int,
+        val at: MapPoint,
+    )
 
     /**
      * 분은 `timestamp / 60,000` 으로 구한다.
@@ -118,9 +127,12 @@ object PositionMetrics {
     private fun samples(timeline: MatchTimeline): List<Sample> =
         timeline.frames.flatMap { frame ->
             val minute = (frame.timestampMs / 60_000L).toInt()
-            if (minute < FIRST_COUNTED_MINUTE) emptyList()
-            else frame.participants.values.mapNotNull { pf ->
-                pf.position?.let { Sample(minute, pf.participantId, it) }
+            if (minute < FIRST_COUNTED_MINUTE) {
+                emptyList()
+            } else {
+                frame.participants.values.mapNotNull { pf ->
+                    pf.position?.let { Sample(minute, pf.participantId, it) }
+                }
             }
         }
 
@@ -137,56 +149,74 @@ object PositionMetrics {
         val lane = MapGeometry.laneOf(slot.position)
         val ownBase = if (slot.teamId == 100) MapRegion.BLUE_BASE else MapRegion.RED_BASE
 
-        val laneRegion = when (lane) {
-            Lane.TOP -> MapRegion.TOP_LANE
-            Lane.MID -> MapRegion.MID_LANE
-            Lane.BOT -> MapRegion.BOT_LANE
-            null -> null
-        }
+        val laneRegion =
+            when (lane) {
+                Lane.TOP -> MapRegion.TOP_LANE
+                Lane.MID -> MapRegion.MID_LANE
+                Lane.BOT -> MapRegion.BOT_LANE
+                null -> null
+            }
 
         return PlayerPosition(
             participantId = participantId,
             framesSampled = mine.size,
             lanePhaseFrames = lanePhase.size,
             laneShareRate = laneRegion?.let { rate(lanePhase) { MapGeometry.regionOf(it.at) == laneRegion } },
-            roamRate = laneRegion?.let {
-                rate(lanePhase) { MapGeometry.regionOf(it.at).let { r -> r != laneRegion && r != ownBase } }
-            },
+            roamRate =
+                laneRegion?.let {
+                    rate(lanePhase) { MapGeometry.regionOf(it.at).let { r -> r != laneRegion && r != ownBase } }
+                },
             enemyHalfRate = rate(mine) { MapGeometry.halfOf(it.at) != slot.teamId } ?: 0.0,
             enemyHalfRateLanePhase = rate(lanePhase) { MapGeometry.halfOf(it.at) != slot.teamId } ?: 0.0,
-            counterJungleRate = rate(mine) {
-                MapGeometry.halfOf(it.at) != slot.teamId && MapGeometry.isJungle(MapGeometry.regionOf(it.at))
-            } ?: 0.0,
+            counterJungleRate =
+                rate(mine) {
+                    MapGeometry.halfOf(it.at) != slot.teamId && MapGeometry.isJungle(MapGeometry.regionOf(it.at))
+                } ?: 0.0,
             deathRegions = regions(kills.filter { it.victimId == participantId }),
             killRegions = regions(kills.filter { it.killerId == participantId }),
         )
     }
 
-    private fun rate(samples: List<Sample>, predicate: (Sample) -> Boolean): Double? =
-        samples.takeIf { it.isNotEmpty() }?.let { r1(it.count(predicate) * 100.0 / it.size) }
+    private fun rate(
+        samples: List<Sample>,
+        predicate: (Sample) -> Boolean,
+    ): Double? = samples.takeIf { it.isNotEmpty() }?.let { r1(it.count(predicate) * 100.0 / it.size) }
 
     private fun regions(kills: List<TimelineEvent.ChampionKill>): Map<MapRegion, Int> =
-        kills.mapNotNull { it.position }
-            .groupingBy(MapGeometry::regionOf).eachCount()
+        kills
+            .mapNotNull { it.position }
+            .groupingBy(MapGeometry::regionOf)
+            .eachCount()
 
     // ────────── 팀 ──────────
 
-    private fun spread(teamId: Int, samples: List<Sample>, roster: Map<Int, Slot>): TeamSpread {
+    private fun spread(
+        teamId: Int,
+        samples: List<Sample>,
+        roster: Map<Int, Slot>,
+    ): TeamSpread {
         val ownBase = if (teamId == 100) MapRegion.BLUE_BASE else MapRegion.RED_BASE
-        val mine = samples.filter { roster[it.participantId]?.teamId == teamId }
-            .filterNot { MapGeometry.regionOf(it.at) == ownBase }
+        val mine =
+            samples
+                .filter { roster[it.participantId]?.teamId == teamId }
+                .filterNot { MapGeometry.regionOf(it.at) == ownBase }
 
-        val byMinute = mine.groupBy { it.minute }
-            .mapNotNull { (minute, ss) ->
-                val points = ss.map { it.at }
-                if (points.size < 2) null else minute to spreadOf(points)
-            }
-            .toMap()
+        val byMinute =
+            mine
+                .groupBy { it.minute }
+                .mapNotNull { (minute, ss) ->
+                    val points = ss.map { it.at }
+                    if (points.size < 2) null else minute to spreadOf(points)
+                }.toMap()
 
         return TeamSpread(
             teamId = teamId,
             byMinute = byMinute,
-            average = byMinute.values.takeIf { it.isNotEmpty() }?.average()?.roundToInt(),
+            average =
+                byMinute.values
+                    .takeIf { it.isNotEmpty() }
+                    ?.average()
+                    ?.roundToInt(),
         )
     }
 

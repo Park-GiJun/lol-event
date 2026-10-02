@@ -21,16 +21,16 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 class WebConfig(
     @Value("\${app.cors.allowed-origins}") private val allowedOrigins: List<String>,
 ) : WebMvcConfigurer {
-
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
-        val config = CorsConfiguration().apply {
-            this.allowedOrigins = this@WebConfig.allowedOrigins
-            allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-            allowedHeaders = listOf("*")
-            allowCredentials = true
-            maxAge = 3600L
-        }
+        val config =
+            CorsConfiguration().apply {
+                this.allowedOrigins = this@WebConfig.allowedOrigins
+                allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                allowedHeaders = listOf("*")
+                allowCredentials = true
+                maxAge = 3600L
+            }
         return UrlBasedCorsConfigurationSource().apply {
             registerCorsConfiguration("/**", config)
         }

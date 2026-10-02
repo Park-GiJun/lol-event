@@ -26,29 +26,29 @@ class StatsCacheAdapter(
     private val championTimelineStatsCacheRepository: ChampionTimelineStatsCacheRepository,
     private val positionHeatmapCacheRepository: PositionHeatmapCacheRepository,
 ) : StatsCachePersistencePort {
-
     override fun findPlayerCacheByMode(mode: String): List<PlayerStatsCache> =
         playerStatsCacheRepository.findAllByMode(mode).map { e ->
             PlayerStatsCache(
-                riotId         = e.riotId,
-                games          = e.games,
-                wins           = e.wins,
-                losses         = e.losses,
-                winRate        = e.winRate,
-                avgKills       = e.avgKills,
-                avgDeaths      = e.avgDeaths,
-                avgAssists     = e.avgAssists,
-                kda            = e.kda,
-                avgDamage      = e.avgDamage,
-                avgCs          = e.avgCs,
-                avgGold        = e.avgGold,
+                riotId = e.riotId,
+                games = e.games,
+                wins = e.wins,
+                losses = e.losses,
+                winRate = e.winRate,
+                avgKills = e.avgKills,
+                avgDeaths = e.avgDeaths,
+                avgAssists = e.avgAssists,
+                kda = e.kda,
+                avgDamage = e.avgDamage,
+                avgCs = e.avgCs,
+                avgGold = e.avgGold,
                 avgVisionScore = e.avgVisionScore,
-                topChampion    = e.topChampion,
+                topChampion = e.topChampion,
             )
         }
 
     override fun findChampionItemCacheByChampionAndMode(
-        champion: String, mode: String,
+        champion: String,
+        mode: String,
     ): List<ChampionItemStatsCache> =
         championItemStatsCacheRepository
             .findAllByChampionAndMode(champion, mode)
@@ -56,15 +56,16 @@ class StatsCacheAdapter(
             .take(6)
             .map { e ->
                 ChampionItemStatsCache(
-                    itemId  = e.itemId,
-                    picks   = e.picks,
-                    wins    = e.wins,
+                    itemId = e.itemId,
+                    picks = e.picks,
+                    wins = e.wins,
                     winRate = e.winRate,
                 )
             }
 
     override fun findChampionRuneCacheByChampionAndMode(
-        champion: String, mode: String,
+        champion: String,
+        mode: String,
     ): List<ChampionRuneStatsCache> =
         championRuneStatsCacheRepository
             .findAllByChampionAndMode(champion, mode)
@@ -73,18 +74,21 @@ class StatsCacheAdapter(
             .take(5)
             .map { e ->
                 ChampionRuneStatsCache(
-                    keystone     = e.keystone,
+                    keystone = e.keystone,
                     primaryStyle = e.primaryStyle,
-                    subStyle     = e.subStyle,
-                    picks        = e.picks,
-                    wins         = e.wins,
-                    winRate      = e.winRate,
+                    subStyle = e.subStyle,
+                    picks = e.picks,
+                    wins = e.wins,
+                    winRate = e.winRate,
                 )
             }
 
     // ────────── 타임라인 파생 ──────────
 
-    override fun findPlayerTimelineCache(riotId: String, mode: String): PlayerTimelineStatsCache? =
+    override fun findPlayerTimelineCache(
+        riotId: String,
+        mode: String,
+    ): PlayerTimelineStatsCache? =
         playerTimelineStatsCacheRepository.findByRiotIdAndMode(riotId, mode)?.let { e ->
             PlayerTimelineStatsCache(
                 riotId = e.riotId,
@@ -97,7 +101,11 @@ class StatsCacheAdapter(
                 teamfights = e.teamfights,
                 teamfightKills = e.teamfightKills,
                 teamfightDeaths = e.teamfightDeaths,
-                aggregatedAt = e.aggregatedAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+                aggregatedAt =
+                    e.aggregatedAt
+                        .atZone(ZoneId.systemDefault())
+                        .toInstant()
+                        .toEpochMilli(),
             )
         }
 
@@ -105,8 +113,12 @@ class StatsCacheAdapter(
      * 챔피언 쪽은 합계로 저장돼 있어서 **여기서 나눈다.**
      * 평균으로 저장하면 포지션별 행을 챔피언 총합으로 롤업할 때 가중치를 잃는다.
      */
-    override fun findChampionTimelineCache(champion: String, mode: String): List<ChampionTimelineStatsCache> =
-        championTimelineStatsCacheRepository.findAllByChampionAndMode(champion, mode)
+    override fun findChampionTimelineCache(
+        champion: String,
+        mode: String,
+    ): List<ChampionTimelineStatsCache> =
+        championTimelineStatsCacheRepository
+            .findAllByChampionAndMode(champion, mode)
             .sortedByDescending { it.games }
             .map { e ->
                 ChampionTimelineStatsCache(
@@ -116,15 +128,26 @@ class StatsCacheAdapter(
                     framesSampled = e.framesSampled,
                     laneShareRate = rate(e.sumLaneFrames, e.lanePhaseFrames),
                     enemyHalfRate = rate(e.sumEnemyHalf, e.framesSampled) ?: 0.0,
-                    aggregatedAt = e.aggregatedAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+                    aggregatedAt =
+                        e.aggregatedAt
+                            .atZone(ZoneId.systemDefault())
+                            .toInstant()
+                            .toEpochMilli(),
                 )
             }
 
-    override fun findHeatmap(mode: String, scopeType: String, scopeKey: String, kind: String): List<HeatmapCell> =
+    override fun findHeatmap(
+        mode: String,
+        scopeType: String,
+        scopeKey: String,
+        kind: String,
+    ): List<HeatmapCell> =
         positionHeatmapCacheRepository
             .findAllByModeAndScopeTypeAndScopeKeyAndKind(mode, scopeType, scopeKey, kind)
             .map { HeatmapCell(phase = it.phase, gridX = it.gridX, gridY = it.gridY, count = it.count) }
 
-    private fun rate(part: Long, total: Int): Double? =
-        if (total <= 0) null else ((part * 1_000.0 / total).roundToInt() / 10.0)
+    private fun rate(
+        part: Long,
+        total: Int,
+    ): Double? = if (total <= 0) null else ((part * 1_000.0 / total).roundToInt() / 10.0)
 }

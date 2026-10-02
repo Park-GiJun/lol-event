@@ -1,7 +1,12 @@
 package com.gijun.main.infrastructure.adapter.out.persistence.dragon.entity
 
 import com.gijun.main.domain.model.dragon.DragonItem
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import java.time.LocalDateTime
 
 @Entity
@@ -16,17 +21,29 @@ class DragonItemEntity(
     @Column var imageUrl: String? = null,
     @Column var goldTotal: Int = 0,
     @Column var version: String? = null,
-    @Column(nullable = false) var updatedAt: LocalDateTime = LocalDateTime.now()
+    @Column(nullable = false) var updatedAt: LocalDateTime = LocalDateTime.now(),
 ) {
-    fun toDomain() = DragonItem(
-        itemId = itemId, nameKo = nameKo, description = description,
-        imageFull = imageFull, imageUrl = imageUrl, goldTotal = goldTotal, version = version
-    )
+    fun toDomain() =
+        DragonItem(
+            itemId = itemId,
+            nameKo = nameKo,
+            description = description,
+            imageFull = imageFull,
+            imageUrl = imageUrl,
+            goldTotal = goldTotal,
+            version = version,
+        )
 
     companion object {
-        fun from(domain: DragonItem) = DragonItemEntity(
-            itemId = domain.itemId, nameKo = domain.nameKo, description = domain.description,
-            imageFull = domain.imageFull, imageUrl = domain.imageUrl, goldTotal = domain.goldTotal, version = domain.version
-        )
+        fun from(domain: DragonItem) =
+            DragonItemEntity(
+                itemId = domain.itemId,
+                nameKo = domain.nameKo,
+                description = domain.description,
+                imageFull = domain.imageFull,
+                imageUrl = domain.imageUrl,
+                goldTotal = domain.goldTotal,
+                version = domain.version,
+            )
     }
 }

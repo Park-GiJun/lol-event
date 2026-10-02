@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class LaneScoresTest {
-
     // ────────── 픽스처 ──────────
 
     private fun player(
@@ -60,20 +59,26 @@ class LaneScoresTest {
      * 실측하면 15분 프레임이 900,330ms 처럼 항상 15분을 살짝 넘긴다.
      */
     private fun timeline(frames: List<Pair<Long, Map<Int, Pair<Int, Int>>>>): String {
-        val body = frames.joinToString(",") { (ts, players) ->
-            val pf = players.entries.joinToString(",") { (pid, gx) ->
-                """"$pid":{"participantId":$pid,"totalGold":${gx.first},"xp":${gx.second}}"""
+        val body =
+            frames.joinToString(",") { (ts, players) ->
+                val pf =
+                    players.entries.joinToString(",") { (pid, gx) ->
+                        """"$pid":{"participantId":$pid,"totalGold":${gx.first},"xp":${gx.second}}"""
+                    }
+                """{"timestamp":$ts,"participantFrames":{$pf},"events":[]}"""
             }
-            """{"timestamp":$ts,"participantFrames":{$pf},"events":[]}"""
-        }
         return """{"frames":[$body]}"""
     }
 
     /** 1~10번에게 같은 값을 주되, [winners] 에 든 번호만 골드를 크게 준다. */
-    private fun frameAt(ts: Long, winners: Set<Int>): Pair<Long, Map<Int, Pair<Int, Int>>> =
-        ts to (1..10).associateWith { pid ->
-            if (pid in winners) 6_000 to 5_000 else 4_000 to 4_000
-        }
+    private fun frameAt(
+        ts: Long,
+        winners: Set<Int>,
+    ): Pair<Long, Map<Int, Pair<Int, Int>>> =
+        ts to
+            (1..10).associateWith { pid ->
+                if (pid in winners) 6_000 to 5_000 else 4_000 to 4_000
+            }
 
     // ────────── T1: TIMELINE_15 ──────────
 
@@ -81,13 +86,14 @@ class LaneScoresTest {
     fun `타임라인이 있으면 15분 프레임으로 판정한다`() {
         // 14분 프레임에서는 1번이 앞서고, 15분 프레임에서는 6번이 앞선다.
         // 15분 프레임을 골랐다면 6번이 이겨야 한다.
-        val raw = timeline(
-            listOf(
-                frameAt(840_297, setOf(1)),
-                frameAt(900_330, setOf(6)),
-                frameAt(960_337, setOf(1)),
+        val raw =
+            timeline(
+                listOf(
+                    frameAt(840_297, setOf(1)),
+                    frameAt(900_330, setOf(6)),
+                    frameAt(960_337, setOf(1)),
+                ),
             )
-        )
         val scored = LaneScores.of(match(), TimelineParser.parse(raw))
 
         assertEquals(LaneMethod.TIMELINE_15, scored.method)
@@ -145,13 +151,14 @@ class LaneScoresTest {
     fun `피해감소 보정은 탱커의 골드 열세를 메운다`() {
         // 탑 라인: 블루가 골드는 500 적지만 피해를 10만 더 받아냈다.
         // 보정 계수 0.007 이면 700 > 500 이라 뒤집힌다.
-        val tanky = roster().map {
-            when (it.riotId) {
-                "blue0#KR1" -> it.copy(gold = 11_500, damageSelfMitigated = 100_000)
-                "red0#KR1" -> it.copy(gold = 12_000, damageSelfMitigated = 0)
-                else -> it
+        val tanky =
+            roster().map {
+                when (it.riotId) {
+                    "blue0#KR1" -> it.copy(gold = 11_500, damageSelfMitigated = 100_000)
+                    "red0#KR1" -> it.copy(gold = 12_000, damageSelfMitigated = 0)
+                    else -> it
+                }
             }
-        }
         val scored = LaneScores.of(match(participants = tanky), null)
 
         assertEquals(LaneMethod.LEGACY_FINAL, scored.method)
@@ -162,12 +169,13 @@ class LaneScoresTest {
     fun `피해감소 보정은 15분 기준에는 적용하지 않는다`() {
         // 같은 상황을 타임라인으로 판정하면 보정이 없어야 한다 — 15분 기준에는 탱커 왜곡이
         // 거의 없어서, 여기에 또 얹으면 이중 보정이 된다.
-        val tanky = roster().map {
-            when (it.riotId) {
-                "blue0#KR1" -> it.copy(damageSelfMitigated = 100_000)
-                else -> it
+        val tanky =
+            roster().map {
+                when (it.riotId) {
+                    "blue0#KR1" -> it.copy(damageSelfMitigated = 100_000)
+                    else -> it
+                }
             }
-        }
         val raw = timeline(listOf(frameAt(900_330, emptySet())))
         val scored = LaneScores.of(match(participants = tanky), TimelineParser.parse(raw))
 
@@ -184,9 +192,10 @@ class LaneScoresTest {
 
     @Test
     fun `한 팀에 같은 포지션이 둘이면 그 자리는 통째로 버린다`() {
-        val broken = roster().map {
-            if (it.riotId == "blue1#KR1") it.copy(assignedPosition = Position.TOP.name) else it
-        }
+        val broken =
+            roster().map {
+                if (it.riotId == "blue1#KR1") it.copy(assignedPosition = Position.TOP.name) else it
+            }
         val duels = LaneScores.duels(match(participants = broken))
 
         // TOP 에 세 명(블루 둘, 레드 하나)이라 쌍이 안 되고, JUNGLE 은 레드만 남아 역시 안 된다.

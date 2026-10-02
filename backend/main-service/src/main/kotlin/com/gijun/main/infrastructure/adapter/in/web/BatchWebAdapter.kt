@@ -1,14 +1,17 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
+import com.gijun.main.infrastructure.adapter.`in`.scheduler.StatsAggregationScheduler
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionItemStatsCacheRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionStatsCacheRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.PlayerStatsCacheRepository
-import com.gijun.main.infrastructure.adapter.`in`.scheduler.StatsAggregationScheduler
 import com.gijun.main.infrastructure.batch.tasklet.ChampionItemStatsAggregationTasklet
+import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDateTime
 
 @Tag(name = "Batch", description = "통계 배치 관리 API")
@@ -32,14 +35,21 @@ class BatchWebAdapter(
     @Operation(summary = "배치 상태 조회", description = "스냅샷 테이블 현황과 마지막 집계 시각을 반환합니다")
     @GetMapping("/status")
     fun getStatus(): CommonApiResponse<BatchStatusResponse> {
-        val playerCount     = playerStatsCacheRepository.count()
-        val champCount      = championStatsCacheRepository.count()
-        val itemCount       = championItemStatsCacheRepository.count()
-        val lastAt = playerStatsCacheRepository.findAllByMode("normal")
-            .maxOfOrNull { it.aggregatedAt }
+        val playerCount = playerStatsCacheRepository.count()
+        val champCount = championStatsCacheRepository.count()
+        val itemCount = championItemStatsCacheRepository.count()
+        val lastAt =
+            playerStatsCacheRepository
+                .findAllByMode("normal")
+                .maxOfOrNull { it.aggregatedAt }
         return CommonApiResponse.success(
-            BatchStatusResponse(playerCount, champCount, itemCount, lastAt,
-                if (lastAt != null) "마지막 집계: $lastAt" else "아직 집계된 데이터가 없습니다")
+            BatchStatusResponse(
+                playerCount,
+                champCount,
+                itemCount,
+                lastAt,
+                if (lastAt != null) "마지막 집계: $lastAt" else "아직 집계된 데이터가 없습니다",
+            ),
         )
     }
 

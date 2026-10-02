@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.ResponseBody
  */
 @Controller
 class SwaggerUiController {
-
     @GetMapping("/swagger-ui.html", "/swagger-ui/index.html", produces = [MediaType.TEXT_HTML_VALUE])
     @ResponseBody
-    fun swaggerUi(): String = """
+    fun swaggerUi(): String =
+        """
         <!DOCTYPE html>
         <html lang="ko">
         <head>
@@ -51,5 +51,5 @@ class SwaggerUiController {
             </script>
         </body>
         </html>
-    """.trimIndent()
+        """.trimIndent()
 }

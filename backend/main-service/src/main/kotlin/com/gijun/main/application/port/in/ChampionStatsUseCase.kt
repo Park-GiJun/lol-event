@@ -7,19 +7,32 @@ import com.gijun.main.application.dto.stats.result.ChampionMatchupResult
 import com.gijun.main.application.dto.stats.result.ChampionTierResult
 
 interface GetChampionStatsUseCase {
-    fun getChampionStats(champion: String, mode: String): ChampionDetailStats
+    fun getChampionStats(
+        champion: String,
+        mode: String,
+    ): ChampionDetailStats
 }
 
 interface GetChampionMatchupUseCase {
-    fun getMatchup(champion: String?, vsChampion: String?, mode: String): ChampionMatchupResult
+    fun getMatchup(
+        champion: String?,
+        vsChampion: String?,
+        mode: String,
+    ): ChampionMatchupResult
 }
 
 interface GetChampionCertificateUseCase {
-    fun getChampionCertificates(mode: String, minGames: Int = 3): ChampionCertificateResult
+    fun getChampionCertificates(
+        mode: String,
+        minGames: Int = 3,
+    ): ChampionCertificateResult
 }
 
 interface GetChampionTierUseCase {
-    fun getChampionTier(mode: String, minGames: Int = 3): ChampionTierResult
+    fun getChampionTier(
+        mode: String,
+        minGames: Int = 3,
+    ): ChampionTierResult
 }
 
 interface GetBanAnalysisUseCase {

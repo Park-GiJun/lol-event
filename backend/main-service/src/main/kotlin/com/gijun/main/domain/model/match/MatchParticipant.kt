@@ -122,5 +122,5 @@ data class MatchParticipant(
     val roleBoundItem: Int = 0,
     val lane: String? = null,
     val role: String? = null,
-    val assignedPosition: String = ""
+    val assignedPosition: String = "",
 )

@@ -3,6 +3,7 @@ plugins {
     kotlin("plugin.jpa")
     id("org.springframework.boot")
     id("io.spring.dependency-management")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 extra["springCloudVersion"] = "2025.1.1"
@@ -68,4 +69,24 @@ dependencyManagement {
     imports {
         mavenBom("org.springframework.cloud:spring-cloud-dependencies:${property("springCloudVersion")}")
     }
+}
+
+ktlint {
+    version.set("1.5.0")
+    android.set(false)
+    ignoreFailures.set(false)
+    coloredOutput.set(true)
+    reporters {
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.HTML)
+    }
+    filter {
+        exclude { it.file.path.contains("/build/") }
+        exclude { it.file.path.contains("/generated/") }
+    }
+}
+
+// bootRun 도 lint 를 통과해야 기동되도록 — 로컬 실행 전에 형식/규칙 위반을 잡는다.
+tasks.named("bootRun") {
+    dependsOn("ktlintCheck")
 }

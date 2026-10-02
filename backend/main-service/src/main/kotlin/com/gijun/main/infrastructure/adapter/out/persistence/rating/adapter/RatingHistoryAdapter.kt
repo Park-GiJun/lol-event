@@ -9,16 +9,19 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Component
-class RatingHistoryAdapter(private val repo: RatingHistoryRepository) : RatingHistoryPort {
-
+class RatingHistoryAdapter(
+    private val repo: RatingHistoryRepository,
+) : RatingHistoryPort {
     @Transactional
     override fun saveAll(histories: List<RatingHistory>) {
         if (histories.isEmpty()) return
         repo.saveAll(histories.map { RatingHistoryEntity.from(it) })
     }
 
-    override fun findByRiotId(riotId: String, limit: Int): List<RatingHistory> =
-        repo.findByRiotIdOrderByGameCreationDesc(riotId, PageRequest.of(0, limit)).map { it.toDomain() }
+    override fun findByRiotId(
+        riotId: String,
+        limit: Int,
+    ): List<RatingHistory> = repo.findByRiotIdOrderByGameCreationDesc(riotId, PageRequest.of(0, limit)).map { it.toDomain() }
 
     /**
      * 재집계는 전체 삭제 후 같은 (riot_id, match_id) 를 다시 넣는다. 유니크 제약이 걸려 있어서

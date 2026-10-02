@@ -22,10 +22,10 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 class JacksonConfig {
-
     @Bean
-    fun objectMapper(): ObjectMapper = ObjectMapper()
-        .registerKotlinModule()
-        // Riot / DataDragon 응답은 필드가 수시로 늘어난다. 모르는 필드에 터지면 안 된다.
-        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    fun objectMapper(): ObjectMapper =
+        ObjectMapper()
+            .registerKotlinModule()
+            // Riot / DataDragon 응답은 필드가 수시로 늘어난다. 모르는 필드에 터지면 안 된다.
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 }

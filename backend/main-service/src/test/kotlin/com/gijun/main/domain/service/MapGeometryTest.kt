@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test
  * 기하로 고른 점을 쓰고, 그 점은 주석에 밝혔다.
  */
 class MapGeometryTest {
-
     // ────────── 픽스처 (전부 실측 좌표) ──────────
 
     private val blueTopOuter = MapPoint(981, 10_441)
@@ -156,9 +155,11 @@ class MapGeometryTest {
     fun `정글 판정은 네 조각만 참이다`() {
         assertTrue(MapGeometry.isJungle(MapRegion.BLUE_TOP_JUNGLE))
         assertTrue(MapGeometry.isJungle(MapRegion.RED_BOT_JUNGLE))
-        assertTrue(MapRegion.entries.filterNot(MapGeometry::isJungle).containsAll(
-            listOf(MapRegion.RIVER, MapRegion.MID_LANE, MapRegion.BLUE_BASE)
-        ))
+        assertTrue(
+            MapRegion.entries.filterNot(MapGeometry::isJungle).containsAll(
+                listOf(MapRegion.RIVER, MapRegion.MID_LANE, MapRegion.BLUE_BASE),
+            ),
+        )
     }
 
     // ────────── 자리 → 라인 ──────────

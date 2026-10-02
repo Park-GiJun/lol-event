@@ -18,10 +18,16 @@ enum class MapSide { TOP_SIDE, BOT_SIDE }
  * "누구 정글인가"가 필요하다.
  */
 enum class MapRegion {
-    BLUE_BASE, RED_BASE,
-    TOP_LANE, MID_LANE, BOT_LANE,
+    BLUE_BASE,
+    RED_BASE,
+    TOP_LANE,
+    MID_LANE,
+    BOT_LANE,
     RIVER,
-    BLUE_TOP_JUNGLE, BLUE_BOT_JUNGLE, RED_TOP_JUNGLE, RED_BOT_JUNGLE,
+    BLUE_TOP_JUNGLE,
+    BLUE_BOT_JUNGLE,
+    RED_TOP_JUNGLE,
+    RED_BOT_JUNGLE,
 }
 
 /**
@@ -52,7 +58,6 @@ enum class MapRegion {
  * 다루는지는 [PositionMetrics] 의 머리 주석에 적어 뒀다.
  */
 object MapGeometry {
-
     /** 통설상의 맵 한계. 좌표를 화면 비율로 정규화할 때만 쓴다 — 영역 판정에는 쓰지 않는다. */
     const val MAP_MAX = 14_870
 
@@ -99,17 +104,26 @@ object MapGeometry {
      * 미드는 직선 하나로 충분하다(측정 건물 5개가 192~332 안). 탑·봇은 모서리에서 꺾이므로
      * 중간 점을 둬야 한다 — 직선으로 이으면 모서리 구간이 통째로 정글이 된다.
      */
-    private val LANE_PATHS: Map<Lane, List<MapPoint>> = mapOf(
-        Lane.TOP to listOf(
-            MapPoint(1_900, 2_100), MapPoint(1_250, 11_000),
-            MapPoint(2_400, 13_200), MapPoint(11_300, 13_700), RED_NEXUS,
-        ),
-        Lane.MID to listOf(BLUE_NEXUS, RED_NEXUS),
-        Lane.BOT to listOf(
-            MapPoint(2_100, 1_900), MapPoint(11_000, 1_250),
-            MapPoint(13_200, 2_400), MapPoint(13_700, 11_300), RED_NEXUS,
-        ),
-    )
+    private val LANE_PATHS: Map<Lane, List<MapPoint>> =
+        mapOf(
+            Lane.TOP to
+                listOf(
+                    MapPoint(1_900, 2_100),
+                    MapPoint(1_250, 11_000),
+                    MapPoint(2_400, 13_200),
+                    MapPoint(11_300, 13_700),
+                    RED_NEXUS,
+                ),
+            Lane.MID to listOf(BLUE_NEXUS, RED_NEXUS),
+            Lane.BOT to
+                listOf(
+                    MapPoint(2_100, 1_900),
+                    MapPoint(11_000, 1_250),
+                    MapPoint(13_200, 2_400),
+                    MapPoint(13_700, 11_300),
+                    RED_NEXUS,
+                ),
+        )
 
     // ────────── 판정 ──────────
 
@@ -125,15 +139,22 @@ object MapGeometry {
     }
 
     /** 라인 중심선까지의 최단 거리. */
-    fun distanceToLane(p: MapPoint, lane: Lane): Double =
-        LANE_PATHS.getValue(lane).zipWithNext()
+    fun distanceToLane(
+        p: MapPoint,
+        lane: Lane,
+    ): Double =
+        LANE_PATHS
+            .getValue(lane)
+            .zipWithNext()
             .minOf { (a, b) -> distanceToSegment(p, a, b) }
 
     /** 회랑 안이면 그 라인, 어느 라인에도 못 들면 null. 겹치면 더 가까운 쪽. */
     fun nearestLane(p: MapPoint): Lane? =
-        Lane.entries.map { it to distanceToLane(p, it) }
+        Lane.entries
+            .map { it to distanceToLane(p, it) }
             .filter { it.second <= LANE_HALF_WIDTH }
-            .minByOrNull { it.second }?.first
+            .minByOrNull { it.second }
+            ?.first
 
     /**
      * 영역 판정. **우선순위는 이 순서로 고정이다** — 기지 → 라인 → 강 → 정글.
@@ -170,25 +191,35 @@ object MapGeometry {
      * 맡은 자리가 서는 라인. 정글은 라인이 없어 null 이다 —
      * 라인 점유·이탈 지표를 정글러에게 매기지 않는 근거가 이것이다.
      */
-    fun laneOf(position: Position): Lane? = when (position) {
-        Position.TOP -> Lane.TOP
-        Position.MID -> Lane.MID
-        Position.ADC, Position.SUPPORT -> Lane.BOT
-        Position.JUNGLE, Position.UNKNOWN -> null
-    }
+    fun laneOf(position: Position): Lane? =
+        when (position) {
+            Position.TOP -> Lane.TOP
+            Position.MID -> Lane.MID
+            Position.ADC, Position.SUPPORT -> Lane.BOT
+            Position.JUNGLE, Position.UNKNOWN -> null
+        }
 
     // ────────── 기하 ──────────
 
-    private val JUNGLES = setOf(
-        MapRegion.BLUE_TOP_JUNGLE, MapRegion.BLUE_BOT_JUNGLE,
-        MapRegion.RED_TOP_JUNGLE, MapRegion.RED_BOT_JUNGLE,
-    )
+    private val JUNGLES =
+        setOf(
+            MapRegion.BLUE_TOP_JUNGLE,
+            MapRegion.BLUE_BOT_JUNGLE,
+            MapRegion.RED_TOP_JUNGLE,
+            MapRegion.RED_BOT_JUNGLE,
+        )
 
-    fun distance(a: MapPoint, b: MapPoint): Double =
-        hypot((a.x - b.x).toDouble(), (a.y - b.y).toDouble())
+    fun distance(
+        a: MapPoint,
+        b: MapPoint,
+    ): Double = hypot((a.x - b.x).toDouble(), (a.y - b.y).toDouble())
 
     /** 점에서 선분까지의 최단 거리. 선분 밖으로 떨어지면 가까운 끝점까지의 거리다. */
-    private fun distanceToSegment(p: MapPoint, a: MapPoint, b: MapPoint): Double {
+    private fun distanceToSegment(
+        p: MapPoint,
+        a: MapPoint,
+        b: MapPoint,
+    ): Double {
         val dx = (b.x - a.x).toDouble()
         val dy = (b.y - a.y).toDouble()
         val lengthSquared = dx * dx + dy * dy

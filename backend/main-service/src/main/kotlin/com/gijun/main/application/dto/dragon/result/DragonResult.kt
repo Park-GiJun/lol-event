@@ -19,14 +19,18 @@ data class DragonChampionResult(
     val nameKo: String,
     val titleKo: String?,
     val imageUrl: String?,
-    val version: String?
+    val version: String?,
 ) {
     companion object {
-        fun from(domain: DragonChampion) = DragonChampionResult(
-            championId = domain.championId, championKey = domain.championKey,
-            nameKo = domain.nameKo, titleKo = domain.titleKo,
-            imageUrl = domain.imageUrl, version = domain.version
-        )
+        fun from(domain: DragonChampion) =
+            DragonChampionResult(
+                championId = domain.championId,
+                championKey = domain.championKey,
+                nameKo = domain.nameKo,
+                titleKo = domain.titleKo,
+                imageUrl = domain.imageUrl,
+                version = domain.version,
+            )
     }
 }
 
@@ -36,13 +40,18 @@ data class DragonItemResult(
     val description: String?,
     val imageUrl: String?,
     val goldTotal: Int,
-    val version: String?
+    val version: String?,
 ) {
     companion object {
-        fun from(domain: DragonItem) = DragonItemResult(
-            itemId = domain.itemId, nameKo = domain.nameKo, description = domain.description,
-            imageUrl = domain.imageUrl, goldTotal = domain.goldTotal, version = domain.version
-        )
+        fun from(domain: DragonItem) =
+            DragonItemResult(
+                itemId = domain.itemId,
+                nameKo = domain.nameKo,
+                description = domain.description,
+                imageUrl = domain.imageUrl,
+                goldTotal = domain.goldTotal,
+                version = domain.version,
+            )
     }
 }
 
@@ -52,13 +61,18 @@ data class DragonSummonerSpellResult(
     val nameKo: String,
     val description: String?,
     val imageUrl: String?,
-    val version: String?
+    val version: String?,
 ) {
     companion object {
-        fun from(domain: DragonSummonerSpell) = DragonSummonerSpellResult(
-            spellId = domain.spellId, spellKey = domain.spellKey, nameKo = domain.nameKo,
-            description = domain.description, imageUrl = domain.imageUrl, version = domain.version
-        )
+        fun from(domain: DragonSummonerSpell) =
+            DragonSummonerSpellResult(
+                spellId = domain.spellId,
+                spellKey = domain.spellKey,
+                nameKo = domain.nameKo,
+                description = domain.description,
+                imageUrl = domain.imageUrl,
+                version = domain.version,
+            )
     }
 }
 
@@ -76,11 +90,17 @@ data class DragonRuneResult(
     val version: String?,
 ) {
     companion object {
-        fun from(domain: DragonRune) = DragonRuneResult(
-            runeId = domain.runeId, runeKey = domain.runeKey, nameKo = domain.nameKo,
-            description = domain.description, imageUrl = domain.imageUrl,
-            styleId = domain.styleId, styleNameKo = domain.styleNameKo,
-            slot = domain.slot, version = domain.version,
-        )
+        fun from(domain: DragonRune) =
+            DragonRuneResult(
+                runeId = domain.runeId,
+                runeKey = domain.runeKey,
+                nameKo = domain.nameKo,
+                description = domain.description,
+                imageUrl = domain.imageUrl,
+                styleId = domain.styleId,
+                styleNameKo = domain.styleNameKo,
+                slot = domain.slot,
+                version = domain.version,
+            )
     }
 }

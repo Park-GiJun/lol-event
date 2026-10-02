@@ -25,7 +25,6 @@ class ReassignPositionsHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val statsQueryCache: StatsCachePort,
 ) : ReassignPositionsUseCase {
-
     private val log = LoggerFactory.getLogger(javaClass)
 
     companion object {
@@ -80,14 +79,15 @@ class ReassignPositionsHandler(
             statsQueryCache.evictAll()
         }
 
-        val result = ReassignPositionsResult(
-            matchesScanned = matchesScanned,
-            matchesSkippedAram = matchesSkippedAram,
-            teamsScanned = teamsScanned,
-            teamsAlreadyValid = teamsAlreadyValid,
-            teamsFixed = teamsFixed,
-            participantsUpdated = updates.size,
-        )
+        val result =
+            ReassignPositionsResult(
+                matchesScanned = matchesScanned,
+                matchesSkippedAram = matchesSkippedAram,
+                teamsScanned = teamsScanned,
+                teamsAlreadyValid = teamsAlreadyValid,
+                teamsFixed = teamsFixed,
+                participantsUpdated = updates.size,
+            )
         log.info("포지션 백필 완료 — $result")
         return result
     }

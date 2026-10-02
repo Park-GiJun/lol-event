@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
 interface MatchParticipantJpaRepository : JpaRepository<MatchParticipantEntity, Long> {
-
     /**
      * 같은 포지션으로 바뀌는 참가자들을 한 번에 갱신 (포지션 백필용 — 행 재삽입/ID 변경 없음).
      *
@@ -17,7 +16,10 @@ interface MatchParticipantJpaRepository : JpaRepository<MatchParticipantEntity, 
      */
     @Modifying
     @Query("UPDATE MatchParticipantEntity p SET p.assignedPosition = :pos WHERE p.id IN :ids")
-    fun updateAssignedPositionIn(@Param("ids") ids: Collection<Long>, @Param("pos") pos: String): Int
+    fun updateAssignedPositionIn(
+        @Param("ids") ids: Collection<Long>,
+        @Param("pos") pos: String,
+    ): Int
 
     /**
      * 대표 포지션 계산용 집계. 사람 × 포지션 조합이라 행이 인원의 다섯 배를 넘지 않는다.
@@ -30,7 +32,7 @@ interface MatchParticipantJpaRepository : JpaRepository<MatchParticipantEntity, 
         FROM MatchParticipantEntity p JOIN p.match m
         WHERE p.assignedPosition <> '' AND p.riotId <> '' AND m.queueId <> 3270
         GROUP BY p.riotId, p.assignedPosition
-        """
+        """,
     )
     fun findPositionCounts(): List<com.gijun.main.application.port.out.PositionCount>
 }

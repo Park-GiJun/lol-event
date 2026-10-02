@@ -22,7 +22,6 @@ class MatchPersistenceAdapter(
     private val participantRepo: MatchParticipantJpaRepository,
     private val timelineRepo: MatchTimelineRepository,
 ) : MatchPersistencePort {
-
     @Transactional
     override fun save(match: Match): Match {
         val entity = repo.findByMatchId(match.matchId) ?: MatchEntity.from(match)
@@ -37,32 +36,42 @@ class MatchPersistenceAdapter(
     }
 
     override fun existsByMatchId(matchId: String): Boolean = repo.existsByMatchId(matchId)
+
     override fun findByMatchId(matchId: String): Match? = repo.findByMatchId(matchId)?.toDomain()
+
     override fun findAllWithParticipants(queueIds: List<Int>): List<Match> =
         repo.findAllWithParticipantsByQueueIdIn(queueIds).map { it.toDomain() }
 
-    override fun findPageWithParticipants(queueIds: List<Int>, page: Int, size: Int): List<Match> {
+    override fun findPageWithParticipants(
+        queueIds: List<Int>,
+        page: Int,
+        size: Int,
+    ): List<Match> {
         val matchIds = repo.findMatchIdsByQueueIdIn(queueIds, PageRequest.of(page, size))
         if (matchIds.isEmpty()) return emptyList()
         return repo.findAllWithParticipantsByMatchIdIn(matchIds).map { it.toDomain() }
     }
 
-    override fun findPeriodSummary(queueIds: List<Int>): MatchPeriodSummary = MatchPeriodSummary(
-        firstMatchAt = repo.findFirstGameCreation(queueIds),
-        lastMatchAt = repo.findLastGameCreation(queueIds),
-        totalMatches = repo.countByQueueIdIn(queueIds),
-        playerCount = repo.countDistinctPlayers(queueIds),
-    )
+    override fun findPeriodSummary(queueIds: List<Int>): MatchPeriodSummary =
+        MatchPeriodSummary(
+            firstMatchAt = repo.findFirstGameCreation(queueIds),
+            lastMatchAt = repo.findLastGameCreation(queueIds),
+            totalMatches = repo.countByQueueIdIn(queueIds),
+            playerCount = repo.countDistinctPlayers(queueIds),
+        )
 
     @Transactional
     override fun deleteByMatchId(matchId: String) = repo.deleteByMatchId(matchId)
+
     override fun countByQueueIds(queueIds: List<Int>): Long = repo.countByQueueIdIn(queueIds)
 
-    override fun findAllOrderedByGameCreation(): List<Match> =
-        repo.findAllWithParticipantsOrderedByGameCreation().map { it.toDomain() }
+    override fun findAllOrderedByGameCreation(): List<Match> = repo.findAllWithParticipantsOrderedByGameCreation().map { it.toDomain() }
 
-    override fun findInPeriodWithParticipants(queueIds: List<Int>, fromMs: Long, untilMs: Long): List<Match> =
-        repo.findAllWithParticipantsInPeriod(queueIds, fromMs, untilMs).map { it.toDomain() }
+    override fun findInPeriodWithParticipants(
+        queueIds: List<Int>,
+        fromMs: Long,
+        untilMs: Long,
+    ): List<Match> = repo.findAllWithParticipantsInPeriod(queueIds, fromMs, untilMs).map { it.toDomain() }
 
     @Transactional
     override fun updateAssignedPositions(updates: Map<Long, String>) {
@@ -78,12 +87,16 @@ class MatchPersistenceAdapter(
     }
 
     @Transactional
-    override fun saveTimelineRaw(matchId: String, raw: String) {
+    override fun saveTimelineRaw(
+        matchId: String,
+        raw: String,
+    ) {
         timelineRepo.save(MatchTimelineEntity(matchId = matchId, raw = raw))
     }
 
     override fun findTimelineRaw(matchIds: Collection<String>): Map<String, String> =
-        matchIds.chunked(IN_CLAUSE_CHUNK)
+        matchIds
+            .chunked(IN_CLAUSE_CHUNK)
             .flatMap { timelineRepo.findAllByMatchIdIn(it) }
             .associate { it.matchId to it.raw }
 

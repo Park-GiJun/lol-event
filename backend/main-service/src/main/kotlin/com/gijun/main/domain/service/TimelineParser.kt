@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory
  *   union 스키마상 어느 쪽을 가리키는지가 타입마다 달라 혼동만 부른다.
  */
 object TimelineParser {
-
     private val log = LoggerFactory.getLogger(javaClass)
     private val mapper = ObjectMapper()
 
@@ -52,8 +51,10 @@ object TimelineParser {
             val frames = mapper.readTree(raw)["frames"] ?: return EMPTY
             MatchTimeline(
                 frames = frames.mapNotNull(::frame).sortedBy { it.timestampMs },
-                events = frames.flatMap { f -> f["events"]?.mapNotNull(::event).orEmpty() }
-                    .sortedBy { it.timestampMs },
+                events =
+                    frames
+                        .flatMap { f -> f["events"]?.mapNotNull(::event).orEmpty() }
+                        .sortedBy { it.timestampMs },
             )
         } catch (e: Exception) {
             log.warn("타임라인 파싱 실패 — LEGACY_FINAL 로 처리한다: ${e.message}")
@@ -68,31 +69,34 @@ object TimelineParser {
         val at = point(node["position"])
         val assists = node["assistingParticipantIds"]?.map { it.asInt() }.orEmpty()
         return when (node["type"]?.asText()) {
-            "CHAMPION_KILL" -> TimelineEvent.ChampionKill(
-                timestampMs = ts,
-                killerId = killerId,
-                victimId = node["victimId"]?.asInt() ?: return null,
-                assistIds = assists,
-                position = at,
-            )
-            "ELITE_MONSTER_KILL" -> TimelineEvent.EliteMonsterKill(
-                timestampMs = ts,
-                killerId = killerId,
-                monsterType = node["monsterType"]?.asText().orEmpty(),
-                monsterSubType = node["monsterSubType"]?.asText().orEmpty(),
-                assistIds = assists,
-                position = at,
-            )
-            "BUILDING_KILL" -> TimelineEvent.BuildingKill(
-                timestampMs = ts,
-                killerId = killerId,
-                buildingTeamId = node["teamId"]?.asInt() ?: 0,
-                buildingType = node["buildingType"]?.asText().orEmpty(),
-                towerType = node["towerType"]?.asText().orEmpty(),
-                laneType = node["laneType"]?.asText().orEmpty(),
-                assistIds = assists,
-                position = at,
-            )
+            "CHAMPION_KILL" ->
+                TimelineEvent.ChampionKill(
+                    timestampMs = ts,
+                    killerId = killerId,
+                    victimId = node["victimId"]?.asInt() ?: return null,
+                    assistIds = assists,
+                    position = at,
+                )
+            "ELITE_MONSTER_KILL" ->
+                TimelineEvent.EliteMonsterKill(
+                    timestampMs = ts,
+                    killerId = killerId,
+                    monsterType = node["monsterType"]?.asText().orEmpty(),
+                    monsterSubType = node["monsterSubType"]?.asText().orEmpty(),
+                    assistIds = assists,
+                    position = at,
+                )
+            "BUILDING_KILL" ->
+                TimelineEvent.BuildingKill(
+                    timestampMs = ts,
+                    killerId = killerId,
+                    buildingTeamId = node["teamId"]?.asInt() ?: 0,
+                    buildingType = node["buildingType"]?.asText().orEmpty(),
+                    towerType = node["towerType"]?.asText().orEmpty(),
+                    laneType = node["laneType"]?.asText().orEmpty(),
+                    assistIds = assists,
+                    position = at,
+                )
             else -> null
         }
     }
@@ -115,26 +119,30 @@ object TimelineParser {
         val pf = node["participantFrames"] ?: return null
 
         // participantFrames 는 "1".."10" 을 키로 하는 객체다. 배열로 오는 변종도 같이 받아 둔다.
-        val entries = when {
-            pf.isObject -> pf.fields().asSequence().map { it.value }
-            pf.isArray  -> pf.asSequence()
-            else        -> return null
-        }
+        val entries =
+            when {
+                pf.isObject -> pf.fields().asSequence().map { it.value }
+                pf.isArray -> pf.asSequence()
+                else -> return null
+            }
 
-        val participants = entries.mapNotNull { p ->
-            val id = p["participantId"]?.asInt() ?: return@mapNotNull null
-            if (id <= 0) return@mapNotNull null
-            id to ParticipantFrame(
-                participantId = id,
-                totalGold = p["totalGold"]?.asInt() ?: 0,
-                xp = p["xp"]?.asInt() ?: 0,
-                level = p["level"]?.asInt() ?: 0,
-                minionsKilled = p["minionsKilled"]?.asInt() ?: 0,
-                jungleMinionsKilled = p["jungleMinionsKilled"]?.asInt() ?: 0,
-                currentGold = p["currentGold"]?.asInt() ?: 0,
-                position = point(p["position"]),
-            )
-        }.toMap()
+        val participants =
+            entries
+                .mapNotNull { p ->
+                    val id = p["participantId"]?.asInt() ?: return@mapNotNull null
+                    if (id <= 0) return@mapNotNull null
+                    id to
+                        ParticipantFrame(
+                            participantId = id,
+                            totalGold = p["totalGold"]?.asInt() ?: 0,
+                            xp = p["xp"]?.asInt() ?: 0,
+                            level = p["level"]?.asInt() ?: 0,
+                            minionsKilled = p["minionsKilled"]?.asInt() ?: 0,
+                            jungleMinionsKilled = p["jungleMinionsKilled"]?.asInt() ?: 0,
+                            currentGold = p["currentGold"]?.asInt() ?: 0,
+                            position = point(p["position"]),
+                        )
+                }.toMap()
 
         return if (participants.isEmpty()) null else TimelineFrame(timestamp, participants)
     }

@@ -23,10 +23,11 @@ class StatsAggregationScheduler(
 
     fun launchJob(reason: String = "manual") {
         try {
-            val params = JobParametersBuilder()
-                .addLong("runAt", System.currentTimeMillis())
-                .addString("reason", reason)
-                .toJobParameters()
+            val params =
+                JobParametersBuilder()
+                    .addLong("runAt", System.currentTimeMillis())
+                    .addString("reason", reason)
+                    .toJobParameters()
             val execution = jobOperator.start(statsAggregationJob, params)
             log.info("통계 배치 시작 [$reason] — executionId=${execution.id}")
         } catch (e: Exception) {

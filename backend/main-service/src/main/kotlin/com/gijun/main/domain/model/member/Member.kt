@@ -6,5 +6,5 @@ data class Member(
     val id: Long = 0,
     val riotId: String,
     val puuid: String,
-    val registeredAt: LocalDateTime = LocalDateTime.now()
+    val registeredAt: LocalDateTime = LocalDateTime.now(),
 )

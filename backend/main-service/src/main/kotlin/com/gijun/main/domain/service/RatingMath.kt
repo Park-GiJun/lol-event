@@ -30,7 +30,6 @@ import kotlin.math.pow
  *   커질수록 단조 감소한다 (K=8 에서 0.629 → K=64 에서 0.470).
  */
 object RatingMath {
-
     /** 신규 플레이어 시작 점수. */
     const val START = 1500.0
 
@@ -55,18 +54,21 @@ object RatingMath {
     const val SHRINK_PRIOR = 10.0
 
     /** a 가 b 를 이길 기대 확률. 표준 Elo 로지스틱. */
-    fun expected(a: Double, b: Double): Double =
-        1.0 / (1.0 + 10.0.pow((b - a) / SCALE))
+    fun expected(
+        a: Double,
+        b: Double,
+    ): Double = 1.0 / (1.0 + 10.0.pow((b - a) / SCALE))
 
     /** 누적 횟수에 따른 K. */
-    fun kFactor(count: Int): Double =
-        if (count < PLACEMENT) K_PLACEMENT else K_BASE
+    fun kFactor(count: Int): Double = if (count < PLACEMENT) K_PLACEMENT else K_BASE
 
     /**
      * **API 응답 전용** 수축 표시값. 저장은 언제나 원값으로 한다.
      *
      * 내부 계산(예측, 편성 보조, 다음 경기의 기대 승률)에는 절대 쓰지 마라 — 검증에서 더 나빴다.
      */
-    fun display(elo: Double, count: Int): Double =
-        START + (elo - START) * count / (count + SHRINK_PRIOR)
+    fun display(
+        elo: Double,
+        count: Int,
+    ): Double = START + (elo - START) * count / (count + SHRINK_PRIOR)
 }

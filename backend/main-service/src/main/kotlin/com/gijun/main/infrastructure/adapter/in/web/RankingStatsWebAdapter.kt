@@ -1,6 +1,5 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import com.gijun.main.application.dto.stats.result.EloLeaderboardResult
 import com.gijun.main.application.dto.stats.result.KillParticipationResult
 import com.gijun.main.application.dto.stats.result.LaneLeaderboardResult
@@ -9,10 +8,14 @@ import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
 import com.gijun.main.application.port.`in`.GetKillParticipationUseCase
 import com.gijun.main.application.port.`in`.GetLaneLeaderboardUseCase
 import com.gijun.main.application.port.`in`.GetMvpStatsUseCase
+import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "Ranking Stats", description = "랭킹/리더보드 통계 API")
 @RestController
@@ -25,32 +28,31 @@ class RankingStatsWebAdapter(
 ) {
     @Operation(
         summary = "Elo 리더보드",
-        description = "실력 레이팅(laneElo) 표시값 기준 순위를 반환합니다. " +
-            "minDuels 미만은 배치 중(rank=0)으로 분류돼 목록 뒤로 밀립니다. " +
-            "기준이 경기 수가 아니라 **라인 맞대결 수** 인 점에 주의하세요. 포지션이 깨진 경기나 " +
-            "칼바람은 맞대결이 성립하지 않아 실력 표본이 되지 못합니다."
+        description =
+            "실력 레이팅(laneElo) 표시값 기준 순위를 반환합니다. " +
+                "minDuels 미만은 배치 중(rank=0)으로 분류돼 목록 뒤로 밀립니다. " +
+                "기준이 경기 수가 아니라 **라인 맞대결 수** 인 점에 주의하세요. 포지션이 깨진 경기나 " +
+                "칼바람은 맞대결이 성립하지 않아 실력 표본이 되지 못합니다.",
     )
     @GetMapping("/elo")
     fun getEloLeaderboard(
         @Parameter(description = "순위에 들어가기 위한 최소 라인 맞대결 수", example = "10")
         @RequestParam(defaultValue = "10") minDuels: Int,
-    ): CommonApiResponse<EloLeaderboardResult> =
-        CommonApiResponse.success(getEloLeaderboardUseCase.getLeaderboard(minDuels))
+    ): CommonApiResponse<EloLeaderboardResult> = CommonApiResponse.success(getEloLeaderboardUseCase.getLeaderboard(minDuels))
 
     @Operation(
         summary = "MVP 점수 랭킹",
-        description = "경기별 MVP 점수(KDA·데미지 기여·시야·CS·승리 보너스 합산)를 집계하여 플레이어 랭킹을 반환합니다"
+        description = "경기별 MVP 점수(KDA·데미지 기여·시야·CS·승리 보너스 합산)를 집계하여 플레이어 랭킹을 반환합니다",
     )
     @GetMapping("/mvp")
     fun getMvpStats(
         @Parameter(description = "경기 모드 (normal=5v5내전, aram=칼바람, all=전체)", example = "normal")
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<MvpStatsResult> =
-        CommonApiResponse.success(getMvpStatsUseCase.getMvpStats(mode))
+    ): CommonApiResponse<MvpStatsResult> = CommonApiResponse.success(getMvpStatsUseCase.getMvpStats(mode))
 
     @Operation(
         summary = "라인별 플레이어 랭킹",
-        description = "특정 포지션(TOP/JUNGLE/MID/BOTTOM/SUPPORT)에서의 플레이어 통계 랭킹을 반환합니다"
+        description = "특정 포지션(TOP/JUNGLE/MID/BOTTOM/SUPPORT)에서의 플레이어 통계 랭킹을 반환합니다",
     )
     @GetMapping("/lane")
     fun getLaneLeaderboard(
@@ -58,12 +60,10 @@ class RankingStatsWebAdapter(
         @RequestParam lane: String,
         @Parameter(description = "경기 모드 (normal=5v5내전, aram=칼바람, all=전체)", example = "normal")
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<LaneLeaderboardResult> =
-        CommonApiResponse.success(getLaneLeaderboardUseCase.getLaneLeaderboard(lane, mode))
+    ): CommonApiResponse<LaneLeaderboardResult> = CommonApiResponse.success(getLaneLeaderboardUseCase.getLaneLeaderboard(lane, mode))
 
     @GetMapping("/kill-participation")
     fun getKillParticipation(
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<KillParticipationResult> =
-        CommonApiResponse.success(getKillParticipationUseCase.getKillParticipation(mode))
+    ): CommonApiResponse<KillParticipationResult> = CommonApiResponse.success(getKillParticipationUseCase.getKillParticipation(mode))
 }

@@ -1,6 +1,5 @@
 package com.gijun.main.application.handler.query
 
-import com.gijun.main.domain.session.exception.InvalidSessionDateException
 import com.gijun.main.application.dto.stats.result.SessionDetailResult
 import com.gijun.main.application.dto.stats.result.SessionMatchEntry
 import com.gijun.main.application.dto.stats.result.SessionPlayerEntry
@@ -14,6 +13,7 @@ import com.gijun.main.domain.service.SessionClock
 import com.gijun.main.domain.service.TeamFightDetector
 import com.gijun.main.domain.service.TimelineMetrics
 import com.gijun.main.domain.service.TimelineParser
+import com.gijun.main.domain.session.exception.InvalidSessionDateException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -36,38 +36,49 @@ class GetSessionDetailHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val cache: StatsCachePort,
 ) : GetSessionDetailUseCase {
-
-    override fun getSessionDetail(date: String, mode: String): SessionDetailResult? {
+    override fun getSessionDetail(
+        date: String,
+        mode: String,
+    ): SessionDetailResult? {
         val day = parse(date)
         return cache.getOrCompute("session-detail:$date:$mode") { build(day, mode) }
     }
 
     /** `yyyy-MM-dd` 가 아니면 400 이다. 404 가 아닌 이유: 날짜 자체가 잘못된 요청이다. */
-    private fun parse(date: String): LocalDate = try {
-        LocalDate.parse(date)
-    } catch (e: DateTimeParseException) {
-        throw InvalidSessionDateException(date)
-    }
+    private fun parse(date: String): LocalDate =
+        try {
+            LocalDate.parse(date)
+        } catch (e: DateTimeParseException) {
+            throw InvalidSessionDateException(date)
+        }
 
-    private fun build(day: LocalDate, mode: String): SessionDetailResult? {
+    private fun build(
+        day: LocalDate,
+        mode: String,
+    ): SessionDetailResult? {
         val (fromMs, untilMs) = SessionClock.rangeMs(day)
         val matches = matchPersistencePort.findInPeriodWithParticipants(modeToQueueIds(mode), fromMs, untilMs)
         if (matches.isEmpty()) return null
 
         val raws = matchPersistencePort.findTimelineRaw(matches.map { it.matchId })
         val timelines = matches.associate { it.matchId to TimelineParser.parse(raws[it.matchId]) }
-        val metrics = matches.mapNotNull { m -> TimelineMetrics.of(m, timelines.getValue(m.matchId)) }
-            .associateBy { it.matchId }
+        val metrics =
+            matches
+                .mapNotNull { m -> TimelineMetrics.of(m, timelines.getValue(m.matchId)) }
+                .associateBy { it.matchId }
 
         val entries = matches.map { m -> matchEntry(m, timelines.getValue(m.matchId), metrics[m.matchId]) }
-        val fights = matches.flatMap { m ->
-            TeamFightDetector.of(timelines.getValue(m.matchId), teamByPid(m)).filter { it.isTeamFight }
-        }
+        val fights =
+            matches.flatMap { m ->
+                TeamFightDetector.of(timelines.getValue(m.matchId), teamByPid(m)).filter { it.isTeamFight }
+            }
 
         val decided = entries.filter { it.winnerTeamId != null }
-        val comeback = entries.filter { it.goldDiffAt15 != null && it.winnerTeamId != null }
-            .filter { behindAt15(it) }
-            .minByOrNull { blueOriented(it) }
+        val comeback =
+            entries
+                .filter { it.goldDiffAt15 != null && it.winnerTeamId != null }
+                .filter { behindAt15(it) }
+                .minByOrNull { blueOriented(it) }
 
         return SessionDetailResult(
             date = day.toString(),
@@ -109,9 +120,10 @@ class GetSessionDetailHandler(
             totalKills = match.participants.sumOf { it.kills },
             hasTimeline = curve.isNotEmpty(),
             teamGoldDiffByMinute = curve,
-            goldDiffAt15 = metrics?.goldLeadTeamAt15?.let { lead ->
-                if (lead == 100) metrics.teamGoldGapAt15 else -metrics.teamGoldGapAt15
-            },
+            goldDiffAt15 =
+                metrics?.goldLeadTeamAt15?.let { lead ->
+                    if (lead == 100) metrics.teamGoldGapAt15 else -metrics.teamGoldGapAt15
+                },
         )
     }
 
@@ -119,7 +131,10 @@ class GetSessionDetailHandler(
      * 블루 − 레드 팀 골드 격차 곡선. 0분부터 끊기지 않고 이어지는 프레임만 쓴다
      * (경기 상세와 같은 규약 — 중간을 앞 값으로 채우면 없던 정체 구간이 생긴다).
      */
-    private fun teamGoldDiffByMinute(match: Match, timeline: MatchTimeline): List<Int> {
+    private fun teamGoldDiffByMinute(
+        match: Match,
+        timeline: MatchTimeline,
+    ): List<Int> {
         val teamByPid = teamByPid(match)
         if (teamByPid.isEmpty()) return emptyList()
 
@@ -128,17 +143,24 @@ class GetSessionDetailHandler(
         var minute = 0
         while (true) {
             val frame = byMinute[minute] ?: break
-            val blue = frame.participants.values.filter { teamByPid[it.participantId] == 100 }.sumOf { it.totalGold }
-            val red = frame.participants.values.filter { teamByPid[it.participantId] == 200 }.sumOf { it.totalGold }
+            val blue =
+                frame.participants.values
+                    .filter { teamByPid[it.participantId] == 100 }
+                    .sumOf { it.totalGold }
+            val red =
+                frame.participants.values
+                    .filter { teamByPid[it.participantId] == 200 }
+                    .sumOf { it.totalGold }
             out.add(blue - red)
             minute++
         }
         return out
     }
 
-    private fun teamByPid(match: Match): Map<Int, Int> = match.participants
-        .filter { it.participantId > 0 && it.riotId.isNotBlank() }
-        .associate { it.participantId to it.teamId }
+    private fun teamByPid(match: Match): Map<Int, Int> =
+        match.participants
+            .filter { it.participantId > 0 && it.riotId.isNotBlank() }
+            .associate { it.participantId to it.teamId }
 
     /** 15분에 뒤지고 있었는데 이긴 경기인가. */
     private fun behindAt15(entry: SessionMatchEntry): Boolean {
@@ -161,7 +183,8 @@ class GetSessionDetailHandler(
     ): List<SessionPlayerEntry> {
         val lines = metrics.values.flatMap { m -> m.players.map { it } }.groupBy { it.riotId }
 
-        return matches.flatMap { it.participants }
+        return matches
+            .flatMap { it.participants }
             .filter { it.riotId.isNotBlank() }
             .groupBy { it.riotId }
             .map { (riotId, ps) ->
@@ -185,8 +208,7 @@ class GetSessionDetailHandler(
                     earlyDeaths = mine.sumOf { it.earlyDeaths },
                     soloKills = mine.sumOf { it.soloKills },
                 )
-            }
-            .sortedWith(compareByDescending<SessionPlayerEntry> { it.wins }.thenByDescending { it.kda })
+            }.sortedWith(compareByDescending<SessionPlayerEntry> { it.wins }.thenByDescending { it.kda })
     }
 
     /**
@@ -195,7 +217,10 @@ class GetSessionDetailHandler(
      * 한 세션에서 한 사람이 쭉 이겼다면 그게 그 사람의 하루다 — 팀 기준으로 세면 팀 구성이
      * 바뀔 때마다 끊겨서 의미가 없다.
      */
-    private fun streak(matches: List<Match>, won: Boolean): SessionStreak? {
+    private fun streak(
+        matches: List<Match>,
+        won: Boolean,
+    ): SessionStreak? {
         val best = mutableMapOf<String, Int>()
         val current = mutableMapOf<String, Int>()
 
@@ -212,10 +237,13 @@ class GetSessionDetailHandler(
         }
 
         // 2연승부터 기록으로 본다. 1은 그냥 한 판 이긴 것이다.
-        return best.filterValues { it >= 2 }.maxByOrNull { it.value }
+        return best
+            .filterValues { it >= 2 }
+            .maxByOrNull { it.value }
             ?.let { SessionStreak(it.key, it.value) }
     }
 
     private fun r1(v: Double) = (v * 10).roundToInt() / 10.0
+
     private fun r2(v: Double) = (v * 100).roundToInt() / 100.0
 }

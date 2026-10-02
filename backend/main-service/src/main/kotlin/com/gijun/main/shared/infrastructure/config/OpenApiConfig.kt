@@ -10,20 +10,18 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class OpenApiConfig {
-
     @Bean
-    fun openAPI(): OpenAPI = OpenAPI()
-        .info(
-            Info()
-                .title("LoL 내전 이벤트 API")
-                .description("League of Legends 내전 경기 수집 및 통계 서비스")
-                .version("v1.0.0")
-                .contact(Contact().name("lol-event").url("https://github.com/Park-GiJun/lol-event"))
-        )
-        .servers(
-            listOf(
-                Server().url("/").description("현재 서버"),
-            )
-        )
-        .components(Components())
+    fun openAPI(): OpenAPI =
+        OpenAPI()
+            .info(
+                Info()
+                    .title("LoL 내전 이벤트 API")
+                    .description("League of Legends 내전 경기 수집 및 통계 서비스")
+                    .version("v1.0.0")
+                    .contact(Contact().name("lol-event").url("https://github.com/Park-GiJun/lol-event")),
+            ).servers(
+                listOf(
+                    Server().url("/").description("현재 서버"),
+                ),
+            ).components(Components())
 }

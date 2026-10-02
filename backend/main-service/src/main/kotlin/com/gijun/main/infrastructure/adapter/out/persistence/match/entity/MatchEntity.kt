@@ -2,7 +2,17 @@ package com.gijun.main.infrastructure.adapter.out.persistence.match.entity
 
 import com.gijun.main.domain.model.match.LaneMethod
 import com.gijun.main.domain.model.match.Match
-import jakarta.persistence.*
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 import java.time.LocalDateTime
 
 @Entity
@@ -27,28 +37,44 @@ class MatchEntity(
     @OneToMany(mappedBy = "match", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     val participants: MutableList<MatchParticipantEntity> = mutableListOf(),
     @OneToMany(mappedBy = "match", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
-    val teams: MutableList<MatchTeamEntity> = mutableListOf()
+    val teams: MutableList<MatchTeamEntity> = mutableListOf(),
 ) {
-    fun toDomain() = Match(
-        id = id, matchId = matchId, queueId = queueId,
-        gameCreation = gameCreation, gameDuration = gameDuration,
-        gameMode = gameMode, gameType = gameType, gameVersion = gameVersion,
-        mapId = mapId, seasonId = seasonId, platformId = platformId,
-        laneMethod = laneMethod,
-        // timelineRaw 는 일부러 싣지 않는다. 별도 테이블에 있고 무거워서, 필요한 쪽이 따로 가져간다.
-        createdAt = createdAt,
-        participants = participants.map { it.toDomain() }.toMutableList(),
-        teams = teams.map { it.toDomain() }.toMutableList()
-    )
+    fun toDomain() =
+        Match(
+            id = id,
+            matchId = matchId,
+            queueId = queueId,
+            gameCreation = gameCreation,
+            gameDuration = gameDuration,
+            gameMode = gameMode,
+            gameType = gameType,
+            gameVersion = gameVersion,
+            mapId = mapId,
+            seasonId = seasonId,
+            platformId = platformId,
+            laneMethod = laneMethod,
+            // timelineRaw 는 일부러 싣지 않는다. 별도 테이블에 있고 무거워서, 필요한 쪽이 따로 가져간다.
+            createdAt = createdAt,
+            participants = participants.map { it.toDomain() }.toMutableList(),
+            teams = teams.map { it.toDomain() }.toMutableList(),
+        )
 
     companion object {
-        fun from(domain: Match) = MatchEntity(
-            id = domain.id, matchId = domain.matchId, queueId = domain.queueId,
-            gameCreation = domain.gameCreation, gameDuration = domain.gameDuration,
-            gameMode = domain.gameMode, gameType = domain.gameType, gameVersion = domain.gameVersion,
-            mapId = domain.mapId, seasonId = domain.seasonId, platformId = domain.platformId,
-            laneMethod = domain.laneMethod,
-            createdAt = domain.createdAt
-        )
+        fun from(domain: Match) =
+            MatchEntity(
+                id = domain.id,
+                matchId = domain.matchId,
+                queueId = domain.queueId,
+                gameCreation = domain.gameCreation,
+                gameDuration = domain.gameDuration,
+                gameMode = domain.gameMode,
+                gameType = domain.gameType,
+                gameVersion = domain.gameVersion,
+                mapId = domain.mapId,
+                seasonId = domain.seasonId,
+                platformId = domain.platformId,
+                laneMethod = domain.laneMethod,
+                createdAt = domain.createdAt,
+            )
     }
 }

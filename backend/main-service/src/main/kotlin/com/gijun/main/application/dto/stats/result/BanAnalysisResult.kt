@@ -4,7 +4,7 @@ data class BanEntry(
     val champion: String,
     val championId: Int,
     val banCount: Int,
-    val banRate: Double,  // banCount / totalGames
+    val banRate: Double, // banCount / totalGames
 )
 
 data class BanAnalysisResult(

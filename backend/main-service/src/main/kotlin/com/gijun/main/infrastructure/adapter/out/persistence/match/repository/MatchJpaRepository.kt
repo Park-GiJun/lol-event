@@ -1,7 +1,7 @@
 package com.gijun.main.infrastructure.adapter.out.persistence.match.repository
 
-import com.gijun.main.infrastructure.adapter.out.persistence.match.entity.MatchEntity
 import com.gijun.main.domain.model.match.LaneMethod
+import com.gijun.main.infrastructure.adapter.out.persistence.match.entity.MatchEntity
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
@@ -10,7 +10,9 @@ import org.springframework.data.repository.query.Param
 
 interface MatchJpaRepository : JpaRepository<MatchEntity, Long> {
     fun existsByMatchId(matchId: String): Boolean
+
     fun findByMatchId(matchId: String): MatchEntity?
+
     fun deleteByMatchId(matchId: String)
 
     @Query("SELECT DISTINCT m FROM MatchEntity m LEFT JOIN FETCH m.participants WHERE m.queueId IN :queueIds ORDER BY m.gameCreation DESC")
@@ -24,7 +26,10 @@ interface MatchJpaRepository : JpaRepository<MatchEntity, Long> {
      * (HHH000104) 페이징 효과가 사라진다. 그래서 2단계로 나눈다.
      */
     @Query("SELECT m.matchId FROM MatchEntity m WHERE m.queueId IN :queueIds ORDER BY m.gameCreation DESC")
-    fun findMatchIdsByQueueIdIn(queueIds: List<Int>, pageable: Pageable): List<String>
+    fun findMatchIdsByQueueIdIn(
+        queueIds: List<Int>,
+        pageable: Pageable,
+    ): List<String>
 
     @Query("SELECT DISTINCT m FROM MatchEntity m LEFT JOIN FETCH m.participants WHERE m.matchId IN :matchIds ORDER BY m.gameCreation DESC")
     fun findAllWithParticipantsByMatchIdIn(matchIds: List<String>): List<MatchEntity>
@@ -40,7 +45,7 @@ interface MatchJpaRepository : JpaRepository<MatchEntity, Long> {
     @Query(
         "SELECT DISTINCT m FROM MatchEntity m LEFT JOIN FETCH m.participants " +
             "WHERE m.queueId IN :queueIds AND m.gameCreation >= :fromMs AND m.gameCreation < :untilMs " +
-            "ORDER BY m.gameCreation ASC"
+            "ORDER BY m.gameCreation ASC",
     )
     fun findAllWithParticipantsInPeriod(
         @Param("queueIds") queueIds: List<Int>,
@@ -60,7 +65,10 @@ interface MatchJpaRepository : JpaRepository<MatchEntity, Long> {
      */
     @Modifying
     @Query("UPDATE MatchEntity m SET m.laneMethod = :method WHERE m.matchId IN :matchIds")
-    fun updateLaneMethodIn(@Param("matchIds") matchIds: Collection<String>, @Param("method") method: LaneMethod): Int
+    fun updateLaneMethodIn(
+        @Param("matchIds") matchIds: Collection<String>,
+        @Param("method") method: LaneMethod,
+    ): Int
 
     /** 경기에 한 번이라도 등장한 인원. 등록 멤버가 아니라 실제 참가자 기준이다. */
     @Query("SELECT COUNT(DISTINCT p.riotId) FROM MatchEntity m JOIN m.participants p WHERE m.queueId IN :queueIds")

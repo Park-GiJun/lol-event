@@ -2,7 +2,13 @@ package com.gijun.main.infrastructure.adapter.out.persistence.rating.entity
 
 import com.gijun.main.domain.model.rating.PlayerRating
 import com.gijun.main.domain.service.RatingMath
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
 import java.time.LocalDateTime
 
 /**
@@ -13,8 +19,9 @@ import java.time.LocalDateTime
  */
 @Entity
 @Table(
-    name = "player_rating", schema = "lol_event",
-    uniqueConstraints = [UniqueConstraint(name = "uq_player_rating_riot_id", columnNames = ["riot_id"])]
+    name = "player_rating",
+    schema = "lol_event",
+    uniqueConstraints = [UniqueConstraint(name = "uq_player_rating_riot_id", columnNames = ["riot_id"])],
 )
 class PlayerRatingEntity(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,20 +38,36 @@ class PlayerRatingEntity(
     @Column(nullable = false) val teamLossStreak: Int = 0,
     @Column(nullable = false) val updatedAt: LocalDateTime = LocalDateTime.now(),
 ) {
-    fun toDomain() = PlayerRating(
-        id = id, riotId = riotId,
-        laneElo = laneElo, laneDuels = laneDuels, laneWins = laneWins,
-        teamElo = teamElo, teamGames = teamGames, teamWins = teamWins,
-        teamWinStreak = teamWinStreak, teamLossStreak = teamLossStreak,
-        updatedAt = updatedAt,
-    )
+    fun toDomain() =
+        PlayerRating(
+            id = id,
+            riotId = riotId,
+            laneElo = laneElo,
+            laneDuels = laneDuels,
+            laneWins = laneWins,
+            teamElo = teamElo,
+            teamGames = teamGames,
+            teamWins = teamWins,
+            teamWinStreak = teamWinStreak,
+            teamLossStreak = teamLossStreak,
+            updatedAt = updatedAt,
+        )
 
     companion object {
-        fun from(d: PlayerRating, id: Long = d.id) = PlayerRatingEntity(
-            id = id, riotId = d.riotId,
-            laneElo = d.laneElo, laneDuels = d.laneDuels, laneWins = d.laneWins,
-            teamElo = d.teamElo, teamGames = d.teamGames, teamWins = d.teamWins,
-            teamWinStreak = d.teamWinStreak, teamLossStreak = d.teamLossStreak,
+        fun from(
+            d: PlayerRating,
+            id: Long = d.id,
+        ) = PlayerRatingEntity(
+            id = id,
+            riotId = d.riotId,
+            laneElo = d.laneElo,
+            laneDuels = d.laneDuels,
+            laneWins = d.laneWins,
+            teamElo = d.teamElo,
+            teamGames = d.teamGames,
+            teamWins = d.teamWins,
+            teamWinStreak = d.teamWinStreak,
+            teamLossStreak = d.teamLossStreak,
             updatedAt = d.updatedAt,
         )
     }

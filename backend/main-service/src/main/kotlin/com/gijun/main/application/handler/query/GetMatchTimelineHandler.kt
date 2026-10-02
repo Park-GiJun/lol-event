@@ -42,7 +42,6 @@ class GetMatchTimelineHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val cache: StatsCachePort,
 ) : GetMatchTimelineUseCase {
-
     override fun getMatchTimeline(matchId: String): MatchTimelineResult? {
         val match = matchPersistencePort.findByMatchId(matchId) ?: return null
         return cache.getOrCompute("match-timeline:$matchId") {
@@ -50,7 +49,10 @@ class GetMatchTimelineHandler(
         }
     }
 
-    private fun build(match: Match, raw: String?): MatchTimelineResult {
+    private fun build(
+        match: Match,
+        raw: String?,
+    ): MatchTimelineResult {
         val durationMs = match.gameDuration * 1_000L
         val timeline = TimelineParser.parse(raw)
 
@@ -61,43 +63,58 @@ class GetMatchTimelineHandler(
         // participantId 가 0 인 옛 경기는 프레임과 사람을 이을 수 없다 — 타임라인이 없는 것과 같다.
         if (frames.isEmpty() || byPid.isEmpty()) {
             return MatchTimelineResult(
-                matchId = match.matchId, hasTimeline = false, durationMs = durationMs, lastMinute = 0,
-                teams = emptyList(), teamGoldDiffByMinute = emptyList(), participants = emptyList(),
-                kills = emptyList(), objectives = emptyList(), teamFights = emptyList(),
+                matchId = match.matchId,
+                hasTimeline = false,
+                durationMs = durationMs,
+                lastMinute = 0,
+                teams = emptyList(),
+                teamGoldDiffByMinute = emptyList(),
+                participants = emptyList(),
+                kills = emptyList(),
+                objectives = emptyList(),
+                teamFights = emptyList(),
             )
         }
 
         val teamByPid = byPid.mapValues { it.value.teamId }
         val roster = byPid.mapValues { PositionMetrics.Slot(it.value.teamId, positionOf(it.value.assignedPosition)) }
 
-        val lines = TimelineMetrics.of(match, timeline)?.players?.associateBy { it.participantId }.orEmpty()
+        val lines =
+            TimelineMetrics
+                .of(match, timeline)
+                ?.players
+                ?.associateBy { it.participantId }
+                .orEmpty()
         val positions = PositionMetrics.of(timeline, roster)
         val spreads = positions?.teamSpreads?.associateBy { it.teamId }.orEmpty()
 
-        val teamGold = listOf(100, 200).associateWith { teamId ->
-            frames.map { f -> sumOf(f, byPid, teamId) { it.totalGold } }
-        }
+        val teamGold =
+            listOf(100, 200).associateWith { teamId ->
+                frames.map { f -> sumOf(f, byPid, teamId) { it.totalGold } }
+            }
 
         return MatchTimelineResult(
             matchId = match.matchId,
             hasTimeline = true,
             durationMs = durationMs,
             lastMinute = frames.size - 1,
-            teams = listOf(100, 200).map { teamId ->
-                TeamTimelineSeries(
-                    teamId = teamId,
-                    win = named.firstOrNull { it.teamId == teamId }?.win ?: false,
-                    goldByMinute = teamGold.getValue(teamId),
-                    xpByMinute = frames.map { f -> sumOf(f, byPid, teamId) { it.xp } },
-                    csByMinute = frames.map { f -> sumOf(f, byPid, teamId) { it.cs } },
-                    spreadByMinute = frames.indices.map { spreads[teamId]?.byMinute?.get(it) },
-                    avgSpread = spreads[teamId]?.average,
-                )
-            },
+            teams =
+                listOf(100, 200).map { teamId ->
+                    TeamTimelineSeries(
+                        teamId = teamId,
+                        win = named.firstOrNull { it.teamId == teamId }?.win ?: false,
+                        goldByMinute = teamGold.getValue(teamId),
+                        xpByMinute = frames.map { f -> sumOf(f, byPid, teamId) { it.xp } },
+                        csByMinute = frames.map { f -> sumOf(f, byPid, teamId) { it.cs } },
+                        spreadByMinute = frames.indices.map { spreads[teamId]?.byMinute?.get(it) },
+                        avgSpread = spreads[teamId]?.average,
+                    )
+                },
             teamGoldDiffByMinute = frames.indices.map { teamGold.getValue(100)[it] - teamGold.getValue(200)[it] },
-            participants = byPid.keys.sorted().map { pid ->
-                series(pid, byPid.getValue(pid), frames, lines[pid], positions?.of(pid))
-            },
+            participants =
+                byPid.keys.sorted().map { pid ->
+                    series(pid, byPid.getValue(pid), frames, lines[pid], positions?.of(pid))
+                },
             kills = timeline.events.filterIsInstance<TimelineEvent.ChampionKill>().map { kill(it, teamByPid) },
             objectives = timeline.events.mapNotNull { objective(it, teamByPid) },
             teamFights = TeamFightDetector.of(timeline, teamByPid).map(::fight),
@@ -129,7 +146,10 @@ class GetMatchTimelineHandler(
         byPid: Map<Int, MatchParticipant>,
         teamId: Int,
         pick: (ParticipantFrame) -> Int,
-    ): Int = frame.participants.values.filter { byPid[it.participantId]?.teamId == teamId }.sumOf(pick)
+    ): Int =
+        frame.participants.values
+            .filter { byPid[it.participantId]?.teamId == teamId }
+            .sumOf(pick)
 
     private fun series(
         pid: Int,
@@ -169,7 +189,10 @@ class GetMatchTimelineHandler(
 
     // ────────── 이벤트 ──────────
 
-    private fun kill(event: TimelineEvent.ChampionKill, teamByPid: Map<Int, Int>) = KillEntry(
+    private fun kill(
+        event: TimelineEvent.ChampionKill,
+        teamByPid: Map<Int, Int>,
+    ) = KillEntry(
         timestampMs = event.timestampMs,
         minute = minute(event.timestampMs),
         killerParticipantId = event.killerId,
@@ -181,55 +204,63 @@ class GetMatchTimelineHandler(
         region = event.position?.let { MapGeometry.regionOf(it).name },
     )
 
-    private fun objective(event: TimelineEvent, teamByPid: Map<Int, Int>): ObjectiveEntry? = when (event) {
-        is TimelineEvent.EliteMonsterKill -> ObjectiveEntry(
-            timestampMs = event.timestampMs,
-            minute = minute(event.timestampMs),
-            kind = event.monsterType,
-            subType = event.monsterSubType,
-            lane = "",
-            towerType = "",
-            killingTeamId = teamByPid[event.killerId],
-            killerParticipantId = event.killerId,
-            assistParticipantIds = event.assistIds,
-            at = event.position?.let(::point),
-        )
-        is TimelineEvent.BuildingKill -> ObjectiveEntry(
-            timestampMs = event.timestampMs,
-            minute = minute(event.timestampMs),
-            kind = event.buildingType,
-            subType = "",
-            lane = event.laneType,
-            towerType = event.towerType,
-            // 원본의 teamId 는 **부서진** 건물의 팀이다. 여기서 한 번만 뒤집는다.
-            killingTeamId = opposing(event.buildingTeamId),
-            killerParticipantId = event.killerId,
-            assistParticipantIds = event.assistIds,
-            at = event.position?.let(::point),
-        )
-        is TimelineEvent.ChampionKill -> null
-    }
+    private fun objective(
+        event: TimelineEvent,
+        teamByPid: Map<Int, Int>,
+    ): ObjectiveEntry? =
+        when (event) {
+            is TimelineEvent.EliteMonsterKill ->
+                ObjectiveEntry(
+                    timestampMs = event.timestampMs,
+                    minute = minute(event.timestampMs),
+                    kind = event.monsterType,
+                    subType = event.monsterSubType,
+                    lane = "",
+                    towerType = "",
+                    killingTeamId = teamByPid[event.killerId],
+                    killerParticipantId = event.killerId,
+                    assistParticipantIds = event.assistIds,
+                    at = event.position?.let(::point),
+                )
+            is TimelineEvent.BuildingKill ->
+                ObjectiveEntry(
+                    timestampMs = event.timestampMs,
+                    minute = minute(event.timestampMs),
+                    kind = event.buildingType,
+                    subType = "",
+                    lane = event.laneType,
+                    towerType = event.towerType,
+                    // 원본의 teamId 는 **부서진** 건물의 팀이다. 여기서 한 번만 뒤집는다.
+                    killingTeamId = opposing(event.buildingTeamId),
+                    killerParticipantId = event.killerId,
+                    assistParticipantIds = event.assistIds,
+                    at = event.position?.let(::point),
+                )
+            is TimelineEvent.ChampionKill -> null
+        }
 
-    private fun fight(fight: TeamFight) = TeamFightEntry(
-        startMs = fight.startMs,
-        endMs = fight.endMs,
-        startMinute = minute(fight.startMs),
-        team100Kills = fight.team100Kills,
-        team200Kills = fight.team200Kills,
-        winnerTeamId = fight.winnerTeamId,
-        openedByTeamId = fight.openedByTeamId,
-        participantIds = fight.participantIds.sorted(),
-        at = fight.centroid?.let(::point),
-        region = fight.region?.name,
-        isTeamFight = fight.isTeamFight,
-        objectiveKinds = fight.objectivesAfter.map {
-            when (it) {
-                is TimelineEvent.EliteMonsterKill -> it.monsterType
-                is TimelineEvent.BuildingKill -> it.buildingType
-                is TimelineEvent.ChampionKill -> "CHAMPION_KILL"
-            }
-        },
-    )
+    private fun fight(fight: TeamFight) =
+        TeamFightEntry(
+            startMs = fight.startMs,
+            endMs = fight.endMs,
+            startMinute = minute(fight.startMs),
+            team100Kills = fight.team100Kills,
+            team200Kills = fight.team200Kills,
+            winnerTeamId = fight.winnerTeamId,
+            openedByTeamId = fight.openedByTeamId,
+            participantIds = fight.participantIds.sorted(),
+            at = fight.centroid?.let(::point),
+            region = fight.region?.name,
+            isTeamFight = fight.isTeamFight,
+            objectiveKinds =
+                fight.objectivesAfter.map {
+                    when (it) {
+                        is TimelineEvent.EliteMonsterKill -> it.monsterType
+                        is TimelineEvent.BuildingKill -> it.buildingType
+                        is TimelineEvent.ChampionKill -> "CHAMPION_KILL"
+                    }
+                },
+        )
 
     // ────────── 잡동사니 ──────────
 
@@ -237,13 +268,13 @@ class GetMatchTimelineHandler(
 
     private fun minute(timestampMs: Long) = (timestampMs / 60_000L).toInt()
 
-    private fun opposing(teamId: Int?): Int? = when (teamId) {
-        100 -> 200
-        200 -> 100
-        else -> null
-    }
+    private fun opposing(teamId: Int?): Int? =
+        when (teamId) {
+            100 -> 200
+            200 -> 100
+            else -> null
+        }
 
     /** 포지션 추정이 실패했거나 옛 데이터라 값이 비었으면 UNKNOWN 으로 본다. */
-    private fun positionOf(name: String): Position =
-        Position.entries.firstOrNull { it.name == name.uppercase() } ?: Position.UNKNOWN
+    private fun positionOf(name: String): Position = Position.entries.firstOrNull { it.name == name.uppercase() } ?: Position.UNKNOWN
 }

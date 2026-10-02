@@ -9,10 +9,16 @@ interface GetTimelineStatsUseCase {
     fun getTimelineStats(mode: String): TimelineStatsResult
 
     /** [lane] 은 TOP / JUNGLE / MID / ADC / SUPPORT. */
-    fun getTimelineLane(lane: String, mode: String): TimelineLaneResult
+    fun getTimelineLane(
+        lane: String,
+        mode: String,
+    ): TimelineLaneResult
 
     /** [champion] 을 주면 그 챔피언만 (영문명, 대소문자 무시). */
-    fun getTimelineChampions(mode: String, champion: String?): TimelineChampionsResult
+    fun getTimelineChampions(
+        mode: String,
+        champion: String?,
+    ): TimelineChampionsResult
 }
 
 interface GetPlayerTimelineUseCase {

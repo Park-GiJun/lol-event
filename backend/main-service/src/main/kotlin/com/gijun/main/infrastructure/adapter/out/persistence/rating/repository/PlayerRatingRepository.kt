@@ -5,5 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface PlayerRatingRepository : JpaRepository<PlayerRatingEntity, Long> {
     fun findByRiotId(riotId: String): PlayerRatingEntity?
+
     fun findAllByRiotIdIn(riotIds: Collection<String>): List<PlayerRatingEntity>
 }

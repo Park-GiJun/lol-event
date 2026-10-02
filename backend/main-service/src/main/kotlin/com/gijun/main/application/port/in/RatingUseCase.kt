@@ -16,6 +16,7 @@ interface ResetAndRecalculateRatingUseCase {
 
 interface GetRatingUseCase {
     fun getAll(): List<PlayerRating>
+
     fun getByRiotId(riotId: String): PlayerRating?
 }
 
@@ -25,7 +26,10 @@ interface GetEloLeaderboardUseCase {
 }
 
 interface GetEloHistoryUseCase {
-    fun getHistory(riotId: String, limit: Int = 30): PlayerEloHistoryResult
+    fun getHistory(
+        riotId: String,
+        limit: Int = 30,
+    ): PlayerEloHistoryResult
 }
 
 interface ValidateRatingUseCase {
@@ -36,5 +40,8 @@ interface ValidateRatingUseCase {
      * @param excludeRepeatedTeams 직전 경기와 팀 구성이 같은(진영만 바뀐 경우 포함) 경기를 제외할지.
      *        켜 두는 것이 기본이다 — 자세한 이유는 [com.gijun.main.application.handler.query.RatingValidationHandler] 참고.
      */
-    fun validate(warmup: Int, excludeRepeatedTeams: Boolean): RatingValidationResult
+    fun validate(
+        warmup: Int,
+        excludeRepeatedTeams: Boolean,
+    ): RatingValidationResult
 }

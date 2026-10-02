@@ -20,8 +20,8 @@ class SaveMatchesHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val statsQueryCache: StatsCachePort,
     private val kafkaTemplate: KafkaTemplate<String, String>,
-) : SaveMatchesUseCase, DeleteMatchUseCase {
-
+) : SaveMatchesUseCase,
+    DeleteMatchUseCase {
     private val log = LoggerFactory.getLogger(javaClass)
 
     override fun save(command: SaveMatchesCommand): SaveMatchesResult {
@@ -35,9 +35,10 @@ class SaveMatchesHandler(
             }
             val match = input.toDomain()
             val timeline = TimelineParser.parse(match.timelineRaw)
-            val withPositions = match.copy(
-                participants = PositionDetector.assignPositionsToAll(match.participants).toMutableList(),
-            )
+            val withPositions =
+                match.copy(
+                    participants = PositionDetector.assignPositionsToAll(match.participants).toMutableList(),
+                )
             // 라인 판정 방법은 저장 시점에 한 번 확정해 둔다. 재집계가 다시 계산하더라도
             // 원본 데이터가 그대로라 같은 값이 나온다 — 여기서 남기는 건 "그때 무엇이 있었나"의 기록이다.
             val method = LaneScores.of(withPositions, timeline).method

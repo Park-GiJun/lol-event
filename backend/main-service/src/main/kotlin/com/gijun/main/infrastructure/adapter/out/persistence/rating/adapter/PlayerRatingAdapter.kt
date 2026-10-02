@@ -8,8 +8,9 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Component
-class PlayerRatingAdapter(private val repo: PlayerRatingRepository) : PlayerRatingPort {
-
+class PlayerRatingAdapter(
+    private val repo: PlayerRatingRepository,
+) : PlayerRatingPort {
     override fun findByRiotId(riotId: String): PlayerRating? = repo.findByRiotId(riotId)?.toDomain()
 
     override fun findAllByRiotIds(riotIds: Collection<String>): List<PlayerRating> =

@@ -107,31 +107,55 @@ enum class HeatmapKind {
 
 /** 경기 구간. `ALL` 은 저장하지 않는다 — 세 구간을 더하면 나온다. */
 enum class HeatmapPhase {
-    EARLY, MID, LATE;
+    EARLY,
+    MID,
+    LATE,
+    ;
 
     companion object {
         private const val EARLY_END_MS = 900_000L
         private const val MID_END_MS = 1_500_000L
 
-        fun of(timestampMs: Long): HeatmapPhase = when {
-            timestampMs < EARLY_END_MS -> EARLY
-            timestampMs < MID_END_MS -> MID
-            else -> LATE
-        }
+        fun of(timestampMs: Long): HeatmapPhase =
+            when {
+                timestampMs < EARLY_END_MS -> EARLY
+                timestampMs < MID_END_MS -> MID
+                else -> LATE
+            }
     }
 }
 
 interface StatsCachePersistencePort {
     fun findPlayerCacheByMode(mode: String): List<PlayerStatsCache>
-    fun findChampionItemCacheByChampionAndMode(champion: String, mode: String): List<ChampionItemStatsCache>
-    fun findChampionRuneCacheByChampionAndMode(champion: String, mode: String): List<ChampionRuneStatsCache>
 
-    fun findPlayerTimelineCache(riotId: String, mode: String): PlayerTimelineStatsCache?
-    fun findChampionTimelineCache(champion: String, mode: String): List<ChampionTimelineStatsCache>
+    fun findChampionItemCacheByChampionAndMode(
+        champion: String,
+        mode: String,
+    ): List<ChampionItemStatsCache>
+
+    fun findChampionRuneCacheByChampionAndMode(
+        champion: String,
+        mode: String,
+    ): List<ChampionRuneStatsCache>
+
+    fun findPlayerTimelineCache(
+        riotId: String,
+        mode: String,
+    ): PlayerTimelineStatsCache?
+
+    fun findChampionTimelineCache(
+        champion: String,
+        mode: String,
+    ): List<ChampionTimelineStatsCache>
 
     /**
      * 히트맵 한 장. **live fallback 이 없다** — 격자 집계는 요청 시 돌릴 비용이 아니다.
      * 비어 있으면 화면이 "집계 대기 중"을 띄운다.
      */
-    fun findHeatmap(mode: String, scopeType: String, scopeKey: String, kind: String): List<HeatmapCell>
+    fun findHeatmap(
+        mode: String,
+        scopeType: String,
+        scopeKey: String,
+        kind: String,
+    ): List<HeatmapCell>
 }

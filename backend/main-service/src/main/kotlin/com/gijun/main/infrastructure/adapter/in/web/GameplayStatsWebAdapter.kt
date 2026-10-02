@@ -1,6 +1,5 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import com.gijun.main.application.dto.stats.result.ChaosMatchResult
 import com.gijun.main.application.dto.stats.result.DamageAnalysisResult
 import com.gijun.main.application.dto.stats.result.DefeatContributionResult
@@ -29,8 +28,12 @@ import com.gijun.main.application.port.`in`.GetSupportImpactUseCase
 import com.gijun.main.application.port.`in`.GetSurrenderAnalysisUseCase
 import com.gijun.main.application.port.`in`.GetSurvivalIndexUseCase
 import com.gijun.main.application.port.`in`.GetVisionDominanceUseCase
+import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "Gameplay Stats", description = "게임플레이 상세 통계 API")
 @RestController
@@ -54,56 +57,47 @@ class GameplayStatsWebAdapter(
     @GetMapping("/multikill-highlights")
     fun getMultiKillHighlights(
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<MultiKillHighlightsResult> =
-        CommonApiResponse.success(getMultiKillHighlightsUseCase.getMultiKillHighlights(mode))
+    ): CommonApiResponse<MultiKillHighlightsResult> = CommonApiResponse.success(getMultiKillHighlightsUseCase.getMultiKillHighlights(mode))
 
     @GetMapping("/chaos-match")
     fun getChaosMatch(
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<ChaosMatchResult> =
-        CommonApiResponse.success(getChaosMatchUseCase.getChaosMatch(mode))
+    ): CommonApiResponse<ChaosMatchResult> = CommonApiResponse.success(getChaosMatchUseCase.getChaosMatch(mode))
 
     @GetMapping("/defeat-contribution")
     fun getDefeatContribution(
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<DefeatContributionResult> =
-        CommonApiResponse.success(getDefeatContributionUseCase.getDefeatContribution(mode))
+    ): CommonApiResponse<DefeatContributionResult> = CommonApiResponse.success(getDefeatContributionUseCase.getDefeatContribution(mode))
 
     @GetMapping("/survival-index")
     fun getSurvivalIndex(
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<SurvivalIndexResult> =
-        CommonApiResponse.success(getSurvivalIndexUseCase.getSurvivalIndex(mode))
+    ): CommonApiResponse<SurvivalIndexResult> = CommonApiResponse.success(getSurvivalIndexUseCase.getSurvivalIndex(mode))
 
     @GetMapping("/jungle-dominance")
     fun getJungleDominance(
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<JungleDominanceResult> =
-        CommonApiResponse.success(getJungleDominanceUseCase.getJungleDominance(mode))
+    ): CommonApiResponse<JungleDominanceResult> = CommonApiResponse.success(getJungleDominanceUseCase.getJungleDominance(mode))
 
     @GetMapping("/support-impact")
     fun getSupportImpact(
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<SupportImpactResult> =
-        CommonApiResponse.success(getSupportImpactUseCase.getSupportImpact(mode))
+    ): CommonApiResponse<SupportImpactResult> = CommonApiResponse.success(getSupportImpactUseCase.getSupportImpact(mode))
 
     @GetMapping("/gold-efficiency")
     fun getGoldEfficiency(
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<GoldEfficiencyResult> =
-        CommonApiResponse.success(getGoldEfficiencyUseCase.getGoldEfficiency(mode))
+    ): CommonApiResponse<GoldEfficiencyResult> = CommonApiResponse.success(getGoldEfficiencyUseCase.getGoldEfficiency(mode))
 
     @GetMapping("/playstyle-dna")
     fun getPlaystyleDna(
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<PlaystyleDnaResult> =
-        CommonApiResponse.success(getPlaystyleDnaUseCase.getPlaystyleDna(mode))
+    ): CommonApiResponse<PlaystyleDnaResult> = CommonApiResponse.success(getPlaystyleDnaUseCase.getPlaystyleDna(mode))
 
     @GetMapping("/position-badge")
     fun getPositionBadge(
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<PositionBadgeResult> =
-        CommonApiResponse.success(getPositionBadgeUseCase.getPositionBadge(mode))
+    ): CommonApiResponse<PositionBadgeResult> = CommonApiResponse.success(getPositionBadgeUseCase.getPositionBadge(mode))
 
     @GetMapping("/position-champion-pool")
     fun getPositionChampionPool(
@@ -114,24 +108,20 @@ class GameplayStatsWebAdapter(
     @GetMapping("/damage-analysis")
     fun getDamageAnalysis(
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<DamageAnalysisResult> =
-        CommonApiResponse.success(getDamageAnalysisUseCase.getDamageAnalysis(mode))
+    ): CommonApiResponse<DamageAnalysisResult> = CommonApiResponse.success(getDamageAnalysisUseCase.getDamageAnalysis(mode))
 
     @GetMapping("/vision-dominance")
     fun getVisionDominance(
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<VisionDominanceResult> =
-        CommonApiResponse.success(getVisionDominanceUseCase.getVisionDominance(mode))
+    ): CommonApiResponse<VisionDominanceResult> = CommonApiResponse.success(getVisionDominanceUseCase.getVisionDominance(mode))
 
     @GetMapping("/surrender-analysis")
     fun getSurrenderAnalysis(
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<SurrenderAnalysisResult> =
-        CommonApiResponse.success(getSurrenderAnalysisUseCase.getSurrenderAnalysis(mode))
+    ): CommonApiResponse<SurrenderAnalysisResult> = CommonApiResponse.success(getSurrenderAnalysisUseCase.getSurrenderAnalysis(mode))
 
     @GetMapping("/late-game")
     fun getLateGame(
         @RequestParam(defaultValue = "normal") mode: String,
-    ): CommonApiResponse<LateGameResult> =
-        CommonApiResponse.success(getLateGameUseCase.getLateGame(mode))
+    ): CommonApiResponse<LateGameResult> = CommonApiResponse.success(getLateGameUseCase.getLateGame(mode))
 }

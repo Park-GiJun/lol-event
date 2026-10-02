@@ -8,26 +8,29 @@ import com.gijun.main.domain.model.rating.LaneResult
 import com.gijun.main.domain.model.rating.PlayerRating
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.math.abs
 
 class RatingEngineTest {
-
     private val positions = listOf(Position.TOP, Position.JUNGLE, Position.MID, Position.ADC, Position.SUPPORT)
 
-    private fun player(riotId: String, pid: Int, teamId: Int, pos: Position, win: Boolean) =
-        MatchParticipant(
-            participantId = pid,
-            riotId = riotId,
-            champion = "Aatrox",
-            team = if (teamId == 100) "blue" else "red",
-            teamId = teamId,
-            win = win,
-            assignedPosition = pos.name,
-        )
+    private fun player(
+        riotId: String,
+        pid: Int,
+        teamId: Int,
+        pos: Position,
+        win: Boolean,
+    ) = MatchParticipant(
+        participantId = pid,
+        riotId = riotId,
+        champion = "Aatrox",
+        team = if (teamId == 100) "blue" else "red",
+        teamId = teamId,
+        win = win,
+        assignedPosition = pos.name,
+    )
 
     private fun match(
         blueWins: Boolean = true,
@@ -35,9 +38,10 @@ class RatingEngineTest {
         participants: List<MatchParticipant>? = null,
         queueId: Int = 3130,
     ): Match {
-        val roster = participants ?: (
-            positions.mapIndexed { i, pos -> player("blue$i#KR1", i + 1, 100, pos, blueWins) } +
-                positions.mapIndexed { i, pos -> player("red$i#KR1", i + 6, 200, pos, !blueWins) }
+        val roster =
+            participants ?: (
+                positions.mapIndexed { i, pos -> player("blue$i#KR1", i + 1, 100, pos, blueWins) } +
+                    positions.mapIndexed { i, pos -> player("red$i#KR1", i + 6, 200, pos, !blueWins) }
             )
         return Match(
             matchId = "KR_1",
@@ -49,11 +53,11 @@ class RatingEngineTest {
     }
 
     /** 블루 전원이 라인에서 이긴 점수표. */
-    private fun blueWinsEveryLane(m: Match) = LaneScores.Scored(
-        method = LaneMethod.LEGACY_FINAL,
-        scores = m.participants.associate { it.riotId to if (it.teamId == 100) 2.0 else 1.0 },
-    )
-
+    private fun blueWinsEveryLane(m: Match) =
+        LaneScores.Scored(
+            method = LaneMethod.LEGACY_FINAL,
+            scores = m.participants.associate { it.riotId to if (it.teamId == 100) 2.0 else 1.0 },
+        )
 
     // ────────── 재생 대상 필터 ──────────
 
@@ -104,9 +108,10 @@ class RatingEngineTest {
         val freshDelta = fresh.ratings.first { it.riotId == "blue0#KR1" }.laneElo - RatingMath.START
 
         // 양쪽 다 배치를 벗어난 상태로 같은 경기를 돌린다.
-        val seasoned = m.participants.associate {
-            it.riotId to PlayerRating(riotId = it.riotId, laneDuels = 50, teamGames = 50)
-        }
+        val seasoned =
+            m.participants.associate {
+                it.riotId to PlayerRating(riotId = it.riotId, laneDuels = 50, teamGames = 50)
+            }
         val settled = RatingEngine.rate(m, blueWinsEveryLane(m), seasoned)!!
         val settledDelta = settled.ratings.first { it.riotId == "blue0#KR1" }.laneElo - RatingMath.START
 
@@ -168,12 +173,14 @@ class RatingEngineTest {
     fun `팀 레이팅 계산에 라인 레이팅이 섞이지 않는다`() {
         // 라인 레이팅만 크게 벌려 둔다. 팀 기대 승률은 여기에 전혀 반응하면 안 된다.
         val m = match()
-        val skewed = m.participants.associate {
-            it.riotId to PlayerRating(
-                riotId = it.riotId,
-                laneElo = if (it.teamId == 100) 2_500.0 else 500.0,
-            )
-        }
+        val skewed =
+            m.participants.associate {
+                it.riotId to
+                    PlayerRating(
+                        riotId = it.riotId,
+                        laneElo = if (it.teamId == 100) 2_500.0 else 500.0,
+                    )
+            }
         val skewedOutcome = RatingEngine.rate(m, blueWinsEveryLane(m), skewed)!!
         val flatOutcome = RatingEngine.rate(m, blueWinsEveryLane(m), emptyMap())!!
 

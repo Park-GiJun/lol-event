@@ -15,7 +15,11 @@ interface GetStatsUseCase {
 }
 
 interface GetPlayerStatsUseCase {
-    fun getPlayerStats(riotId: String, mode: String, lane: String? = null): PlayerDetailStatsResult
+    fun getPlayerStats(
+        riotId: String,
+        mode: String,
+        lane: String? = null,
+    ): PlayerDetailStatsResult
 }
 
 interface GetOverviewStatsUseCase {
@@ -23,11 +27,17 @@ interface GetOverviewStatsUseCase {
 }
 
 interface GetDuoStatsUseCase {
-    fun getDuoStats(mode: String, minGames: Int): DuoStatsResult
+    fun getDuoStats(
+        mode: String,
+        minGames: Int,
+    ): DuoStatsResult
 }
 
 interface GetPlayerStreakUseCase {
-    fun getPlayerStreak(riotId: String, mode: String): StreakResult
+    fun getPlayerStreak(
+        riotId: String,
+        mode: String,
+    ): StreakResult
 }
 
 interface GetMvpStatsUseCase {
@@ -35,7 +45,10 @@ interface GetMvpStatsUseCase {
 }
 
 interface GetGrowthCurveUseCase {
-    fun getGrowthCurve(riotId: String, mode: String): GrowthCurveResult
+    fun getGrowthCurve(
+        riotId: String,
+        mode: String,
+    ): GrowthCurveResult
 }
 
 interface GetPlaystyleDnaUseCase {
@@ -43,5 +56,9 @@ interface GetPlaystyleDnaUseCase {
 }
 
 interface GetPlayerComparisonUseCase {
-    fun getPlayerComparison(player1: String, player2: String, mode: String): PlayerComparisonResult
+    fun getPlayerComparison(
+        player1: String,
+        player2: String,
+        mode: String,
+    ): PlayerComparisonResult
 }

@@ -1,7 +1,15 @@
 package com.gijun.main.infrastructure.adapter.out.persistence.match.entity
 
 import com.gijun.main.domain.model.match.MatchBan
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.Table
 
 @Entity
 @Table(name = "match_team_bans", schema = "lol_event")
@@ -18,7 +26,10 @@ class MatchBanEntity(
     fun toDomain() = MatchBan(championId = championId, championName = championName, pickTurn = pickTurn)
 
     companion object {
-        fun from(domain: MatchBan, teamEntity: MatchTeamEntity) = MatchBanEntity(
+        fun from(
+            domain: MatchBan,
+            teamEntity: MatchTeamEntity,
+        ) = MatchBanEntity(
             team = teamEntity,
             championId = domain.championId,
             championName = domain.championName,

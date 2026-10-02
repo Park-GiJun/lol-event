@@ -23,12 +23,10 @@ data class PlayerLeaderStat(
 data class OverviewStats(
     val matchCount: Int,
     val avgGameMinutes: Double,
-
     // 챔피언 통계
     val topPickedChampions: List<ChampionPickStat>,
-    val topWinRateChampions: List<ChampionPickStat>,  // 최소 3픽 이상
+    val topWinRateChampions: List<ChampionPickStat>, // 최소 3픽 이상
     val topBannedChampions: List<ChampionPickStat>,
-
     // 플레이어 명예의 전당
     val winRateLeader: PlayerLeaderStat?,
     val kdaLeader: PlayerLeaderStat?,
@@ -44,7 +42,6 @@ data class OverviewStats(
     val ccLeader: PlayerLeaderStat?,
     val mostGamesPlayed: PlayerLeaderStat?,
     val firstBloodLeader: PlayerLeaderStat?,
-
     // 전체 오브젝트 집계
     val totalBaronKills: Int,
     val totalDragonKills: Int,

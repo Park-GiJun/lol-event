@@ -26,7 +26,10 @@ import com.gijun.main.application.dto.stats.result.VisionDominanceResult
 import com.gijun.main.application.dto.stats.result.WeeklyAwardsResult
 
 interface GetLaneLeaderboardUseCase {
-    fun getLaneLeaderboard(lane: String, mode: String): LaneLeaderboardResult
+    fun getLaneLeaderboard(
+        lane: String,
+        mode: String,
+    ): LaneLeaderboardResult
 }
 
 interface GetObjectiveCorrelationUseCase {
@@ -62,7 +65,10 @@ interface GetSupportImpactUseCase {
 }
 
 interface GetRivalMatchupUseCase {
-    fun getRivalMatchups(mode: String, minGames: Int = 3): RivalMatchupResult
+    fun getRivalMatchups(
+        mode: String,
+        minGames: Int = 3,
+    ): RivalMatchupResult
 }
 
 interface GetPositionBadgeUseCase {
@@ -81,7 +87,10 @@ interface GetSessionDetailUseCase {
      * 오류이고, 404 가 행동으로 이어진다. (경기 타임라인과 다른 판단이다. 거기는 타임라인이
      * 없는 경기가 정상이라 빈 결과를 준다.)
      */
-    fun getSessionDetail(date: String, mode: String): SessionDetailResult?
+    fun getSessionDetail(
+        date: String,
+        mode: String,
+    ): SessionDetailResult?
 }
 
 interface GetGameLengthTendencyUseCase {

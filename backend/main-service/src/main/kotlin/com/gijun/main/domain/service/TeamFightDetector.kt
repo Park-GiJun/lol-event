@@ -56,7 +56,6 @@ data class TeamFight(
  * 전체는 필요 없으니 맵만 받는다 — 테스트가 훨씬 가벼워진다.
  */
 object TeamFightDetector {
-
     /** 이 간격 안에 이어지는 킬은 같은 교전이다. 리그의 어시스트 인정 창이 10초다. */
     const val GAP_MS = 10_000L
 
@@ -79,13 +78,17 @@ object TeamFightDetector {
     /** 교전이 끝난 뒤 이 시간 안에 넘어간 오브젝트는 그 교전의 전리품으로 본다. */
     const val OBJECTIVE_LINK_MS = 30_000L
 
-    fun of(timeline: MatchTimeline, teamByParticipantId: Map<Int, Int>): List<TeamFight> {
+    fun of(
+        timeline: MatchTimeline,
+        teamByParticipantId: Map<Int, Int>,
+    ): List<TeamFight> {
         val kills = timeline.events.filterIsInstance<TimelineEvent.ChampionKill>()
         if (kills.isEmpty()) return emptyList()
 
-        val objectives = timeline.events.filter {
-            it is TimelineEvent.EliteMonsterKill || it is TimelineEvent.BuildingKill
-        }
+        val objectives =
+            timeline.events.filter {
+                it is TimelineEvent.EliteMonsterKill || it is TimelineEvent.BuildingKill
+            }
 
         return cluster(kills).map { group -> fight(group, teamByParticipantId, objectives) }
     }
@@ -97,8 +100,9 @@ object TeamFightDetector {
         var current = mutableListOf(kills.first())
 
         for (kill in kills.drop(1)) {
-            if (continues(current, kill)) current.add(kill)
-            else {
+            if (continues(current, kill)) {
+                current.add(kill)
+            } else {
                 groups.add(current)
                 current = mutableListOf(kill)
             }
@@ -107,7 +111,10 @@ object TeamFightDetector {
         return groups
     }
 
-    private fun continues(group: List<TimelineEvent.ChampionKill>, kill: TimelineEvent.ChampionKill): Boolean {
+    private fun continues(
+        group: List<TimelineEvent.ChampionKill>,
+        kill: TimelineEvent.ChampionKill,
+    ): Boolean {
         if (kill.timestampMs - group.last().timestampMs > GAP_MS) return false
         if (kill.timestampMs - group.first().timestampMs > MAX_SPAN_MS) return false
 
@@ -146,14 +153,18 @@ object TeamFightDetector {
             kills = kills,
             team100Kills = team100,
             team200Kills = team200,
-            winnerTeamId = when {
-                team100 > team200 -> 100
-                team200 > team100 -> 200
-                else -> null
-            },
+            winnerTeamId =
+                when {
+                    team100 > team200 -> 100
+                    team200 > team100 -> 200
+                    else -> null
+                },
             openedByTeamId = other(teamByParticipantId[kills.first().victimId]),
-            participantIds = kills.flatMap { listOf(it.killerId, it.victimId) + it.assistIds }
-                .filter { it > 0 }.toSet(),
+            participantIds =
+                kills
+                    .flatMap { listOf(it.killerId, it.victimId) + it.assistIds }
+                    .filter { it > 0 }
+                    .toSet(),
             centroid = center,
             region = center?.let(MapGeometry::regionOf),
             objectivesAfter = objectives.filter { it.timestampMs in endMs..(endMs + OBJECTIVE_LINK_MS) },
@@ -161,9 +172,10 @@ object TeamFightDetector {
     }
 
     /** 상대 팀. 희생자의 팀을 킬을 올린 팀으로 뒤집는 데 쓴다. */
-    private fun other(teamId: Int?): Int? = when (teamId) {
-        100 -> 200
-        200 -> 100
-        else -> null
-    }
+    private fun other(teamId: Int?): Int? =
+        when (teamId) {
+            100 -> 200
+            200 -> 100
+            else -> null
+        }
 }

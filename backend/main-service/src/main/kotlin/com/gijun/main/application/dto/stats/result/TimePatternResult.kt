@@ -11,8 +11,8 @@ package com.gijun.main.application.dto.stats.result
  * 화면도 games 만 그리고 있었으므로 필드를 걷어냈다.
  */
 data class DayPatternEntry(
-    val dayOfWeek: Int,   // 1=Monday..7=Sunday (ISO)
-    val dayName: String,  // "월", "화", ...
+    val dayOfWeek: Int, // 1=Monday..7=Sunday (ISO)
+    val dayName: String, // "월", "화", ...
     val sessions: Int,
     val games: Int,
 )

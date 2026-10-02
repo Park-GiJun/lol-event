@@ -24,11 +24,9 @@ class MatchTimelineEntity(
     @Id
     @Column(name = "match_id", length = 50)
     val matchId: String = "",
-
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "raw", columnDefinition = "jsonb", nullable = false)
     val raw: String = "",
-
     @Column(nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 )

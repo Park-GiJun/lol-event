@@ -1,6 +1,10 @@
 package com.gijun.main.infrastructure.batch.tasklet
 
 import com.gijun.main.application.handler.query.modeToQueueIds
+import com.gijun.main.application.port.out.HEATMAP_GRID
+import com.gijun.main.application.port.out.HeatmapKind
+import com.gijun.main.application.port.out.HeatmapPhase
+import com.gijun.main.application.port.out.HeatmapScope
 import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.domain.model.match.MapPoint
 import com.gijun.main.domain.model.match.Match
@@ -11,10 +15,6 @@ import com.gijun.main.domain.service.PositionMetrics
 import com.gijun.main.domain.service.TeamFightDetector
 import com.gijun.main.domain.service.TimelineMetrics
 import com.gijun.main.domain.service.TimelineParser
-import com.gijun.main.application.port.out.HEATMAP_GRID
-import com.gijun.main.application.port.out.HeatmapKind
-import com.gijun.main.application.port.out.HeatmapPhase
-import com.gijun.main.application.port.out.HeatmapScope
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.ChampionTimelineStatsCacheEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.PlayerTimelineStatsCacheEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.PositionHeatmapCacheEntity
@@ -61,11 +61,13 @@ class TimelineStatsAggregationTasklet(
     private val championRepo: ChampionTimelineStatsCacheRepository,
     private val heatmapRepo: PositionHeatmapCacheRepository,
 ) : Tasklet {
-
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional
-    override fun execute(contribution: StepContribution, chunkContext: ChunkContext): RepeatStatus {
+    override fun execute(
+        contribution: StepContribution,
+        chunkContext: ChunkContext,
+    ): RepeatStatus {
         aggregate()
         return RepeatStatus.FINISHED
     }
@@ -96,7 +98,7 @@ class TimelineStatsAggregationTasklet(
             saveAll(mode, now, players, champions, heatmap)
             log.info(
                 "타임라인 집계 완료 — mode=$mode 경기 $timelineGames / ${matches.size}, " +
-                    "사람 ${players.size}, 챔피언×포지션 ${champions.size}, 히트맵 셀 ${heatmap.size}"
+                    "사람 ${players.size}, 챔피언×포지션 ${champions.size}, 히트맵 셀 ${heatmap.size}",
             )
         }
     }
@@ -138,9 +140,10 @@ class TimelineStatsAggregationTasklet(
             val participant = byPid[pid] ?: continue
 
             players.getOrPut(line.riotId) { PlayerAcc() }.add(line, place, fightCount[pid], fightKills[pid], fightDeaths[pid])
-            champions.getOrPut(ChampionKey(line.champion, participant.assignedPosition.ifBlank { Position.UNKNOWN.name })) {
-                ChampionAcc()
-            }.add(line, place)
+            champions
+                .getOrPut(ChampionKey(line.champion, participant.assignedPosition.ifBlank { Position.UNKNOWN.name })) {
+                    ChampionAcc()
+                }.add(line, place)
         }
 
         accumulateHeatmap(timeline, byPid, positions, heatmap)
@@ -153,7 +156,13 @@ class TimelineStatsAggregationTasklet(
         positions: PositionMetrics.MatchPositions?,
         heatmap: MutableMap<HeatmapKey, Int>,
     ) {
-        fun bump(scope: HeatmapScope, key: String, kind: HeatmapKind, at: MapPoint, timestampMs: Long) {
+        fun bump(
+            scope: HeatmapScope,
+            key: String,
+            kind: HeatmapKind,
+            at: MapPoint,
+            timestampMs: Long,
+        ) {
             val cell = cellOf(at) ?: return
             heatmap.merge(
                 HeatmapKey(scope, key, kind, HeatmapPhase.of(timestampMs), cell.first, cell.second),
@@ -213,23 +222,39 @@ class TimelineStatsAggregationTasklet(
         champions: Map<ChampionKey, ChampionAcc>,
         heatmap: Map<HeatmapKey, Int>,
     ) {
-        players.map { (riotId, acc) -> acc.toEntity(riotId, mode, now) }
-            .chunked(SAVE_CHUNK).forEach(playerRepo::saveAll)
+        players
+            .map { (riotId, acc) -> acc.toEntity(riotId, mode, now) }
+            .chunked(SAVE_CHUNK)
+            .forEach(playerRepo::saveAll)
 
-        champions.map { (key, acc) -> acc.toEntity(key, mode, now) }
-            .chunked(SAVE_CHUNK).forEach(championRepo::saveAll)
+        champions
+            .map { (key, acc) -> acc.toEntity(key, mode, now) }
+            .chunked(SAVE_CHUNK)
+            .forEach(championRepo::saveAll)
 
-        heatmap.map { (key, count) ->
-            PositionHeatmapCacheEntity(
-                mode = mode, scopeType = key.scope.name, scopeKey = key.key, kind = key.kind.name,
-                phase = key.phase.name, gridX = key.x, gridY = key.y, count = count, aggregatedAt = now,
-            )
-        }.chunked(SAVE_CHUNK).forEach(heatmapRepo::saveAll)
+        heatmap
+            .map { (key, count) ->
+                PositionHeatmapCacheEntity(
+                    mode = mode,
+                    scopeType = key.scope.name,
+                    scopeKey = key.key,
+                    kind = key.kind.name,
+                    phase = key.phase.name,
+                    gridX = key.x,
+                    gridY = key.y,
+                    count = count,
+                    aggregatedAt = now,
+                )
+            }.chunked(SAVE_CHUNK)
+            .forEach(heatmapRepo::saveAll)
     }
 
     // ────────── 누산기 ──────────
 
-    private data class ChampionKey(val champion: String, val position: String)
+    private data class ChampionKey(
+        val champion: String,
+        val position: String,
+    )
 
     private data class HeatmapKey(
         val scope: HeatmapScope,
@@ -272,10 +297,17 @@ class TimelineStatsAggregationTasklet(
             games++
             if (line.firstBlood) firstBloods++
             soloKills += line.soloKills
-            line.goldDiff15?.let { goldDiff += it; laneGames++; if (it > 0) laneLeadGames++ }
+            line.goldDiff15?.let {
+                goldDiff += it
+                laneGames++
+                if (it > 0) laneLeadGames++
+            }
             line.csDiff15?.let { csDiff += it }
             line.xpDiff15?.let { xpDiff += it }
-            line.csAt10?.let { csAt10 += it; csAt10Count++ }
+            line.csAt10?.let {
+                csAt10 += it
+                csAt10Count++
+            }
 
             teamfights += fights ?: 0
             teamfightKills += kills ?: 0
@@ -294,7 +326,11 @@ class TimelineStatsAggregationTasklet(
             roamFrames += frames(place.roamRate ?: 0.0, place.lanePhaseFrames)
         }
 
-        fun toEntity(riotId: String, mode: String, now: LocalDateTime) = PlayerTimelineStatsCacheEntity(
+        fun toEntity(
+            riotId: String,
+            mode: String,
+            now: LocalDateTime,
+        ) = PlayerTimelineStatsCacheEntity(
             riotId = riotId,
             mode = mode,
             games = games,
@@ -334,14 +370,24 @@ class TimelineStatsAggregationTasklet(
         var lanePhaseFrames = 0
         var enemyHalfFrames = 0L
 
-        fun add(line: TimelineMetrics.PlayerLine, place: PositionMetrics.PlayerPosition?) {
+        fun add(
+            line: TimelineMetrics.PlayerLine,
+            place: PositionMetrics.PlayerPosition?,
+        ) {
             games++
             if (line.win) wins++
             soloKills += line.soloKills
-            line.goldDiff15?.let { goldDiff += it; laneGames++; if (it > 0) laneLeadGames++ }
+            line.goldDiff15?.let {
+                goldDiff += it
+                laneGames++
+                if (it > 0) laneLeadGames++
+            }
             line.csDiff15?.let { csDiff += it }
             line.xpDiff15?.let { xpDiff += it }
-            line.csAt10?.let { csAt10 += it; csAt10Count++ }
+            line.csAt10?.let {
+                csAt10 += it
+                csAt10Count++
+            }
 
             if (place == null) return
             framesSampled += place.framesSampled
@@ -352,7 +398,11 @@ class TimelineStatsAggregationTasklet(
             }
         }
 
-        fun toEntity(key: ChampionKey, mode: String, now: LocalDateTime) = ChampionTimelineStatsCacheEntity(
+        fun toEntity(
+            key: ChampionKey,
+            mode: String,
+            now: LocalDateTime,
+        ) = ChampionTimelineStatsCacheEntity(
             champion = key.champion,
             mode = mode,
             position = key.position,
@@ -374,8 +424,7 @@ class TimelineStatsAggregationTasklet(
         )
     }
 
-    private fun positionOf(name: String): Position =
-        Position.entries.firstOrNull { it.name == name.uppercase() } ?: Position.UNKNOWN
+    private fun positionOf(name: String): Position = Position.entries.firstOrNull { it.name == name.uppercase() } ?: Position.UNKNOWN
 
     private companion object {
         val MODES = listOf("normal", "aram", "all")
@@ -390,15 +439,29 @@ class TimelineStatsAggregationTasklet(
          * 자리까지만 남은 값이라 미세한 반올림 오차가 생기지만, 여러 판을 합친 비율에서는
          * 프레임 하나 차이가 드러나지 않는다.
          */
-        fun frames(rate: Double, denominator: Int): Long =
-            Math.round(rate / 100.0 * denominator)
+        fun frames(
+            rate: Double,
+            denominator: Int,
+        ): Long = Math.round(rate / 100.0 * denominator)
 
-        fun avg(sum: Long, count: Int): BigDecimal? =
-            if (count <= 0) null
-            else BigDecimal(sum).divide(BigDecimal(count), 1, RoundingMode.HALF_UP)
+        fun avg(
+            sum: Long,
+            count: Int,
+        ): BigDecimal? =
+            if (count <= 0) {
+                null
+            } else {
+                BigDecimal(sum).divide(BigDecimal(count), 1, RoundingMode.HALF_UP)
+            }
 
-        fun rate(part: Long, total: Int): BigDecimal? =
-            if (total <= 0) null
-            else BigDecimal(part * 100).divide(BigDecimal(total), 1, RoundingMode.HALF_UP)
+        fun rate(
+            part: Long,
+            total: Int,
+        ): BigDecimal? =
+            if (total <= 0) {
+                null
+            } else {
+                BigDecimal(part * 100).divide(BigDecimal(total), 1, RoundingMode.HALF_UP)
+            }
     }
 }

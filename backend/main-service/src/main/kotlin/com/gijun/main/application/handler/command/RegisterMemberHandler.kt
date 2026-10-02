@@ -9,8 +9,8 @@ import com.gijun.main.application.port.`in`.DeleteMemberUseCase
 import com.gijun.main.application.port.`in`.RegisterMemberUseCase
 import com.gijun.main.application.port.out.MemberPersistencePort
 import com.gijun.main.application.port.out.RiotApiPort
-import com.gijun.main.domain.model.member.Member
 import com.gijun.main.domain.member.exception.MemberAlreadyExistsException
+import com.gijun.main.domain.model.member.Member
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -18,14 +18,15 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 class RegisterMemberHandler(
     private val memberPersistencePort: MemberPersistencePort,
-    private val riotApiPort: RiotApiPort
-) : RegisterMemberUseCase, DeleteMemberUseCase {
-
+    private val riotApiPort: RiotApiPort,
+) : RegisterMemberUseCase,
+    DeleteMemberUseCase {
     override fun register(command: RegisterMemberCommand): MemberResult {
         val (gameName, tagLine) = parseRiotId(command.riotId)
         val account = riotApiPort.getAccount(gameName, tagLine)
-        if (memberPersistencePort.existsByPuuid(account.puuid))
+        if (memberPersistencePort.existsByPuuid(account.puuid)) {
             throw MemberAlreadyExistsException(command.riotId)
+        }
         val member = memberPersistencePort.save(Member(riotId = "${account.gameName}#${account.tagLine}", puuid = account.puuid))
         return MemberResult.from(member)
     }
@@ -35,13 +36,15 @@ class RegisterMemberHandler(
         for (raw in command.riotIds) {
             val riotId = raw.trim()
             if (!riotId.contains('#')) {
-                results.add(BulkRegisterItemResult(riotId, "skip", "형식 오류")); continue
+                results.add(BulkRegisterItemResult(riotId, "skip", "형식 오류"))
+                continue
             }
             val (gameName, tagLine) = parseRiotId(riotId)
             try {
                 val account = riotApiPort.getAccount(gameName, tagLine)
                 if (memberPersistencePort.existsByPuuid(account.puuid)) {
-                    results.add(BulkRegisterItemResult(riotId, "skip", "중복")); continue
+                    results.add(BulkRegisterItemResult(riotId, "skip", "중복"))
+                    continue
                 }
                 memberPersistencePort.save(Member(riotId = "${account.gameName}#${account.tagLine}", puuid = account.puuid))
                 results.add(BulkRegisterItemResult("${account.gameName}#${account.tagLine}", "ok"))

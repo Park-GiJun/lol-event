@@ -5,8 +5,8 @@ import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.ChampionItemStatsCacheEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionItemStatsCacheRepository
 import org.slf4j.LoggerFactory
-import org.springframework.batch.core.step.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
+import org.springframework.batch.core.step.StepContribution
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.infrastructure.repeat.RepeatStatus
 import org.springframework.stereotype.Component
@@ -18,12 +18,13 @@ class ChampionItemStatsAggregationTasklet(
     private val matchPersistencePort: MatchPersistencePort,
     private val championItemStatsCacheRepository: ChampionItemStatsCacheRepository,
 ) : Tasklet {
-
     private val log = LoggerFactory.getLogger(javaClass)
-    private val TRINKET_IDS = setOf(3340, 3363, 3364, 2052, 2055)
 
     @Transactional
-    override fun execute(contribution: StepContribution, chunkContext: ChunkContext): RepeatStatus {
+    override fun execute(
+        contribution: StepContribution,
+        chunkContext: ChunkContext,
+    ): RepeatStatus {
         aggregate()
         return RepeatStatus.FINISHED
     }
@@ -31,12 +32,15 @@ class ChampionItemStatsAggregationTasklet(
     @Transactional
     fun aggregate() {
         val modes = listOf("normal", "aram", "all")
-        val now   = LocalDateTime.now()
+        val now = LocalDateTime.now()
 
         for (mode in modes) {
             val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
-            data class ItemAcc(var picks: Int = 0, var wins: Int = 0)
+            data class ItemAcc(
+                var picks: Int = 0,
+                var wins: Int = 0,
+            )
             val itemMap = mutableMapOf<Pair<String, Int>, ItemAcc>()
 
             for (match in matches) {
@@ -54,21 +58,26 @@ class ChampionItemStatsAggregationTasklet(
 
             championItemStatsCacheRepository.deleteAllByMode(mode)
 
-            val snapshots = itemMap.entries.map { (key, acc) ->
-                val (champion, itemId) = key
-                ChampionItemStatsCacheEntity(
-                    champion     = champion,
-                    mode         = mode,
-                    itemId       = itemId,
-                    picks        = acc.picks,
-                    wins         = acc.wins,
-                    winRate      = if (acc.picks > 0) acc.wins * 100 / acc.picks else 0,
-                    aggregatedAt = now,
-                )
-            }
+            val snapshots =
+                itemMap.entries.map { (key, acc) ->
+                    val (champion, itemId) = key
+                    ChampionItemStatsCacheEntity(
+                        champion = champion,
+                        mode = mode,
+                        itemId = itemId,
+                        picks = acc.picks,
+                        wins = acc.wins,
+                        winRate = if (acc.picks > 0) acc.wins * 100 / acc.picks else 0,
+                        aggregatedAt = now,
+                    )
+                }
 
             championItemStatsCacheRepository.saveAll(snapshots)
             log.info("[ChampionItemStats] mode=$mode → ${snapshots.size}개 아이템 통계 집계 완료")
         }
+    }
+
+    private companion object {
+        private val TRINKET_IDS = setOf(3340, 3363, 3364, 2052, 2055)
     }
 }

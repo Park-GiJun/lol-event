@@ -1,5 +1,8 @@
 package com.gijun.main.infrastructure.batch.tasklet
 
+import com.gijun.main.application.port.out.HEATMAP_GRID
+import com.gijun.main.application.port.out.HeatmapKind
+import com.gijun.main.application.port.out.HeatmapScope
 import com.gijun.main.application.port.out.MatchPeriodSummary
 import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.application.port.out.PositionCount
@@ -9,9 +12,6 @@ import com.gijun.main.domain.model.match.MatchParticipant
 import com.gijun.main.domain.model.match.Position
 import com.gijun.main.domain.service.TimelineParser
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.ChampionTimelineStatsCacheEntity
-import com.gijun.main.application.port.out.HEATMAP_GRID
-import com.gijun.main.application.port.out.HeatmapKind
-import com.gijun.main.application.port.out.HeatmapScope
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.PlayerTimelineStatsCacheEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.PositionHeatmapCacheEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionTimelineStatsCacheRepository
@@ -31,7 +31,6 @@ import java.lang.reflect.Proxy
  * 히트맵 scope 규칙을 지키는지, 칼바람에서 라인 격차가 비는지.
  */
 class TimelineStatsAggregationTaskletTest {
-
     /** 세 리포지토리가 저장한 것을 한 통에 모으고, 꺼낼 때 타입으로 가른다. */
     private val saved = mutableListOf<Any>()
     private val deleted = mutableListOf<String>()
@@ -47,7 +46,10 @@ class TimelineStatsAggregationTaskletTest {
     // ────────── 가짜 리포지토리 ──────────
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T> repo(type: Class<T>, label: String): T =
+    private fun <T> repo(
+        type: Class<T>,
+        label: String,
+    ): T =
         Proxy.newProxyInstance(type.classLoader, arrayOf(type)) { _, method, args ->
             when (method.name) {
                 "saveAll" -> {
@@ -72,39 +74,45 @@ class TimelineStatsAggregationTaskletTest {
 
     private val positions = listOf(Position.TOP, Position.JUNGLE, Position.MID, Position.ADC, Position.SUPPORT)
 
-    private fun roster(): List<MatchParticipant> = (1..10).map { pid ->
-        val blue = pid <= 5
-        MatchParticipant(
-            participantId = pid,
-            riotId = "p$pid#KR1",
-            champion = "Champ$pid",
-            championId = pid,
-            team = if (blue) "blue" else "red",
-            teamId = if (blue) 100 else 200,
-            win = blue,
-            assignedPosition = positions[(pid - 1) % 5].name,
-        )
-    }
+    private fun roster(): List<MatchParticipant> =
+        (1..10).map { pid ->
+            val blue = pid <= 5
+            MatchParticipant(
+                participantId = pid,
+                riotId = "p$pid#KR1",
+                champion = "Champ$pid",
+                championId = pid,
+                team = if (blue) "blue" else "red",
+                teamId = if (blue) 100 else 200,
+                win = blue,
+                assignedPosition = positions[(pid - 1) % 5].name,
+            )
+        }
 
     /** 블루 탑 내부 포탑 자리. 열 명 모두 여기 세워 둔다. */
     private val atBlueTopLane = """"position":{"x":1512,"y":6699}"""
 
     private fun raw(events: String = ""): String {
-        val frames = (0..16).joinToString(",") { m ->
-            val pf = (1..10).joinToString(",") { pid ->
-                val lead = if (pid == 1) m * 100 else 0
-                """"$pid":{"participantId":$pid,"totalGold":${5_000 + m * 300 + lead},"xp":${m * 400},""" +
-                    """"minionsKilled":${m * 6},"jungleMinionsKilled":0,$atBlueTopLane}"""
+        val frames =
+            (0..16).joinToString(",") { m ->
+                val pf =
+                    (1..10).joinToString(",") { pid ->
+                        val lead = if (pid == 1) m * 100 else 0
+                        """"$pid":{"participantId":$pid,"totalGold":${5_000 + m * 300 + lead},"xp":${m * 400},""" +
+                            """"minionsKilled":${m * 6},"jungleMinionsKilled":0,$atBlueTopLane}"""
+                    }
+                val ev = if (m == 16) events else ""
+                """{"timestamp":${m * 60_000L},"participantFrames":{$pf},"events":[$ev]}"""
             }
-            val ev = if (m == 16) events else ""
-            """{"timestamp":${m * 60_000L},"participantFrames":{$pf},"events":[$ev]}"""
-        }
         return """{"frames":[$frames]}"""
     }
 
-    private fun kill(ts: Long, killer: Int, victim: Int) =
-        """{"type":"CHAMPION_KILL","timestamp":$ts,"killerId":$killer,"victimId":$victim,""" +
-            """"assistingParticipantIds":[],"position":{"x":7300,"y":7300}}"""
+    private fun kill(
+        ts: Long,
+        killer: Int,
+        victim: Int,
+    ) = """{"type":"CHAMPION_KILL","timestamp":$ts,"killerId":$killer,"victimId":$victim,""" +
+        """"assistingParticipantIds":[],"position":{"x":7300,"y":7300}}"""
 
     private fun tasklet(
         matchCount: Int = 1,
@@ -112,33 +120,62 @@ class TimelineStatsAggregationTaskletTest {
         queueId: Int = 3130,
         withTimeline: Boolean = true,
     ): TimelineStatsAggregationTasklet {
-        val matches = (1..matchCount).map { i ->
-            Match(
-                matchId = "KR_$i", queueId = queueId, gameCreation = i.toLong(), gameDuration = 1_020,
-                participants = roster().toMutableList(),
-            )
-        }
-        val port = object : MatchPersistencePort {
-            override fun save(match: Match) = match
-            override fun existsByMatchId(matchId: String) = true
-            override fun findByMatchId(matchId: String): Match? = matches.firstOrNull { it.matchId == matchId }
-            override fun findAllWithParticipants(queueIds: List<Int>) =
-                if (queueId in queueIds) matches else emptyList()
-            override fun findPageWithParticipants(queueIds: List<Int>, page: Int, size: Int) = matches
-            override fun findPeriodSummary(queueIds: List<Int>) = MatchPeriodSummary(null, null, 0, 0)
-            override fun deleteByMatchId(matchId: String) {}
-            override fun countByQueueIds(queueIds: List<Int>) = matches.size.toLong()
-            override fun findAllOrderedByGameCreation() = matches
-            override fun findInPeriodWithParticipants(queueIds: List<Int>, fromMs: Long, untilMs: Long) = matches
-            override fun updateAssignedPositions(updates: Map<Long, String>) {}
-            override fun saveTimelineRaw(matchId: String, raw: String) {}
-            override fun findTimelineRaw(matchIds: Collection<String>): Map<String, String> {
-                rawQueries++
-                return if (withTimeline) matchIds.associateWith { raw(events) } else emptyMap()
+        val matches =
+            (1..matchCount).map { i ->
+                Match(
+                    matchId = "KR_$i",
+                    queueId = queueId,
+                    gameCreation = i.toLong(),
+                    gameDuration = 1_020,
+                    participants = roster().toMutableList(),
+                )
             }
-            override fun updateLaneMethods(updates: Map<String, LaneMethod>) {}
-            override fun findPositionCounts() = emptyList<PositionCount>()
-        }
+        val port =
+            object : MatchPersistencePort {
+                override fun save(match: Match) = match
+
+                override fun existsByMatchId(matchId: String) = true
+
+                override fun findByMatchId(matchId: String): Match? = matches.firstOrNull { it.matchId == matchId }
+
+                override fun findAllWithParticipants(queueIds: List<Int>) = if (queueId in queueIds) matches else emptyList()
+
+                override fun findPageWithParticipants(
+                    queueIds: List<Int>,
+                    page: Int,
+                    size: Int,
+                ) = matches
+
+                override fun findPeriodSummary(queueIds: List<Int>) = MatchPeriodSummary(null, null, 0, 0)
+
+                override fun deleteByMatchId(matchId: String) {}
+
+                override fun countByQueueIds(queueIds: List<Int>) = matches.size.toLong()
+
+                override fun findAllOrderedByGameCreation() = matches
+
+                override fun findInPeriodWithParticipants(
+                    queueIds: List<Int>,
+                    fromMs: Long,
+                    untilMs: Long,
+                ) = matches
+
+                override fun updateAssignedPositions(updates: Map<Long, String>) {}
+
+                override fun saveTimelineRaw(
+                    matchId: String,
+                    raw: String,
+                ) {}
+
+                override fun findTimelineRaw(matchIds: Collection<String>): Map<String, String> {
+                    rawQueries++
+                    return if (withTimeline) matchIds.associateWith { raw(events) } else emptyMap()
+                }
+
+                override fun updateLaneMethods(updates: Map<String, LaneMethod>) {}
+
+                override fun findPositionCounts() = emptyList<PositionCount>()
+            }
         return TimelineStatsAggregationTasklet(
             port,
             repo(PlayerTimelineStatsCacheRepository::class.java, "player"),
@@ -148,7 +185,9 @@ class TimelineStatsAggregationTaskletTest {
     }
 
     private fun players(mode: String = "normal") = savedPlayers.filter { it.mode == mode }
+
     private fun champions(mode: String = "normal") = savedChampions.filter { it.mode == mode }
+
     private fun heatmap(mode: String = "normal") = savedHeatmap.filter { it.mode == mode }
 
     // ────────── 청크 ──────────
@@ -208,11 +247,12 @@ class TimelineStatsAggregationTaskletTest {
 
     @Test
     fun `한타 킬과 데스를 사람별로 센다`() {
-        val events = listOf(
-            kill(ts = 960_000, killer = 1, victim = 6),
-            kill(ts = 964_000, killer = 2, victim = 7),
-            kill(ts = 968_000, killer = 3, victim = 8),
-        ).joinToString(",")
+        val events =
+            listOf(
+                kill(ts = 960_000, killer = 1, victim = 6),
+                kill(ts = 964_000, killer = 2, victim = 7),
+                kill(ts = 968_000, killer = 3, victim = 8),
+            ).joinToString(",")
         tasklet(events = events).aggregate()
 
         assertEquals(1, players().single { it.riotId == "p1#KR1" }.teamfights)
@@ -222,10 +262,11 @@ class TimelineStatsAggregationTaskletTest {
 
     @Test
     fun `킬이 두 개뿐이면 한타로 세지 않는다`() {
-        val events = listOf(
-            kill(ts = 960_000, killer = 1, victim = 6),
-            kill(ts = 964_000, killer = 7, victim = 2),
-        ).joinToString(",")
+        val events =
+            listOf(
+                kill(ts = 960_000, killer = 1, victim = 6),
+                kill(ts = 964_000, killer = 7, victim = 2),
+            ).joinToString(",")
         tasklet(events = events).aggregate()
 
         assertEquals(0, players().single { it.riotId == "p1#KR1" }.teamfights, "2인 교환은 트레이드다")
@@ -286,9 +327,10 @@ class TimelineStatsAggregationTaskletTest {
         // 경기 시작 직후엔 열 명 모두 자기 분수에 있다.
         tasklet().aggregate()
 
-        val presenceCount = heatmap()
-            .filter { it.kind == HeatmapKind.PRESENCE.name && it.scopeType == HeatmapScope.GLOBAL.name }
-            .sumOf { it.count }
+        val presenceCount =
+            heatmap()
+                .filter { it.kind == HeatmapKind.PRESENCE.name && it.scopeType == HeatmapScope.GLOBAL.name }
+                .sumOf { it.count }
         assertEquals(160, presenceCount, "1~16분 × 10명. 0분은 빠진다")
     }
 

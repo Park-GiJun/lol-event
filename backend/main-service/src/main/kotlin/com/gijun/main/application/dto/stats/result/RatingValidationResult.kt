@@ -24,7 +24,6 @@ data class RatingValidationResult(
     val excludedRepeatedTeams: Int,
     /** LaneMethod 이름 -> 경기 수. 방법이 섞여 있으면 여기서 보인다. */
     val methodCounts: Map<String, Int>,
-
     /** 평가 대상 전체. */
     val overall: ValidationScope,
     /**
@@ -32,7 +31,6 @@ data class RatingValidationResult(
      * "직전 승자가 또 이긴다"는 누수가 섞인다.
      */
     val sessionFirst: ValidationScope,
-
     val splitHalf: SplitHalfReliability,
 )
 

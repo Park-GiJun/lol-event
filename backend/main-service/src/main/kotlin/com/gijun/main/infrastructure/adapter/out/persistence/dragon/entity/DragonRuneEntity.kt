@@ -1,7 +1,12 @@
 package com.gijun.main.infrastructure.adapter.out.persistence.dragon.entity
 
 import com.gijun.main.domain.model.dragon.DragonRune
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import java.time.LocalDateTime
 
 @Entity
@@ -21,18 +26,33 @@ class DragonRuneEntity(
     @Column var version: String? = null,
     @Column(nullable = false) var updatedAt: LocalDateTime = LocalDateTime.now(),
 ) {
-    fun toDomain() = DragonRune(
-        runeId = runeId, runeKey = runeKey, nameKo = nameKo, description = description,
-        iconPath = iconPath, imageUrl = imageUrl, styleId = styleId, styleNameKo = styleNameKo,
-        slot = slot, version = version,
-    )
+    fun toDomain() =
+        DragonRune(
+            runeId = runeId,
+            runeKey = runeKey,
+            nameKo = nameKo,
+            description = description,
+            iconPath = iconPath,
+            imageUrl = imageUrl,
+            styleId = styleId,
+            styleNameKo = styleNameKo,
+            slot = slot,
+            version = version,
+        )
 
     companion object {
-        fun from(domain: DragonRune) = DragonRuneEntity(
-            runeId = domain.runeId, runeKey = domain.runeKey, nameKo = domain.nameKo,
-            description = domain.description, iconPath = domain.iconPath, imageUrl = domain.imageUrl,
-            styleId = domain.styleId, styleNameKo = domain.styleNameKo, slot = domain.slot,
-            version = domain.version,
-        )
+        fun from(domain: DragonRune) =
+            DragonRuneEntity(
+                runeId = domain.runeId,
+                runeKey = domain.runeKey,
+                nameKo = domain.nameKo,
+                description = domain.description,
+                iconPath = domain.iconPath,
+                imageUrl = domain.imageUrl,
+                styleId = domain.styleId,
+                styleNameKo = domain.styleNameKo,
+                slot = domain.slot,
+                version = domain.version,
+            )
     }
 }

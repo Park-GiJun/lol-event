@@ -29,5 +29,5 @@ data class Match(
     val timelineRaw: String? = null,
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val participants: MutableList<MatchParticipant> = mutableListOf(),
-    val teams: MutableList<MatchTeam> = mutableListOf()
+    val teams: MutableList<MatchTeam> = mutableListOf(),
 )

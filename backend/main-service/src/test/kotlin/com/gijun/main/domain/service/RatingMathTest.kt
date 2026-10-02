@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class RatingMathTest {
-
     @Test
     fun `같은 점수면 기대 승률은 반반이다`() {
         assertEquals(0.5, RatingMath.expected(1500.0, 1500.0), 1e-12)

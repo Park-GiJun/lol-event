@@ -9,14 +9,19 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 class StatsQueryCacheTest {
-
     @Test
     fun `같은 키는 한 번만 계산하고 그 뒤로는 캐시에서 준다`() {
         val cache = StatsQueryCache()
         val calls = AtomicInteger()
 
         repeat(3) {
-            assertEquals("결과", cache.getOrCompute("k") { calls.incrementAndGet(); "결과" })
+            assertEquals(
+                "결과",
+                cache.getOrCompute("k") {
+                    calls.incrementAndGet()
+                    "결과"
+                },
+            )
         }
         assertEquals(1, calls.get())
     }
@@ -33,7 +38,12 @@ class StatsQueryCacheTest {
     fun `null 결과도 캐시해서 다시 계산하지 않는다`() {
         val cache = StatsQueryCache()
         val calls = AtomicInteger()
-        repeat(2) { cache.getOrCompute<String?>("nullable") { calls.incrementAndGet(); null } }
+        repeat(2) {
+            cache.getOrCompute<String?>("nullable") {
+                calls.incrementAndGet()
+                null
+            }
+        }
         assertEquals(1, calls.get())
     }
 
@@ -76,17 +86,18 @@ class StatsQueryCacheTest {
         val pool = Executors.newFixedThreadPool(threads)
 
         try {
-            val futures = (1..threads).map {
-                pool.submit<String> {
-                    ready.countDown()
-                    go.await()
-                    cache.getOrCompute("hot") {
-                        calls.incrementAndGet()
-                        Thread.sleep(50) // 실제 집계처럼 느리게
-                        "값"
+            val futures =
+                (1..threads).map {
+                    pool.submit<String> {
+                        ready.countDown()
+                        go.await()
+                        cache.getOrCompute("hot") {
+                            calls.incrementAndGet()
+                            Thread.sleep(50) // 실제 집계처럼 느리게
+                            "값"
+                        }
                     }
                 }
-            }
             assertTrue(ready.await(5, TimeUnit.SECONDS))
             go.countDown()
             futures.forEach { assertEquals("값", it.get(5, TimeUnit.SECONDS)) }

@@ -1,8 +1,17 @@
 package com.gijun.main.infrastructure.adapter.out.persistence.match.entity
 
-import com.gijun.main.domain.model.match.MatchBan
 import com.gijun.main.domain.model.match.MatchTeam
-import jakarta.persistence.*
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 
 @Entity
 @Table(name = "match_teams", schema = "lol_event")
@@ -28,24 +37,47 @@ class MatchTeamEntity(
     @OneToMany(mappedBy = "team", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     val bans: MutableList<MatchBanEntity> = mutableListOf(),
 ) {
-    fun toDomain() = MatchTeam(
-        id = id, teamId = teamId, win = win,
-        baronKills = baronKills, dragonKills = dragonKills, towerKills = towerKills,
-        inhibitorKills = inhibitorKills, riftHeraldKills = riftHeraldKills, hordeKills = hordeKills,
-        firstBlood = firstBlood, firstTower = firstTower, firstBaron = firstBaron,
-        firstInhibitor = firstInhibitor, firstDragon = firstDragon,
-        bans = bans.map { it.toDomain() }.sortedBy { it.pickTurn },
-    )
+    fun toDomain() =
+        MatchTeam(
+            id = id,
+            teamId = teamId,
+            win = win,
+            baronKills = baronKills,
+            dragonKills = dragonKills,
+            towerKills = towerKills,
+            inhibitorKills = inhibitorKills,
+            riftHeraldKills = riftHeraldKills,
+            hordeKills = hordeKills,
+            firstBlood = firstBlood,
+            firstTower = firstTower,
+            firstBaron = firstBaron,
+            firstInhibitor = firstInhibitor,
+            firstDragon = firstDragon,
+            bans = bans.map { it.toDomain() }.sortedBy { it.pickTurn },
+        )
 
     companion object {
-        fun from(domain: MatchTeam, matchEntity: MatchEntity): MatchTeamEntity {
-            val entity = MatchTeamEntity(
-                match = matchEntity, teamId = domain.teamId, win = domain.win,
-                baronKills = domain.baronKills, dragonKills = domain.dragonKills, towerKills = domain.towerKills,
-                inhibitorKills = domain.inhibitorKills, riftHeraldKills = domain.riftHeraldKills, hordeKills = domain.hordeKills,
-                firstBlood = domain.firstBlood, firstTower = domain.firstTower, firstBaron = domain.firstBaron,
-                firstInhibitor = domain.firstInhibitor, firstDragon = domain.firstDragon,
-            )
+        fun from(
+            domain: MatchTeam,
+            matchEntity: MatchEntity,
+        ): MatchTeamEntity {
+            val entity =
+                MatchTeamEntity(
+                    match = matchEntity,
+                    teamId = domain.teamId,
+                    win = domain.win,
+                    baronKills = domain.baronKills,
+                    dragonKills = domain.dragonKills,
+                    towerKills = domain.towerKills,
+                    inhibitorKills = domain.inhibitorKills,
+                    riftHeraldKills = domain.riftHeraldKills,
+                    hordeKills = domain.hordeKills,
+                    firstBlood = domain.firstBlood,
+                    firstTower = domain.firstTower,
+                    firstBaron = domain.firstBaron,
+                    firstInhibitor = domain.firstInhibitor,
+                    firstDragon = domain.firstDragon,
+                )
             domain.bans.forEach { ban -> entity.bans.add(MatchBanEntity.from(ban, entity)) }
             return entity
         }

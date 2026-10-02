@@ -23,92 +23,140 @@ import org.junit.jupiter.api.Test
  * 경기가 404 가 아닌지.
  */
 class GetMatchTimelineHandlerTest {
-
     private val positions = listOf(Position.TOP, Position.JUNGLE, Position.MID, Position.ADC, Position.SUPPORT)
 
     // ────────── 픽스처 ──────────
 
     /** 1~5 블루(승), 6~10 레드(패). 같은 인덱스끼리 라인 상대다. */
-    private fun roster(participantIds: Boolean = true): List<MatchParticipant> = (1..10).map { pid ->
-        val blue = pid <= 5
-        MatchParticipant(
-            participantId = if (participantIds) pid else 0,
-            riotId = "p$pid#KR1",
-            champion = "Champ$pid",
-            championId = pid,
-            team = if (blue) "blue" else "red",
-            teamId = if (blue) 100 else 200,
-            win = blue,
-            assignedPosition = positions[(pid - 1) % 5].name,
-        )
-    }
+    private fun roster(participantIds: Boolean = true): List<MatchParticipant> =
+        (1..10).map { pid ->
+            val blue = pid <= 5
+            MatchParticipant(
+                participantId = if (participantIds) pid else 0,
+                riotId = "p$pid#KR1",
+                champion = "Champ$pid",
+                championId = pid,
+                team = if (blue) "blue" else "red",
+                teamId = if (blue) 100 else 200,
+                win = blue,
+                assignedPosition = positions[(pid - 1) % 5].name,
+            )
+        }
 
     /** 블루 탑 내부 포탑 자리. MapGeometryTest 와 같은 실측 좌표다. */
     private val blueTopLane = """"position":{"x":1512,"y":6699}"""
 
     /** 0~16분 프레임. 1번(블루 탑)만 분당 골드 +100 씩 앞서 간다. */
-    private fun raw(events: String = "", lastMinute: Int = 16, skipMinute: Int? = null): String {
-        val frames = (0..lastMinute).filter { it != skipMinute }.joinToString(",") { m ->
-            val pf = (1..10).joinToString(",") { pid ->
-                val lead = if (pid == 1) m * 100 else 0
-                """"$pid":{"participantId":$pid,"totalGold":${500 + m * 300 + lead},"xp":${m * 400},""" +
-                    """"currentGold":${m * 10},"level":${1 + m / 3},"minionsKilled":${m * 6},""" +
-                    """"jungleMinionsKilled":0,$blueTopLane}"""
+    private fun raw(
+        events: String = "",
+        lastMinute: Int = 16,
+        skipMinute: Int? = null,
+    ): String {
+        val frames =
+            (0..lastMinute).filter { it != skipMinute }.joinToString(",") { m ->
+                val pf =
+                    (1..10).joinToString(",") { pid ->
+                        val lead = if (pid == 1) m * 100 else 0
+                        """"$pid":{"participantId":$pid,"totalGold":${500 + m * 300 + lead},"xp":${m * 400},""" +
+                            """"currentGold":${m * 10},"level":${1 + m / 3},"minionsKilled":${m * 6},""" +
+                            """"jungleMinionsKilled":0,$blueTopLane}"""
+                    }
+                val ev = if (m == lastMinute) events else ""
+                """{"timestamp":${m * 60_000L},"participantFrames":{$pf},"events":[$ev]}"""
             }
-            val ev = if (m == lastMinute) events else ""
-            """{"timestamp":${m * 60_000L},"participantFrames":{$pf},"events":[$ev]}"""
-        }
         return """{"frames":[$frames]}"""
     }
 
     /** 이벤트는 실제 원본처럼 union 의 다른 필드까지 채워 보낸다. */
-    private fun tower(ts: Long, destroyedTeam: Int, killer: Int) =
-        """{"type":"BUILDING_KILL","timestamp":$ts,"teamId":$destroyedTeam,"killerId":$killer,""" +
-            """"buildingType":"TOWER_BUILDING","towerType":"OUTER_TURRET","laneType":"TOP_LANE",""" +
-            """"assistingParticipantIds":[2],"position":{"x":981,"y":10441}}"""
+    private fun tower(
+        ts: Long,
+        destroyedTeam: Int,
+        killer: Int,
+    ) = """{"type":"BUILDING_KILL","timestamp":$ts,"teamId":$destroyedTeam,"killerId":$killer,""" +
+        """"buildingType":"TOWER_BUILDING","towerType":"OUTER_TURRET","laneType":"TOP_LANE",""" +
+        """"assistingParticipantIds":[2],"position":{"x":981,"y":10441}}"""
 
-    private fun dragon(ts: Long, killer: Int) =
-        """{"type":"ELITE_MONSTER_KILL","timestamp":$ts,"killerId":$killer,""" +
-            """"monsterType":"DRAGON","monsterSubType":"FIRE_DRAGON","assistingParticipantIds":[3],""" +
-            """"position":{"x":9910,"y":4530}}"""
+    private fun dragon(
+        ts: Long,
+        killer: Int,
+    ) = """{"type":"ELITE_MONSTER_KILL","timestamp":$ts,"killerId":$killer,""" +
+        """"monsterType":"DRAGON","monsterSubType":"FIRE_DRAGON","assistingParticipantIds":[3],""" +
+        """"position":{"x":9910,"y":4530}}"""
 
-    private fun kill(ts: Long, killer: Int, victim: Int) =
-        """{"type":"CHAMPION_KILL","timestamp":$ts,"killerId":$killer,"victimId":$victim,""" +
-            """"assistingParticipantIds":[],"position":{"x":7300,"y":7300}}"""
+    private fun kill(
+        ts: Long,
+        killer: Int,
+        victim: Int,
+    ) = """{"type":"CHAMPION_KILL","timestamp":$ts,"killerId":$killer,"victimId":$victim,""" +
+        """"assistingParticipantIds":[],"position":{"x":7300,"y":7300}}"""
 
     private fun handler(
         raw: String? = raw(),
         participants: List<MatchParticipant> = roster(),
         matchExists: Boolean = true,
     ): GetMatchTimelineHandler {
-        val match = Match(
-            matchId = "KR_1", queueId = 3130, gameCreation = 1, gameDuration = 1_020,
-            participants = participants.toMutableList(),
-        )
-        val port = object : MatchPersistencePort {
-            override fun save(match: Match) = match
-            override fun existsByMatchId(matchId: String) = matchExists
-            override fun findByMatchId(matchId: String): Match? = if (matchExists) match else null
-            override fun findAllWithParticipants(queueIds: List<Int>) = listOf(match)
-            override fun findPageWithParticipants(queueIds: List<Int>, page: Int, size: Int) = listOf(match)
-            override fun findPeriodSummary(queueIds: List<Int>) = MatchPeriodSummary(null, null, 0, 0)
-            override fun deleteByMatchId(matchId: String) {}
-            override fun countByQueueIds(queueIds: List<Int>) = 1L
-            override fun findAllOrderedByGameCreation() = listOf(match)
-            override fun findInPeriodWithParticipants(queueIds: List<Int>, fromMs: Long, untilMs: Long) =
-                listOf(match).filter { it.gameCreation in fromMs until untilMs }
-            override fun updateAssignedPositions(updates: Map<Long, String>) {}
-            override fun saveTimelineRaw(matchId: String, raw: String) {}
-            override fun findTimelineRaw(matchIds: Collection<String>) =
-                raw?.let { mapOf("KR_1" to it) } ?: emptyMap()
-            override fun updateLaneMethods(updates: Map<String, LaneMethod>) {}
-            override fun findPositionCounts() = emptyList<PositionCount>()
-        }
-        val cache = object : StatsCachePort {
-            override fun <T> getOrCompute(key: String, compute: () -> T): T = compute()
-            override fun evictAll() {}
-            override fun evictByPrefix(prefix: String) {}
-        }
+        val match =
+            Match(
+                matchId = "KR_1",
+                queueId = 3130,
+                gameCreation = 1,
+                gameDuration = 1_020,
+                participants = participants.toMutableList(),
+            )
+        val port =
+            object : MatchPersistencePort {
+                override fun save(match: Match) = match
+
+                override fun existsByMatchId(matchId: String) = matchExists
+
+                override fun findByMatchId(matchId: String): Match? = if (matchExists) match else null
+
+                override fun findAllWithParticipants(queueIds: List<Int>) = listOf(match)
+
+                override fun findPageWithParticipants(
+                    queueIds: List<Int>,
+                    page: Int,
+                    size: Int,
+                ) = listOf(match)
+
+                override fun findPeriodSummary(queueIds: List<Int>) = MatchPeriodSummary(null, null, 0, 0)
+
+                override fun deleteByMatchId(matchId: String) {}
+
+                override fun countByQueueIds(queueIds: List<Int>) = 1L
+
+                override fun findAllOrderedByGameCreation() = listOf(match)
+
+                override fun findInPeriodWithParticipants(
+                    queueIds: List<Int>,
+                    fromMs: Long,
+                    untilMs: Long,
+                ) = listOf(match).filter { it.gameCreation in fromMs until untilMs }
+
+                override fun updateAssignedPositions(updates: Map<Long, String>) {}
+
+                override fun saveTimelineRaw(
+                    matchId: String,
+                    raw: String,
+                ) {}
+
+                override fun findTimelineRaw(matchIds: Collection<String>) = raw?.let { mapOf("KR_1" to it) } ?: emptyMap()
+
+                override fun updateLaneMethods(updates: Map<String, LaneMethod>) {}
+
+                override fun findPositionCounts() = emptyList<PositionCount>()
+            }
+        val cache =
+            object : StatsCachePort {
+                override fun <T> getOrCompute(
+                    key: String,
+                    compute: () -> T,
+                ): T = compute()
+
+                override fun evictAll() {}
+
+                override fun evictByPrefix(prefix: String) {}
+            }
         return GetMatchTimelineHandler(port, cache)
     }
 
@@ -186,8 +234,9 @@ class GetMatchTimelineHandlerTest {
     @Test
     fun `부서진 건물의 팀을 먹은 팀으로 뒤집는다`() {
         // 원본의 teamId 는 파괴당한 쪽이다. 그대로 내보내면 화면 색이 반대로 칠해진다.
-        val result = handler(raw = raw(events = tower(ts = 900_000, destroyedTeam = 200, killer = 1)))
-            .getMatchTimeline("KR_1")!!
+        val result =
+            handler(raw = raw(events = tower(ts = 900_000, destroyedTeam = 200, killer = 1)))
+                .getMatchTimeline("KR_1")!!
 
         val objective = result.objectives.single()
         assertEquals(100, objective.killingTeamId, "레드 포탑이 부서졌으니 블루가 먹었다")
@@ -209,8 +258,9 @@ class GetMatchTimelineHandlerTest {
 
     @Test
     fun `킬은 희생자의 팀을 뒤집어 먹은 팀을 정한다`() {
-        val result = handler(raw = raw(events = kill(ts = 900_000, killer = 0, victim = 6)))
-            .getMatchTimeline("KR_1")!!
+        val result =
+            handler(raw = raw(events = kill(ts = 900_000, killer = 0, victim = 6)))
+                .getMatchTimeline("KR_1")!!
 
         val kill = result.kills.single()
         assertEquals(100, kill.killingTeamId, "막타가 포탑이어도 레드가 죽었으면 블루의 킬이다")
@@ -221,11 +271,12 @@ class GetMatchTimelineHandlerTest {
 
     @Test
     fun `킬과 오브젝트는 서로의 목록에 섞이지 않는다`() {
-        val events = listOf(
-            kill(ts = 900_000, killer = 1, victim = 6),
-            tower(ts = 905_000, destroyedTeam = 200, killer = 1),
-            dragon(ts = 910_000, killer = 2),
-        ).joinToString(",")
+        val events =
+            listOf(
+                kill(ts = 900_000, killer = 1, victim = 6),
+                tower(ts = 905_000, destroyedTeam = 200, killer = 1),
+                dragon(ts = 910_000, killer = 2),
+            ).joinToString(",")
         val result = handler(raw = raw(events = events)).getMatchTimeline("KR_1")!!
 
         assertEquals(1, result.kills.size)
@@ -236,12 +287,13 @@ class GetMatchTimelineHandlerTest {
 
     @Test
     fun `교전 구간과 전리품을 함께 낸다`() {
-        val events = listOf(
-            kill(ts = 900_000, killer = 1, victim = 6),
-            kill(ts = 904_000, killer = 2, victim = 7),
-            kill(ts = 908_000, killer = 3, victim = 8),
-            dragon(ts = 920_000, killer = 2),
-        ).joinToString(",")
+        val events =
+            listOf(
+                kill(ts = 900_000, killer = 1, victim = 6),
+                kill(ts = 904_000, killer = 2, victim = 7),
+                kill(ts = 908_000, killer = 3, victim = 8),
+                dragon(ts = 920_000, killer = 2),
+            ).joinToString(",")
         val fight = handler(raw = raw(events = events)).getMatchTimeline("KR_1")!!.teamFights.single()
 
         assertTrue(fight.isTeamFight)

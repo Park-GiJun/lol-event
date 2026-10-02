@@ -11,8 +11,9 @@ import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 
 @Component
-class DataDragonCacheStore(private val dragonDataPort: DragonDataPort) : DataDragonCachePort {
-
+class DataDragonCacheStore(
+    private val dragonDataPort: DragonDataPort,
+) : DataDragonCachePort {
     private val log = LoggerFactory.getLogger(javaClass)
 
     private val champions = ConcurrentHashMap<Int, DragonChampionResult>()
@@ -35,12 +36,17 @@ class DataDragonCacheStore(private val dragonDataPort: DragonDataPort) : DataDra
     }
 
     fun getChampion(championId: Int): DragonChampionResult? = champions[championId]
+
     fun getItem(itemId: Int): DragonItemResult? = items[itemId]
+
     fun getSpell(spellId: Int): DragonSummonerSpellResult? = spells[spellId]
+
     fun getRune(runeId: Int): DragonRuneResult? = runes[runeId]
 
     fun getAllChampions(): List<DragonChampionResult> = champions.values.sortedBy { it.nameKo }
+
     fun getAllItems(): List<DragonItemResult> = items.values.sortedBy { it.itemId }
+
     fun getAllSpells(): List<DragonSummonerSpellResult> = spells.values.sortedBy { it.spellId }
 
     /** 계열 → 줄 → 룬 순. 화면에서 룬 페이지 모양대로 그리기 좋게 정렬해 둔다. */

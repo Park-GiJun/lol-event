@@ -15,7 +15,6 @@ import java.time.LocalDateTime
  * 두 갱신 모두 **경기 전 값(before)** 만 읽는다.
  */
 object RatingEngine {
-
     const val TEAM_BLUE = 100
     const val TEAM_RED = 200
 
@@ -41,8 +40,7 @@ object RatingEngine {
      * 다만 라인 맞대결은 [LaneScores.duels] 가 칼바람을 걷어내므로 0개가 되고,
      * 결과적으로 칼바람은 laneElo 를 전혀 건드리지 않는다.
      */
-    fun isRatable(match: Match): Boolean =
-        match.participants.size == FULL_ROSTER && match.gameDuration > MIN_DURATION_SEC
+    fun isRatable(match: Match): Boolean = match.participants.size == FULL_ROSTER && match.gameDuration > MIN_DURATION_SEC
 
     /**
      * @param current riotId -> 현재 레이팅. 없는 사람은 기본값에서 시작한다.
@@ -54,9 +52,10 @@ object RatingEngine {
         current: Map<String, PlayerRating>,
         now: LocalDateTime = LocalDateTime.now(),
     ): Outcome? {
-        val players = match.participants
-            .filter { it.riotId.isNotBlank() }
-            .distinctBy { it.riotId }
+        val players =
+            match.participants
+                .filter { it.riotId.isNotBlank() }
+                .distinctBy { it.riotId }
 
         val blue = players.filter { it.teamId == TEAM_BLUE }
         val red = players.filter { it.teamId == TEAM_RED }
@@ -67,9 +66,7 @@ object RatingEngine {
         // 양쪽 다 패배(무승부·미완)거나 양쪽 다 승리(데이터 오류). 어느 쪽이든 셀 수 없다.
         if (blueWon == redWon) return null
 
-        fun ratingOf(riotId: String): PlayerRating {
-            return current[riotId] ?: PlayerRating(riotId = riotId)
-        }
+        fun ratingOf(riotId: String): PlayerRating = current[riotId] ?: PlayerRating(riotId = riotId)
 
         val before = players.associate { it.riotId to ratingOf(it.riotId) }
         val after = before.toMutableMap()
@@ -101,18 +98,21 @@ object RatingEngine {
 
             val deltaA = k * (scoreA - expectedA)
 
-            after[a] = (after[a] ?: ra).copy(
-                laneElo = ra.laneElo + deltaA,
-                laneDuels = ra.laneDuels + 1,
-                laneWins = ra.laneWins + if (aWon) 1 else 0,
-            )
-            after[b] = (after[b] ?: rb).copy(
-                laneElo = rb.laneElo - deltaA,
-                laneDuels = rb.laneDuels + 1,
-                laneWins = rb.laneWins + if (aWon) 0 else 1,
-            )
+            after[a] =
+                (after[a] ?: ra).copy(
+                    laneElo = ra.laneElo + deltaA,
+                    laneDuels = ra.laneDuels + 1,
+                    laneWins = ra.laneWins + if (aWon) 1 else 0,
+                )
+            after[b] =
+                (after[b] ?: rb).copy(
+                    laneElo = rb.laneElo - deltaA,
+                    laneDuels = rb.laneDuels + 1,
+                    laneWins = rb.laneWins + if (aWon) 0 else 1,
+                )
 
-            opponents[a] = b; opponents[b] = a
+            opponents[a] = b
+            opponents[b] = a
             laneOutcomes[a] = if (aWon) LaneResult.WIN else LaneResult.LOSS
             laneOutcomes[b] = if (aWon) LaneResult.LOSS else LaneResult.WIN
             duelCount++
@@ -125,41 +125,49 @@ object RatingEngine {
         val redAvg = redIds.mapNotNull { before[it]?.teamElo }.average()
         val expectedBlue = RatingMath.expected(blueAvg, redAvg)
 
-        fun applyTeam(ids: List<String>, won: Boolean, expected: Double) {
+        fun applyTeam(
+            ids: List<String>,
+            won: Boolean,
+            expected: Double,
+        ) {
             val score = if (won) 1.0 else 0.0
             for (id in ids) {
                 val r = before[id] ?: continue
                 // K 는 개인 표본으로 잡는다. 배치 중인 사람이 섞이면 그 사람만 크게 움직인다.
                 val k = RatingMath.kFactor(r.teamGames)
-                after[id] = (after[id] ?: r).copy(
-                    teamElo = r.teamElo + k * (score - expected),
-                    teamGames = r.teamGames + 1,
-                    teamWins = r.teamWins + if (won) 1 else 0,
-                    // 연승/연패는 화면용 숫자일 뿐이다. 위 식 어디에도 들어가지 않는다.
-                    teamWinStreak = if (won) r.teamWinStreak + 1 else 0,
-                    teamLossStreak = if (won) 0 else r.teamLossStreak + 1,
-                )
+                after[id] =
+                    (after[id] ?: r).copy(
+                        teamElo = r.teamElo + k * (score - expected),
+                        teamGames = r.teamGames + 1,
+                        teamWins = r.teamWins + if (won) 1 else 0,
+                        // 연승/연패는 화면용 숫자일 뿐이다. 위 식 어디에도 들어가지 않는다.
+                        teamWinStreak = if (won) r.teamWinStreak + 1 else 0,
+                        teamLossStreak = if (won) 0 else r.teamLossStreak + 1,
+                    )
             }
         }
         applyTeam(blueIds, blueWon, expectedBlue)
         applyTeam(redIds, !blueWon, 1.0 - expectedBlue)
 
-        val histories = players.map { p ->
-            val id = p.riotId
-            val b = before.getValue(id)
-            val a = after.getValue(id)
-            RatingHistory(
-                riotId = id,
-                matchId = match.matchId,
-                laneBefore = b.laneElo, laneAfter = a.laneElo,
-                laneResult = laneOutcomes[id] ?: LaneResult.NONE,
-                laneOpponent = opponents[id],
-                teamBefore = b.teamElo, teamAfter = a.teamElo,
-                win = p.win,
-                gameCreation = match.gameCreation,
-                createdAt = now,
-            )
-        }
+        val histories =
+            players.map { p ->
+                val id = p.riotId
+                val b = before.getValue(id)
+                val a = after.getValue(id)
+                RatingHistory(
+                    riotId = id,
+                    matchId = match.matchId,
+                    laneBefore = b.laneElo,
+                    laneAfter = a.laneElo,
+                    laneResult = laneOutcomes[id] ?: LaneResult.NONE,
+                    laneOpponent = opponents[id],
+                    teamBefore = b.teamElo,
+                    teamAfter = a.teamElo,
+                    win = p.win,
+                    gameCreation = match.gameCreation,
+                    createdAt = now,
+                )
+            }
 
         return Outcome(
             ratings = after.values.map { it.copy(updatedAt = now) },

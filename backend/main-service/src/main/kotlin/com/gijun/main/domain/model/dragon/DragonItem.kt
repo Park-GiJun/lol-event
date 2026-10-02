@@ -7,5 +7,5 @@ data class DragonItem(
     val imageFull: String?,
     val imageUrl: String?,
     val goldTotal: Int,
-    val version: String?
+    val version: String?,
 )

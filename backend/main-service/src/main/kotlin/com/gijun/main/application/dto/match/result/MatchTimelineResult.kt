@@ -34,7 +34,10 @@ data class MatchTimelineResult(
     val teamFights: List<TeamFightEntry>,
 )
 
-data class MapPointDto(val x: Int, val y: Int)
+data class MapPointDto(
+    val x: Int,
+    val y: Int,
+)
 
 data class TeamTimelineSeries(
     val teamId: Int,

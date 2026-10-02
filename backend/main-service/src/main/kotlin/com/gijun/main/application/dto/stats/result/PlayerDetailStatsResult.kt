@@ -32,7 +32,7 @@ data class RecentMatchStat(
 )
 
 data class LaneStat(
-    val position: String,          // TOP / JUNGLE / MID / BOTTOM / SUPPORT
+    val position: String, // TOP / JUNGLE / MID / BOTTOM / SUPPORT
     val games: Int,
     val wins: Int,
     val winRate: Int,
@@ -44,10 +44,10 @@ data class LaneStat(
     val avgCs: Double,
     val avgGold: Int,
     val avgVisionScore: Double,
-    val avgDamageTaken: Int,       // 탑/서폿 강조
-    val avgObjectiveDamage: Int,   // 정글 강조
-    val avgWardsPlaced: Double,    // 서폿 강조
-    val avgCcTime: Double,         // 서폿 강조 (timeCCingOthers)
+    val avgDamageTaken: Int, // 탑/서폿 강조
+    val avgObjectiveDamage: Int, // 정글 강조
+    val avgWardsPlaced: Double, // 서폿 강조
+    val avgCcTime: Double, // 서폿 강조 (timeCCingOthers)
     val avgNeutralMinions: Double, // 정글 강조
 )
 

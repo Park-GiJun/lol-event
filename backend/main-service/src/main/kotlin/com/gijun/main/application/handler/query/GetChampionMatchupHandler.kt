@@ -31,7 +31,6 @@ class GetChampionMatchupHandler(
     private val matchPersistencePort: MatchPersistencePort,
     private val cache: StatsCachePort,
 ) : GetChampionMatchupUseCase {
-
     /** 라인전 1:1. 같은 라인에 정확히 한 명씩일 때만 만든다. */
     private data class Duel(
         val me: MatchParticipant,
@@ -39,7 +38,11 @@ class GetChampionMatchupHandler(
         val position: String,
     )
 
-    override fun getMatchup(champion: String?, vsChampion: String?, mode: String): ChampionMatchupResult =
+    override fun getMatchup(
+        champion: String?,
+        vsChampion: String?,
+        mode: String,
+    ): ChampionMatchupResult =
         cache.getOrCompute("champion-matchup:$champion:$vsChampion:$mode") {
             val duels = buildDuels(mode)
 
@@ -59,9 +62,10 @@ class GetChampionMatchupHandler(
 
                 vsChampion != null -> {
                     // 카운터 관점 — 이 챔피언을 상대한 쪽의 성적. 시점을 뒤집어 같은 계산을 쓴다.
-                    val against = duels
-                        .filter { it.opp.champion.equals(vsChampion, ignoreCase = true) }
-                        .map { Duel(me = it.opp, opp = it.me, position = it.position) }
+                    val against =
+                        duels
+                            .filter { it.opp.champion.equals(vsChampion, ignoreCase = true) }
+                            .map { Duel(me = it.opp, opp = it.me, position = it.position) }
                     val name = against.firstOrNull()?.me?.champion ?: vsChampion
                     val id = against.firstOrNull()?.me?.championId ?: 0
                     ChampionMatchupResult(
@@ -88,14 +92,15 @@ class GetChampionMatchupHandler(
 
             // 같은 라인에 정확히 한 명씩일 때만 맞춘다. 포지션이 깨진 팀은 조용히 건너뛴다.
             val byPosB = b.groupBy { PositionResolver.resolve(it) }
-            a.mapNotNull { me ->
-                val pos = PositionResolver.resolve(me) ?: return@mapNotNull null
-                val opp = byPosB[pos]?.singleOrNull() ?: return@mapNotNull null
-                Duel(me, opp, pos)
-            }.flatMap { d ->
-                // 양쪽 관점을 모두 담는다. a 팀만 담으면 b 팀 챔피언 조회가 비게 된다.
-                listOf(d, Duel(me = d.opp, opp = d.me, position = d.position))
-            }
+            a
+                .mapNotNull { me ->
+                    val pos = PositionResolver.resolve(me) ?: return@mapNotNull null
+                    val opp = byPosB[pos]?.singleOrNull() ?: return@mapNotNull null
+                    Duel(me, opp, pos)
+                }.flatMap { d ->
+                    // 양쪽 관점을 모두 담는다. a 팀만 담으면 b 팀 챔피언 조회가 비게 된다.
+                    listOf(d, Duel(me = d.opp, opp = d.me, position = d.position))
+                }
         }
     }
 
@@ -103,6 +108,7 @@ class GetChampionMatchupHandler(
 
     private fun gapOf(duels: List<Duel>): LaneGap {
         val n = duels.size.coerceAtLeast(1)
+
         fun avg(pick: (Duel) -> Double) = duels.sumOf(pick) / n
         return LaneGap(
             goldDiff = avg { (it.me.gold - it.opp.gold).toDouble() }.toInt(),
@@ -115,7 +121,8 @@ class GetChampionMatchupHandler(
 
     /** 챔피언 x 라인. 개별 상성보다 표본이 두터워 이쪽이 실제로 읽힌다. */
     private fun laneStrength(duels: List<Duel>): List<ChampionLaneStrength> =
-        duels.groupBy { it.position }
+        duels
+            .groupBy { it.position }
             .map { (pos, group) ->
                 val w = group.count { it.me.win }
                 ChampionLaneStrength(
@@ -129,11 +136,14 @@ class GetChampionMatchupHandler(
                     sampleGrade = RankingScore.sampleGrade(group.size),
                     gap = gapOf(group),
                 )
-            }
-            .sortedByDescending { it.games }
+            }.sortedByDescending { it.games }
 
-    private fun matchups(duels: List<Duel>, key: (Duel) -> MatchParticipant): List<MatchupStat> =
-        duels.groupBy { key(it).champion }
+    private fun matchups(
+        duels: List<Duel>,
+        key: (Duel) -> MatchParticipant,
+    ): List<MatchupStat> =
+        duels
+            .groupBy { key(it).champion }
             .map { (_, group) ->
                 val w = group.count { it.me.win }
                 MatchupStat(
@@ -147,10 +157,10 @@ class GetChampionMatchupHandler(
                     sampleGrade = RankingScore.sampleGrade(group.size),
                     gap = gapOf(group),
                 )
-            }
-            .filter { it.games >= RankingScore.MIN_GAMES }
+            }.filter { it.games >= RankingScore.MIN_GAMES }
             .sortedWith(compareByDescending<MatchupStat> { it.adjustedWinRate }.thenByDescending { it.games })
 
     private fun r1(v: Double) = Math.round(v * 10) / 10.0
+
     private fun r2(v: Double) = Math.round(v * 100) / 100.0
 }

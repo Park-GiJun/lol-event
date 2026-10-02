@@ -1,6 +1,5 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import com.gijun.main.application.dto.dragon.result.DragonChampionResult
 import com.gijun.main.application.dto.dragon.result.DragonItemResult
 import com.gijun.main.application.dto.dragon.result.DragonRuneResult
@@ -8,76 +7,73 @@ import com.gijun.main.application.dto.dragon.result.DragonSummonerSpellResult
 import com.gijun.main.application.dto.dragon.result.DragonSyncResult
 import com.gijun.main.application.port.`in`.SyncDataDragonUseCase
 import com.gijun.main.infrastructure.adapter.out.cache.DataDragonCacheStore
+import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 @Tag(name = "DataDragon", description = "DataDragon 정적 데이터 API")
 @RestController
 @RequestMapping("/api/ddragon")
 class DataDragonWebAdapter(
     private val syncDataDragonUseCase: SyncDataDragonUseCase,
-    private val cacheStore: DataDragonCacheStore
+    private val cacheStore: DataDragonCacheStore,
 ) {
     @Operation(summary = "DataDragon 동기화", description = "최신 버전의 챔피언/아이템/스펠 데이터를 DataDragon에서 받아 DB에 저장하고 캐시를 갱신합니다")
     @PostMapping("/sync")
-    fun sync(): CommonApiResponse<DragonSyncResult> =
-        CommonApiResponse(success = true, data = syncDataDragonUseCase.sync())
+    fun sync(): CommonApiResponse<DragonSyncResult> = CommonApiResponse(success = true, data = syncDataDragonUseCase.sync())
 
     @Operation(summary = "챔피언 목록 조회")
     @GetMapping("/champions")
-    fun champions(): CommonApiResponse<List<DragonChampionResult>> =
-        CommonApiResponse(success = true, data = cacheStore.getAllChampions())
+    fun champions(): CommonApiResponse<List<DragonChampionResult>> = CommonApiResponse(success = true, data = cacheStore.getAllChampions())
 
     @Operation(summary = "챔피언 단건 조회")
     @GetMapping("/champions/{championId}")
     fun champion(
         @Parameter(description = "챔피언 ID", example = "157")
-        @PathVariable championId: Int
-    ): CommonApiResponse<DragonChampionResult?> =
-        CommonApiResponse(success = true, data = cacheStore.getChampion(championId))
+        @PathVariable championId: Int,
+    ): CommonApiResponse<DragonChampionResult?> = CommonApiResponse(success = true, data = cacheStore.getChampion(championId))
 
     @Operation(summary = "아이템 목록 조회")
     @GetMapping("/items")
-    fun items(): CommonApiResponse<List<DragonItemResult>> =
-        CommonApiResponse(success = true, data = cacheStore.getAllItems())
+    fun items(): CommonApiResponse<List<DragonItemResult>> = CommonApiResponse(success = true, data = cacheStore.getAllItems())
 
     @Operation(summary = "아이템 단건 조회")
     @GetMapping("/items/{itemId}")
     fun item(
         @Parameter(description = "아이템 ID", example = "3157")
-        @PathVariable itemId: Int
-    ): CommonApiResponse<DragonItemResult?> =
-        CommonApiResponse(success = true, data = cacheStore.getItem(itemId))
+        @PathVariable itemId: Int,
+    ): CommonApiResponse<DragonItemResult?> = CommonApiResponse(success = true, data = cacheStore.getItem(itemId))
 
     @Operation(summary = "소환사 스펠 목록 조회")
     @GetMapping("/spells")
-    fun spells(): CommonApiResponse<List<DragonSummonerSpellResult>> =
-        CommonApiResponse(success = true, data = cacheStore.getAllSpells())
+    fun spells(): CommonApiResponse<List<DragonSummonerSpellResult>> = CommonApiResponse(success = true, data = cacheStore.getAllSpells())
 
     @Operation(summary = "소환사 스펠 단건 조회")
     @GetMapping("/spells/{spellId}")
     fun spell(
         @Parameter(description = "스펠 ID", example = "4")
-        @PathVariable spellId: Int
-    ): CommonApiResponse<DragonSummonerSpellResult?> =
-        CommonApiResponse(success = true, data = cacheStore.getSpell(spellId))
+        @PathVariable spellId: Int,
+    ): CommonApiResponse<DragonSummonerSpellResult?> = CommonApiResponse(success = true, data = cacheStore.getSpell(spellId))
 
     @Operation(
         summary = "룬 목록 조회",
-        description = "룬 계열 5종과 그 안의 룬을 한 목록으로 반환합니다. " +
-            "계열 행은 runeId 가 styleId 와 같고 slot 이 -1 입니다. slot 0 이 핵심 룬(키스톤)입니다."
+        description =
+            "룬 계열 5종과 그 안의 룬을 한 목록으로 반환합니다. " +
+                "계열 행은 runeId 가 styleId 와 같고 slot 이 -1 입니다. slot 0 이 핵심 룬(키스톤)입니다.",
     )
     @GetMapping("/runes")
-    fun runes(): CommonApiResponse<List<DragonRuneResult>> =
-        CommonApiResponse(success = true, data = cacheStore.getAllRunes())
+    fun runes(): CommonApiResponse<List<DragonRuneResult>> = CommonApiResponse(success = true, data = cacheStore.getAllRunes())
 
     @Operation(summary = "룬 단건 조회")
     @GetMapping("/runes/{runeId}")
     fun rune(
         @Parameter(description = "룬 ID (계열 id 도 조회됩니다)", example = "8005")
-        @PathVariable runeId: Int
-    ): CommonApiResponse<DragonRuneResult?> =
-        CommonApiResponse(success = true, data = cacheStore.getRune(runeId))
+        @PathVariable runeId: Int,
+    ): CommonApiResponse<DragonRuneResult?> = CommonApiResponse(success = true, data = cacheStore.getRune(runeId))
 }

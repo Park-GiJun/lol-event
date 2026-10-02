@@ -15,12 +15,13 @@ import org.junit.jupiter.api.Test
  * 공용 union 이라, 타입에 안 맞는 필드까지 같이 실어 보낸다.
  */
 class TimelineParserTest {
-
     // ────────── 픽스처 ──────────
 
     /** 프레임 하나에 [events] 를 담은 최소 원본. */
-    private fun raw(vararg events: String, frame: String = participantFrame(1)): String =
-        """{"frames":[{"timestamp":60000,"participantFrames":{$frame},"events":[${events.joinToString(",")}]}]}"""
+    private fun raw(
+        vararg events: String,
+        frame: String = participantFrame(1),
+    ): String = """{"frames":[{"timestamp":60000,"participantFrames":{$frame},"events":[${events.joinToString(",")}]}]}"""
 
     private fun participantFrame(
         pid: Int,
@@ -42,8 +43,7 @@ class TimelineParserTest {
 
     private fun parse(vararg events: String) = TimelineParser.parse(raw(*events))
 
-    private inline fun <reified T : TimelineEvent> parseOne(event: String): T =
-        parse(event).events.single() as T
+    private inline fun <reified T : TimelineEvent> parseOne(event: String): T = parse(event).events.single() as T
 
     // ────────── 이벤트 ──────────
 
@@ -60,9 +60,10 @@ class TimelineParserTest {
 
     @Test
     fun `오브젝트 킬은 드래곤 원소와 관여자를 읽는다`() {
-        val monster = parseOne<TimelineEvent.EliteMonsterKill>(
-            event("ELITE_MONSTER_KILL", x = 9_910, y = 4_530, extra = """"monsterType":"DRAGON","monsterSubType":"FIRE_DRAGON",""")
-        )
+        val monster =
+            parseOne<TimelineEvent.EliteMonsterKill>(
+                event("ELITE_MONSTER_KILL", x = 9_910, y = 4_530, extra = """"monsterType":"DRAGON","monsterSubType":"FIRE_DRAGON","""),
+            )
 
         assertEquals("DRAGON", monster.monsterType)
         assertEquals("FIRE_DRAGON", monster.monsterSubType)
@@ -72,9 +73,10 @@ class TimelineParserTest {
 
     @Test
     fun `건물 킬은 포탑 종류와 라인을 읽는다`() {
-        val building = parseOne<TimelineEvent.BuildingKill>(
-            event("BUILDING_KILL", extra = """"buildingType":"TOWER_BUILDING","towerType":"OUTER_TURRET","laneType":"TOP_LANE",""")
-        )
+        val building =
+            parseOne<TimelineEvent.BuildingKill>(
+                event("BUILDING_KILL", extra = """"buildingType":"TOWER_BUILDING","towerType":"OUTER_TURRET","laneType":"TOP_LANE","""),
+            )
 
         assertEquals("TOWER_BUILDING", building.buildingType)
         assertEquals("OUTER_TURRET", building.towerType)
@@ -84,9 +86,10 @@ class TimelineParserTest {
 
     @Test
     fun `억제기는 포탑 종류가 빈 값이다`() {
-        val inhibitor = parseOne<TimelineEvent.BuildingKill>(
-            event("BUILDING_KILL", extra = """"buildingType":"INHIBITOR_BUILDING","towerType":"","laneType":"MID_LANE",""")
-        )
+        val inhibitor =
+            parseOne<TimelineEvent.BuildingKill>(
+                event("BUILDING_KILL", extra = """"buildingType":"INHIBITOR_BUILDING","towerType":"","laneType":"MID_LANE","""),
+            )
 
         assertEquals("INHIBITOR_BUILDING", inhibitor.buildingType)
         assertEquals("", inhibitor.towerType)
@@ -95,20 +98,22 @@ class TimelineParserTest {
     @Test
     fun `union 스키마에서 타입에 안 맞는 필드는 무시한다`() {
         // 아이템·스킬 필드가 실려 오지만 그 이벤트 타입 자체가 LCU 에 없어 항상 0이다.
-        val kill = parseOne<TimelineEvent.ChampionKill>(
-            event("CHAMPION_KILL", extra = """"monsterType":"DRAGON","towerType":"OUTER_TURRET","laneType":"TOP_LANE",""")
-        )
+        val kill =
+            parseOne<TimelineEvent.ChampionKill>(
+                event("CHAMPION_KILL", extra = """"monsterType":"DRAGON","towerType":"OUTER_TURRET","laneType":"TOP_LANE","""),
+            )
 
         assertEquals(1, kill.killerId, "다른 타입의 필드가 섞여 있어도 킬은 정상 파싱된다")
     }
 
     @Test
     fun `모르는 이벤트 타입은 버리고 나머지는 살린다`() {
-        val timeline = parse(
-            event("WARD_PLACED"),
-            event("CHAMPION_KILL", ts = 300_000),
-            event("ITEM_PURCHASED"),
-        )
+        val timeline =
+            parse(
+                event("WARD_PLACED"),
+                event("CHAMPION_KILL", ts = 300_000),
+                event("ITEM_PURCHASED"),
+            )
 
         assertEquals(1, timeline.events.size, "LCU 에 없는 타입이 섞여 와도 아는 것만 남긴다")
         assertTrue(timeline.events.single() is TimelineEvent.ChampionKill)
@@ -128,9 +133,10 @@ class TimelineParserTest {
 
     @Test
     fun `좌표가 없으면 null 이다`() {
-        val kill = parseOne<TimelineEvent.ChampionKill>(
-            """{"type":"CHAMPION_KILL","timestamp":600000,"killerId":1,"victimId":6,"assistingParticipantIds":[]}"""
-        )
+        val kill =
+            parseOne<TimelineEvent.ChampionKill>(
+                """{"type":"CHAMPION_KILL","timestamp":600000,"killerId":1,"victimId":6,"assistingParticipantIds":[]}""",
+            )
 
         assertNull(kill.position)
     }
@@ -145,7 +151,12 @@ class TimelineParserTest {
 
     @Test
     fun `프레임의 보유 골드와 좌표를 읽는다`() {
-        val frame = parse().frames.single().participants.getValue(1)
+        val frame =
+            parse()
+                .frames
+                .single()
+                .participants
+                .getValue(1)
 
         assertEquals(340, frame.currentGold, "누적 골드가 아니라 손에 든 골드다")
         assertEquals(2_500, frame.totalGold)
@@ -155,7 +166,11 @@ class TimelineParserTest {
     @Test
     fun `프레임에 좌표가 없어도 나머지는 읽는다`() {
         val timeline = TimelineParser.parse(raw(frame = participantFrame(1, position = "")))
-        val frame = timeline.frames.single().participants.getValue(1)
+        val frame =
+            timeline.frames
+                .single()
+                .participants
+                .getValue(1)
 
         assertNull(frame.position)
         assertEquals(32, frame.cs)

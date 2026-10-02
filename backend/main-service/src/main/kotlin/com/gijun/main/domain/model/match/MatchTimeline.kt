@@ -23,7 +23,10 @@ data class MatchTimeline(
  * 실제로 밟히는 영역은 그보다 좁다 — 영역 판정 상수는
  * [com.gijun.main.domain.service.MapGeometry] 에서 실측값을 근거로 정한다.
  */
-data class MapPoint(val x: Int, val y: Int)
+data class MapPoint(
+    val x: Int,
+    val y: Int,
+)
 
 data class TimelineFrame(
     /** 경기 시작 기준 경과 시간(ms). */
