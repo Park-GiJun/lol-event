@@ -75,13 +75,20 @@ object Build : BuildType({
             id = "frontend_build"
             name = "Frontend - Install & Build"
             workingDir = "frontend"
-            // --no-audit --no-fund: npm 은 설치할 때마다 취약점 조회와 후원 조회를 원격으로 돈다.
-            // 이 빌드에서 그게 설치 시간의 대부분을 차지했다. 취약점 점검은 별도로 하면 된다.
+            // 패키지 매니저는 pnpm 이다(lock 은 pnpm-lock.yaml). 에이전트에 pnpm 이 깔려 있다고
+            // 가정하지 않고 npx 로 버전을 고정해 부른다 — package.json 의 packageManager 와 같은 버전이다.
+            //
+            // 게이트는 넷이다. 하나라도 red 면 배포로 넘어가지 않는다.
+            //   lint  : prettier --check + eslint
+            //   test  : vitest
+            //   build : tsc -b(타입 검사) + vite build
             scriptContent = """
-                npm ci --no-audit --no-fund
-                npm run lint
-                npm test
-                npm run build
+                set -e
+                PNPM="npx --yes pnpm@11.9.0"
+                ${'$'}PNPM install --frozen-lockfile
+                ${'$'}PNPM lint
+                ${'$'}PNPM test
+                ${'$'}PNPM build
             """.trimIndent()
             conditions {
                 equals("build.frontend", "true")
