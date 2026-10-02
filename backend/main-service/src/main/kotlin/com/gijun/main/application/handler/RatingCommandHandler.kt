@@ -16,6 +16,7 @@ import com.gijun.main.domain.rating.model.PlayerRatingModel
 import com.gijun.main.domain.rating.model.RatingHistoryModel
 import com.gijun.main.domain.rating.service.LaneScores
 import com.gijun.main.domain.rating.service.RatingEngine
+import com.gijun.main.shared.domain.vo.MatchId
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -47,7 +48,7 @@ class RatingCommandHandler(
     // ────────── 경기 한 판 ──────────
 
     @Transactional
-    override fun calculateForMatch(matchId: String) {
+    override fun calculateRatingForMatch(matchId: MatchId) {
         val match =
             matchQueryPersistencePort.findByMatchId(matchId)
                 ?: run {
@@ -74,7 +75,7 @@ class RatingCommandHandler(
         val latest = ratingHistoryQueryPersistencePort.findLatestGameCreation()
         if (latest != null && match.gameCreation < latest) {
             log.warn("레이팅 순서 역전 — $matchId (gameCreation=${match.gameCreation} < 최신=$latest). 전체 재집계로 전환한다.")
-            resetAndRecalculate()
+            resetAndRecalculateRating()
             return
         }
 
@@ -85,7 +86,7 @@ class RatingCommandHandler(
                 .distinct()
         val current = playerRatingQueryPersistencePort.findAllByRiotIds(ids).associateBy { it.riotId }
 
-        val scored = scoreLanes(match, matchQueryPersistencePort.findTimelineRaw(listOf(matchId))[matchId])
+        val scored = scoreLanes(match, matchQueryPersistencePort.findTimelineRaw(listOf(matchId.value))[matchId.value])
         val outcome =
             RatingEngine.rate(match, scored, current)
                 ?: run {
@@ -95,7 +96,7 @@ class RatingCommandHandler(
 
         playerRatingCommandPersistencePort.saveAll(outcome.ratings)
         ratingHistoryCommandPersistencePort.saveAll(outcome.histories)
-        matchCommandPersistencePort.updateLaneMethods(mapOf(matchId to outcome.method))
+        matchCommandPersistencePort.updateLaneMethods(mapOf(matchId.value to outcome.method))
 
         log.debug(
             "레이팅 갱신 — matchId=$matchId, ${outcome.method}, " +
@@ -114,7 +115,7 @@ class RatingCommandHandler(
      * 억지로 스케일을 맞추려 하지 마라.
      */
     @Transactional
-    override fun resetAndRecalculate(): RecalculateResult {
+    override fun resetAndRecalculateRating(): RecalculateResult {
         log.info("레이팅 전체 초기화 시작")
         playerRatingCommandPersistencePort.deleteAll()
         ratingHistoryCommandPersistencePort.deleteAll()

@@ -1,7 +1,7 @@
 package com.gijun.main.infrastructure.batch.tasklet
 
-import com.gijun.main.application.handler.modeToQueueIds
 import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
+import com.gijun.main.domain.match.enums.GameMode
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionStatsCacheJpaEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionStatsCacheJpaRepository
 import org.slf4j.LoggerFactory
@@ -25,11 +25,11 @@ class ChampionStatsAggregationTasklet(
         contribution: StepContribution,
         chunkContext: ChunkContext,
     ): RepeatStatus {
-        val modes = listOf("normal", "aram", "all")
+        val modes = GameMode.entries
         val now = LocalDateTime.now()
 
         for (mode in modes) {
-            val matches = matchQueryPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
+            val matches = matchQueryPersistencePort.findAllWithParticipants(mode.queueIds)
             val allTeams = matches.flatMap { it.teams }
 
             // 챔피언 픽 집계
@@ -56,14 +56,14 @@ class ChampionStatsAggregationTasklet(
                     .groupBy { it.championName }
                     .mapValues { it.value.size }
 
-            championStatsCacheRepository.deleteAllByMode(mode)
+            championStatsCacheRepository.deleteAllByMode(mode.key)
 
             val snapshots =
                 champMap.entries.map { (champion, acc) ->
                     ChampionStatsCacheJpaEntity(
                         champion = champion,
                         championId = acc.championId,
-                        mode = mode,
+                        mode = mode.key,
                         games = acc.games,
                         wins = acc.wins,
                         winRate = if (acc.games > 0) acc.wins * 100 / acc.games else 0,
@@ -73,7 +73,7 @@ class ChampionStatsAggregationTasklet(
                 }
 
             championStatsCacheRepository.saveAll(snapshots)
-            log.info("[ChampionStats] mode=$mode → ${snapshots.size}개 챔피언 집계 완료")
+            log.info("[ChampionStats] mode=${mode.key} → ${snapshots.size}개 챔피언 집계 완료")
         }
 
         return RepeatStatus.FINISHED

@@ -1,13 +1,14 @@
 package com.gijun.main.application.port.out.persistence
 
 import com.gijun.main.domain.member.model.MemberModel
+import com.gijun.main.shared.domain.vo.Puuid
 
 interface MemberQueryPersistencePort {
     fun findAll(): List<MemberModel>
 
-    fun findByPuuid(puuid: String): MemberModel?
+    fun findByPuuid(puuid: Puuid): MemberModel?
 
-    fun existsByPuuid(puuid: String): Boolean
+    fun existsByPuuid(puuid: Puuid): Boolean
 
     fun findAllPuuidsByPuuidIn(puuids: Collection<String>): List<String>
 }
@@ -17,5 +18,5 @@ interface MemberCommandPersistencePort {
 
     fun saveAll(members: List<MemberModel>): List<MemberModel>
 
-    fun deleteByPuuid(puuid: String)
+    fun deleteByPuuid(puuid: Puuid)
 }

@@ -1,7 +1,7 @@
 package com.gijun.main.infrastructure.batch.tasklet
 
-import com.gijun.main.application.handler.modeToQueueIds
 import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
+import com.gijun.main.domain.match.enums.GameMode
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionItemStatsCacheJpaEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionItemStatsCacheJpaRepository
 import org.slf4j.LoggerFactory
@@ -31,11 +31,11 @@ class ChampionItemStatsAggregationTasklet(
 
     @Transactional
     fun aggregate() {
-        val modes = listOf("normal", "aram", "all")
+        val modes = GameMode.entries
         val now = LocalDateTime.now()
 
         for (mode in modes) {
-            val matches = matchQueryPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
+            val matches = matchQueryPersistencePort.findAllWithParticipants(mode.queueIds)
 
             data class ItemAcc(
                 var picks: Int = 0,
@@ -56,14 +56,14 @@ class ChampionItemStatsAggregationTasklet(
                 }
             }
 
-            championItemStatsCacheRepository.deleteAllByMode(mode)
+            championItemStatsCacheRepository.deleteAllByMode(mode.key)
 
             val snapshots =
                 itemMap.entries.map { (key, acc) ->
                     val (champion, itemId) = key
                     ChampionItemStatsCacheJpaEntity(
                         champion = champion,
-                        mode = mode,
+                        mode = mode.key,
                         itemId = itemId,
                         picks = acc.picks,
                         wins = acc.wins,
@@ -73,7 +73,7 @@ class ChampionItemStatsAggregationTasklet(
                 }
 
             championItemStatsCacheRepository.saveAll(snapshots)
-            log.info("[ChampionItemStats] mode=$mode → ${snapshots.size}개 아이템 통계 집계 완료")
+            log.info("[ChampionItemStats] mode=${mode.key} → ${snapshots.size}개 아이템 통계 집계 완료")
         }
     }
 

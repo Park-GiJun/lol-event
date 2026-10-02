@@ -5,6 +5,8 @@ import com.gijun.main.application.port.out.persistence.RatingHistoryQueryPersist
 import com.gijun.main.domain.rating.model.RatingHistoryModel
 import com.gijun.main.infrastructure.adapter.out.persistence.rating.RatingHistoryJpaEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.rating.RatingHistoryJpaRepository
+import com.gijun.main.shared.domain.vo.MatchId
+import com.gijun.main.shared.domain.vo.RiotId
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -14,11 +16,11 @@ class RatingHistoryQueryPersistenceAdapter(
     private val repo: RatingHistoryJpaRepository,
 ) : RatingHistoryQueryPersistencePort {
     override fun findByRiotId(
-        riotId: String,
+        riotId: RiotId,
         limit: Int,
-    ): List<RatingHistoryModel> = repo.findByRiotIdOrderByGameCreationDesc(riotId, PageRequest.of(0, limit)).map { it.toModel() }
+    ): List<RatingHistoryModel> = repo.findByRiotIdOrderByGameCreationDesc(riotId.value, PageRequest.of(0, limit)).map { it.toModel() }
 
-    override fun existsByMatchId(matchId: String): Boolean = repo.existsByMatchId(matchId)
+    override fun existsByMatchId(matchId: MatchId): Boolean = repo.existsByMatchId(matchId.value)
 
     override fun findLatestGameCreation(): Long? = repo.findLatestGameCreation()
 }

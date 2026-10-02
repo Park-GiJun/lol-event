@@ -12,7 +12,7 @@ import java.time.ZoneId
  *
  * - [sessionDate] — 사람이 읽고 URL 에 실을 **라벨**이 필요해서 있다 (`/sessions/2026-09-14`).
  *   하루에 몇 판을 했든 그날 것은 한 묶음이다.
- * - [SESSION_GAP_MS] — [RatingValidationHandler][com.gijun.main.application.handler.RatingValidationHandler]
+ * - [SESSION_GAP_MS] — [RatingValidationQueryHandler][com.gijun.main.application.handler.RatingValidationQueryHandler]
  *   가 "직전 경기와 끊겼는가"로 예측 누출을 막는 데 쓴다. 세션 안에서는 같은 편성이 반복되기
  *   쉬워서, 하루에 두 번 모인 날을 날짜로 합치면 그게 바로 막으려던 누출이 된다.
  */

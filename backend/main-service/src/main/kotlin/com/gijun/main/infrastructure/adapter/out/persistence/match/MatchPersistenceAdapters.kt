@@ -13,6 +13,7 @@ import com.gijun.main.infrastructure.adapter.out.persistence.match.MatchParticip
 import com.gijun.main.infrastructure.adapter.out.persistence.match.MatchTeamJpaEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.match.MatchTimelineJpaEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.match.MatchTimelineJpaRepository
+import com.gijun.main.shared.domain.vo.MatchId
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -23,9 +24,9 @@ class MatchQueryPersistenceAdapter(
     private val participantRepo: MatchParticipantJpaRepository,
     private val timelineRepo: MatchTimelineJpaRepository,
 ) : MatchQueryPersistencePort {
-    override fun existsByMatchId(matchId: String): Boolean = repo.existsByMatchId(matchId)
+    override fun existsByMatchId(matchId: MatchId): Boolean = repo.existsByMatchId(matchId.value)
 
-    override fun findByMatchId(matchId: String): MatchModel? = repo.findByMatchId(matchId)?.toModel()
+    override fun findByMatchId(matchId: MatchId): MatchModel? = repo.findByMatchId(matchId.value)?.toModel()
 
     override fun findAllWithParticipants(queueIds: List<Int>): List<MatchModel> =
         repo.findAllWithParticipantsByQueueIdIn(queueIds).map { it.toModel() }
@@ -91,7 +92,7 @@ class MatchCommandPersistenceAdapter(
     }
 
     @Transactional
-    override fun deleteByMatchId(matchId: String) = repo.deleteByMatchId(matchId)
+    override fun deleteByMatchId(matchId: MatchId) = repo.deleteByMatchId(matchId.value)
 
     @Transactional
     override fun updateAssignedPositions(updates: Map<Long, String>) {
@@ -108,10 +109,10 @@ class MatchCommandPersistenceAdapter(
 
     @Transactional
     override fun saveTimelineRaw(
-        matchId: String,
+        matchId: MatchId,
         raw: String,
     ) {
-        timelineRepo.save(MatchTimelineJpaEntity(matchId = matchId, raw = raw))
+        timelineRepo.save(MatchTimelineJpaEntity(matchId = matchId.value, raw = raw))
     }
 
     @Transactional

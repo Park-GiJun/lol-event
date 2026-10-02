@@ -1,7 +1,7 @@
 package com.gijun.main.infrastructure.batch.tasklet
 
-import com.gijun.main.application.handler.modeToQueueIds
 import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
+import com.gijun.main.domain.match.enums.GameMode
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionRuneStatsCacheJpaEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionRuneStatsCacheJpaRepository
 import org.slf4j.LoggerFactory
@@ -43,11 +43,11 @@ class ChampionRuneStatsAggregationTasklet(
 
     @Transactional
     fun aggregate() {
-        val modes = listOf("normal", "aram", "all")
+        val modes = GameMode.entries
         val now = LocalDateTime.now()
 
         for (mode in modes) {
-            val matches = matchQueryPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
+            val matches = matchQueryPersistencePort.findAllWithParticipants(mode.queueIds)
 
             data class RuneAcc(
                 var picks: Int = 0,
@@ -70,13 +70,13 @@ class ChampionRuneStatsAggregationTasklet(
                 }
             }
 
-            championRuneStatsCacheRepository.deleteAllByMode(mode)
+            championRuneStatsCacheRepository.deleteAllByMode(mode.key)
 
             val snapshots =
                 runeMap.map { (key, acc) ->
                     ChampionRuneStatsCacheJpaEntity(
                         champion = key.champion,
-                        mode = mode,
+                        mode = mode.key,
                         keystone = key.keystone,
                         primaryStyle = key.primaryStyle,
                         subStyle = key.subStyle,
@@ -88,7 +88,7 @@ class ChampionRuneStatsAggregationTasklet(
                 }
 
             championRuneStatsCacheRepository.saveAll(snapshots)
-            log.info("[ChampionRuneStats] mode=$mode → ${snapshots.size}개 룬 조합 집계 완료 (룬 정보 없는 참가자 ${skipped}명 제외)")
+            log.info("[ChampionRuneStats] mode=${mode.key} → ${snapshots.size}개 룬 조합 집계 완료 (룬 정보 없는 참가자 ${skipped}명 제외)")
         }
     }
 

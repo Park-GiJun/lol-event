@@ -1,5 +1,9 @@
 package com.gijun.main.application.port.out.persistence
 
+import com.gijun.main.domain.match.enums.GameMode
+import com.gijun.main.shared.domain.vo.RiotId
+import java.time.LocalDateTime
+
 data class PlayerStatsCache(
     val riotId: String,
     val games: Int,
@@ -37,7 +41,7 @@ data class ChampionRuneStatsCache(
 /**
  * 좌표·한타 파생 지표. 배치만 채운다.
  *
- * 15분 격차 계열을 여기 담지 않은 것은 의도적이다. 그쪽은 이미 `timeline-metrics:$mode`
+ * 15분 격차 계열을 여기 담지 않은 것은 의도적이다. 그쪽은 이미 `timeline-metrics:${mode.key}`
  * 인메모리 캐시로 계산되고 있어서, 스냅샷에서 또 읽으면 같은 집계의 정본이 두 곳이 된다.
  * 여기 있는 것은 **live 로 낼 수 없는 것**뿐이다 — 프레임 전수를 순회해야 나오는 값들이다.
  *
@@ -126,26 +130,35 @@ enum class HeatmapPhase {
 }
 
 interface StatsCacheQueryPersistencePort {
-    fun findPlayerCacheByMode(mode: String): List<PlayerStatsCache>
+    fun countPlayerSnapshots(): Long
+
+    fun countChampionSnapshots(): Long
+
+    fun countChampionItemSnapshots(): Long
+
+    /** 플레이어 스냅샷의 가장 늦은 집계 시각. 한 번도 안 돌았으면 null. */
+    fun findLastPlayerAggregatedAt(mode: GameMode): LocalDateTime?
+
+    fun findPlayerCacheByMode(mode: GameMode): List<PlayerStatsCache>
 
     fun findChampionItemCacheByChampionAndMode(
         champion: String,
-        mode: String,
+        mode: GameMode,
     ): List<ChampionItemStatsCache>
 
     fun findChampionRuneCacheByChampionAndMode(
         champion: String,
-        mode: String,
+        mode: GameMode,
     ): List<ChampionRuneStatsCache>
 
     fun findPlayerTimelineCache(
-        riotId: String,
-        mode: String,
+        riotId: RiotId,
+        mode: GameMode,
     ): PlayerTimelineStatsCache?
 
     fun findChampionTimelineCache(
         champion: String,
-        mode: String,
+        mode: GameMode,
     ): List<ChampionTimelineStatsCache>
 
     /**
@@ -153,7 +166,7 @@ interface StatsCacheQueryPersistencePort {
      * 비어 있으면 화면이 "집계 대기 중"을 띄운다.
      */
     fun findHeatmap(
-        mode: String,
+        mode: GameMode,
         scopeType: String,
         scopeKey: String,
         kind: String,

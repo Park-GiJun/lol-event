@@ -1,11 +1,11 @@
 package com.gijun.main.infrastructure.batch.tasklet
 
-import com.gijun.main.application.handler.modeToQueueIds
 import com.gijun.main.application.port.out.persistence.HEATMAP_GRID
 import com.gijun.main.application.port.out.persistence.HeatmapKind
 import com.gijun.main.application.port.out.persistence.HeatmapPhase
 import com.gijun.main.application.port.out.persistence.HeatmapScope
 import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
+import com.gijun.main.domain.match.enums.GameMode
 import com.gijun.main.domain.match.enums.Position
 import com.gijun.main.domain.match.model.MapPoint
 import com.gijun.main.domain.match.model.MatchModel
@@ -82,7 +82,7 @@ class TimelineStatsAggregationTasklet(
             val heatmap = mutableMapOf<HeatmapKey, Int>()
             var timelineGames = 0
 
-            val matches = matchQueryPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
+            val matches = matchQueryPersistencePort.findAllWithParticipants(mode.queueIds)
             for (chunk in matches.chunked(TimelineParser.CHUNK_SIZE)) {
                 val raws = matchQueryPersistencePort.findTimelineRaw(chunk.map { it.matchId })
                 for (match in chunk) {
@@ -91,13 +91,13 @@ class TimelineStatsAggregationTasklet(
                 }
             }
 
-            playerRepo.deleteAllByMode(mode)
-            championRepo.deleteAllByMode(mode)
-            heatmapRepo.deleteAllByMode(mode)
+            playerRepo.deleteAllByMode(mode.key)
+            championRepo.deleteAllByMode(mode.key)
+            heatmapRepo.deleteAllByMode(mode.key)
 
             saveAll(mode, now, players, champions, heatmap)
             log.info(
-                "타임라인 집계 완료 — mode=$mode 경기 $timelineGames / ${matches.size}, " +
+                "타임라인 집계 완료 — mode=${mode.key} 경기 $timelineGames / ${matches.size}, " +
                     "사람 ${players.size}, 챔피언×포지션 ${champions.size}, 히트맵 셀 ${heatmap.size}",
             )
         }
@@ -216,7 +216,7 @@ class TimelineStatsAggregationTasklet(
     // ────────── 저장 ──────────
 
     private fun saveAll(
-        mode: String,
+        mode: GameMode,
         now: LocalDateTime,
         players: Map<String, PlayerAcc>,
         champions: Map<ChampionKey, ChampionAcc>,
@@ -235,7 +235,7 @@ class TimelineStatsAggregationTasklet(
         heatmap
             .map { (key, count) ->
                 PositionHeatmapCacheJpaEntity(
-                    mode = mode,
+                    mode = mode.key,
                     scopeType = key.scope.name,
                     scopeKey = key.key,
                     kind = key.kind.name,
@@ -328,11 +328,11 @@ class TimelineStatsAggregationTasklet(
 
         fun toEntity(
             riotId: String,
-            mode: String,
+            mode: GameMode,
             now: LocalDateTime,
         ) = PlayerTimelineStatsCacheJpaEntity(
             riotId = riotId,
-            mode = mode,
+            mode = mode.key,
             games = games,
             laneGames = laneGames,
             framesSampled = framesSampled,
@@ -400,11 +400,11 @@ class TimelineStatsAggregationTasklet(
 
         fun toEntity(
             key: ChampionKey,
-            mode: String,
+            mode: GameMode,
             now: LocalDateTime,
         ) = ChampionTimelineStatsCacheJpaEntity(
             champion = key.champion,
-            mode = mode,
+            mode = mode.key,
             position = key.position,
             games = games,
             wins = wins,
@@ -427,7 +427,7 @@ class TimelineStatsAggregationTasklet(
     private fun positionOf(name: String): Position = Position.entries.firstOrNull { it.name == name.uppercase() } ?: Position.UNKNOWN
 
     private companion object {
-        val MODES = listOf("normal", "aram", "all")
+        val MODES = GameMode.entries
 
         /** 저장 청크. 히트맵 행이 수만 개가 될 수 있다. */
         const val SAVE_CHUNK = 1_000

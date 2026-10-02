@@ -7,13 +7,16 @@ import com.gijun.main.application.port.out.persistence.HeatmapCell
 import com.gijun.main.application.port.out.persistence.PlayerStatsCache
 import com.gijun.main.application.port.out.persistence.PlayerTimelineStatsCache
 import com.gijun.main.application.port.out.persistence.StatsCacheQueryPersistencePort
+import com.gijun.main.domain.match.enums.GameMode
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionItemStatsCacheJpaRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionRuneStatsCacheJpaRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionTimelineStatsCacheJpaRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PlayerStatsCacheJpaRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PlayerTimelineStatsCacheJpaRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PositionHeatmapCacheJpaRepository
+import com.gijun.main.shared.domain.vo.RiotId
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.math.roundToInt
 
@@ -25,9 +28,19 @@ class StatsCacheQueryPersistenceAdapter(
     private val playerTimelineStatsCacheRepository: PlayerTimelineStatsCacheJpaRepository,
     private val championTimelineStatsCacheRepository: ChampionTimelineStatsCacheJpaRepository,
     private val positionHeatmapCacheRepository: PositionHeatmapCacheJpaRepository,
+    private val championStatsCacheRepository: ChampionStatsCacheJpaRepository,
 ) : StatsCacheQueryPersistencePort {
-    override fun findPlayerCacheByMode(mode: String): List<PlayerStatsCache> =
-        playerStatsCacheRepository.findAllByMode(mode).map { e ->
+    override fun countPlayerSnapshots(): Long = playerStatsCacheRepository.count()
+
+    override fun countChampionSnapshots(): Long = championStatsCacheRepository.count()
+
+    override fun countChampionItemSnapshots(): Long = championItemStatsCacheRepository.count()
+
+    override fun findLastPlayerAggregatedAt(mode: GameMode): LocalDateTime? =
+        playerStatsCacheRepository.findAllByMode(mode.key).maxOfOrNull { it.aggregatedAt }
+
+    override fun findPlayerCacheByMode(mode: GameMode): List<PlayerStatsCache> =
+        playerStatsCacheRepository.findAllByMode(mode.key).map { e ->
             PlayerStatsCache(
                 riotId = e.riotId,
                 games = e.games,
@@ -48,10 +61,10 @@ class StatsCacheQueryPersistenceAdapter(
 
     override fun findChampionItemCacheByChampionAndMode(
         champion: String,
-        mode: String,
+        mode: GameMode,
     ): List<ChampionItemStatsCache> =
         championItemStatsCacheRepository
-            .findAllByChampionAndMode(champion, mode)
+            .findAllByChampionAndMode(champion, mode.key)
             .sortedByDescending { it.picks }
             .take(6)
             .map { e ->
@@ -65,10 +78,10 @@ class StatsCacheQueryPersistenceAdapter(
 
     override fun findChampionRuneCacheByChampionAndMode(
         champion: String,
-        mode: String,
+        mode: GameMode,
     ): List<ChampionRuneStatsCache> =
         championRuneStatsCacheRepository
-            .findAllByChampionAndMode(champion, mode)
+            .findAllByChampionAndMode(champion, mode.key)
             .sortedByDescending { it.picks }
             // 룬 조합은 아이템 칸보다 가짓수가 적다. 상위 5개면 화면에 다 담긴다.
             .take(5)
@@ -86,10 +99,10 @@ class StatsCacheQueryPersistenceAdapter(
     // ────────── 타임라인 파생 ──────────
 
     override fun findPlayerTimelineCache(
-        riotId: String,
-        mode: String,
+        riotId: RiotId,
+        mode: GameMode,
     ): PlayerTimelineStatsCache? =
-        playerTimelineStatsCacheRepository.findByRiotIdAndMode(riotId, mode)?.let { e ->
+        playerTimelineStatsCacheRepository.findByRiotIdAndMode(riotId.value, mode.key)?.let { e ->
             PlayerTimelineStatsCache(
                 riotId = e.riotId,
                 games = e.games,
@@ -115,10 +128,10 @@ class StatsCacheQueryPersistenceAdapter(
      */
     override fun findChampionTimelineCache(
         champion: String,
-        mode: String,
+        mode: GameMode,
     ): List<ChampionTimelineStatsCache> =
         championTimelineStatsCacheRepository
-            .findAllByChampionAndMode(champion, mode)
+            .findAllByChampionAndMode(champion, mode.key)
             .sortedByDescending { it.games }
             .map { e ->
                 ChampionTimelineStatsCache(
@@ -137,13 +150,13 @@ class StatsCacheQueryPersistenceAdapter(
             }
 
     override fun findHeatmap(
-        mode: String,
+        mode: GameMode,
         scopeType: String,
         scopeKey: String,
         kind: String,
     ): List<HeatmapCell> =
         positionHeatmapCacheRepository
-            .findAllByModeAndScopeTypeAndScopeKeyAndKind(mode, scopeType, scopeKey, kind)
+            .findAllByModeAndScopeTypeAndScopeKeyAndKind(mode.key, scopeType, scopeKey, kind)
             .map { HeatmapCell(phase = it.phase, gridX = it.gridX, gridY = it.gridY, count = it.count) }
 
     private fun rate(

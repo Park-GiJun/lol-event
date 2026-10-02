@@ -5,6 +5,7 @@ import com.gijun.main.application.port.out.persistence.PlayerRatingQueryPersiste
 import com.gijun.main.domain.rating.model.PlayerRatingModel
 import com.gijun.main.infrastructure.adapter.out.persistence.rating.PlayerRatingJpaEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.rating.PlayerRatingJpaRepository
+import com.gijun.main.shared.domain.vo.RiotId
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -12,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 class PlayerRatingQueryPersistenceAdapter(
     private val repo: PlayerRatingJpaRepository,
 ) : PlayerRatingQueryPersistencePort {
-    override fun findByRiotId(riotId: String): PlayerRatingModel? = repo.findByRiotId(riotId)?.toModel()
+    override fun findByRiotId(riotId: RiotId): PlayerRatingModel? = repo.findByRiotId(riotId.value)?.toModel()
 
     override fun findAllByRiotIds(riotIds: Collection<String>): List<PlayerRatingModel> =
         if (riotIds.isEmpty()) emptyList() else repo.findAllByRiotIdIn(riotIds).map { it.toModel() }

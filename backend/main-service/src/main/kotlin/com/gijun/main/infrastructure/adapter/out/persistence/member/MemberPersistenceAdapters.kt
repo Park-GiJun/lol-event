@@ -5,6 +5,7 @@ import com.gijun.main.application.port.out.persistence.MemberQueryPersistencePor
 import com.gijun.main.domain.member.model.MemberModel
 import com.gijun.main.infrastructure.adapter.out.persistence.member.MemberJpaEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.member.MemberJpaRepository
+import com.gijun.main.shared.domain.vo.Puuid
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -14,9 +15,9 @@ class MemberQueryPersistenceAdapter(
 ) : MemberQueryPersistencePort {
     override fun findAll(): List<MemberModel> = repo.findAll().map { it.toModel() }
 
-    override fun findByPuuid(puuid: String): MemberModel? = repo.findByPuuid(puuid)?.toModel()
+    override fun findByPuuid(puuid: Puuid): MemberModel? = repo.findByPuuid(puuid.value)?.toModel()
 
-    override fun existsByPuuid(puuid: String): Boolean = repo.existsByPuuid(puuid)
+    override fun existsByPuuid(puuid: Puuid): Boolean = repo.existsByPuuid(puuid.value)
 
     override fun findAllPuuidsByPuuidIn(puuids: Collection<String>): List<String> = repo.findAllPuuidsByPuuidIn(puuids)
 }
@@ -36,5 +37,5 @@ class MemberCommandPersistenceAdapter(
             ).map { it.toModel() }
 
     @Transactional
-    override fun deleteByPuuid(puuid: String) = repo.deleteByPuuid(puuid)
+    override fun deleteByPuuid(puuid: Puuid) = repo.deleteByPuuid(puuid.value)
 }

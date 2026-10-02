@@ -7,6 +7,7 @@ import com.gijun.main.domain.match.model.MatchModel
 import com.gijun.main.domain.match.model.MatchParticipantModel
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionRuneStatsCacheJpaEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionRuneStatsCacheJpaRepository
+import com.gijun.main.shared.domain.vo.MatchId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -75,9 +76,9 @@ class ChampionRuneStatsAggregationTaskletTest {
             )
         val port =
             object : MatchQueryPersistencePort {
-                override fun existsByMatchId(matchId: String) = false
+                override fun existsByMatchId(matchId: MatchId) = false
 
-                override fun findByMatchId(matchId: String): MatchModel? = null
+                override fun findByMatchId(matchId: MatchId): MatchModel? = null
 
                 override fun findAllWithParticipants(queueIds: List<Int>) = listOf(match)
 

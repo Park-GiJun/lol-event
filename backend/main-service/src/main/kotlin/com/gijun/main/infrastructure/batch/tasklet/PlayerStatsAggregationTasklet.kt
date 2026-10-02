@@ -1,8 +1,8 @@
 package com.gijun.main.infrastructure.batch.tasklet
 
-import com.gijun.main.application.handler.modeToQueueIds
 import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
 import com.gijun.main.application.port.out.persistence.MemberQueryPersistencePort
+import com.gijun.main.domain.match.enums.GameMode
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PlayerStatsCacheJpaEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PlayerStatsCacheJpaRepository
 import org.slf4j.LoggerFactory
@@ -27,12 +27,12 @@ class PlayerStatsAggregationTasklet(
         contribution: StepContribution,
         chunkContext: ChunkContext,
     ): RepeatStatus {
-        val modes = listOf("normal", "aram", "all")
+        val modes = GameMode.entries
         val members = memberQueryPersistencePort.findAll()
         val now = LocalDateTime.now()
 
         for (mode in modes) {
-            val matches = matchQueryPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
+            val matches = matchQueryPersistencePort.findAllWithParticipants(mode.queueIds)
 
             data class Acc(
                 val riotId: String,
@@ -73,7 +73,7 @@ class PlayerStatsAggregationTasklet(
             fun r2(v: Double) = (v * 100).toInt() / 100.0
 
             // 기존 스냅샷 삭제 후 재삽입 (UPSERT)
-            playerStatsCacheRepository.deleteAllByMode(mode)
+            playerStatsCacheRepository.deleteAllByMode(mode.key)
 
             val snapshots =
                 accByPuuid.values
@@ -87,7 +87,7 @@ class PlayerStatsAggregationTasklet(
                             }
                         PlayerStatsCacheJpaEntity(
                             riotId = s.riotId,
-                            mode = mode,
+                            mode = mode.key,
                             games = s.games,
                             wins = s.wins,
                             losses = s.losses,
@@ -106,7 +106,7 @@ class PlayerStatsAggregationTasklet(
                     }
 
             playerStatsCacheRepository.saveAll(snapshots)
-            log.info("[PlayerStats] mode=$mode → ${snapshots.size}명 집계 완료")
+            log.info("[PlayerStats] mode=${mode.key} → ${snapshots.size}명 집계 완료")
         }
 
         return RepeatStatus.FINISHED

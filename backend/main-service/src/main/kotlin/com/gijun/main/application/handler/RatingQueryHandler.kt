@@ -1,18 +1,22 @@
 package com.gijun.main.application.handler
 
+import com.gijun.main.application.dto.query.GetEloHistoryQuery
 import com.gijun.main.application.dto.result.EloHistoryEntry
 import com.gijun.main.application.dto.result.EloLeaderboardResult
 import com.gijun.main.application.dto.result.EloRankEntry
 import com.gijun.main.application.dto.result.PlayerEloHistoryResult
+import com.gijun.main.application.dto.result.PlayerRatingResult
 import com.gijun.main.application.port.`in`.GetEloHistoryUseCase
 import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
 import com.gijun.main.application.port.`in`.GetRatingUseCase
+import com.gijun.main.application.port.`in`.GetRatingsUseCase
 import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
 import com.gijun.main.application.port.out.persistence.PlayerRatingQueryPersistencePort
 import com.gijun.main.application.port.out.persistence.RatingHistoryQueryPersistencePort
 import com.gijun.main.domain.rating.model.PlayerRatingModel
 import com.gijun.main.domain.rating.service.RatingMath
 import com.gijun.main.domain.stats.service.RankingScore
+import com.gijun.main.shared.domain.vo.RiotId
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -22,18 +26,23 @@ class RatingQueryHandler(
     private val playerRatingQueryPersistencePort: PlayerRatingQueryPersistencePort,
     private val ratingHistoryQueryPersistencePort: RatingHistoryQueryPersistencePort,
     private val matchQueryPersistencePort: MatchQueryPersistencePort,
-) : GetRatingUseCase,
+) : GetRatingsUseCase,
+    GetRatingUseCase,
     GetEloLeaderboardUseCase,
     GetEloHistoryUseCase {
-    override fun getAll(): List<PlayerRatingModel> = playerRatingQueryPersistencePort.findAll()
+    override fun getRatings(): List<PlayerRatingResult> =
+        playerRatingQueryPersistencePort
+            .findAll()
+            .sortedByDescending { it.laneElo }
+            .map(PlayerRatingResult::from)
 
-    override fun getByRiotId(riotId: String): PlayerRatingModel? = playerRatingQueryPersistencePort.findByRiotId(riotId)
+    override fun getRating(riotId: RiotId): PlayerRatingResult =
+        PlayerRatingResult.from(
+            playerRatingQueryPersistencePort.findByRiotId(riotId) ?: PlayerRatingModel(riotId = riotId.value),
+        )
 
-    override fun getHistory(
-        riotId: String,
-        limit: Int,
-    ): PlayerEloHistoryResult {
-        val id = riotId
+    override fun getEloHistory(query: GetEloHistoryQuery): PlayerEloHistoryResult {
+        val id = query.riotId.value
         val ranked = rankedOrder()
         val mine = ranked.firstOrNull { it.riotId == id }
 
@@ -42,7 +51,7 @@ class RatingQueryHandler(
             currentElo = mine?.laneElo ?: RatingMath.START,
             eloRank = ranked.indexOfFirst { it.riotId == id }.takeIf { it >= 0 }?.plus(1),
             history =
-                ratingHistoryQueryPersistencePort.findByRiotId(id, limit).map {
+                ratingHistoryQueryPersistencePort.findByRiotId(query.riotId, query.limit).map {
                     EloHistoryEntry(
                         matchId = it.matchId,
                         eloBefore = it.laneBefore,
@@ -69,7 +78,7 @@ class RatingQueryHandler(
      * 기준은 **경기 수가 아니라 라인 맞대결 수**다. 포지션이 깨진 경기나 칼바람은 맞대결이
      * 성립하지 않아 실력 표본이 되지 못하는데, 경기 수로 세면 그것까지 표본으로 쳐 버린다.
      */
-    override fun getLeaderboard(minDuels: Int): EloLeaderboardResult {
+    override fun getEloLeaderboard(minDuels: Int): EloLeaderboardResult {
         val mainPositions = mainPositions()
         val sorted = rankedOrder()
         val (ranked, placement) = sorted.partition { it.laneDuels >= minDuels }

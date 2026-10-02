@@ -149,12 +149,25 @@ class GlobalExceptionHandler(
         )
     }
 
-    /** 파라미터 타입 불일치(예: 숫자 자리에 문자). 호출자 잘못이므로 400 이다. */
+    /**
+     * 파라미터 타입 불일치(예: 숫자 자리에 문자). 호출자 잘못이므로 400 이다.
+     *
+     * 변환기가 [DomainException] 을 던진 경우에는 그 예외의 코드와 문구를 쓴다. Spring 이 변환
+     * 실패를 한 겹 싸서 올리므로 원인 사슬에서 꺼내야 한다 — 그대로 두면 `mode=arm` 같은 오타가
+     * "파라미터 형식이 올바르지 않다" 로만 나가고 어떤 값이 되는지 알 수 없다.
+     */
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     fun handleTypeMismatch(
         e: MethodArgumentTypeMismatchException,
         request: HttpServletRequest,
     ): ResponseEntity<CommonApiResponse<Nothing>> {
+        val domainCause =
+            generateSequence<Throwable>(e) { it.cause }
+                .take(MAX_CAUSE_DEPTH)
+                .filterIsInstance<DomainException>()
+                .firstOrNull()
+        if (domainCause != null) return domain(domainCause, HttpStatus.BAD_REQUEST, request)
+
         report(e, SEVERITY_WARN, request)
         return respond(HttpStatus.BAD_REQUEST, ErrorCode.TYPE_MISMATCH, "파라미터 형식이 올바르지 않다 — ${e.name}")
     }
@@ -218,6 +231,9 @@ class GlobalExceptionHandler(
     private companion object {
         private const val SEVERITY_WARN = "warn"
         private const val SEVERITY_ERROR = "error"
+
+        /** 원인 사슬을 거슬러 올라갈 상한. 예외가 자기 자신을 원인으로 가리키는 경우에도 멈춘다. */
+        private const val MAX_CAUSE_DEPTH = 8
         private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
     }
 }

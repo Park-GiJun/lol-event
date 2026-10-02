@@ -2,11 +2,12 @@ package com.gijun.main.application.port.out.persistence
 
 import com.gijun.main.domain.match.enums.LaneMethod
 import com.gijun.main.domain.match.model.MatchModel
+import com.gijun.main.shared.domain.vo.MatchId
 
 interface MatchQueryPersistencePort {
-    fun existsByMatchId(matchId: String): Boolean
+    fun existsByMatchId(matchId: MatchId): Boolean
 
-    fun findByMatchId(matchId: String): MatchModel?
+    fun findByMatchId(matchId: MatchId): MatchModel?
 
     fun findAllWithParticipants(queueIds: List<Int>): List<MatchModel>
 
@@ -49,7 +50,7 @@ interface MatchQueryPersistencePort {
 interface MatchCommandPersistencePort {
     fun save(match: MatchModel): MatchModel
 
-    fun deleteByMatchId(matchId: String)
+    fun deleteByMatchId(matchId: MatchId)
 
     /** 참가자들의 assignedPosition 만 일괄 갱신 (포지션 백필용). key = participantId, value = Position.name */
     fun updateAssignedPositions(updates: Map<Long, String>)
@@ -59,7 +60,7 @@ interface MatchCommandPersistencePort {
      * 타임라인 수집은 best-effort 라 실패해도 매치 저장 자체는 이미 끝나 있다.
      */
     fun saveTimelineRaw(
-        matchId: String,
+        matchId: MatchId,
         raw: String,
     )
 

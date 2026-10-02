@@ -1,6 +1,6 @@
 package com.gijun.main.infrastructure.adapter.`in`.messaging
 
-import com.gijun.main.infrastructure.adapter.`in`.scheduler.StatsAggregationScheduler
+import com.gijun.main.application.port.`in`.TriggerStatsAggregationUseCase
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong
  */
 @Component
 class StatsRebuildConsumer(
-    private val scheduler: StatsAggregationScheduler,
+    private val triggerStatsAggregationUseCase: TriggerStatsAggregationUseCase,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val lastLaunchedAt = AtomicLong(0L)
@@ -30,11 +30,12 @@ class StatsRebuildConsumer(
 
         lastLaunchedAt.set(now)
         log.info("통계 재집계 트리거 — matchId=${record.key()}")
-        scheduler.launchJob(reason = "kafka-trigger")
+        triggerStatsAggregationUseCase.triggerStatsAggregation(REASON)
     }
 
     private companion object {
         /** 5분. 매치가 연달아 들어와도 재집계는 이 간격으로 한 번만 돈다. */
         private const val THROTTLE_MS = 5 * 60 * 1000L
+        private const val REASON = "kafka-trigger"
     }
 }

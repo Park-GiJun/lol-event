@@ -16,6 +16,7 @@ import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PlayerTi
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PlayerTimelineStatsCacheJpaRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PositionHeatmapCacheJpaEntity
 import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PositionHeatmapCacheJpaRepository
+import com.gijun.main.shared.domain.vo.MatchId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -131,9 +132,9 @@ class TimelineStatsAggregationTaskletTest {
             }
         val port =
             object : MatchQueryPersistencePort {
-                override fun existsByMatchId(matchId: String) = true
+                override fun existsByMatchId(matchId: MatchId) = true
 
-                override fun findByMatchId(matchId: String): MatchModel? = matches.firstOrNull { it.matchId == matchId }
+                override fun findByMatchId(matchId: MatchId): MatchModel? = matches.firstOrNull { it.matchId == matchId.value }
 
                 override fun findAllWithParticipants(queueIds: List<Int>) = if (queueId in queueIds) matches else emptyList()
 
