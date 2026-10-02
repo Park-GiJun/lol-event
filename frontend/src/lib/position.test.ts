@@ -66,7 +66,7 @@ describe('byPosition', () => {
 describe('백엔드 Position enum 과의 계약', () => {
   const POSITION_KT = resolve(
     __dirname,
-    '../../../backend/main-service/src/main/kotlin/com/gijun/main/domain/model/match/Position.kt',
+    '../../../backend/main-service/src/main/kotlin/com/gijun/main/domain/match/enums/Position.kt',
   );
 
   function backendPositions(): string[] {

@@ -10,7 +10,7 @@
  * 뒤로 보내면서 탑·정글만 제자리에 서고 나머지 셋은 순서 없이 밀려났다.
  * BOTTOM 은 세 표기 어디서도 백엔드와 맞지 않아 여덟 군데 전부 틀려 있었다.
  *
- * 백엔드 com.gijun.main.domain.model.match.Position 을 그대로 따른다. 여기만 고치면 된다.
+ * 백엔드 com.gijun.main.domain.match.enums.Position 을 그대로 따른다. 여기만 고치면 된다.
  */
 
 export const POSITIONS = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'] as const;
