@@ -1,9 +1,9 @@
 package com.gijun.main.infrastructure.batch.tasklet
 
-import com.gijun.main.application.handler.query.modeToQueueIds
-import com.gijun.main.application.port.out.MatchPersistencePort
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.ChampionStatsCacheEntity
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionStatsCacheRepository
+import com.gijun.main.application.handler.modeToQueueIds
+import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionStatsCacheJpaEntity
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionStatsCacheJpaRepository
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.StepContribution
@@ -15,8 +15,8 @@ import java.time.LocalDateTime
 
 @Component
 class ChampionStatsAggregationTasklet(
-    private val matchPersistencePort: MatchPersistencePort,
-    private val championStatsCacheRepository: ChampionStatsCacheRepository,
+    private val matchQueryPersistencePort: MatchQueryPersistencePort,
+    private val championStatsCacheRepository: ChampionStatsCacheJpaRepository,
 ) : Tasklet {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -29,7 +29,7 @@ class ChampionStatsAggregationTasklet(
         val now = LocalDateTime.now()
 
         for (mode in modes) {
-            val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
+            val matches = matchQueryPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
             val allTeams = matches.flatMap { it.teams }
 
             // 챔피언 픽 집계
@@ -60,7 +60,7 @@ class ChampionStatsAggregationTasklet(
 
             val snapshots =
                 champMap.entries.map { (champion, acc) ->
-                    ChampionStatsCacheEntity(
+                    ChampionStatsCacheJpaEntity(
                         champion = champion,
                         championId = acc.championId,
                         mode = mode,

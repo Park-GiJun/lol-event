@@ -1,8 +1,8 @@
 package com.gijun.main.application.port.`in`
 
-import com.gijun.main.application.dto.match.result.MatchPageResult
-import com.gijun.main.application.dto.match.result.MatchResult
-import com.gijun.main.application.dto.match.result.MatchTimelineResult
+import com.gijun.main.application.dto.result.MatchPageResult
+import com.gijun.main.application.dto.result.MatchResult
+import com.gijun.main.application.dto.result.MatchTimelineResult
 
 interface GetMatchesUseCase {
     fun getAll(mode: String): List<MatchResult>

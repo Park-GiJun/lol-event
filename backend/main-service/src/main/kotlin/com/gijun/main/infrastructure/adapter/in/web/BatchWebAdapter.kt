@@ -1,9 +1,9 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
 import com.gijun.main.infrastructure.adapter.`in`.scheduler.StatsAggregationScheduler
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionItemStatsCacheRepository
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionStatsCacheRepository
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.PlayerStatsCacheRepository
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionItemStatsCacheJpaRepository
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionStatsCacheJpaRepository
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PlayerStatsCacheJpaRepository
 import com.gijun.main.infrastructure.batch.tasklet.ChampionItemStatsAggregationTasklet
 import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import io.swagger.v3.oas.annotations.Operation
@@ -19,9 +19,9 @@ import java.time.LocalDateTime
 @RequestMapping("/api/batch")
 class BatchWebAdapter(
     private val scheduler: StatsAggregationScheduler,
-    private val playerStatsCacheRepository: PlayerStatsCacheRepository,
-    private val championStatsCacheRepository: ChampionStatsCacheRepository,
-    private val championItemStatsCacheRepository: ChampionItemStatsCacheRepository,
+    private val playerStatsCacheRepository: PlayerStatsCacheJpaRepository,
+    private val championStatsCacheRepository: ChampionStatsCacheJpaRepository,
+    private val championItemStatsCacheRepository: ChampionItemStatsCacheJpaRepository,
     private val championItemStatsAggregationTasklet: ChampionItemStatsAggregationTasklet,
 ) {
     data class BatchStatusResponse(

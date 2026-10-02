@@ -1,18 +1,18 @@
 package com.gijun.main.infrastructure.adapter.out.cache
 
-import com.gijun.main.application.dto.dragon.result.DragonChampionResult
-import com.gijun.main.application.dto.dragon.result.DragonItemResult
-import com.gijun.main.application.dto.dragon.result.DragonRuneResult
-import com.gijun.main.application.dto.dragon.result.DragonSummonerSpellResult
-import com.gijun.main.application.port.out.DataDragonCachePort
-import com.gijun.main.application.port.out.DragonDataPort
+import com.gijun.main.application.dto.result.DragonChampionResult
+import com.gijun.main.application.dto.result.DragonItemResult
+import com.gijun.main.application.dto.result.DragonRuneResult
+import com.gijun.main.application.dto.result.DragonSummonerSpellResult
+import com.gijun.main.application.port.out.cache.DataDragonCachePort
+import com.gijun.main.application.port.out.persistence.DragonQueryPersistencePort
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class DataDragonCacheStore(
-    private val dragonDataPort: DragonDataPort,
+    private val dragonQueryPersistencePort: DragonQueryPersistencePort,
 ) : DataDragonCachePort {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -27,10 +27,10 @@ class DataDragonCacheStore(
         spells.clear()
         runes.clear()
 
-        dragonDataPort.findAllChampions().forEach { champions[it.championId] = DragonChampionResult.from(it) }
-        dragonDataPort.findAllItems().forEach { items[it.itemId] = DragonItemResult.from(it) }
-        dragonDataPort.findAllSpells().forEach { spells[it.spellId] = DragonSummonerSpellResult.from(it) }
-        dragonDataPort.findAllRunes().forEach { runes[it.runeId] = DragonRuneResult.from(it) }
+        dragonQueryPersistencePort.findAllChampions().forEach { champions[it.championId] = DragonChampionResult.from(it) }
+        dragonQueryPersistencePort.findAllItems().forEach { items[it.itemId] = DragonItemResult.from(it) }
+        dragonQueryPersistencePort.findAllSpells().forEach { spells[it.spellId] = DragonSummonerSpellResult.from(it) }
+        dragonQueryPersistencePort.findAllRunes().forEach { runes[it.runeId] = DragonRuneResult.from(it) }
 
         log.info("[DataDragon Cache] warmUp 완료 - 챔피언: ${champions.size}, 아이템: ${items.size}, 스펠: ${spells.size}, 룬: ${runes.size}")
     }

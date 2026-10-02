@@ -1,9 +1,9 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.application.dto.match.command.SaveMatchesCommand
-import com.gijun.main.application.dto.match.result.MatchPageResult
-import com.gijun.main.application.dto.match.result.MatchTimelineResult
-import com.gijun.main.application.dto.match.result.SaveMatchesResult
+import com.gijun.main.application.dto.command.SaveMatchesCommand
+import com.gijun.main.application.dto.result.MatchPageResult
+import com.gijun.main.application.dto.result.MatchTimelineResult
+import com.gijun.main.application.dto.result.SaveMatchesResult
 import com.gijun.main.application.port.`in`.DeleteMatchUseCase
 import com.gijun.main.application.port.`in`.GetMatchTimelineUseCase
 import com.gijun.main.application.port.`in`.GetMatchesUseCase
@@ -67,7 +67,7 @@ class MatchWebAdapter(
     fun getById(
         @Parameter(description = "조회할 경기 ID", example = "KR_8126722699")
         @PathVariable matchId: String,
-    ): CommonApiResponse<com.gijun.main.application.dto.match.result.MatchResult> =
+    ): CommonApiResponse<com.gijun.main.application.dto.result.MatchResult> =
         CommonApiResponse.success(
             getMatchesUseCase.getById(matchId)
                 ?: throw MatchNotFoundException(matchId),

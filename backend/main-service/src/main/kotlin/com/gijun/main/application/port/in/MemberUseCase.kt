@@ -1,9 +1,9 @@
 package com.gijun.main.application.port.`in`
 
-import com.gijun.main.application.dto.member.command.RegisterBulkCommand
-import com.gijun.main.application.dto.member.command.RegisterMemberCommand
-import com.gijun.main.application.dto.member.result.BulkRegisterResult
-import com.gijun.main.application.dto.member.result.MemberResult
+import com.gijun.main.application.dto.command.RegisterBulkCommand
+import com.gijun.main.application.dto.command.RegisterMemberCommand
+import com.gijun.main.application.dto.result.BulkRegisterResult
+import com.gijun.main.application.dto.result.MemberResult
 
 interface RegisterMemberUseCase {
     fun register(command: RegisterMemberCommand): MemberResult

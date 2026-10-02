@@ -1,9 +1,9 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.application.dto.stats.result.ChampionCertificateResult
-import com.gijun.main.application.dto.stats.result.ChampionDetailStats
-import com.gijun.main.application.dto.stats.result.ChampionMatchupResult
-import com.gijun.main.application.dto.stats.result.ChampionTierResult
+import com.gijun.main.application.dto.result.ChampionCertificateResult
+import com.gijun.main.application.dto.result.ChampionDetailStats
+import com.gijun.main.application.dto.result.ChampionMatchupResult
+import com.gijun.main.application.dto.result.ChampionTierResult
 import com.gijun.main.application.port.`in`.GetChampionCertificateUseCase
 import com.gijun.main.application.port.`in`.GetChampionMatchupUseCase
 import com.gijun.main.application.port.`in`.GetChampionStatsUseCase

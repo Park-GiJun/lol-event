@@ -1,13 +1,13 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.application.dto.stats.result.RatingValidationResult
-import com.gijun.main.application.dto.stats.result.RecalculateResult
+import com.gijun.main.application.dto.result.RatingValidationResult
+import com.gijun.main.application.dto.result.RecalculateResult
 import com.gijun.main.application.port.`in`.GetRatingUseCase
 import com.gijun.main.application.port.`in`.ReassignPositionsResult
 import com.gijun.main.application.port.`in`.ReassignPositionsUseCase
 import com.gijun.main.application.port.`in`.ResetAndRecalculateRatingUseCase
 import com.gijun.main.application.port.`in`.ValidateRatingUseCase
-import com.gijun.main.domain.model.rating.PlayerRating
+import com.gijun.main.domain.rating.model.PlayerRatingModel
 import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -70,15 +70,15 @@ class AdminWebAdapter(
 
     @Operation(summary = "전체 레이팅 조회", description = "모든 플레이어의 laneElo / teamElo 원값을 반환합니다.")
     @GetMapping("/elo")
-    fun getAllRatings(): CommonApiResponse<List<PlayerRating>> =
+    fun getAllRatings(): CommonApiResponse<List<PlayerRatingModel>> =
         CommonApiResponse.success(getRatingUseCase.getAll().sortedByDescending { it.laneElo })
 
     @Operation(summary = "플레이어 레이팅 조회", description = "riotId 는 별명 정규화를 거칩니다.")
     @GetMapping("/elo/{riotId}")
     fun getRating(
         @PathVariable riotId: String,
-    ): CommonApiResponse<PlayerRating> =
+    ): CommonApiResponse<PlayerRatingModel> =
         CommonApiResponse.success(
-            getRatingUseCase.getByRiotId(riotId) ?: PlayerRating(riotId = riotId),
+            getRatingUseCase.getByRiotId(riotId) ?: PlayerRatingModel(riotId = riotId),
         )
 }

@@ -1,0 +1,38 @@
+package com.gijun.main.infrastructure.adapter.out.persistence.match
+
+import com.gijun.main.infrastructure.adapter.out.persistence.match.MatchParticipantJpaEntity
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
+
+interface MatchParticipantJpaRepository : JpaRepository<MatchParticipantJpaEntity, Long> {
+    /**
+     * 같은 포지션으로 바뀌는 참가자들을 한 번에 갱신 (포지션 백필용 — 행 재삽입/ID 변경 없음).
+     *
+     * 예전에는 참가자 한 명당 UPDATE 한 방이었다. 백필은 매치 전체를 훑기 때문에
+     * 참가자 1,500명이면 한 트랜잭션 안에서 왕복이 1,500번 생겼다.
+     * 배정 결과는 포지션 5종뿐이라 포지션별로 묶으면 UPDATE 5방으로 끝난다.
+     */
+    @Modifying
+    @Query("UPDATE MatchParticipantJpaEntity p SET p.assignedPosition = :pos WHERE p.id IN :ids")
+    fun updateAssignedPositionIn(
+        @Param("ids") ids: Collection<Long>,
+        @Param("pos") pos: String,
+    ): Int
+
+    /**
+     * 대표 포지션 계산용 집계. 사람 × 포지션 조합이라 행이 인원의 다섯 배를 넘지 않는다.
+     *
+     * 칼바람은 뺀다 — 라인이 없는 큐라 거기 붙은 포지션은 추정기가 만들어 낸 값이지 데이터가 아니다.
+     */
+    @Query(
+        """
+        SELECT new com.gijun.main.application.port.out.persistence.PositionCount(p.riotId, p.assignedPosition, COUNT(p))
+        FROM MatchParticipantJpaEntity p JOIN p.match m
+        WHERE p.assignedPosition <> '' AND p.riotId <> '' AND m.queueId <> 3270
+        GROUP BY p.riotId, p.assignedPosition
+        """,
+    )
+    fun findPositionCounts(): List<com.gijun.main.application.port.out.persistence.PositionCount>
+}

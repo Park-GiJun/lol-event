@@ -1,10 +1,10 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.application.dto.dragon.result.DragonChampionResult
-import com.gijun.main.application.dto.dragon.result.DragonItemResult
-import com.gijun.main.application.dto.dragon.result.DragonRuneResult
-import com.gijun.main.application.dto.dragon.result.DragonSummonerSpellResult
-import com.gijun.main.application.dto.dragon.result.DragonSyncResult
+import com.gijun.main.application.dto.result.DragonChampionResult
+import com.gijun.main.application.dto.result.DragonItemResult
+import com.gijun.main.application.dto.result.DragonRuneResult
+import com.gijun.main.application.dto.result.DragonSummonerSpellResult
+import com.gijun.main.application.dto.result.DragonSyncResult
 import com.gijun.main.application.port.`in`.SyncDataDragonUseCase
 import com.gijun.main.infrastructure.adapter.out.cache.DataDragonCacheStore
 import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse

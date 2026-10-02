@@ -1,7 +1,7 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.application.dto.stats.result.DuoStatsResult
-import com.gijun.main.application.dto.stats.result.RivalMatchupResult
+import com.gijun.main.application.dto.result.DuoStatsResult
+import com.gijun.main.application.dto.result.RivalMatchupResult
 import com.gijun.main.application.port.`in`.GetDuoStatsUseCase
 import com.gijun.main.application.port.`in`.GetRivalMatchupUseCase
 import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse

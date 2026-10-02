@@ -1,10 +1,10 @@
 package com.gijun.main.application.port.`in`
 
-import com.gijun.main.application.dto.stats.result.EloLeaderboardResult
-import com.gijun.main.application.dto.stats.result.PlayerEloHistoryResult
-import com.gijun.main.application.dto.stats.result.RatingValidationResult
-import com.gijun.main.application.dto.stats.result.RecalculateResult
-import com.gijun.main.domain.model.rating.PlayerRating
+import com.gijun.main.application.dto.result.EloLeaderboardResult
+import com.gijun.main.application.dto.result.PlayerEloHistoryResult
+import com.gijun.main.application.dto.result.RatingValidationResult
+import com.gijun.main.application.dto.result.RecalculateResult
+import com.gijun.main.domain.rating.model.PlayerRatingModel
 
 interface CalculateRatingForMatchUseCase {
     fun calculateForMatch(matchId: String)
@@ -15,9 +15,9 @@ interface ResetAndRecalculateRatingUseCase {
 }
 
 interface GetRatingUseCase {
-    fun getAll(): List<PlayerRating>
+    fun getAll(): List<PlayerRatingModel>
 
-    fun getByRiotId(riotId: String): PlayerRating?
+    fun getByRiotId(riotId: String): PlayerRatingModel?
 }
 
 interface GetEloLeaderboardUseCase {
@@ -38,7 +38,7 @@ interface ValidateRatingUseCase {
      * 예측하고 나서 반영한다.
      *
      * @param excludeRepeatedTeams 직전 경기와 팀 구성이 같은(진영만 바뀐 경우 포함) 경기를 제외할지.
-     *        켜 두는 것이 기본이다 — 자세한 이유는 [com.gijun.main.application.handler.query.RatingValidationHandler] 참고.
+     *        켜 두는 것이 기본이다 — 자세한 이유는 [com.gijun.main.application.handler.RatingValidationHandler] 참고.
      */
     fun validate(
         warmup: Int,

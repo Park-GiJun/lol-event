@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration
 /**
  * Jackson 2 ObjectMapper 빈.
  *
- * RiotApiAdapter / DataDragonAdapter / MatchEventConsumer 가
+ * RiotApiKtorAdapter / DataDragonKtorAdapter / MatchEventConsumer 가
  * com.fasterxml.jackson.databind.ObjectMapper 를 주입받는다.
  *
  * 이 빈은 지금까지 spring-cloud-starter-config 가 딸려 오면서 같이 등록되고 있었다.

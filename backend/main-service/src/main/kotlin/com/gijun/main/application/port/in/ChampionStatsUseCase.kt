@@ -1,10 +1,10 @@
 package com.gijun.main.application.port.`in`
 
-import com.gijun.main.application.dto.stats.result.BanAnalysisResult
-import com.gijun.main.application.dto.stats.result.ChampionCertificateResult
-import com.gijun.main.application.dto.stats.result.ChampionDetailStats
-import com.gijun.main.application.dto.stats.result.ChampionMatchupResult
-import com.gijun.main.application.dto.stats.result.ChampionTierResult
+import com.gijun.main.application.dto.result.BanAnalysisResult
+import com.gijun.main.application.dto.result.ChampionCertificateResult
+import com.gijun.main.application.dto.result.ChampionDetailStats
+import com.gijun.main.application.dto.result.ChampionMatchupResult
+import com.gijun.main.application.dto.result.ChampionTierResult
 
 interface GetChampionStatsUseCase {
     fun getChampionStats(

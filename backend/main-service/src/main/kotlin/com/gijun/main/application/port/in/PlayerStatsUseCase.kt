@@ -1,14 +1,14 @@
 package com.gijun.main.application.port.`in`
 
-import com.gijun.main.application.dto.stats.result.DuoStatsResult
-import com.gijun.main.application.dto.stats.result.GrowthCurveResult
-import com.gijun.main.application.dto.stats.result.MvpStatsResult
-import com.gijun.main.application.dto.stats.result.OverviewStats
-import com.gijun.main.application.dto.stats.result.PlayerComparisonResult
-import com.gijun.main.application.dto.stats.result.PlayerDetailStatsResult
-import com.gijun.main.application.dto.stats.result.PlaystyleDnaResult
-import com.gijun.main.application.dto.stats.result.StatsResult
-import com.gijun.main.application.dto.stats.result.StreakResult
+import com.gijun.main.application.dto.result.DuoStatsResult
+import com.gijun.main.application.dto.result.GrowthCurveResult
+import com.gijun.main.application.dto.result.MvpStatsResult
+import com.gijun.main.application.dto.result.OverviewStats
+import com.gijun.main.application.dto.result.PlayerComparisonResult
+import com.gijun.main.application.dto.result.PlayerDetailStatsResult
+import com.gijun.main.application.dto.result.PlaystyleDnaResult
+import com.gijun.main.application.dto.result.StatsResult
+import com.gijun.main.application.dto.result.StreakResult
 
 interface GetStatsUseCase {
     fun getStats(mode: String): StatsResult

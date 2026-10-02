@@ -1,8 +1,8 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.application.dto.champion.result.ChampionPageResult
-import com.gijun.main.application.dto.home.result.HomeResult
-import com.gijun.main.application.dto.summoner.result.SummonerProfileResult
+import com.gijun.main.application.dto.result.ChampionPageResult
+import com.gijun.main.application.dto.result.HomeResult
+import com.gijun.main.application.dto.result.SummonerProfileResult
 import com.gijun.main.application.port.`in`.GetChampionPageUseCase
 import com.gijun.main.application.port.`in`.GetHomeUseCase
 import com.gijun.main.application.port.`in`.GetSummonerProfileUseCase

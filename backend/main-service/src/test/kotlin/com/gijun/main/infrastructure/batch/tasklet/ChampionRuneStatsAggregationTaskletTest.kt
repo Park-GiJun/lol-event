@@ -1,13 +1,12 @@
 package com.gijun.main.infrastructure.batch.tasklet
 
-import com.gijun.main.application.port.out.MatchPeriodSummary
-import com.gijun.main.application.port.out.MatchPersistencePort
-import com.gijun.main.application.port.out.PositionCount
-import com.gijun.main.domain.model.match.LaneMethod
-import com.gijun.main.domain.model.match.Match
-import com.gijun.main.domain.model.match.MatchParticipant
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.ChampionRuneStatsCacheEntity
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionRuneStatsCacheRepository
+import com.gijun.main.application.port.out.persistence.MatchPeriodSummary
+import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
+import com.gijun.main.application.port.out.persistence.PositionCount
+import com.gijun.main.domain.match.model.MatchModel
+import com.gijun.main.domain.match.model.MatchParticipantModel
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionRuneStatsCacheJpaEntity
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionRuneStatsCacheJpaRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -22,18 +21,18 @@ import java.lang.reflect.Proxy
  * 세면 "룬 없음" 조합이 채택 1위로 올라온다. 그걸 막는지가 핵심이다.
  */
 class ChampionRuneStatsAggregationTaskletTest {
-    private val saved = mutableListOf<ChampionRuneStatsCacheEntity>()
+    private val saved = mutableListOf<ChampionRuneStatsCacheJpaEntity>()
     private val deletedModes = mutableListOf<String>()
 
     @Suppress("UNCHECKED_CAST")
-    private val repo: ChampionRuneStatsCacheRepository =
+    private val repo: ChampionRuneStatsCacheJpaRepository =
         Proxy.newProxyInstance(
-            ChampionRuneStatsCacheRepository::class.java.classLoader,
-            arrayOf(ChampionRuneStatsCacheRepository::class.java),
+            ChampionRuneStatsCacheJpaRepository::class.java.classLoader,
+            arrayOf(ChampionRuneStatsCacheJpaRepository::class.java),
         ) { _, method, args ->
             when (method.name) {
                 "saveAll" -> {
-                    val batch = (args[0] as Iterable<ChampionRuneStatsCacheEntity>).toList()
+                    val batch = (args[0] as Iterable<ChampionRuneStatsCacheJpaEntity>).toList()
                     saved += batch
                     batch
                 }
@@ -46,7 +45,7 @@ class ChampionRuneStatsAggregationTaskletTest {
                 "equals" -> false
                 else -> error("테스트가 예상하지 못한 호출: ${method.name}")
             }
-        } as ChampionRuneStatsCacheRepository
+        } as ChampionRuneStatsCacheJpaRepository
 
     private fun p(
         champion: String,
@@ -55,7 +54,7 @@ class ChampionRuneStatsAggregationTaskletTest {
         primary: Int,
         sub: Int,
         riotId: String = "나#KR1",
-    ) = MatchParticipant(
+    ) = MatchParticipantModel(
         riotId = riotId,
         champion = champion,
         team = "BLUE",
@@ -65,9 +64,9 @@ class ChampionRuneStatsAggregationTaskletTest {
         perkSubStyle = sub,
     )
 
-    private fun tasklet(participants: List<MatchParticipant>): ChampionRuneStatsAggregationTasklet {
+    private fun tasklet(participants: List<MatchParticipantModel>): ChampionRuneStatsAggregationTasklet {
         val match =
-            Match(
+            MatchModel(
                 matchId = "KR_1",
                 queueId = 0,
                 gameCreation = 1,
@@ -75,12 +74,10 @@ class ChampionRuneStatsAggregationTaskletTest {
                 participants = participants.toMutableList(),
             )
         val port =
-            object : MatchPersistencePort {
-                override fun save(match: Match) = match
-
+            object : MatchQueryPersistencePort {
                 override fun existsByMatchId(matchId: String) = false
 
-                override fun findByMatchId(matchId: String): Match? = null
+                override fun findByMatchId(matchId: String): MatchModel? = null
 
                 override fun findAllWithParticipants(queueIds: List<Int>) = listOf(match)
 
@@ -92,8 +89,6 @@ class ChampionRuneStatsAggregationTaskletTest {
 
                 override fun findPeriodSummary(queueIds: List<Int>) = MatchPeriodSummary(null, null, 0, 0)
 
-                override fun deleteByMatchId(matchId: String) {}
-
                 override fun countByQueueIds(queueIds: List<Int>) = 1L
 
                 override fun findAllOrderedByGameCreation() = listOf(match)
@@ -104,16 +99,7 @@ class ChampionRuneStatsAggregationTaskletTest {
                     untilMs: Long,
                 ) = listOf(match).filter { it.gameCreation in fromMs until untilMs }
 
-                override fun updateAssignedPositions(updates: Map<Long, String>) {}
-
-                override fun saveTimelineRaw(
-                    matchId: String,
-                    raw: String,
-                ) {}
-
                 override fun findTimelineRaw(matchIds: Collection<String>) = emptyMap<String, String>()
-
-                override fun updateLaneMethods(updates: Map<String, LaneMethod>) {}
 
                 override fun findPositionCounts() = emptyList<PositionCount>()
             }

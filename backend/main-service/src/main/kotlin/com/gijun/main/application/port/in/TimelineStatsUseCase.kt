@@ -1,9 +1,9 @@
 package com.gijun.main.application.port.`in`
 
-import com.gijun.main.application.dto.stats.result.PlayerTimelineResult
-import com.gijun.main.application.dto.stats.result.TimelineChampionsResult
-import com.gijun.main.application.dto.stats.result.TimelineLaneResult
-import com.gijun.main.application.dto.stats.result.TimelineStatsResult
+import com.gijun.main.application.dto.result.PlayerTimelineResult
+import com.gijun.main.application.dto.result.TimelineChampionsResult
+import com.gijun.main.application.dto.result.TimelineLaneResult
+import com.gijun.main.application.dto.result.TimelineStatsResult
 
 interface GetTimelineStatsUseCase {
     fun getTimelineStats(mode: String): TimelineStatsResult

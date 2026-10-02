@@ -1,7 +1,7 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.application.port.out.MemberPersistencePort
-import com.gijun.main.application.port.out.RiotApiPort
+import com.gijun.main.application.port.out.external.RiotApiKtorPort
+import com.gijun.main.application.port.out.persistence.MemberQueryPersistencePort
 import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -42,8 +42,8 @@ data class MasteryInfoDto(
 @RestController
 @RequestMapping("/api/riot")
 class RiotApiWebAdapter(
-    private val riotApiPort: RiotApiPort,
-    private val memberPersistencePort: MemberPersistencePort,
+    private val riotApiKtorPort: RiotApiKtorPort,
+    private val memberQueryPersistencePort: MemberQueryPersistencePort,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -52,7 +52,7 @@ class RiotApiWebAdapter(
     fun getProfile(
         @PathVariable riotId: String,
     ): CommonApiResponse<RiotProfileResult> {
-        val member = memberPersistencePort.findAll().firstOrNull { it.riotId == riotId }
+        val member = memberQueryPersistencePort.findAll().firstOrNull { it.riotId == riotId }
         val puuid = member?.puuid
 
         if (puuid == null) {
@@ -61,7 +61,7 @@ class RiotApiWebAdapter(
 
         val summoner =
             try {
-                riotApiPort.getSummonerByPuuid(puuid)
+                riotApiKtorPort.getSummonerByPuuid(puuid)
             } catch (e: Exception) {
                 log.warn("Summoner 조회 실패: ${e.message}")
                 null
@@ -70,7 +70,7 @@ class RiotApiWebAdapter(
         val rankedEntries =
             if (summoner != null) {
                 try {
-                    riotApiPort.getRankedEntries(summoner.id)
+                    riotApiKtorPort.getRankedEntries(summoner.id)
                 } catch (e: Exception) {
                     log.warn("랭크 조회 실패: ${e.message}")
                     emptyList()
@@ -81,7 +81,7 @@ class RiotApiWebAdapter(
 
         val mastery =
             try {
-                riotApiPort.getChampionMastery(puuid, 10)
+                riotApiKtorPort.getChampionMastery(puuid, 10)
             } catch (e: Exception) {
                 log.warn("숙련도 조회 실패: ${e.message}")
                 emptyList()
@@ -90,7 +90,7 @@ class RiotApiWebAdapter(
         val solo = rankedEntries.find { it.queueType == "RANKED_SOLO_5x5" }
         val flex = rankedEntries.find { it.queueType == "RANKED_FLEX_SR" }
 
-        fun toRankedInfoDto(entry: com.gijun.main.application.port.out.RankedEntry?) =
+        fun toRankedInfoDto(entry: com.gijun.main.application.port.out.external.RankedEntry?) =
             entry?.let {
                 val total = it.wins + it.losses
                 RankedInfoDto(

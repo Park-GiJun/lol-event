@@ -1,22 +1,21 @@
 package com.gijun.main.infrastructure.batch.tasklet
 
-import com.gijun.main.application.port.out.HEATMAP_GRID
-import com.gijun.main.application.port.out.HeatmapKind
-import com.gijun.main.application.port.out.HeatmapScope
-import com.gijun.main.application.port.out.MatchPeriodSummary
-import com.gijun.main.application.port.out.MatchPersistencePort
-import com.gijun.main.application.port.out.PositionCount
-import com.gijun.main.domain.model.match.LaneMethod
-import com.gijun.main.domain.model.match.Match
-import com.gijun.main.domain.model.match.MatchParticipant
-import com.gijun.main.domain.model.match.Position
-import com.gijun.main.domain.service.TimelineParser
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.ChampionTimelineStatsCacheEntity
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.PlayerTimelineStatsCacheEntity
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.PositionHeatmapCacheEntity
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionTimelineStatsCacheRepository
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.PlayerTimelineStatsCacheRepository
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.PositionHeatmapCacheRepository
+import com.gijun.main.application.port.out.persistence.HEATMAP_GRID
+import com.gijun.main.application.port.out.persistence.HeatmapKind
+import com.gijun.main.application.port.out.persistence.HeatmapScope
+import com.gijun.main.application.port.out.persistence.MatchPeriodSummary
+import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
+import com.gijun.main.application.port.out.persistence.PositionCount
+import com.gijun.main.domain.match.enums.Position
+import com.gijun.main.domain.match.model.MatchModel
+import com.gijun.main.domain.match.model.MatchParticipantModel
+import com.gijun.main.domain.match.service.TimelineParser
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionTimelineStatsCacheJpaEntity
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionTimelineStatsCacheJpaRepository
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PlayerTimelineStatsCacheJpaEntity
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PlayerTimelineStatsCacheJpaRepository
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PositionHeatmapCacheJpaEntity
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PositionHeatmapCacheJpaRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -39,9 +38,9 @@ class TimelineStatsAggregationTaskletTest {
     /** 원본을 몇 번 끊어 읽었는지. 청크 회귀를 잡는 카운터다. */
     private var rawQueries = 0
 
-    private val savedPlayers get() = saved.filterIsInstance<PlayerTimelineStatsCacheEntity>()
-    private val savedChampions get() = saved.filterIsInstance<ChampionTimelineStatsCacheEntity>()
-    private val savedHeatmap get() = saved.filterIsInstance<PositionHeatmapCacheEntity>()
+    private val savedPlayers get() = saved.filterIsInstance<PlayerTimelineStatsCacheJpaEntity>()
+    private val savedChampions get() = saved.filterIsInstance<ChampionTimelineStatsCacheJpaEntity>()
+    private val savedHeatmap get() = saved.filterIsInstance<PositionHeatmapCacheJpaEntity>()
 
     // ────────── 가짜 리포지토리 ──────────
 
@@ -74,10 +73,10 @@ class TimelineStatsAggregationTaskletTest {
 
     private val positions = listOf(Position.TOP, Position.JUNGLE, Position.MID, Position.ADC, Position.SUPPORT)
 
-    private fun roster(): List<MatchParticipant> =
+    private fun roster(): List<MatchParticipantModel> =
         (1..10).map { pid ->
             val blue = pid <= 5
-            MatchParticipant(
+            MatchParticipantModel(
                 participantId = pid,
                 riotId = "p$pid#KR1",
                 champion = "Champ$pid",
@@ -122,7 +121,7 @@ class TimelineStatsAggregationTaskletTest {
     ): TimelineStatsAggregationTasklet {
         val matches =
             (1..matchCount).map { i ->
-                Match(
+                MatchModel(
                     matchId = "KR_$i",
                     queueId = queueId,
                     gameCreation = i.toLong(),
@@ -131,12 +130,10 @@ class TimelineStatsAggregationTaskletTest {
                 )
             }
         val port =
-            object : MatchPersistencePort {
-                override fun save(match: Match) = match
-
+            object : MatchQueryPersistencePort {
                 override fun existsByMatchId(matchId: String) = true
 
-                override fun findByMatchId(matchId: String): Match? = matches.firstOrNull { it.matchId == matchId }
+                override fun findByMatchId(matchId: String): MatchModel? = matches.firstOrNull { it.matchId == matchId }
 
                 override fun findAllWithParticipants(queueIds: List<Int>) = if (queueId in queueIds) matches else emptyList()
 
@@ -148,8 +145,6 @@ class TimelineStatsAggregationTaskletTest {
 
                 override fun findPeriodSummary(queueIds: List<Int>) = MatchPeriodSummary(null, null, 0, 0)
 
-                override fun deleteByMatchId(matchId: String) {}
-
                 override fun countByQueueIds(queueIds: List<Int>) = matches.size.toLong()
 
                 override fun findAllOrderedByGameCreation() = matches
@@ -160,27 +155,18 @@ class TimelineStatsAggregationTaskletTest {
                     untilMs: Long,
                 ) = matches
 
-                override fun updateAssignedPositions(updates: Map<Long, String>) {}
-
-                override fun saveTimelineRaw(
-                    matchId: String,
-                    raw: String,
-                ) {}
-
                 override fun findTimelineRaw(matchIds: Collection<String>): Map<String, String> {
                     rawQueries++
                     return if (withTimeline) matchIds.associateWith { raw(events) } else emptyMap()
                 }
 
-                override fun updateLaneMethods(updates: Map<String, LaneMethod>) {}
-
                 override fun findPositionCounts() = emptyList<PositionCount>()
             }
         return TimelineStatsAggregationTasklet(
             port,
-            repo(PlayerTimelineStatsCacheRepository::class.java, "player"),
-            repo(ChampionTimelineStatsCacheRepository::class.java, "champion"),
-            repo(PositionHeatmapCacheRepository::class.java, "heatmap"),
+            repo(PlayerTimelineStatsCacheJpaRepository::class.java, "player"),
+            repo(ChampionTimelineStatsCacheJpaRepository::class.java, "champion"),
+            repo(PositionHeatmapCacheJpaRepository::class.java, "heatmap"),
         )
     }
 

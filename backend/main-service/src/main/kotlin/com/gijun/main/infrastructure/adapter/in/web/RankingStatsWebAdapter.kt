@@ -1,9 +1,9 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.application.dto.stats.result.EloLeaderboardResult
-import com.gijun.main.application.dto.stats.result.KillParticipationResult
-import com.gijun.main.application.dto.stats.result.LaneLeaderboardResult
-import com.gijun.main.application.dto.stats.result.MvpStatsResult
+import com.gijun.main.application.dto.result.EloLeaderboardResult
+import com.gijun.main.application.dto.result.KillParticipationResult
+import com.gijun.main.application.dto.result.LaneLeaderboardResult
+import com.gijun.main.application.dto.result.MvpStatsResult
 import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
 import com.gijun.main.application.port.`in`.GetKillParticipationUseCase
 import com.gijun.main.application.port.`in`.GetLaneLeaderboardUseCase

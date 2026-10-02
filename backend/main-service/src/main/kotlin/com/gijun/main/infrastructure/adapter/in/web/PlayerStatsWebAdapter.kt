@@ -1,12 +1,12 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.application.dto.stats.result.GrowthCurveResult
-import com.gijun.main.application.dto.stats.result.PlayerComparisonResult
-import com.gijun.main.application.dto.stats.result.PlayerDetailStatsResult
-import com.gijun.main.application.dto.stats.result.PlayerEloHistoryResult
-import com.gijun.main.application.dto.stats.result.PlayerTimelineResult
-import com.gijun.main.application.dto.stats.result.StatsResult
-import com.gijun.main.application.dto.stats.result.StreakResult
+import com.gijun.main.application.dto.result.GrowthCurveResult
+import com.gijun.main.application.dto.result.PlayerComparisonResult
+import com.gijun.main.application.dto.result.PlayerDetailStatsResult
+import com.gijun.main.application.dto.result.PlayerEloHistoryResult
+import com.gijun.main.application.dto.result.PlayerTimelineResult
+import com.gijun.main.application.dto.result.StatsResult
+import com.gijun.main.application.dto.result.StreakResult
 import com.gijun.main.application.port.`in`.GetEloHistoryUseCase
 import com.gijun.main.application.port.`in`.GetGrowthCurveUseCase
 import com.gijun.main.application.port.`in`.GetPlayerComparisonUseCase

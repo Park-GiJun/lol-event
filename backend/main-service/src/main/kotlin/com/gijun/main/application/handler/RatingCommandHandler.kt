@@ -1,0 +1,166 @@
+package com.gijun.main.application.handler
+
+import com.gijun.main.application.dto.result.RecalculateResult
+import com.gijun.main.application.port.`in`.CalculateRatingForMatchUseCase
+import com.gijun.main.application.port.`in`.ResetAndRecalculateRatingUseCase
+import com.gijun.main.application.port.out.persistence.MatchCommandPersistencePort
+import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
+import com.gijun.main.application.port.out.persistence.PlayerRatingCommandPersistencePort
+import com.gijun.main.application.port.out.persistence.PlayerRatingQueryPersistencePort
+import com.gijun.main.application.port.out.persistence.RatingHistoryCommandPersistencePort
+import com.gijun.main.application.port.out.persistence.RatingHistoryQueryPersistencePort
+import com.gijun.main.domain.match.enums.LaneMethod
+import com.gijun.main.domain.match.model.MatchModel
+import com.gijun.main.domain.match.service.TimelineParser
+import com.gijun.main.domain.rating.model.PlayerRatingModel
+import com.gijun.main.domain.rating.model.RatingHistoryModel
+import com.gijun.main.domain.rating.service.LaneScores
+import com.gijun.main.domain.rating.service.RatingEngine
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+
+/**
+ * 레이팅 집계. 산식은 [RatingEngine] · [LaneScores] · [com.gijun.main.domain.rating.service.RatingMath] 에 있고
+ * 여기서는 "어떤 경기를 셀지"와 영속화만 다룬다.
+ */
+@Service
+class RatingCommandHandler(
+    private val matchQueryPersistencePort: MatchQueryPersistencePort,
+    private val matchCommandPersistencePort: MatchCommandPersistencePort,
+    private val playerRatingQueryPersistencePort: PlayerRatingQueryPersistencePort,
+    private val playerRatingCommandPersistencePort: PlayerRatingCommandPersistencePort,
+    private val ratingHistoryQueryPersistencePort: RatingHistoryQueryPersistencePort,
+    private val ratingHistoryCommandPersistencePort: RatingHistoryCommandPersistencePort,
+) : CalculateRatingForMatchUseCase,
+    ResetAndRecalculateRatingUseCase {
+    private val log = LoggerFactory.getLogger(javaClass)
+
+    private companion object {
+        /**
+         * 타임라인을 몇 경기씩 묶어 읽을지. 재집계는 한 번 도는 관리 작업이라 왕복 몇 번을
+         * 더 감수하는 쪽이 낫다. 왜 나눠야 하는지는 [TimelineParser.CHUNK_SIZE] 에 적어 뒀다.
+         */
+        const val TIMELINE_CHUNK = TimelineParser.CHUNK_SIZE
+    }
+
+    // ────────── 경기 한 판 ──────────
+
+    @Transactional
+    override fun calculateForMatch(matchId: String) {
+        val match =
+            matchQueryPersistencePort.findByMatchId(matchId)
+                ?: run {
+                    log.warn("레이팅 계산 skip — 매치 없음: $matchId")
+                    return
+                }
+
+        if (!RatingEngine.isRatable(match)) {
+            log.info(
+                "레이팅 계산 skip — 재생 대상 아님: $matchId " +
+                    "(참가자 ${match.participants.size}명, ${match.gameDuration}초)",
+            )
+            return
+        }
+
+        // Kafka 는 최소 한 번 배달이다. 같은 매치가 두 번 오면 점수가 두 번 반영된다.
+        if (ratingHistoryQueryPersistencePort.existsByMatchId(matchId)) {
+            log.info("레이팅 계산 skip — 이미 반영된 매치: $matchId")
+            return
+        }
+
+        // Elo 는 순차 계산이라 경기 순서가 곧 결과다. 과거 경기가 뒤늦게 도착하면 그 경기만
+        // 끼워 넣을 수 없고, 그 이후 전부가 다시 계산돼야 한다.
+        val latest = ratingHistoryQueryPersistencePort.findLatestGameCreation()
+        if (latest != null && match.gameCreation < latest) {
+            log.warn("레이팅 순서 역전 — $matchId (gameCreation=${match.gameCreation} < 최신=$latest). 전체 재집계로 전환한다.")
+            resetAndRecalculate()
+            return
+        }
+
+        val ids =
+            match.participants
+                .map { it.riotId }
+                .filter { it.isNotBlank() }
+                .distinct()
+        val current = playerRatingQueryPersistencePort.findAllByRiotIds(ids).associateBy { it.riotId }
+
+        val scored = scoreLanes(match, matchQueryPersistencePort.findTimelineRaw(listOf(matchId))[matchId])
+        val outcome =
+            RatingEngine.rate(match, scored, current)
+                ?: run {
+                    log.warn("레이팅 계산 skip — 승패를 판정할 수 없다: $matchId")
+                    return
+                }
+
+        playerRatingCommandPersistencePort.saveAll(outcome.ratings)
+        ratingHistoryCommandPersistencePort.saveAll(outcome.histories)
+        matchCommandPersistencePort.updateLaneMethods(mapOf(matchId to outcome.method))
+
+        log.debug(
+            "레이팅 갱신 — matchId=$matchId, ${outcome.method}, " +
+                "라인 대결 ${outcome.duelCount}쌍, 대상 ${outcome.ratings.size}명",
+        )
+    }
+
+    // ────────── 전체 재집계 ──────────
+
+    /**
+     * 전체 매치를 gameCreation 오름차순으로 재생한다.
+     *
+     * 경기마다 그 경기에 저장된 데이터로 판정 방법이 자동으로 정해지므로, 과거(LEGACY_FINAL)와
+     * 신규(TIMELINE_15)가 한 레이팅 안에 섞여도 문제없다. Elo 는 **매 경기 내부에서만** 비교하기
+     * 때문이다. 방법이 달라 점수의 단위가 달라도 승자 판정 결과는 같은 뜻을 가진다.
+     * 억지로 스케일을 맞추려 하지 마라.
+     */
+    @Transactional
+    override fun resetAndRecalculate(): RecalculateResult {
+        log.info("레이팅 전체 초기화 시작")
+        playerRatingCommandPersistencePort.deleteAll()
+        ratingHistoryCommandPersistencePort.deleteAll()
+
+        val all = matchQueryPersistencePort.findAllOrderedByGameCreation()
+        val ratable = all.filter(RatingEngine::isRatable)
+
+        val ratings = mutableMapOf<String, PlayerRatingModel>()
+        val histories = mutableListOf<RatingHistoryModel>()
+        val methods = mutableMapOf<String, LaneMethod>()
+        var counted = 0
+        var duels = 0
+
+        for (chunk in ratable.chunked(TIMELINE_CHUNK)) {
+            val raws = matchQueryPersistencePort.findTimelineRaw(chunk.map { it.matchId })
+            for (match in chunk) {
+                val scored = scoreLanes(match, raws[match.matchId])
+                val outcome = RatingEngine.rate(match, scored, ratings) ?: continue
+                outcome.ratings.forEach { ratings[it.riotId] = it }
+                histories += outcome.histories
+                methods[match.matchId] = outcome.method
+                duels += outcome.duelCount
+                counted++
+            }
+        }
+
+        playerRatingCommandPersistencePort.saveAll(ratings.values.toList())
+        ratingHistoryCommandPersistencePort.saveAll(histories)
+        matchCommandPersistencePort.updateLaneMethods(methods)
+
+        val result =
+            RecalculateResult(
+                totalMatches = all.size,
+                ratedMatches = counted,
+                players = ratings.size,
+                laneDuels = duels,
+                methodCounts = methods.values.groupingBy { it.name }.eachCount(),
+            )
+        log.info("레이팅 재집계 완료 — $result")
+        return result
+    }
+
+    // ────────── 공통 ──────────
+
+    private fun scoreLanes(
+        match: MatchModel,
+        timelineRaw: String?,
+    ): LaneScores.Scored = LaneScores.of(match, TimelineParser.parse(timelineRaw))
+}

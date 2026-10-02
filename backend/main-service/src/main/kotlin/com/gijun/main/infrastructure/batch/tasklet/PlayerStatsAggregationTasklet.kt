@@ -1,10 +1,10 @@
 package com.gijun.main.infrastructure.batch.tasklet
 
-import com.gijun.main.application.handler.query.modeToQueueIds
-import com.gijun.main.application.port.out.MatchPersistencePort
-import com.gijun.main.application.port.out.MemberPersistencePort
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.PlayerStatsCacheEntity
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.PlayerStatsCacheRepository
+import com.gijun.main.application.handler.modeToQueueIds
+import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
+import com.gijun.main.application.port.out.persistence.MemberQueryPersistencePort
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PlayerStatsCacheJpaEntity
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PlayerStatsCacheJpaRepository
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.StepContribution
@@ -16,9 +16,9 @@ import java.time.LocalDateTime
 
 @Component
 class PlayerStatsAggregationTasklet(
-    private val matchPersistencePort: MatchPersistencePort,
-    private val memberPersistencePort: MemberPersistencePort,
-    private val playerStatsCacheRepository: PlayerStatsCacheRepository,
+    private val matchQueryPersistencePort: MatchQueryPersistencePort,
+    private val memberQueryPersistencePort: MemberQueryPersistencePort,
+    private val playerStatsCacheRepository: PlayerStatsCacheJpaRepository,
 ) : Tasklet {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -28,11 +28,11 @@ class PlayerStatsAggregationTasklet(
         chunkContext: ChunkContext,
     ): RepeatStatus {
         val modes = listOf("normal", "aram", "all")
-        val members = memberPersistencePort.findAll()
+        val members = memberQueryPersistencePort.findAll()
         val now = LocalDateTime.now()
 
         for (mode in modes) {
-            val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
+            val matches = matchQueryPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
             data class Acc(
                 val riotId: String,
@@ -85,7 +85,7 @@ class PlayerStatsAggregationTasklet(
                             } else {
                                 (s.kills + s.assists).toDouble()
                             }
-                        PlayerStatsCacheEntity(
+                        PlayerStatsCacheJpaEntity(
                             riotId = s.riotId,
                             mode = mode,
                             games = s.games,

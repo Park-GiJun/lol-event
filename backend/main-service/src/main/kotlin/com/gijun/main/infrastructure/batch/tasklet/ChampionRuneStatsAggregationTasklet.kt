@@ -1,9 +1,9 @@
 package com.gijun.main.infrastructure.batch.tasklet
 
-import com.gijun.main.application.handler.query.modeToQueueIds
-import com.gijun.main.application.port.out.MatchPersistencePort
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.ChampionRuneStatsCacheEntity
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionRuneStatsCacheRepository
+import com.gijun.main.application.handler.modeToQueueIds
+import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionRuneStatsCacheJpaEntity
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionRuneStatsCacheJpaRepository
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.StepContribution
@@ -27,8 +27,8 @@ import java.time.LocalDateTime
  */
 @Component
 class ChampionRuneStatsAggregationTasklet(
-    private val matchPersistencePort: MatchPersistencePort,
-    private val championRuneStatsCacheRepository: ChampionRuneStatsCacheRepository,
+    private val matchQueryPersistencePort: MatchQueryPersistencePort,
+    private val championRuneStatsCacheRepository: ChampionRuneStatsCacheJpaRepository,
 ) : Tasklet {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -47,7 +47,7 @@ class ChampionRuneStatsAggregationTasklet(
         val now = LocalDateTime.now()
 
         for (mode in modes) {
-            val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
+            val matches = matchQueryPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
 
             data class RuneAcc(
                 var picks: Int = 0,
@@ -74,7 +74,7 @@ class ChampionRuneStatsAggregationTasklet(
 
             val snapshots =
                 runeMap.map { (key, acc) ->
-                    ChampionRuneStatsCacheEntity(
+                    ChampionRuneStatsCacheJpaEntity(
                         champion = key.champion,
                         mode = mode,
                         keystone = key.keystone,

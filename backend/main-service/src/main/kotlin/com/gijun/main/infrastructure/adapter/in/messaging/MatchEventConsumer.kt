@@ -1,11 +1,12 @@
 package com.gijun.main.infrastructure.adapter.`in`.messaging
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.gijun.main.application.dto.match.command.MatchInput
-import com.gijun.main.application.port.out.MatchPersistencePort
-import com.gijun.main.application.port.out.MemberPersistencePort
-import com.gijun.main.domain.model.member.Member
-import com.gijun.main.domain.service.PositionDetector
+import com.gijun.main.application.dto.command.MatchInput
+import com.gijun.main.application.port.out.persistence.MatchCommandPersistencePort
+import com.gijun.main.application.port.out.persistence.MemberCommandPersistencePort
+import com.gijun.main.application.port.out.persistence.MemberQueryPersistencePort
+import com.gijun.main.domain.match.service.PositionDetector
+import com.gijun.main.domain.member.model.MemberModel
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
@@ -16,8 +17,9 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 class MatchEventConsumer(
     private val objectMapper: ObjectMapper,
-    private val matchPersistencePort: MatchPersistencePort,
-    private val memberPersistencePort: MemberPersistencePort,
+    private val matchCommandPersistencePort: MatchCommandPersistencePort,
+    private val memberQueryPersistencePort: MemberQueryPersistencePort,
+    private val memberCommandPersistencePort: MemberCommandPersistencePort,
     private val kafkaTemplate: KafkaTemplate<String, String>,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -30,15 +32,15 @@ class MatchEventConsumer(
             val input = objectMapper.readValue(record.value(), MatchInput::class.java)
 
             // 매치 upsert (이미 MatchPersistenceAdapter.save가 upsert 처리)
-            // SaveMatchCommand.toDomain() 은 assignedPosition 을 빈 값으로 둔다. 여기서 채우지 않으면
+            // SaveMatchCommand.toModel() 은 assignedPosition 을 빈 값으로 둔다. 여기서 채우지 않으면
             // 수집기로 들어온 매치는 관리자가 백필을 돌리기 전까지 포지션이 없는 채로 남는다.
-            val match = input.toDomain()
+            val match = input.toModel()
             match.participants.let { ps ->
                 val positioned = PositionDetector.assignPositionsToAll(ps)
                 ps.clear()
                 ps.addAll(positioned)
             }
-            matchPersistencePort.save(match)
+            matchCommandPersistencePort.save(match)
             kafkaTemplate.send("lol.stats.rebuild", matchId, "match_saved")
             kafkaTemplate.send("lol.elo.calculate", matchId, matchId)
 
@@ -57,11 +59,11 @@ class MatchEventConsumer(
         val riotIdByPuuid = input.participants.mapNotNull { p -> p.puuid?.let { it to p.riotId } }
         if (riotIdByPuuid.isEmpty()) return
 
-        val existingPuuids = memberPersistencePort.findAllPuuidsByPuuidIn(riotIdByPuuid.map { it.first }).toSet()
+        val existingPuuids = memberQueryPersistencePort.findAllPuuidsByPuuidIn(riotIdByPuuid.map { it.first }).toSet()
         val newcomers = riotIdByPuuid.filter { (puuid, _) -> puuid !in existingPuuids }
 
         if (newcomers.isNotEmpty()) {
-            memberPersistencePort.saveAll(newcomers.map { (puuid, riotId) -> Member(riotId = riotId, puuid = puuid) })
+            memberCommandPersistencePort.saveAll(newcomers.map { (puuid, riotId) -> MemberModel(riotId = riotId, puuid = puuid) })
             newcomers.forEach { (puuid, riotId) -> log.info("멤버 자동 등록: $riotId ($puuid)") }
         }
     }

@@ -1,26 +1,26 @@
 package com.gijun.main.infrastructure.batch.tasklet
 
-import com.gijun.main.application.handler.query.modeToQueueIds
-import com.gijun.main.application.port.out.HEATMAP_GRID
-import com.gijun.main.application.port.out.HeatmapKind
-import com.gijun.main.application.port.out.HeatmapPhase
-import com.gijun.main.application.port.out.HeatmapScope
-import com.gijun.main.application.port.out.MatchPersistencePort
-import com.gijun.main.domain.model.match.MapPoint
-import com.gijun.main.domain.model.match.Match
-import com.gijun.main.domain.model.match.Position
-import com.gijun.main.domain.model.match.TimelineEvent
-import com.gijun.main.domain.service.MapGeometry
-import com.gijun.main.domain.service.PositionMetrics
-import com.gijun.main.domain.service.TeamFightDetector
-import com.gijun.main.domain.service.TimelineMetrics
-import com.gijun.main.domain.service.TimelineParser
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.ChampionTimelineStatsCacheEntity
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.PlayerTimelineStatsCacheEntity
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.entity.PositionHeatmapCacheEntity
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionTimelineStatsCacheRepository
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.PlayerTimelineStatsCacheRepository
-import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.PositionHeatmapCacheRepository
+import com.gijun.main.application.handler.modeToQueueIds
+import com.gijun.main.application.port.out.persistence.HEATMAP_GRID
+import com.gijun.main.application.port.out.persistence.HeatmapKind
+import com.gijun.main.application.port.out.persistence.HeatmapPhase
+import com.gijun.main.application.port.out.persistence.HeatmapScope
+import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
+import com.gijun.main.domain.match.enums.Position
+import com.gijun.main.domain.match.model.MapPoint
+import com.gijun.main.domain.match.model.MatchModel
+import com.gijun.main.domain.match.model.TimelineEvent
+import com.gijun.main.domain.match.service.MapGeometry
+import com.gijun.main.domain.match.service.PositionMetrics
+import com.gijun.main.domain.match.service.TeamFightDetector
+import com.gijun.main.domain.match.service.TimelineMetrics
+import com.gijun.main.domain.match.service.TimelineParser
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionTimelineStatsCacheJpaEntity
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.ChampionTimelineStatsCacheJpaRepository
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PlayerTimelineStatsCacheJpaEntity
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PlayerTimelineStatsCacheJpaRepository
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PositionHeatmapCacheJpaEntity
+import com.gijun.main.infrastructure.adapter.out.persistence.statscache.PositionHeatmapCacheJpaRepository
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.StepContribution
@@ -51,15 +51,15 @@ import java.time.LocalDateTime
  * ## 칼바람
  *
  * `mode = "aram"` 에서는 라인 격차 컬럼이 전부 비어 나온다. 칼바람은 라인이 없어
- * [com.gijun.main.domain.service.LaneScores] 의 라인 상대 목록이 빈 목록이기 때문이다.
+ * [com.gijun.main.domain.rating.service.LaneScores] 의 라인 상대 목록이 빈 목록이기 때문이다.
  * 버그가 아니다.
  */
 @Component
 class TimelineStatsAggregationTasklet(
-    private val matchPersistencePort: MatchPersistencePort,
-    private val playerRepo: PlayerTimelineStatsCacheRepository,
-    private val championRepo: ChampionTimelineStatsCacheRepository,
-    private val heatmapRepo: PositionHeatmapCacheRepository,
+    private val matchQueryPersistencePort: MatchQueryPersistencePort,
+    private val playerRepo: PlayerTimelineStatsCacheJpaRepository,
+    private val championRepo: ChampionTimelineStatsCacheJpaRepository,
+    private val heatmapRepo: PositionHeatmapCacheJpaRepository,
 ) : Tasklet {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -82,9 +82,9 @@ class TimelineStatsAggregationTasklet(
             val heatmap = mutableMapOf<HeatmapKey, Int>()
             var timelineGames = 0
 
-            val matches = matchPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
+            val matches = matchQueryPersistencePort.findAllWithParticipants(modeToQueueIds(mode))
             for (chunk in matches.chunked(TimelineParser.CHUNK_SIZE)) {
-                val raws = matchPersistencePort.findTimelineRaw(chunk.map { it.matchId })
+                val raws = matchQueryPersistencePort.findTimelineRaw(chunk.map { it.matchId })
                 for (match in chunk) {
                     val raw = raws[match.matchId] ?: continue
                     if (accumulate(match, raw, players, champions, heatmap)) timelineGames++
@@ -107,7 +107,7 @@ class TimelineStatsAggregationTasklet(
 
     /** 이 경기를 실제로 셌으면 true. */
     private fun accumulate(
-        match: Match,
+        match: MatchModel,
         raw: String,
         players: MutableMap<String, PlayerAcc>,
         champions: MutableMap<ChampionKey, ChampionAcc>,
@@ -151,8 +151,8 @@ class TimelineStatsAggregationTasklet(
     }
 
     private fun accumulateHeatmap(
-        timeline: com.gijun.main.domain.model.match.MatchTimeline,
-        byPid: Map<Int, com.gijun.main.domain.model.match.MatchParticipant>,
+        timeline: com.gijun.main.domain.match.model.MatchTimelineModel,
+        byPid: Map<Int, com.gijun.main.domain.match.model.MatchParticipantModel>,
         positions: PositionMetrics.MatchPositions?,
         heatmap: MutableMap<HeatmapKey, Int>,
     ) {
@@ -234,7 +234,7 @@ class TimelineStatsAggregationTasklet(
 
         heatmap
             .map { (key, count) ->
-                PositionHeatmapCacheEntity(
+                PositionHeatmapCacheJpaEntity(
                     mode = mode,
                     scopeType = key.scope.name,
                     scopeKey = key.key,
@@ -330,7 +330,7 @@ class TimelineStatsAggregationTasklet(
             riotId: String,
             mode: String,
             now: LocalDateTime,
-        ) = PlayerTimelineStatsCacheEntity(
+        ) = PlayerTimelineStatsCacheJpaEntity(
             riotId = riotId,
             mode = mode,
             games = games,
@@ -402,7 +402,7 @@ class TimelineStatsAggregationTasklet(
             key: ChampionKey,
             mode: String,
             now: LocalDateTime,
-        ) = ChampionTimelineStatsCacheEntity(
+        ) = ChampionTimelineStatsCacheJpaEntity(
             champion = key.champion,
             mode = mode,
             position = key.position,

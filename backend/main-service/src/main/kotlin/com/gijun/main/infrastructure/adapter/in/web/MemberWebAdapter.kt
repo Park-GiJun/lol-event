@@ -1,9 +1,9 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.main.application.dto.member.command.RegisterBulkCommand
-import com.gijun.main.application.dto.member.command.RegisterMemberCommand
-import com.gijun.main.application.dto.member.result.BulkRegisterResult
-import com.gijun.main.application.dto.member.result.MemberResult
+import com.gijun.main.application.dto.command.RegisterBulkCommand
+import com.gijun.main.application.dto.command.RegisterMemberCommand
+import com.gijun.main.application.dto.result.BulkRegisterResult
+import com.gijun.main.application.dto.result.MemberResult
 import com.gijun.main.application.port.`in`.DeleteMemberUseCase
 import com.gijun.main.application.port.`in`.GetMembersUseCase
 import com.gijun.main.application.port.`in`.RegisterMemberUseCase
