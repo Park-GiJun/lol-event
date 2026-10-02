@@ -1,5 +1,6 @@
 package com.gijun.main.infrastructure.adapter.`in`.web.stats.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.gijun.main.application.dto.result.ChampionLengthTendency
 import com.gijun.main.application.dto.result.ComebackIndexEntry
 import com.gijun.main.application.dto.result.ComebackIndexResult
@@ -248,6 +249,7 @@ data class ComebackIndexEntryResponse(
     val contestGames: Int,
     val contestWinRate: Int,
     val comebackBonus: Int,
+    @get:JsonProperty("isKing")
     val isKing: Boolean,
 ) {
     companion object {

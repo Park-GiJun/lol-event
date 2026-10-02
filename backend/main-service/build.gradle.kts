@@ -48,6 +48,9 @@ dependencies {
 
     // Kotlin Jackson
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    // Spring MVC 는 Jackson 3 으로 직렬화한다. 이 모듈이 없으면 Kotlin 의 `is` 접두 프로퍼티가
+    // `isKing` → `king` 으로 깎여 나가고, 기본값이 있는 생성자 파라미터가 본문에서 빠지면 400 이 된다.
+    implementation("tools.jackson.module:jackson-module-kotlin")
 
     // Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1")
@@ -62,6 +65,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
+    // Kotlin not-null 파라미터에 Mockito 의 any() 를 쓰면 null 이 들어가 NPE 가 난다. 그걸 감싸 준다.
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

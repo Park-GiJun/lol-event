@@ -6,9 +6,12 @@ import com.gijun.main.application.dto.command.ParticipantInput
 import com.gijun.main.application.dto.command.SaveMatchesCommand
 import com.gijun.main.application.dto.command.TeamInput
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotBlank
 
 @Schema(name = "SaveMatchesCommand")
 data class SaveMatchesRequest(
+    @field:Valid
     val matches: List<MatchRequest>,
 ) {
     fun toCommand() =
@@ -19,6 +22,7 @@ data class SaveMatchesRequest(
 
 @Schema(name = "MatchInput")
 data class MatchRequest(
+    @field:NotBlank
     val matchId: String,
     val queueId: Int,
     val gameCreation: Long,

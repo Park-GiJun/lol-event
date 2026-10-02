@@ -1,5 +1,6 @@
 package com.gijun.main.infrastructure.adapter.`in`.web.match.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.gijun.main.application.dto.result.KillEntry
 import com.gijun.main.application.dto.result.MapPointDto
 import com.gijun.main.application.dto.result.MatchTimelineResult
@@ -233,6 +234,7 @@ data class TeamFightEntryResponse(
     val participantIds: List<Int>,
     val at: MapPointResponse?,
     val region: String?,
+    @get:JsonProperty("isTeamFight")
     val isTeamFight: Boolean,
     @field:Schema(description = "교전 직후 넘어간 오브젝트의 종류. 전리품이다.")
     val objectiveKinds: List<String>,
