@@ -1,18 +1,30 @@
-import { BarChartIcon, CloseIcon, LockIcon, MapPinIcon, PlayIcon, RefreshIcon, ShieldIcon, TrashIcon, TrophyIcon, UsersIcon, ZapIcon } from '@/components/icons/LolIcons';
+import {
+	BarChartIcon,
+	CloseIcon,
+	LockIcon,
+	MapPinIcon,
+	PlayIcon,
+	RefreshIcon,
+	ShieldIcon,
+	TrashIcon,
+	TrophyIcon,
+	UsersIcon,
+	ZapIcon
+} from '@/components/icons/LolIcons';
 import { POSITIONS } from '@/lib/position';
 import { useState, useEffect, useRef } from 'react';
 import { api } from '../lib/api/api';
 import type {
-  StatsResponse,
-  PlayerStats,
-  MvpStatsResult,
-  MvpPlayerStat,
-  DuoStatsResult,
-  DuoStat,
-  PlayerDetailStats,
-  LaneStat,
-  EloRankEntry,
-  EloLeaderboardResult,
+	StatsResponse,
+	PlayerStats,
+	MvpStatsResult,
+	MvpPlayerStat,
+	DuoStatsResult,
+	DuoStat,
+	PlayerDetailStats,
+	LaneStat,
+	EloRankEntry,
+	EloLeaderboardResult
 } from '../lib/types/stats';
 import type { ReassignPositionsResult } from '../lib/types/member';
 import { PlayerLink } from '../components/common/PlayerLink';
@@ -22,683 +34,928 @@ const ADMIN_PASSWORD = 'admin1234';
 const SESSION_KEY = 'monitoring_auth';
 
 interface BatchStatus {
-  playerSnapshotCount: number;
-  championSnapshotCount: number;
-  championItemSnapshotCount: number;
-  lastAggregatedAt: string | null;
-  message: string;
+	playerSnapshotCount: number;
+	championSnapshotCount: number;
+	championItemSnapshotCount: number;
+	lastAggregatedAt: string | null;
+	message: string;
 }
 
 type TeamKey = 'pool' | 'team1' | 'team2' | 'team3' | 'team4';
 type TeamMap = Record<TeamKey, string[]>;
 
-const TEAM_META: Record<Exclude<TeamKey, 'pool'>, { label: string; main: string; bg: string; border: string }> = {
-  team1: { label: '팀 1', main: '#4A9EFF', bg: 'rgba(74,158,255,0.08)',  border: 'rgba(74,158,255,0.35)' },
-  team2: { label: '팀 2', main: '#FF6B6B', bg: 'rgba(255,107,107,0.08)', border: 'rgba(255,107,107,0.35)' },
-  team3: { label: '팀 3', main: '#51CF66', bg: 'rgba(81,207,102,0.08)',  border: 'rgba(81,207,102,0.35)' },
-  team4: { label: '팀 4', main: '#CC5DE8', bg: 'rgba(204,93,232,0.08)',  border: 'rgba(204,93,232,0.35)' },
+const TEAM_META: Record<
+	Exclude<TeamKey, 'pool'>,
+	{ label: string; main: string; bg: string; border: string }
+> = {
+	team1: {
+		label: '팀 1',
+		main: '#4A9EFF',
+		bg: 'rgba(74,158,255,0.08)',
+		border: 'rgba(74,158,255,0.35)'
+	},
+	team2: {
+		label: '팀 2',
+		main: '#FF6B6B',
+		bg: 'rgba(255,107,107,0.08)',
+		border: 'rgba(255,107,107,0.35)'
+	},
+	team3: {
+		label: '팀 3',
+		main: '#51CF66',
+		bg: 'rgba(81,207,102,0.08)',
+		border: 'rgba(81,207,102,0.35)'
+	},
+	team4: {
+		label: '팀 4',
+		main: '#CC5DE8',
+		bg: 'rgba(204,93,232,0.08)',
+		border: 'rgba(204,93,232,0.35)'
+	}
 };
 
 const POS_ORDER = POSITIONS;
 const POS_LABELS: Record<string, string> = {
-  TOP: 'TOP', JUNGLE: 'JGL', MID: 'MID', BOTTOM: 'BOT', SUPPORT: 'SUP',
+	TOP: 'TOP',
+	JUNGLE: 'JGL',
+	MID: 'MID',
+	BOTTOM: 'BOT',
+	SUPPORT: 'SUP'
 };
 
 function calcPosScore(lane: LaneStat): number {
-  const kda = (lane.avgKills * 3 + lane.avgAssists * 1.5) / Math.max(lane.avgDeaths, 1);
-  const winBonus = (lane.winRate / 100) * 20;
-  const vision = lane.avgVisionScore * 0.3;
-  const cs = (lane.avgCs / 30) * 0.5;
-  return Math.round((kda + winBonus + vision + cs) * 10) / 10;
+	const kda = (lane.avgKills * 3 + lane.avgAssists * 1.5) / Math.max(lane.avgDeaths, 1);
+	const winBonus = (lane.winRate / 100) * 20;
+	const vision = lane.avgVisionScore * 0.3;
+	const cs = (lane.avgCs / 30) * 0.5;
+	return Math.round((kda + winBonus + vision + cs) * 10) / 10;
 }
 
 function calcExpectedWR(members: string[], allStats: PlayerStats[], duos: DuoStat[]): number {
-  if (!members.length) return 0;
-  const base =
-    members.reduce((sum, id) => sum + (allStats.find(s => s.riotId === id)?.winRate ?? 50), 0) /
-    members.length / 100;
-  const duoRates: number[] = [];
-  for (let i = 0; i < members.length; i++) {
-    for (let j = i + 1; j < members.length; j++) {
-      const [a, b] = [members[i], members[j]];
-      const d = duos.find(x => (x.player1 === a && x.player2 === b) || (x.player1 === b && x.player2 === a));
-      if (d) duoRates.push(d.winRate / 100);
-    }
-  }
-  const synergy = duoRates.length
-    ? (duoRates.reduce((a, b) => a + b, 0) / duoRates.length - 0.5) * 0.3
-    : 0;
-  return Math.min(Math.max(base + synergy, 0.05), 0.95);
+	if (!members.length) return 0;
+	const base =
+		members.reduce((sum, id) => sum + (allStats.find((s) => s.riotId === id)?.winRate ?? 50), 0) /
+		members.length /
+		100;
+	const duoRates: number[] = [];
+	for (let i = 0; i < members.length; i++) {
+		for (let j = i + 1; j < members.length; j++) {
+			const [a, b] = [members[i], members[j]];
+			const d = duos.find(
+				(x) => (x.player1 === a && x.player2 === b) || (x.player1 === b && x.player2 === a)
+			);
+			if (d) duoRates.push(d.winRate / 100);
+		}
+	}
+	const synergy = duoRates.length
+		? (duoRates.reduce((a, b) => a + b, 0) / duoRates.length - 0.5) * 0.3
+		: 0;
+	return Math.min(Math.max(base + synergy, 0.05), 0.95);
 }
 
-
 export function AdminPage() {
-  const [authed, setAuthed] = useState(() => sessionStorage.getItem(SESSION_KEY) === 'true');
-  const [pw, setPw] = useState('');
-  const [authErr, setAuthErr] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
+	const [authed, setAuthed] = useState(() => sessionStorage.getItem(SESSION_KEY) === 'true');
+	const [pw, setPw] = useState('');
+	const [authErr, setAuthErr] = useState('');
+	const inputRef = useRef<HTMLInputElement>(null);
 
-  // batch
-  const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
-  const [triggering, setTriggering] = useState(false);
-  const [triggerMsg, setTriggerMsg] = useState('');
-  const [triggeringItems, setTriggeringItems] = useState(false);
-  const [triggerItemMsg, setTriggerItemMsg] = useState('');
-  const [clearingCache, setClearingCache] = useState(false);
-  const [clearCacheMsg, setClearCacheMsg] = useState('');
+	// batch
+	const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
+	const [triggering, setTriggering] = useState(false);
+	const [triggerMsg, setTriggerMsg] = useState('');
+	const [triggeringItems, setTriggeringItems] = useState(false);
+	const [triggerItemMsg, setTriggerItemMsg] = useState('');
+	const [clearingCache, setClearingCache] = useState(false);
+	const [clearCacheMsg, setClearCacheMsg] = useState('');
 
-  // elo reset
-  const [eloResetting, setEloResetting] = useState(false);
-  const [eloResetMsg, setEloResetMsg] = useState('');
-  const [posReassigning, setPosReassigning] = useState(false);
-  const [posReassignMsg, setPosReassignMsg] = useState('');
-  const [eloLeaderboard, setEloLeaderboard] = useState<EloRankEntry[]>([]);
-  const [eloLoading, setEloLoading] = useState(false);
+	// elo reset
+	const [eloResetting, setEloResetting] = useState(false);
+	const [eloResetMsg, setEloResetMsg] = useState('');
+	const [posReassigning, setPosReassigning] = useState(false);
+	const [posReassignMsg, setPosReassignMsg] = useState('');
+	const [eloLeaderboard, setEloLeaderboard] = useState<EloRankEntry[]>([]);
+	const [eloLoading, setEloLoading] = useState(false);
 
-  // data
-  const [allStats, setAllStats] = useState<PlayerStats[]>([]);
-  const [mvpStats, setMvpStats] = useState<MvpPlayerStat[]>([]);
-  const [duoData, setDuoData] = useState<DuoStat[]>([]);
-  const [posMap, setPosMap] = useState<Record<string, LaneStat[]>>({});
-  const [posLoading, setPosLoading] = useState(false);
-  const [posLoaded, setPosLoaded] = useState(false);
+	// data
+	const [allStats, setAllStats] = useState<PlayerStats[]>([]);
+	const [mvpStats, setMvpStats] = useState<MvpPlayerStat[]>([]);
+	const [duoData, setDuoData] = useState<DuoStat[]>([]);
+	const [posMap, setPosMap] = useState<Record<string, LaneStat[]>>({});
+	const [posLoading, setPosLoading] = useState(false);
+	const [posLoaded, setPosLoaded] = useState(false);
 
-  // team builder
-  const [teams, setTeams] = useState<TeamMap>({ pool: [], team1: [], team2: [], team3: [], team4: [] });
-  const [dragOver, setDragOver] = useState<TeamKey | null>(null);
+	// team builder
+	const [teams, setTeams] = useState<TeamMap>({
+		pool: [],
+		team1: [],
+		team2: [],
+		team3: [],
+		team4: []
+	});
+	const [dragOver, setDragOver] = useState<TeamKey | null>(null);
 
-  useEffect(() => {
-    if (!authed) { inputRef.current?.focus(); return; }
-    loadAll();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authed]);
+	useEffect(() => {
+		if (!authed) {
+			inputRef.current?.focus();
+			return;
+		}
+		loadAll();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [authed]);
 
-  // allStats 로드 완료 시 pool 초기화
-  useEffect(() => {
-    if (allStats.length) {
-      setTeams(prev => ({ ...prev, pool: allStats.map(s => s.riotId) }));
-    }
-  }, [allStats]);
+	// allStats 로드 완료 시 pool 초기화
+	useEffect(() => {
+		if (allStats.length) {
+			setTeams((prev) => ({ ...prev, pool: allStats.map((s) => s.riotId) }));
+		}
+	}, [allStats]);
 
-  async function loadAll() {
-    const [sr, mr, dr, br] = await Promise.allSettled([
-      api.get<StatsResponse>('/stats'),
-      api.get<MvpStatsResult>('/stats/mvp'),
-      api.get<DuoStatsResult>('/stats/duo?minGames=1'),
-      api.get<BatchStatus>('/batch/status'),
-    ]);
-    if (sr.status === 'fulfilled') setAllStats((sr.value as StatsResponse).stats);
-    if (mr.status === 'fulfilled') setMvpStats((mr.value as MvpStatsResult).rankings);
-    if (dr.status === 'fulfilled') setDuoData((dr.value as DuoStatsResult).duos);
-    if (br.status === 'fulfilled') setBatchStatus(br.value as BatchStatus);
-    loadEloLeaderboard();
-  }
+	async function loadAll() {
+		const [sr, mr, dr, br] = await Promise.allSettled([
+			api.get<StatsResponse>('/stats'),
+			api.get<MvpStatsResult>('/stats/mvp'),
+			api.get<DuoStatsResult>('/stats/duo?minGames=1'),
+			api.get<BatchStatus>('/batch/status')
+		]);
+		if (sr.status === 'fulfilled') setAllStats((sr.value as StatsResponse).stats);
+		if (mr.status === 'fulfilled') setMvpStats((mr.value as MvpStatsResult).rankings);
+		if (dr.status === 'fulfilled') setDuoData((dr.value as DuoStatsResult).duos);
+		if (br.status === 'fulfilled') setBatchStatus(br.value as BatchStatus);
+		loadEloLeaderboard();
+	}
 
-  async function loadEloLeaderboard() {
-    setEloLoading(true);
-    try {
-      const res = await api.get<EloLeaderboardResult>('/stats/elo');
-      setEloLeaderboard(res.players);
-    } catch { /* 조용히 실패 */ }
-    finally { setEloLoading(false); }
-  }
+	async function loadEloLeaderboard() {
+		setEloLoading(true);
+		try {
+			const res = await api.get<EloLeaderboardResult>('/stats/elo');
+			setEloLeaderboard(res.players);
+		} catch {
+			/* 조용히 실패 */
+		} finally {
+			setEloLoading(false);
+		}
+	}
 
-  async function resetElo() {
-    if (!window.confirm('전체 Elo 데이터를 초기화하고 전체 매치를 재집계합니다.\n매치 수에 따라 시간이 걸릴 수 있습니다. 계속하시겠습니까?')) return;
-    setEloResetting(true);
-    setEloResetMsg('');
-    try {
-      await api.post('/admin/elo/reset', {});
-      setEloResetMsg('Elo 재집계 완료! 리더보드를 새로고침합니다...');
-      await loadEloLeaderboard();
-    } catch {
-      setEloResetMsg('Elo 재집계에 실패했습니다.');
-    } finally {
-      setEloResetting(false);
-    }
-  }
+	async function resetElo() {
+		if (
+			!window.confirm(
+				'전체 Elo 데이터를 초기화하고 전체 매치를 재집계합니다.\n매치 수에 따라 시간이 걸릴 수 있습니다. 계속하시겠습니까?'
+			)
+		)
+			return;
+		setEloResetting(true);
+		setEloResetMsg('');
+		try {
+			await api.post('/admin/elo/reset', {});
+			setEloResetMsg('Elo 재집계 완료! 리더보드를 새로고침합니다...');
+			await loadEloLeaderboard();
+		} catch {
+			setEloResetMsg('Elo 재집계에 실패했습니다.');
+		} finally {
+			setEloResetting(false);
+		}
+	}
 
-  async function reassignPositions() {
-    if (!window.confirm('저장된 모든 매치를 스캔해 포지션이 깨진 팀만 재배정합니다.\n완료 후 Elo 재집계를 권장합니다. 계속하시겠습니까?')) return;
-    setPosReassigning(true);
-    setPosReassignMsg('');
-    try {
-      const r = await api.post<ReassignPositionsResult>('/admin/positions/reassign', {});
-      setPosReassignMsg(
-        `완료: ${r.teamsFixed}개 팀 수정 / 참가자 ${r.participantsUpdated}명 갱신 ` +
-        `(스캔 매치 ${r.matchesScanned}, 칼바람 제외 ${r.matchesSkippedAram}, 정상 팀 ${r.teamsAlreadyValid}). ` +
-        `이제 Elo 재집계를 권장합니다.`,
-      );
-    } catch {
-      setPosReassignMsg('포지션 재배정에 실패했습니다.');
-    } finally {
-      setPosReassigning(false);
-    }
-  }
+	async function reassignPositions() {
+		if (
+			!window.confirm(
+				'저장된 모든 매치를 스캔해 포지션이 깨진 팀만 재배정합니다.\n완료 후 Elo 재집계를 권장합니다. 계속하시겠습니까?'
+			)
+		)
+			return;
+		setPosReassigning(true);
+		setPosReassignMsg('');
+		try {
+			const r = await api.post<ReassignPositionsResult>('/admin/positions/reassign', {});
+			setPosReassignMsg(
+				`완료: ${r.teamsFixed}개 팀 수정 / 참가자 ${r.participantsUpdated}명 갱신 ` +
+					`(스캔 매치 ${r.matchesScanned}, 칼바람 제외 ${r.matchesSkippedAram}, 정상 팀 ${r.teamsAlreadyValid}). ` +
+					`이제 Elo 재집계를 권장합니다.`
+			);
+		} catch {
+			setPosReassignMsg('포지션 재배정에 실패했습니다.');
+		} finally {
+			setPosReassigning(false);
+		}
+	}
 
-  async function loadPositions() {
-    if (posLoaded || posLoading || !allStats.length) return;
-    setPosLoading(true);
-    const results = await Promise.allSettled(
-      allStats.map(s =>
-        api.get<PlayerDetailStats>(`/stats/player/${encodeURIComponent(s.riotId)}`)
-          .then(r => ({ riotId: s.riotId, laneStats: r.laneStats })),
-      ),
-    );
-    const map: Record<string, LaneStat[]> = {};
-    results.forEach(r => { if (r.status === 'fulfilled') map[r.value.riotId] = r.value.laneStats; });
-    setPosMap(map);
-    setPosLoaded(true);
-    setPosLoading(false);
-  }
+	async function loadPositions() {
+		if (posLoaded || posLoading || !allStats.length) return;
+		setPosLoading(true);
+		const results = await Promise.allSettled(
+			allStats.map((s) =>
+				api
+					.get<PlayerDetailStats>(`/stats/player/${encodeURIComponent(s.riotId)}`)
+					.then((r) => ({ riotId: s.riotId, laneStats: r.laneStats }))
+			)
+		);
+		const map: Record<string, LaneStat[]> = {};
+		results.forEach((r) => {
+			if (r.status === 'fulfilled') map[r.value.riotId] = r.value.laneStats;
+		});
+		setPosMap(map);
+		setPosLoaded(true);
+		setPosLoading(false);
+	}
 
-  async function triggerBatch() {
-    setTriggering(true); setTriggerMsg('');
-    try {
-      await api.post('/batch/trigger', {});
-      setTriggerMsg('배치 실행 요청이 전송되었습니다.');
-      setTimeout(async () => setBatchStatus(await api.get<BatchStatus>('/batch/status')), 2000);
-    } catch { setTriggerMsg('배치 실행에 실패했습니다.'); }
-    finally { setTriggering(false); }
-  }
+	async function triggerBatch() {
+		setTriggering(true);
+		setTriggerMsg('');
+		try {
+			await api.post('/batch/trigger', {});
+			setTriggerMsg('배치 실행 요청이 전송되었습니다.');
+			setTimeout(async () => setBatchStatus(await api.get<BatchStatus>('/batch/status')), 2000);
+		} catch {
+			setTriggerMsg('배치 실행에 실패했습니다.');
+		} finally {
+			setTriggering(false);
+		}
+	}
 
-  async function clearAllCache() {
-    setClearingCache(true); setClearCacheMsg('');
-    try {
-      await Promise.all([
-        api.post('/ddragon/sync', {}),
-        api.post('/batch/trigger', {}),
-      ]);
-      setClearCacheMsg('전체 캐시가 초기화되었습니다.');
-      setTimeout(async () => setBatchStatus(await api.get<BatchStatus>('/batch/status')), 2000);
-    } catch { setClearCacheMsg('캐시 초기화에 실패했습니다.'); }
-    finally { setClearingCache(false); }
-  }
+	async function clearAllCache() {
+		setClearingCache(true);
+		setClearCacheMsg('');
+		try {
+			await Promise.all([api.post('/ddragon/sync', {}), api.post('/batch/trigger', {})]);
+			setClearCacheMsg('전체 캐시가 초기화되었습니다.');
+			setTimeout(async () => setBatchStatus(await api.get<BatchStatus>('/batch/status')), 2000);
+		} catch {
+			setClearCacheMsg('캐시 초기화에 실패했습니다.');
+		} finally {
+			setClearingCache(false);
+		}
+	}
 
-  async function triggerItemStats() {
-    setTriggeringItems(true); setTriggerItemMsg('');
-    try {
-      await api.post('/batch/trigger-item-stats', {});
-      setTriggerItemMsg('아이템 통계 집계가 완료되었습니다.');
-      setTimeout(async () => setBatchStatus(await api.get<BatchStatus>('/batch/status')), 1000);
-    } catch { setTriggerItemMsg('아이템 통계 집계에 실패했습니다.'); }
-    finally { setTriggeringItems(false); }
-  }
+	async function triggerItemStats() {
+		setTriggeringItems(true);
+		setTriggerItemMsg('');
+		try {
+			await api.post('/batch/trigger-item-stats', {});
+			setTriggerItemMsg('아이템 통계 집계가 완료되었습니다.');
+			setTimeout(async () => setBatchStatus(await api.get<BatchStatus>('/batch/status')), 1000);
+		} catch {
+			setTriggerItemMsg('아이템 통계 집계에 실패했습니다.');
+		} finally {
+			setTriggeringItems(false);
+		}
+	}
 
-  // ── Drag & Drop ────────────────────────────────────
-  function onDrop(to: TeamKey, riotId: string, from: TeamKey) {
-    setDragOver(null);
-    if (!riotId || from === to) return;
-    if (to !== 'pool' && teams[to].length >= 5) return;
-    setTeams(prev => {
-      const next = { ...prev };
-      next[from] = prev[from].filter(id => id !== riotId);
-      next[to] = [...prev[to], riotId];
-      return next;
-    });
-  }
+	// ── Drag & Drop ────────────────────────────────────
+	function onDrop(to: TeamKey, riotId: string, from: TeamKey) {
+		setDragOver(null);
+		if (!riotId || from === to) return;
+		if (to !== 'pool' && teams[to].length >= 5) return;
+		setTeams((prev) => {
+			const next = { ...prev };
+			next[from] = prev[from].filter((id) => id !== riotId);
+			next[to] = [...prev[to], riotId];
+			return next;
+		});
+	}
 
-  function removeFromTeam(riotId: string, from: TeamKey) {
-    setTeams(prev => ({
-      ...prev,
-      [from]: prev[from].filter(id => id !== riotId),
-      pool: from !== 'pool' ? [...prev.pool, riotId] : prev.pool,
-    }));
-  }
+	function removeFromTeam(riotId: string, from: TeamKey) {
+		setTeams((prev) => ({
+			...prev,
+			[from]: prev[from].filter((id) => id !== riotId),
+			pool: from !== 'pool' ? [...prev.pool, riotId] : prev.pool
+		}));
+	}
 
-  function resetTeams() {
-    setTeams({ pool: allStats.map(s => s.riotId), team1: [], team2: [], team3: [], team4: [] });
-  }
+	function resetTeams() {
+		setTeams({ pool: allStats.map((s) => s.riotId), team1: [], team2: [], team3: [], team4: [] });
+	}
 
-  // ── Login ──────────────────────────────────────────
-  if (!authed) {
-    return (
-      <div className="t-page monitoring-gate">
-        <div className="monitoring-gate-card">
-          <div className="monitoring-gate-icon"><LockIcon size={32} color="var(--color-primary)" /></div>
-          <h2 className="monitoring-gate-title">어드민 접근 인증</h2>
-          <p className="monitoring-gate-desc">접근하려면 관리자 비밀번호를 입력하세요.</p>
-          <form onSubmit={e => {
-            e.preventDefault();
-            if (pw === ADMIN_PASSWORD) { sessionStorage.setItem(SESSION_KEY, 'true'); setAuthed(true); }
-            else { setAuthErr('비밀번호가 올바르지 않습니다.'); setPw(''); inputRef.current?.focus(); }
-          }} className="monitoring-gate-form">
-            <input ref={inputRef} type="password" value={pw} onChange={e => setPw(e.target.value)}
-              placeholder="비밀번호" className={`monitoring-gate-input${authErr ? ' error' : ''}`}
-              autoComplete="current-password" />
-            {authErr && <p className="monitoring-gate-error">{authErr}</p>}
-            <button type="submit" className="btn btn-primary monitoring-gate-btn">확인</button>
-          </form>
-        </div>
-      </div>
-    );
-  }
+	// ── Login ──────────────────────────────────────────
+	if (!authed) {
+		return (
+			<div className="t-page monitoring-gate">
+				<div className="monitoring-gate-card">
+					<div className="monitoring-gate-icon">
+						<LockIcon size={32} color="var(--color-primary)" />
+					</div>
+					<h2 className="monitoring-gate-title">어드민 접근 인증</h2>
+					<p className="monitoring-gate-desc">접근하려면 관리자 비밀번호를 입력하세요.</p>
+					<form
+						onSubmit={(e) => {
+							e.preventDefault();
+							if (pw === ADMIN_PASSWORD) {
+								sessionStorage.setItem(SESSION_KEY, 'true');
+								setAuthed(true);
+							} else {
+								setAuthErr('비밀번호가 올바르지 않습니다.');
+								setPw('');
+								inputRef.current?.focus();
+							}
+						}}
+						className="monitoring-gate-form"
+					>
+						<input
+							ref={inputRef}
+							type="password"
+							value={pw}
+							onChange={(e) => setPw(e.target.value)}
+							placeholder="비밀번호"
+							className={`monitoring-gate-input${authErr ? ' error' : ''}`}
+							autoComplete="current-password"
+						/>
+						{authErr && <p className="monitoring-gate-error">{authErr}</p>}
+						<button type="submit" className="btn btn-primary monitoring-gate-btn">
+							확인
+						</button>
+					</form>
+				</div>
+			</div>
+		);
+	}
 
-  // ── Main ───────────────────────────────────────────
-  return (
-    <div className="t-page monitoring-page">
-      <div className="monitoring-header">
-        <div className="monitoring-header-left">
-          <ShieldIcon size={20} color="var(--color-primary)" />
-          <h1>어드민</h1>
-        </div>
-        <button className="btn btn-secondary btn-sm"
-          onClick={() => { sessionStorage.removeItem(SESSION_KEY); setAuthed(false); }}>
-          <LockIcon size={13} />잠금
-        </button>
-      </div>
+	// ── Main ───────────────────────────────────────────
+	return (
+		<div className="t-page monitoring-page">
+			<div className="monitoring-header">
+				<div className="monitoring-header-left">
+					<ShieldIcon size={20} color="var(--color-primary)" />
+					<h1>어드민</h1>
+				</div>
+				<button
+					className="btn btn-secondary btn-sm"
+					onClick={() => {
+						sessionStorage.removeItem(SESSION_KEY);
+						setAuthed(false);
+					}}
+				>
+					<LockIcon size={13} />
+					잠금
+				</button>
+			</div>
 
-      {/* ── 1. 배치 스케쥴러 ──────────────────────── */}
-      <section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <div className="section-head">
-          <span className="icon-chip"><RefreshIcon size={15} /></span>
-          <span className="section-head-title">통계 배치 스케쥴러</span>
-          <span className="admin-section-sub text-secondary text-xs">매일 04:00 자동 실행 | Kafka 이벤트 수신 시 자동 실행</span>
-        </div>
-        <div className="admin-action-row">
-          <button className="btn btn-primary" onClick={triggerBatch} disabled={triggering}>
-            <PlayIcon size={14} />{triggering ? '실행 중...' : '배치 수동 실행'}
-          </button>
-          <button className="btn btn-secondary" onClick={loadAll}>
-            <RefreshIcon size={14} />상태 새로고침
-          </button>
-          {triggerMsg && (
-            <span className={`admin-msg ${triggerMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}>
-              {triggerMsg}
-            </span>
-          )}
-        </div>
-        <div className="admin-action-row">
-          <button className="btn btn-secondary" onClick={triggerItemStats} disabled={triggeringItems}>
-            <PlayIcon size={14} />{triggeringItems ? '집계 중...' : '아이템 통계만 재집계'}
-          </button>
-          {triggerItemMsg && (
-            <span className={`admin-msg ${triggerItemMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}>
-              {triggerItemMsg}
-            </span>
-          )}
-        </div>
-        <div className="admin-action-sep" />
-        <div className="admin-action-row">
-          <button className="btn btn-danger" onClick={clearAllCache} disabled={clearingCache}>
-            <TrashIcon size={14} />{clearingCache ? '초기화 중...' : '전체 캐시 초기화'}
-          </button>
-          {clearCacheMsg && (
-            <span className={`admin-msg ${clearCacheMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}>
-              {clearCacheMsg}
-            </span>
-          )}
-        </div>
-        {batchStatus && (
-          <div className="grid-16 admin-batch-cards">
-            {[
-              { label: '플레이어 스냅샷',    value: `${batchStatus.playerSnapshotCount}건` },
-              { label: '챔피언 스냅샷',      value: `${batchStatus.championSnapshotCount}건` },
-              { label: '챔피언 아이템 통계', value: `${batchStatus.championItemSnapshotCount}건` },
-              { label: '마지막 집계',        value: batchStatus.lastAggregatedAt ?? '없음' },
-            ].map(({ label, value }) => (
-              <div key={label} className="admin-batch-card col-span-4">
-                <span className="admin-batch-card-label">{label}</span>
-                <span className="admin-batch-card-value">{value}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
+			{/* ── 1. 배치 스케쥴러 ──────────────────────── */}
+			<section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+				<div className="section-head">
+					<span className="icon-chip">
+						<RefreshIcon size={15} />
+					</span>
+					<span className="section-head-title">통계 배치 스케쥴러</span>
+					<span className="admin-section-sub text-secondary text-xs">
+						매일 04:00 자동 실행 | Kafka 이벤트 수신 시 자동 실행
+					</span>
+				</div>
+				<div className="admin-action-row">
+					<button className="btn btn-primary" onClick={triggerBatch} disabled={triggering}>
+						<PlayIcon size={14} />
+						{triggering ? '실행 중...' : '배치 수동 실행'}
+					</button>
+					<button className="btn btn-secondary" onClick={loadAll}>
+						<RefreshIcon size={14} />
+						상태 새로고침
+					</button>
+					{triggerMsg && (
+						<span
+							className={`admin-msg ${triggerMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}
+						>
+							{triggerMsg}
+						</span>
+					)}
+				</div>
+				<div className="admin-action-row">
+					<button
+						className="btn btn-secondary"
+						onClick={triggerItemStats}
+						disabled={triggeringItems}
+					>
+						<PlayIcon size={14} />
+						{triggeringItems ? '집계 중...' : '아이템 통계만 재집계'}
+					</button>
+					{triggerItemMsg && (
+						<span
+							className={`admin-msg ${triggerItemMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}
+						>
+							{triggerItemMsg}
+						</span>
+					)}
+				</div>
+				<div className="admin-action-sep" />
+				<div className="admin-action-row">
+					<button className="btn btn-danger" onClick={clearAllCache} disabled={clearingCache}>
+						<TrashIcon size={14} />
+						{clearingCache ? '초기화 중...' : '전체 캐시 초기화'}
+					</button>
+					{clearCacheMsg && (
+						<span
+							className={`admin-msg ${clearCacheMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}
+						>
+							{clearCacheMsg}
+						</span>
+					)}
+				</div>
+				{batchStatus && (
+					<div className="grid-16 admin-batch-cards">
+						{[
+							{ label: '플레이어 스냅샷', value: `${batchStatus.playerSnapshotCount}건` },
+							{ label: '챔피언 스냅샷', value: `${batchStatus.championSnapshotCount}건` },
+							{ label: '챔피언 아이템 통계', value: `${batchStatus.championItemSnapshotCount}건` },
+							{ label: '마지막 집계', value: batchStatus.lastAggregatedAt ?? '없음' }
+						].map(({ label, value }) => (
+							<div key={label} className="admin-batch-card col-span-4">
+								<span className="admin-batch-card-label">{label}</span>
+								<span className="admin-batch-card-value">{value}</span>
+							</div>
+						))}
+					</div>
+				)}
+			</section>
 
-      {/* ── 2. Elo 관리 ──────────────────────────── */}
-      <section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <div className="section-head">
-          <span className="icon-chip"><BarChartIcon size={15} /></span>
-          <span className="section-head-title">Elo 관리</span>
-          <span className="admin-section-sub text-secondary text-xs">전체 초기화 후 매치 시간순 재집계</span>
-          <button className="btn btn-secondary btn-sm section-head-action" onClick={loadEloLeaderboard} disabled={eloLoading}>
-            <RefreshIcon size={12} />{eloLoading ? '로딩 중...' : '새로고침'}
-          </button>
-        </div>
+			{/* ── 2. Elo 관리 ──────────────────────────── */}
+			<section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+				<div className="section-head">
+					<span className="icon-chip">
+						<BarChartIcon size={15} />
+					</span>
+					<span className="section-head-title">Elo 관리</span>
+					<span className="admin-section-sub text-secondary text-xs">
+						전체 초기화 후 매치 시간순 재집계
+					</span>
+					<button
+						className="btn btn-secondary btn-sm section-head-action"
+						onClick={loadEloLeaderboard}
+						disabled={eloLoading}
+					>
+						<RefreshIcon size={12} />
+						{eloLoading ? '로딩 중...' : '새로고침'}
+					</button>
+				</div>
 
-        <div className="admin-action-row">
-          <button className="btn btn-secondary" onClick={reassignPositions} disabled={posReassigning}>
-            <MapPinIcon size={14} />{posReassigning ? '재배정 중...' : '포지션 재배정 백필'}
-          </button>
-          <button className="btn btn-danger" onClick={resetElo} disabled={eloResetting}>
-            <TrashIcon size={14} />{eloResetting ? '재집계 중...' : 'Elo 전체 초기화 및 재집계'}
-          </button>
-          {eloResetMsg && (
-            <span className={`admin-msg ${eloResetMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}>
-              {eloResetMsg}
-            </span>
-          )}
-        </div>
-        {posReassignMsg && (
-          <div className="admin-action-row">
-            <span className={`admin-msg ${posReassignMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}>
-              {posReassignMsg}
-            </span>
-          </div>
-        )}
+				<div className="admin-action-row">
+					<button
+						className="btn btn-secondary"
+						onClick={reassignPositions}
+						disabled={posReassigning}
+					>
+						<MapPinIcon size={14} />
+						{posReassigning ? '재배정 중...' : '포지션 재배정 백필'}
+					</button>
+					<button className="btn btn-danger" onClick={resetElo} disabled={eloResetting}>
+						<TrashIcon size={14} />
+						{eloResetting ? '재집계 중...' : 'Elo 전체 초기화 및 재집계'}
+					</button>
+					{eloResetMsg && (
+						<span
+							className={`admin-msg ${eloResetMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}
+						>
+							{eloResetMsg}
+						</span>
+					)}
+				</div>
+				{posReassignMsg && (
+					<div className="admin-action-row">
+						<span
+							className={`admin-msg ${posReassignMsg.includes('실패') ? 'admin-msg--err' : 'admin-msg--ok'}`}
+						>
+							{posReassignMsg}
+						</span>
+					</div>
+				)}
 
-        {eloLeaderboard.length > 0 && (
-          <div className="table-wrapper">
-            <table className="table elo-table">
-              <thead>
-                <tr>
-                  <th>순위</th>
-                  <th>플레이어</th>
-                  <th className="table-number">Elo</th>
-                  <th className="table-number">판수</th>
-                </tr>
-              </thead>
-              <tbody>
-                {eloLeaderboard.map(entry => (
-                  <tr key={entry.riotId}>
-                    <td className={`elo-rank${entry.rank <= 3 ? ' elo-rank--top' : ''}`} style={{ width: 48 }}>
-                      #{entry.rank}
-                    </td>
-                    <td style={{ fontWeight: 600 }}><PlayerLink riotId={entry.riotId}>{entry.riotId}</PlayerLink></td>
-                    <td className={`table-number ${entry.laneEloDisplay >= 1600 ? 'elo-score--high' : entry.laneEloDisplay < 1400 ? 'elo-score--low' : 'elo-score--mid'}`}>
-                      {entry.laneEloDisplay.toFixed(1)}
-                    </td>
-                    <td className="table-number text-secondary">{entry.games}판</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {!eloLoading && eloLeaderboard.length === 0 && (
-          <p className="text-secondary text-sm" style={{ margin: 'var(--spacing-sm) 0' }}>
-            Elo 데이터가 없습니다. [Elo 전체 초기화 및 재집계] 버튼을 눌러 집계하세요.
-          </p>
-        )}
-      </section>
+				{eloLeaderboard.length > 0 && (
+					<div className="table-wrapper">
+						<table className="table elo-table">
+							<thead>
+								<tr>
+									<th>순위</th>
+									<th>플레이어</th>
+									<th className="table-number">Elo</th>
+									<th className="table-number">판수</th>
+								</tr>
+							</thead>
+							<tbody>
+								{eloLeaderboard.map((entry) => (
+									<tr key={entry.riotId}>
+										<td
+											className={`elo-rank${entry.rank <= 3 ? ' elo-rank--top' : ''}`}
+											style={{ width: 48 }}
+										>
+											#{entry.rank}
+										</td>
+										<td style={{ fontWeight: 600 }}>
+											<PlayerLink riotId={entry.riotId}>{entry.riotId}</PlayerLink>
+										</td>
+										<td
+											className={`table-number ${entry.laneEloDisplay >= 1600 ? 'elo-score--high' : entry.laneEloDisplay < 1400 ? 'elo-score--low' : 'elo-score--mid'}`}
+										>
+											{entry.laneEloDisplay.toFixed(1)}
+										</td>
+										<td className="table-number text-secondary">{entry.games}판</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				)}
+				{!eloLoading && eloLeaderboard.length === 0 && (
+					<p className="text-secondary text-sm" style={{ margin: 'var(--spacing-sm) 0' }}>
+						Elo 데이터가 없습니다. [Elo 전체 초기화 및 재집계] 버튼을 눌러 집계하세요.
+					</p>
+				)}
+			</section>
 
-      {/* ── 3. 포지션이 승패에 미친 영향 ────────────────── */}
-      <section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <div className="section-head">
-          <span className="icon-chip"><TrophyIcon size={15} /></span>
-          <span className="section-head-title">포지션이 승패에 미친 영향</span>
-          <span className="admin-section-sub text-secondary text-xs">KDA · 승률 · 비전 · CS 종합 기여 점수</span>
-          {!posLoaded && (
-            <button className="btn btn-secondary btn-sm section-head-action" onClick={loadPositions}
-              disabled={posLoading || !allStats.length}>
-              {posLoading ? '로딩 중...' : '통계 불러오기'}
-            </button>
-          )}
-        </div>
-        {posLoaded ? (
-          <div className="table-wrapper">
-            <table className="table pos-table">
-              <thead>
-                <tr>
-                  <th>플레이어</th>
-                  <th className="table-number">MVP점수</th>
-                  {POS_ORDER.map(pos => <th key={pos} className="table-number">{POS_LABELS[pos]}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {allStats.map(player => {
-                  const lanes = posMap[player.riotId] ?? [];
-                  const mvp = mvpStats.find(m => m.riotId === player.riotId);
-                  return (
-                    <tr key={player.riotId}>
-                      <td><PlayerLink riotId={player.riotId}><span style={{ fontWeight: 600 }}>{player.riotId}</span></PlayerLink></td>
-                      <td className="table-number" style={{ color: 'var(--color-primary)', fontWeight: 700 }}>
-                        {mvp ? mvp.avgMvpScore.toFixed(1) : '-'}
-                        {mvp && mvp.mvpCount > 0 && (
-                          <span className="text-secondary text-xs" style={{ marginLeft: 'var(--spacing-xs)' }}>
-                            ({mvp.mvpCount}MVP)
-                          </span>
-                        )}
-                      </td>
-                      {POS_ORDER.map(pos => {
-                        const lane = lanes.find(l => l.position === pos);
-                        if (!lane) return <td key={pos} className="table-number pos-empty">—</td>;
-                        const score = calcPosScore(lane);
-                        const col = lane.winRate >= 60 ? 'var(--color-win)' : lane.winRate < 45 ? 'var(--color-loss)' : 'var(--color-text-primary)';
-                        return (
-                          <td key={pos} className="table-number">
-                            <div className="pos-score" style={{ color: col }}>{score}</div>
-                            <div className="pos-meta">{lane.winRate.toFixed(0)}% · {lane.games}판</div>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="text-secondary text-sm" style={{ margin: 'var(--spacing-sm) 0' }}>
-            [통계 불러오기] 버튼을 눌러 포지션별 데이터를 로드하세요.
-          </p>
-        )}
-      </section>
+			{/* ── 3. 포지션이 승패에 미친 영향 ────────────────── */}
+			<section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+				<div className="section-head">
+					<span className="icon-chip">
+						<TrophyIcon size={15} />
+					</span>
+					<span className="section-head-title">포지션이 승패에 미친 영향</span>
+					<span className="admin-section-sub text-secondary text-xs">
+						KDA · 승률 · 비전 · CS 종합 기여 점수
+					</span>
+					{!posLoaded && (
+						<button
+							className="btn btn-secondary btn-sm section-head-action"
+							onClick={loadPositions}
+							disabled={posLoading || !allStats.length}
+						>
+							{posLoading ? '로딩 중...' : '통계 불러오기'}
+						</button>
+					)}
+				</div>
+				{posLoaded ? (
+					<div className="table-wrapper">
+						<table className="table pos-table">
+							<thead>
+								<tr>
+									<th>플레이어</th>
+									<th className="table-number">MVP점수</th>
+									{POS_ORDER.map((pos) => (
+										<th key={pos} className="table-number">
+											{POS_LABELS[pos]}
+										</th>
+									))}
+								</tr>
+							</thead>
+							<tbody>
+								{allStats.map((player) => {
+									const lanes = posMap[player.riotId] ?? [];
+									const mvp = mvpStats.find((m) => m.riotId === player.riotId);
+									return (
+										<tr key={player.riotId}>
+											<td>
+												<PlayerLink riotId={player.riotId}>
+													<span style={{ fontWeight: 600 }}>{player.riotId}</span>
+												</PlayerLink>
+											</td>
+											<td
+												className="table-number"
+												style={{ color: 'var(--color-primary)', fontWeight: 700 }}
+											>
+												{mvp ? mvp.avgMvpScore.toFixed(1) : '-'}
+												{mvp && mvp.mvpCount > 0 && (
+													<span
+														className="text-secondary text-xs"
+														style={{ marginLeft: 'var(--spacing-xs)' }}
+													>
+														({mvp.mvpCount}MVP)
+													</span>
+												)}
+											</td>
+											{POS_ORDER.map((pos) => {
+												const lane = lanes.find((l) => l.position === pos);
+												if (!lane)
+													return (
+														<td key={pos} className="table-number pos-empty">
+															—
+														</td>
+													);
+												const score = calcPosScore(lane);
+												const col =
+													lane.winRate >= 60
+														? 'var(--color-win)'
+														: lane.winRate < 45
+															? 'var(--color-loss)'
+															: 'var(--color-text-primary)';
+												return (
+													<td key={pos} className="table-number">
+														<div className="pos-score" style={{ color: col }}>
+															{score}
+														</div>
+														<div className="pos-meta">
+															{lane.winRate.toFixed(0)}% · {lane.games}판
+														</div>
+													</td>
+												);
+											})}
+										</tr>
+									);
+								})}
+							</tbody>
+						</table>
+					</div>
+				) : (
+					<p className="text-secondary text-sm" style={{ margin: 'var(--spacing-sm) 0' }}>
+						[통계 불러오기] 버튼을 눌러 포지션별 데이터를 로드하세요.
+					</p>
+				)}
+			</section>
 
-      {/* ── 4. 팀 빌더 (Drag & Drop 4팀) ─────────── */}
-      <section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <div className="section-head">
-          <span className="icon-chip"><UsersIcon size={15} /></span>
-          <span className="section-head-title">팀 빌더 · 예상 승률</span>
-          <span className="admin-section-sub text-secondary text-xs">드래그 &amp; 드롭으로 4팀 구성 · 각 팀 최대 5명</span>
-          <button className="btn btn-secondary btn-sm section-head-action" onClick={resetTeams}>초기화</button>
-        </div>
+			{/* ── 4. 팀 빌더 (Drag & Drop 4팀) ─────────── */}
+			<section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
+				<div className="section-head">
+					<span className="icon-chip">
+						<UsersIcon size={15} />
+					</span>
+					<span className="section-head-title">팀 빌더 · 예상 승률</span>
+					<span className="admin-section-sub text-secondary text-xs">
+						드래그 &amp; 드롭으로 4팀 구성 · 각 팀 최대 5명
+					</span>
+					<button className="btn btn-secondary btn-sm section-head-action" onClick={resetTeams}>
+						초기화
+					</button>
+				</div>
 
-        {/* 플레이어 풀 */}
-        <DropZone
-          teamKey="pool"
-          dragOver={dragOver}
-          onDragOverChange={setDragOver}
-          onDrop={onDrop}
-          className={`team-pool-zone${dragOver === 'pool' ? ' drag-active' : ''}`}
-          style={{ marginBottom: 'var(--spacing-lg)' }}
-        >
-          <div className="team-pool-label">
-            미배정 플레이어 ({teams.pool.length}명)
-          </div>
-          <div className="grid-16">
-            {teams.pool.length === 0 && (
-              <span className="col-span-16 team-drop-hint">모든 플레이어가 팀에 배정됨</span>
-            )}
-            {teams.pool.map(id => (
-              <PlayerChip
-                key={id} riotId={id} from="pool"
-                allStats={allStats} mvpStats={mvpStats}
-                color="var(--color-text-primary)"
-                className="col-span-2"
-              />
-            ))}
-          </div>
-        </DropZone>
+				{/* 플레이어 풀 */}
+				<DropZone
+					teamKey="pool"
+					dragOver={dragOver}
+					onDragOverChange={setDragOver}
+					onDrop={onDrop}
+					className={`team-pool-zone${dragOver === 'pool' ? ' drag-active' : ''}`}
+					style={{ marginBottom: 'var(--spacing-lg)' }}
+				>
+					<div className="team-pool-label">미배정 플레이어 ({teams.pool.length}명)</div>
+					<div className="grid-16">
+						{teams.pool.length === 0 && (
+							<span className="col-span-16 team-drop-hint">모든 플레이어가 팀에 배정됨</span>
+						)}
+						{teams.pool.map((id) => (
+							<PlayerChip
+								key={id}
+								riotId={id}
+								from="pool"
+								allStats={allStats}
+								mvpStats={mvpStats}
+								color="var(--color-text-primary)"
+								className="col-span-2"
+							/>
+						))}
+					</div>
+				</DropZone>
 
-        {/* 4팀 그리드 */}
-        <div className="grid-16">
-          {(Object.keys(TEAM_META) as Exclude<TeamKey, 'pool'>[]).map(tk => {
-            const meta = TEAM_META[tk];
-            const members = teams[tk];
-            const wr = calcExpectedWR(members, allStats, duoData);
-            const teamDuos = duoData
-              .filter(d => members.includes(d.player1) && members.includes(d.player2))
-              .sort((a, b) => b.winRate - a.winRate);
-            const wrColor = wr >= 0.6 ? 'var(--color-win)' : wr < 0.45 ? 'var(--color-loss)' : meta.main;
+				{/* 4팀 그리드 */}
+				<div className="grid-16">
+					{(Object.keys(TEAM_META) as Exclude<TeamKey, 'pool'>[]).map((tk) => {
+						const meta = TEAM_META[tk];
+						const members = teams[tk];
+						const wr = calcExpectedWR(members, allStats, duoData);
+						const teamDuos = duoData
+							.filter((d) => members.includes(d.player1) && members.includes(d.player2))
+							.sort((a, b) => b.winRate - a.winRate);
+						const wrColor =
+							wr >= 0.6 ? 'var(--color-win)' : wr < 0.45 ? 'var(--color-loss)' : meta.main;
 
-            return (
-              <DropZone
-                key={tk} teamKey={tk}
-                className="col-span-8 team-drop-zone"
-                dragOver={dragOver} onDragOverChange={setDragOver} onDrop={onDrop}
-                style={{
-                  border: `1px solid ${dragOver === tk ? meta.main : meta.border}`,
-                  background: dragOver === tk ? meta.bg.replace('0.08', '0.14') : meta.bg,
-                }}
-              >
-                {/* 팀 헤더 */}
-                <div className="team-header">
-                  <span className="team-label" style={{ color: meta.main }}>{meta.label}</span>
-                  {members.length > 0 && (
-                    <div className="team-wr-display">
-                      <div className="team-wr-value" style={{ color: wrColor }}>
-                        {(wr * 100).toFixed(1)}%
-                      </div>
-                      <div className="team-wr-label">예상 승률</div>
-                    </div>
-                  )}
-                </div>
+						return (
+							<DropZone
+								key={tk}
+								teamKey={tk}
+								className="col-span-8 team-drop-zone"
+								dragOver={dragOver}
+								onDragOverChange={setDragOver}
+								onDrop={onDrop}
+								style={{
+									border: `1px solid ${dragOver === tk ? meta.main : meta.border}`,
+									background: dragOver === tk ? meta.bg.replace('0.08', '0.14') : meta.bg
+								}}
+							>
+								{/* 팀 헤더 */}
+								<div className="team-header">
+									<span className="team-label" style={{ color: meta.main }}>
+										{meta.label}
+									</span>
+									{members.length > 0 && (
+										<div className="team-wr-display">
+											<div className="team-wr-value" style={{ color: wrColor }}>
+												{(wr * 100).toFixed(1)}%
+											</div>
+											<div className="team-wr-label">예상 승률</div>
+										</div>
+									)}
+								</div>
 
-                {/* 승률 게이지 */}
-                {members.length > 0 && (
-                  <div className="team-wr-bar-track">
-                    <div className="team-wr-bar-fill" style={{ width: `${wr * 100}%`, background: wrColor }} />
-                  </div>
-                )}
+								{/* 승률 게이지 */}
+								{members.length > 0 && (
+									<div className="team-wr-bar-track">
+										<div
+											className="team-wr-bar-fill"
+											style={{ width: `${wr * 100}%`, background: wrColor }}
+										/>
+									</div>
+								)}
 
-                {/* 플레이어 칩 */}
-                <div className="grid-16" style={{ minHeight: '36px' }}>
-                  {members.length === 0 && (
-                    <span className="col-span-16 team-drop-hint">여기에 드롭</span>
-                  )}
-                  {members.map(id => (
-                    <PlayerChip
-                      key={id} riotId={id} from={tk}
-                      allStats={allStats} mvpStats={mvpStats}
-                      color={meta.main}
-                      className="col-span-2"
-                      onRemove={() => removeFromTeam(id, tk)}
-                    />
-                  ))}
-                </div>
+								{/* 플레이어 칩 */}
+								<div className="grid-16" style={{ minHeight: '36px' }}>
+									{members.length === 0 && (
+										<span className="col-span-16 team-drop-hint">여기에 드롭</span>
+									)}
+									{members.map((id) => (
+										<PlayerChip
+											key={id}
+											riotId={id}
+											from={tk}
+											allStats={allStats}
+											mvpStats={mvpStats}
+											color={meta.main}
+											className="col-span-2"
+											onRemove={() => removeFromTeam(id, tk)}
+										/>
+									))}
+								</div>
 
-                {/* 팀 내 듀오 시너지 */}
-                {teamDuos.length > 0 && (
-                  <div className="team-duo-section" style={{ borderTop: `1px solid ${meta.border}` }}>
-                    <div className="team-duo-title">듀오 시너지</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}>
-                      {teamDuos.map(d => (
-                        <div key={`${d.player1}-${d.player2}`} className="team-duo-item">
-                          <span className="team-duo-names">{d.player1} + {d.player2}</span>
-                          <span className="team-duo-wr" style={{
-                            color: d.winRate >= 60 ? 'var(--color-win)' : d.winRate < 45 ? 'var(--color-loss)' : 'var(--color-text-primary)',
-                          }}>
-                            {d.winRate.toFixed(1)}% ({d.games}판)
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </DropZone>
-            );
-          })}
-        </div>
-      </section>
+								{/* 팀 내 듀오 시너지 */}
+								{teamDuos.length > 0 && (
+									<div
+										className="team-duo-section"
+										style={{ borderTop: `1px solid ${meta.border}` }}
+									>
+										<div className="team-duo-title">듀오 시너지</div>
+										<div
+											style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)' }}
+										>
+											{teamDuos.map((d) => (
+												<div key={`${d.player1}-${d.player2}`} className="team-duo-item">
+													<span className="team-duo-names">
+														{d.player1} + {d.player2}
+													</span>
+													<span
+														className="team-duo-wr"
+														style={{
+															color:
+																d.winRate >= 60
+																	? 'var(--color-win)'
+																	: d.winRate < 45
+																		? 'var(--color-loss)'
+																		: 'var(--color-text-primary)'
+														}}
+													>
+														{d.winRate.toFixed(1)}% ({d.games}판)
+													</span>
+												</div>
+											))}
+										</div>
+									</div>
+								)}
+							</DropZone>
+						);
+					})}
+				</div>
+			</section>
 
-      {/* ── 5. 전체 듀오 시너지 Top ───────────────── */}
-      <section className="stats-section card">
-        <div className="section-head">
-          <span className="icon-chip"><ZapIcon size={15} /></span>
-          <span className="section-head-title">듀오 시너지 전체</span>
-          <span className="admin-section-sub text-secondary text-xs">승률 순 정렬</span>
-        </div>
-        {duoData.length === 0 ? (
-          <p className="text-secondary text-sm">듀오 데이터가 없습니다.</p>
-        ) : (
-          <div className="grid-16">
-            {duoData.slice(0, 20).map(duo => (
-              <div key={`${duo.player1}-${duo.player2}`}
-                className="duo-ref-card col-span-4"
-                style={{ borderColor: duo.winRate >= 60 ? 'var(--color-win)' : duo.winRate < 45 ? 'var(--color-loss)' : 'var(--color-border)' }}>
-                <div className="duo-ref-players">
-                  {duo.player1} <span className="text-secondary">+</span> {duo.player2}
-                </div>
-                <div className="duo-ref-stats">
-                  <span style={{
-                    fontWeight: 700,
-                    color: duo.winRate >= 60 ? 'var(--color-win)' : duo.winRate < 45 ? 'var(--color-loss)' : 'var(--color-text-primary)',
-                  }}>
-                    {duo.winRate.toFixed(1)}%
-                  </span>
-                  <span className="text-secondary">{duo.games}판</span>
-                  <span className="text-secondary">KDA {duo.kda.toFixed(2)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-    </div>
-  );
+			{/* ── 5. 전체 듀오 시너지 Top ───────────────── */}
+			<section className="stats-section card">
+				<div className="section-head">
+					<span className="icon-chip">
+						<ZapIcon size={15} />
+					</span>
+					<span className="section-head-title">듀오 시너지 전체</span>
+					<span className="admin-section-sub text-secondary text-xs">승률 순 정렬</span>
+				</div>
+				{duoData.length === 0 ? (
+					<p className="text-secondary text-sm">듀오 데이터가 없습니다.</p>
+				) : (
+					<div className="grid-16">
+						{duoData.slice(0, 20).map((duo) => (
+							<div
+								key={`${duo.player1}-${duo.player2}`}
+								className="duo-ref-card col-span-4"
+								style={{
+									borderColor:
+										duo.winRate >= 60
+											? 'var(--color-win)'
+											: duo.winRate < 45
+												? 'var(--color-loss)'
+												: 'var(--color-border)'
+								}}
+							>
+								<div className="duo-ref-players">
+									{duo.player1} <span className="text-secondary">+</span> {duo.player2}
+								</div>
+								<div className="duo-ref-stats">
+									<span
+										style={{
+											fontWeight: 700,
+											color:
+												duo.winRate >= 60
+													? 'var(--color-win)'
+													: duo.winRate < 45
+														? 'var(--color-loss)'
+														: 'var(--color-text-primary)'
+										}}
+									>
+										{duo.winRate.toFixed(1)}%
+									</span>
+									<span className="text-secondary">{duo.games}판</span>
+									<span className="text-secondary">KDA {duo.kda.toFixed(2)}</span>
+								</div>
+							</div>
+						))}
+					</div>
+				)}
+			</section>
+		</div>
+	);
 }
 
 // ── 서브 컴포넌트 ──────────────────────────────────────
 
 interface DropZoneProps {
-  teamKey: TeamKey;
-  dragOver: TeamKey | null;
-  onDragOverChange: (key: TeamKey | null) => void;
-  onDrop: (to: TeamKey, riotId: string, from: TeamKey) => void;
-  style?: React.CSSProperties;
-  className?: string;
-  children: React.ReactNode;
+	teamKey: TeamKey;
+	dragOver: TeamKey | null;
+	onDragOverChange: (key: TeamKey | null) => void;
+	onDrop: (to: TeamKey, riotId: string, from: TeamKey) => void;
+	style?: React.CSSProperties;
+	className?: string;
+	children: React.ReactNode;
 }
-function DropZone({ teamKey, onDragOverChange, onDrop, style, className, children }: DropZoneProps) {
-  return (
-    <div
-      className={className}
-      style={style}
-      onDragOver={e => { e.preventDefault(); onDragOverChange(teamKey); }}
-      onDragLeave={e => {
-        // 자식 요소로 이동할 때는 dragLeave 무시
-        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-          onDragOverChange(null);
-        }
-      }}
-      onDrop={e => {
-        e.preventDefault();
-        const riotId = e.dataTransfer.getData('riotId');
-        const from = e.dataTransfer.getData('from') as TeamKey;
-        onDrop(teamKey, riotId, from);
-      }}
-    >
-      {children}
-    </div>
-  );
+function DropZone({
+	teamKey,
+	onDragOverChange,
+	onDrop,
+	style,
+	className,
+	children
+}: DropZoneProps) {
+	return (
+		<div
+			className={className}
+			style={style}
+			onDragOver={(e) => {
+				e.preventDefault();
+				onDragOverChange(teamKey);
+			}}
+			onDragLeave={(e) => {
+				// 자식 요소로 이동할 때는 dragLeave 무시
+				if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+					onDragOverChange(null);
+				}
+			}}
+			onDrop={(e) => {
+				e.preventDefault();
+				const riotId = e.dataTransfer.getData('riotId');
+				const from = e.dataTransfer.getData('from') as TeamKey;
+				onDrop(teamKey, riotId, from);
+			}}
+		>
+			{children}
+		</div>
+	);
 }
 
 interface PlayerChipProps {
-  riotId: string;
-  from: TeamKey;
-  allStats: PlayerStats[];
-  mvpStats: MvpPlayerStat[];
-  color: string;
-  className?: string;
-  onRemove?: () => void;
+	riotId: string;
+	from: TeamKey;
+	allStats: PlayerStats[];
+	mvpStats: MvpPlayerStat[];
+	color: string;
+	className?: string;
+	onRemove?: () => void;
 }
-function PlayerChip({ riotId, from, allStats, mvpStats, color, className, onRemove }: PlayerChipProps) {
-  const stat = allStats.find(s => s.riotId === riotId);
-  const mvp = mvpStats.find(m => m.riotId === riotId);
-  return (
-    <div
-      className={`player-chip${className ? ` ${className}` : ''}`}
-      draggable
-      onDragStart={e => {
-        e.dataTransfer.setData('riotId', riotId);
-        e.dataTransfer.setData('from', from);
-        e.dataTransfer.effectAllowed = 'move';
-      }}
-      style={{ border: `1px solid ${color}44`, background: `${color}11` }}
-    >
-      <div>
-        <div className="player-chip-name" style={{ color }}>{riotId}</div>
-        <div className="player-chip-meta">
-          {stat?.winRate.toFixed(1)}% · MVP {mvp?.avgMvpScore.toFixed(1) ?? '-'}
-        </div>
-      </div>
-      {onRemove && (
-        <button className="player-chip-remove" onClick={e => { e.stopPropagation(); onRemove(); }}>
-          <CloseIcon size={12} />
-        </button>
-      )}
-    </div>
-  );
+function PlayerChip({
+	riotId,
+	from,
+	allStats,
+	mvpStats,
+	color,
+	className,
+	onRemove
+}: PlayerChipProps) {
+	const stat = allStats.find((s) => s.riotId === riotId);
+	const mvp = mvpStats.find((m) => m.riotId === riotId);
+	return (
+		<div
+			className={`player-chip${className ? ` ${className}` : ''}`}
+			draggable
+			onDragStart={(e) => {
+				e.dataTransfer.setData('riotId', riotId);
+				e.dataTransfer.setData('from', from);
+				e.dataTransfer.effectAllowed = 'move';
+			}}
+			style={{ border: `1px solid ${color}44`, background: `${color}11` }}
+		>
+			<div>
+				<div className="player-chip-name" style={{ color }}>
+					{riotId}
+				</div>
+				<div className="player-chip-meta">
+					{stat?.winRate.toFixed(1)}% · MVP {mvp?.avgMvpScore.toFixed(1) ?? '-'}
+				</div>
+			</div>
+			{onRemove && (
+				<button
+					className="player-chip-remove"
+					onClick={(e) => {
+						e.stopPropagation();
+						onRemove();
+					}}
+				>
+					<CloseIcon size={12} />
+				</button>
+			)}
+		</div>
+	);
 }

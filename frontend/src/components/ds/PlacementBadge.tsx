@@ -13,13 +13,13 @@
  * (100경기를 뛰어도 포지션이 깨진 경기만 있으면 배치 중이다) 툴팁에 그걸 적어 둔다.
  */
 export function PlacementBadge({ minDuels }: { minDuels: number }) {
-  return (
-    <span
-      className="t-chip"
-      title={`라인 맞대결 ${minDuels}회를 채우면 순위에 들어갑니다. 표본이 모자라 순위를 매기지 않습니다.`}
-      style={{ marginLeft: 6, height: 20, fontSize: 11 }}
-    >
-      배치중
-    </span>
-  );
+	return (
+		<span
+			className="t-chip"
+			title={`라인 맞대결 ${minDuels}회를 채우면 순위에 들어갑니다. 표본이 모자라 순위를 매기지 않습니다.`}
+			style={{ marginLeft: 6, height: 20, fontSize: 11 }}
+		>
+			배치중
+		</span>
+	);
 }

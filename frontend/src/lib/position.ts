@@ -20,25 +20,25 @@ export type Position = (typeof POSITIONS)[number];
 export type MaybePosition = Position | '';
 
 export const POSITION_LABEL: Record<Position, string> = {
-  TOP: '탑',
-  JUNGLE: '정글',
-  MID: '미드',
-  ADC: '원딜',
-  SUPPORT: '서포터',
+	TOP: '탑',
+	JUNGLE: '정글',
+	MID: '미드',
+	ADC: '원딜',
+	SUPPORT: '서포터'
 };
 
 /** 화면 표기. 배정이 없으면 '-'. */
 export function positionLabel(pos: string | null | undefined): string {
-  return POSITION_LABEL[pos as Position] ?? '-';
+	return POSITION_LABEL[pos as Position] ?? '-';
 }
 
 /** 정렬용 순서. 배정이 없는 참가자는 맨 뒤로 보낸다. */
 export function positionOrder(pos: string | null | undefined): number {
-  const i = POSITIONS.indexOf(pos as Position);
-  return i === -1 ? POSITIONS.length : i;
+	const i = POSITIONS.indexOf(pos as Position);
+	return i === -1 ? POSITIONS.length : i;
 }
 
 /** 탑 → 정글 → 미드 → 원딜 → 서포터 순으로 세우는 비교자. */
 export function byPosition<T extends { assignedPosition?: string | null }>(a: T, b: T): number {
-  return positionOrder(a.assignedPosition) - positionOrder(b.assignedPosition);
+	return positionOrder(a.assignedPosition) - positionOrder(b.assignedPosition);
 }

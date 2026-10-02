@@ -11,31 +11,32 @@ const BACKEND_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081
 
 type ErrorHandler = (title: string, message: string) => void;
 let globalErrorHandler: ErrorHandler | null = null;
-export function setErrorHandler(handler: ErrorHandler) { globalErrorHandler = handler; }
+export function setErrorHandler(handler: ErrorHandler) {
+	globalErrorHandler = handler;
+}
 
 async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const config: RequestInit = {
-    ...options,
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-  };
-  const res = await fetch(url, config);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    globalErrorHandler?.(`HTTP ${res.status}`, err.message || '요청 실패');
-    throw new Error(err.message || `HTTP ${res.status}`);
-  }
-  const result: ApiResponse<T> = await res.json();
-  if (!result.success) {
-    globalErrorHandler?.('오류', result.message || '알 수 없는 오류');
-    throw new Error(result.message || 'API Error');
-  }
-  return result.data as T;
+	const config: RequestInit = {
+		...options,
+		headers: { 'Content-Type': 'application/json', ...options.headers }
+	};
+	const res = await fetch(url, config);
+	if (!res.ok) {
+		const err = await res.json().catch(() => ({}));
+		globalErrorHandler?.(`HTTP ${res.status}`, err.message || '요청 실패');
+		throw new Error(err.message || `HTTP ${res.status}`);
+	}
+	const result: ApiResponse<T> = await res.json();
+	if (!result.success) {
+		globalErrorHandler?.('오류', result.message || '알 수 없는 오류');
+		throw new Error(result.message || 'API Error');
+	}
+	return result.data as T;
 }
 
 export const api = {
-  get: <T>(endpoint: string) => request<T>(`${BACKEND_BASE}${endpoint}`),
-  post: <T>(endpoint: string, data: unknown) =>
-    request<T>(`${BACKEND_BASE}${endpoint}`, { method: 'POST', body: JSON.stringify(data) }),
-  delete: <T>(endpoint: string) => request<T>(`${BACKEND_BASE}${endpoint}`, { method: 'DELETE' }),
+	get: <T>(endpoint: string) => request<T>(`${BACKEND_BASE}${endpoint}`),
+	post: <T>(endpoint: string, data: unknown) =>
+		request<T>(`${BACKEND_BASE}${endpoint}`, { method: 'POST', body: JSON.stringify(data) }),
+	delete: <T>(endpoint: string) => request<T>(`${BACKEND_BASE}${endpoint}`, { method: 'DELETE' })
 };
-

@@ -10,26 +10,26 @@ import type { ChampionPageResult, HomeResult, SummonerProfileResult } from '@/li
  */
 
 export function useHome(mode: string = 'all') {
-  return useQuery({
-    queryKey: ['home', mode],
-    queryFn: () => api.get<HomeResult>(`/home?mode=${mode}`),
-  });
+	return useQuery({
+		queryKey: ['home', mode],
+		queryFn: () => api.get<HomeResult>(`/home?mode=${mode}`)
+	});
 }
 
 export function useSummoner(riotId: string, mode: string = 'all') {
-  return useQuery({
-    queryKey: ['summoner', riotId, mode],
-    queryFn: () =>
-      api.get<SummonerProfileResult>(`/summoner/${encodeURIComponent(riotId)}?mode=${mode}`),
-    enabled: !!riotId,
-  });
+	return useQuery({
+		queryKey: ['summoner', riotId, mode],
+		queryFn: () =>
+			api.get<SummonerProfileResult>(`/summoner/${encodeURIComponent(riotId)}?mode=${mode}`),
+		enabled: !!riotId
+	});
 }
 
 export function useChampionPage(champion: string, mode: string = 'all') {
-  return useQuery({
-    queryKey: ['champion-page', champion, mode],
-    queryFn: () =>
-      api.get<ChampionPageResult>(`/champions/${encodeURIComponent(champion)}?mode=${mode}`),
-    enabled: !!champion,
-  });
+	return useQuery({
+		queryKey: ['champion-page', champion, mode],
+		queryFn: () =>
+			api.get<ChampionPageResult>(`/champions/${encodeURIComponent(champion)}?mode=${mode}`),
+		enabled: !!champion
+	});
 }

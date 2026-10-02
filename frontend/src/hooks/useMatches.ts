@@ -11,22 +11,22 @@ const PAGE_SIZE = 20;
  * 목록이 실제로 그리는 건 챔피언·KDA·아이템뿐이라 /matches/page 로 옮겼다.
  */
 export function useMatches(mode: string = 'normal') {
-  return useInfiniteQuery({
-    queryKey: ['matches', mode],
-    initialPageParam: 0,
-    queryFn: ({ pageParam }) =>
-      api.get<MatchPage>(`/matches/page?mode=${mode}&page=${pageParam}&size=${PAGE_SIZE}`),
-    getNextPageParam: (last) => (last.hasNext ? last.page + 1 : undefined),
-  });
+	return useInfiniteQuery({
+		queryKey: ['matches', mode],
+		initialPageParam: 0,
+		queryFn: ({ pageParam }) =>
+			api.get<MatchPage>(`/matches/page?mode=${mode}&page=${pageParam}&size=${PAGE_SIZE}`),
+		getNextPageParam: (last) => (last.hasNext ? last.page + 1 : undefined)
+	});
 }
 
 /** 경기 상세. 참가자 전체 필드가 필요한 상세 화면에서만 쓴다. */
 export function useMatch(matchId: string) {
-  return useQuery({
-    queryKey: ['match', matchId],
-    queryFn: () => api.get<Match>(`/matches/${encodeURIComponent(matchId)}`),
-    enabled: !!matchId,
-  });
+	return useQuery({
+		queryKey: ['match', matchId],
+		queryFn: () => api.get<Match>(`/matches/${encodeURIComponent(matchId)}`),
+		enabled: !!matchId
+	});
 }
 
 /**
@@ -36,10 +36,10 @@ export function useMatch(matchId: string) {
  * 404 가 아니라 `hasTimeline: false` 로 정상 응답이 오므로, 그건 에러가 아니라 빈 상태다.
  */
 export function useMatchTimeline(matchId: string) {
-  return useQuery({
-    queryKey: ['match', matchId, 'timeline'],
-    queryFn: () => api.get<MatchTimeline>(`/matches/${encodeURIComponent(matchId)}/timeline`),
-    enabled: !!matchId,
-    retry: 1,
-  });
+	return useQuery({
+		queryKey: ['match', matchId, 'timeline'],
+		queryFn: () => api.get<MatchTimeline>(`/matches/${encodeURIComponent(matchId)}/timeline`),
+		enabled: !!matchId,
+		retry: 1
+	});
 }

@@ -2,66 +2,76 @@
  * BADGE — 상태 · 티어 배지
  * ================================================================ */
 .badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--tracking-wide);
-  white-space: nowrap;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 4px 10px;
+	border-radius: var(--radius-full);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-bold);
+	letter-spacing: var(--tracking-wide);
+	white-space: nowrap;
+	transition:
+		transform var(--transition-fast),
+		box-shadow var(--transition-fast);
 }
-.badge:hover { transform: scale(1.03); }
+.badge:hover {
+	transform: scale(1.03);
+}
 
 /* Sizes */
-.badge-sm { padding: 2px 6px; font-size: var(--font-size-2xs); }
-.badge-lg { padding: 6px 14px; font-size: var(--font-size-sm); }
+.badge-sm {
+	padding: 2px 6px;
+	font-size: var(--font-size-2xs);
+}
+.badge-lg {
+	padding: 6px 14px;
+	font-size: var(--font-size-sm);
+}
 
 /* Win/Loss pills */
 .badge-win {
-  background: rgba(27, 100, 218, 0.1);
-  color: var(--color-win);
-  border: 1px solid rgba(27, 100, 218, 0.2);
+	background: rgba(27, 100, 218, 0.1);
+	color: var(--color-win);
+	border: 1px solid rgba(27, 100, 218, 0.2);
 }
 
 .badge-loss {
-  background: rgba(229, 72, 77, 0.1);
-  color: var(--color-loss);
-  border: 1px solid rgba(229, 72, 77, 0.2);
+	background: rgba(229, 72, 77, 0.1);
+	color: var(--color-loss);
+	border: 1px solid rgba(229, 72, 77, 0.2);
 }
 
 /* Team color badges */
 .badge-blue {
-  background: rgba(27, 100, 218, 0.1);
-  color: var(--color-blue);
-  border: 1px solid rgba(27, 100, 218, 0.2);
+	background: rgba(27, 100, 218, 0.1);
+	color: var(--color-blue);
+	border: 1px solid rgba(27, 100, 218, 0.2);
 }
 
 .badge-red {
-  background: rgba(229, 72, 77, 0.1);
-  color: var(--color-red);
-  border: 1px solid rgba(229, 72, 77, 0.2);
+	background: rgba(229, 72, 77, 0.1);
+	color: var(--color-red);
+	border: 1px solid rgba(229, 72, 77, 0.2);
 }
 
 /* Gold / S-tier */
 .badge-gold {
-  background: rgba(49, 130, 246, 0.1);
-  color: var(--color-primary);
-  border: 1px solid rgba(49, 130, 246, 0.25);
+	background: rgba(49, 130, 246, 0.1);
+	color: var(--color-primary);
+	border: 1px solid rgba(49, 130, 246, 0.25);
 }
 
 /* Primary accent */
 .badge-primary {
-  background: rgba(49, 130, 246, 0.1);
-  color: var(--color-primary);
-  border: 1px solid rgba(49, 130, 246, 0.2);
+	background: rgba(49, 130, 246, 0.1);
+	color: var(--color-primary);
+	border: 1px solid rgba(49, 130, 246, 0.2);
 }
 
 /* Neutral */
 .badge-normal {
-  background: rgba(25, 31, 40, 0.04);
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
+	background: rgba(25, 31, 40, 0.04);
+	color: var(--color-text-secondary);
+	border: 1px solid var(--color-border);
 }

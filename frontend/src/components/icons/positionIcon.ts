@@ -7,9 +7,9 @@ import { LaneTopIcon, LaneJungleIcon, LaneMidIcon, LaneAdcIcon, LaneSupportIcon 
  * 컴포넌트 파일이 상수도 같이 내보내면 HMR 이 그 파일 전체를 다시 마운트해 상태가 날아간다.
  */
 export const POSITION_ICON = {
-  TOP: LaneTopIcon,
-  JUNGLE: LaneJungleIcon,
-  MID: LaneMidIcon,
-  ADC: LaneAdcIcon,
-  SUPPORT: LaneSupportIcon,
+	TOP: LaneTopIcon,
+	JUNGLE: LaneJungleIcon,
+	MID: LaneMidIcon,
+	ADC: LaneAdcIcon,
+	SUPPORT: LaneSupportIcon
 } as const;

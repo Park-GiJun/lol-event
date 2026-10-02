@@ -7,9 +7,9 @@ import type { ChampionTierResult } from '@/lib/types/stats';
  * 표본 미달 챔피언은 목록에 남되 서버 정렬에서 이미 뒤로 밀려 있다.
  */
 export function useChampionTier(mode = 'all', minGames = 5) {
-  return useQuery({
-    queryKey: ['champion-tier', mode, minGames],
-    queryFn: () =>
-      api.get<ChampionTierResult>(`/stats/champion-tier?mode=${mode}&minGames=${minGames}`),
-  });
+	return useQuery({
+		queryKey: ['champion-tier', mode, minGames],
+		queryFn: () =>
+			api.get<ChampionTierResult>(`/stats/champion-tier?mode=${mode}&minGames=${minGames}`)
+	});
 }

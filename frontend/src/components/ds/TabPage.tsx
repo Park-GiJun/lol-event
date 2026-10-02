@@ -14,68 +14,68 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
  */
 
 export interface TabDef {
-  key: string;
-  label: string;
-  /** 탭 이름만으로 무엇을 보는지 안 읽히는 지표가 많다. 있으면 내용 위에 한 줄로 띄운다. */
-  hint?: string;
-  /** 탭 내용. mode 를 받는 기존 탭 컴포넌트를 그대로 넘긴다. */
-  component: ComponentType<{ mode: string }>;
+	key: string;
+	label: string;
+	/** 탭 이름만으로 무엇을 보는지 안 읽히는 지표가 많다. 있으면 내용 위에 한 줄로 띄운다. */
+	hint?: string;
+	/** 탭 내용. mode 를 받는 기존 탭 컴포넌트를 그대로 넘긴다. */
+	component: ComponentType<{ mode: string }>;
 }
 
 /** 기존 탭들이 기대하는 값. 백엔드에서 normal 과 동일하게 처리된다. */
 const MODE = 'all';
 
 export function TabPage({
-  title,
-  subtitle,
-  tabs,
+	title,
+	subtitle,
+	tabs
 }: {
-  title: string;
-  subtitle?: string;
-  tabs: TabDef[];
+	title: string;
+	subtitle?: string;
+	tabs: TabDef[];
 }) {
-  const [active, setActive] = useState(tabs[0]?.key ?? '');
-  const current = tabs.find((t) => t.key === active) ?? tabs[0];
-  const Body = current?.component;
+	const [active, setActive] = useState(tabs[0]?.key ?? '');
+	const current = tabs.find((t) => t.key === active) ?? tabs[0];
+	const Body = current?.component;
 
-  return (
-    <div className="t-page">
-      <div className="t-page-head">
-        <h1 className="t-page-title">{title}</h1>
-        {subtitle && <p className="t-page-sub">{subtitle}</p>}
-      </div>
+	return (
+		<div className="t-page">
+			<div className="t-page-head">
+				<h1 className="t-page-title">{title}</h1>
+				{subtitle && <p className="t-page-sub">{subtitle}</p>}
+			</div>
 
-      <div className="t-tabs">
-        {tabs.map((t) => (
-          <button
-            key={t.key}
-            className={`t-tab${active === t.key ? ' active' : ''}`}
-            onClick={() => setActive(t.key)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+			<div className="t-tabs">
+				{tabs.map((t) => (
+					<button
+						key={t.key}
+						className={`t-tab${active === t.key ? ' active' : ''}`}
+						onClick={() => setActive(t.key)}
+					>
+						{t.label}
+					</button>
+				))}
+			</div>
 
-      <section className="t-card">
-        {current?.hint && <p className="t-tab-hint">{current.hint}</p>}
-        {/* 탭 하나가 던져도 페이지 전체가 빈 화면이 되지 않게 한다.
+			<section className="t-card">
+				{current?.hint && <p className="t-tab-hint">{current.hint}</p>}
+				{/* 탭 하나가 던져도 페이지 전체가 빈 화면이 되지 않게 한다.
             실제로 응답 필드가 어긋난 탭 셋이 이렇게 페이지를 통째로 죽이고 있었다. */}
-        <ErrorBoundary
-          fallback={
-            <p className="t-empty">
-              이 항목을 불러오지 못했습니다.
-              <span className="t-detail-sub" style={{ display: 'block', marginTop: 4 }}>
-                다른 탭은 정상입니다.
-              </span>
-            </p>
-          }
-        >
-          <Suspense fallback={<LoadingCenter />}>
-            {Body && <Body key={active} mode={MODE} />}
-          </Suspense>
-        </ErrorBoundary>
-      </section>
-    </div>
-  );
+				<ErrorBoundary
+					fallback={
+						<p className="t-empty">
+							이 항목을 불러오지 못했습니다.
+							<span className="t-detail-sub" style={{ display: 'block', marginTop: 4 }}>
+								다른 탭은 정상입니다.
+							</span>
+						</p>
+					}
+				>
+					<Suspense fallback={<LoadingCenter />}>
+						{Body && <Body key={active} mode={MODE} />}
+					</Suspense>
+				</ErrorBoundary>
+			</section>
+		</div>
+	);
 }
