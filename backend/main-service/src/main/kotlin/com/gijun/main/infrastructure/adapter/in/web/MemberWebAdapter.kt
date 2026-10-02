@@ -1,6 +1,6 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.common.response.CommonApiResponse
+import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import com.gijun.main.application.dto.member.command.RegisterBulkCommand
 import com.gijun.main.application.dto.member.command.RegisterMemberCommand
 import com.gijun.main.application.dto.member.result.BulkRegisterResult
@@ -29,7 +29,7 @@ class MemberWebAdapter(
     @Operation(summary = "멤버 등록", description = "Riot ID(게임이름#태그)로 멤버를 등록합니다. PUUID는 Riot API에서 자동 조회합니다")
     @PostMapping("/register")
     fun register(@RequestBody command: RegisterMemberCommand): CommonApiResponse<MemberResult> =
-        CommonApiResponse.created(registerMemberUseCase.register(command))
+        CommonApiResponse.success(registerMemberUseCase.register(command))
 
     @Operation(summary = "멤버 일괄 등록", description = "여러 Riot ID를 한 번에 등록합니다")
     @PostMapping("/register-bulk")

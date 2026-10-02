@@ -1,6 +1,6 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.common.response.CommonApiResponse
+import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionItemStatsCacheRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.ChampionStatsCacheRepository
 import com.gijun.main.infrastructure.adapter.out.persistence.batch.repository.PlayerStatsCacheRepository

@@ -8,7 +8,6 @@ plugins {
 extra["springCloudVersion"] = "2025.1.1"
 
 dependencies {
-    implementation(project(":common"))
     implementation(kotlin("reflect"))
 
     // Spring Boot
@@ -60,6 +59,8 @@ dependencies {
 
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-security-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

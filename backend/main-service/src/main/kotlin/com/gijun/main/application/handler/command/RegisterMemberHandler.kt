@@ -10,7 +10,7 @@ import com.gijun.main.application.port.`in`.RegisterMemberUseCase
 import com.gijun.main.application.port.out.MemberPersistencePort
 import com.gijun.main.application.port.out.RiotApiPort
 import com.gijun.main.domain.model.member.Member
-import com.gijun.common.exception.DomainAlreadyExistsException
+import com.gijun.main.domain.member.exception.MemberAlreadyExistsException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -25,7 +25,7 @@ class RegisterMemberHandler(
         val (gameName, tagLine) = parseRiotId(command.riotId)
         val account = riotApiPort.getAccount(gameName, tagLine)
         if (memberPersistencePort.existsByPuuid(account.puuid))
-            throw DomainAlreadyExistsException("이미 등록된 멤버입니다: ${command.riotId}")
+            throw MemberAlreadyExistsException(command.riotId)
         val member = memberPersistencePort.save(Member(riotId = "${account.gameName}#${account.tagLine}", puuid = account.puuid))
         return MemberResult.from(member)
     }

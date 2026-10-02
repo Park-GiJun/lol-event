@@ -1,6 +1,6 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.common.response.CommonApiResponse
+import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import com.gijun.main.application.dto.dragon.result.DragonChampionResult
 import com.gijun.main.application.dto.dragon.result.DragonItemResult
 import com.gijun.main.application.dto.dragon.result.DragonRuneResult

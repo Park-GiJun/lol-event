@@ -1,6 +1,6 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.common.response.CommonApiResponse
+import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import com.gijun.main.application.dto.stats.result.RatingValidationResult
 import com.gijun.main.application.dto.stats.result.RecalculateResult
 import com.gijun.main.application.port.`in`.GetRatingUseCase

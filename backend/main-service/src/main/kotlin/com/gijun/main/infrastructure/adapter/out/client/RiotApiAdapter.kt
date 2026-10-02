@@ -1,8 +1,8 @@
 package com.gijun.main.infrastructure.adapter.out.client
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.gijun.common.exception.DomainForbiddenException
-import com.gijun.common.exception.DomainNotFoundException
+import com.gijun.main.domain.riot.exception.RiotAccountNotFoundException
+import com.gijun.main.domain.riot.exception.RiotApiKeyExpiredException
 import com.gijun.main.application.port.out.*
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -33,8 +33,8 @@ class RiotApiAdapter(
         val response = client.get(url) { header("X-Riot-Token", apiKey) }
 
         when (response.status) {
-            HttpStatusCode.NotFound -> throw DomainNotFoundException("라이엇 계정을 찾을 수 없습니다: $gameName#$tagLine")
-            HttpStatusCode.Forbidden -> throw DomainForbiddenException("Riot API 키가 만료됐습니다")
+            HttpStatusCode.NotFound -> throw RiotAccountNotFoundException("$gameName#$tagLine")
+            HttpStatusCode.Forbidden -> throw RiotApiKeyExpiredException()
         }
 
         @Suppress("UNCHECKED_CAST")

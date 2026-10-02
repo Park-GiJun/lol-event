@@ -1,7 +1,7 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.common.exception.DomainNotFoundException
-import com.gijun.common.response.CommonApiResponse
+import com.gijun.main.domain.session.exception.SessionNotFoundException
+import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import com.gijun.main.application.dto.stats.result.BanAnalysisResult
 import com.gijun.main.application.dto.stats.result.ComebackIndexResult
 import com.gijun.main.application.dto.stats.result.EarlyGameDominanceResult
@@ -80,7 +80,7 @@ class AnalyticsStatsWebAdapter(
     ): CommonApiResponse<SessionDetailResult> =
         CommonApiResponse.success(
             getSessionDetailUseCase.getSessionDetail(date, mode)
-                ?: throw DomainNotFoundException("그 날짜에 경기가 없습니다: $date")
+                ?: throw SessionNotFoundException(date)
         )
 
     @GetMapping("/time-pattern")

@@ -8,4 +8,4 @@ rootProject.name = "lol-event-backend"
 //                   그 앞단에 호스트 nginx 가 이미 있어 한 겹이 더 끼어 있었다.
 //                   CORS 는 main-service 의 WebConfig 로, 라우팅은 nginx 로 옮겼다.
 // 되살릴 일이 있으면 git history 에서 꺼내면 된다 (7832682 이전).
-include("common", "main-service")
+include("main-service")

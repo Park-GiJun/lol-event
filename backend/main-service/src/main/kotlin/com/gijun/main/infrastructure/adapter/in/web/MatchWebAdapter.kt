@@ -1,6 +1,7 @@
 package com.gijun.main.infrastructure.adapter.`in`.web
 
-import com.gijun.common.response.CommonApiResponse
+import com.gijun.main.domain.match.exception.MatchNotFoundException
+import com.gijun.main.shared.infrastructure.web.common.CommonApiResponse
 import com.gijun.main.application.dto.match.command.SaveMatchesCommand
 import com.gijun.main.application.dto.match.result.MatchPageResult
 import com.gijun.main.application.dto.match.result.MatchTimelineResult
@@ -62,7 +63,7 @@ class MatchWebAdapter(
     ): CommonApiResponse<com.gijun.main.application.dto.match.result.MatchResult> =
         CommonApiResponse.success(
             getMatchesUseCase.getById(matchId)
-                ?: throw com.gijun.common.exception.DomainNotFoundException("경기를 찾을 수 없습니다: $matchId")
+                ?: throw MatchNotFoundException(matchId)
         )
 
     @Operation(
@@ -79,7 +80,7 @@ class MatchWebAdapter(
     ): CommonApiResponse<MatchTimelineResult> =
         CommonApiResponse.success(
             getMatchTimelineUseCase.getMatchTimeline(matchId)
-                ?: throw com.gijun.common.exception.DomainNotFoundException("경기를 찾을 수 없습니다: $matchId")
+                ?: throw MatchNotFoundException(matchId)
         )
 
     @Operation(summary = "경기 삭제", description = "matchId로 경기 데이터를 삭제합니다")

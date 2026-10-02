@@ -1,6 +1,6 @@
 package com.gijun.main.application.handler.query
 
-import com.gijun.common.exception.DomainValidationException
+import com.gijun.main.domain.session.exception.InvalidSessionDateException
 import com.gijun.main.application.dto.stats.result.SessionDetailResult
 import com.gijun.main.application.dto.stats.result.SessionMatchEntry
 import com.gijun.main.application.dto.stats.result.SessionPlayerEntry
@@ -46,7 +46,7 @@ class GetSessionDetailHandler(
     private fun parse(date: String): LocalDate = try {
         LocalDate.parse(date)
     } catch (e: DateTimeParseException) {
-        throw DomainValidationException("세션 날짜는 yyyy-MM-dd 형식이어야 합니다: $date")
+        throw InvalidSessionDateException(date)
     }
 
     private fun build(day: LocalDate, mode: String): SessionDetailResult? {

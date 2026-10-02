@@ -1,6 +1,6 @@
 package com.gijun.main.application.handler.query
 
-import com.gijun.common.exception.DomainValidationException
+import com.gijun.main.domain.session.exception.InvalidSessionDateException
 import com.gijun.main.application.port.out.MatchPeriodSummary
 import com.gijun.main.application.port.out.MatchPersistencePort
 import com.gijun.main.application.port.out.PositionCount
@@ -121,8 +121,8 @@ class GetSessionDetailHandlerTest {
     fun `날짜 형식이 틀리면 검증 예외다`() {
         val handler = handler(emptyList())
 
-        assertThrows(DomainValidationException::class.java) { handler.getSessionDetail("2026-9-14", "normal") }
-        assertThrows(DomainValidationException::class.java) { handler.getSessionDetail("어제", "normal") }
+        assertThrows(InvalidSessionDateException::class.java) { handler.getSessionDetail("2026-9-14", "normal") }
+        assertThrows(InvalidSessionDateException::class.java) { handler.getSessionDetail("어제", "normal") }
     }
 
     // ────────── 집계 ──────────
