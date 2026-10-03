@@ -95,6 +95,10 @@ class TeamBuildCommandHandler(
             null to (e.message ?: e.javaClass.simpleName)
         }
 
+    /**
+     * 모델에게 줄 사실. **비교와 판단을 여기서 끝낸다** — 라인별 Elo 차, 팀마다 강한 라인과 약한 라인,
+     * 익숙하지 않은 자리에 앉은 사람. 모델은 이걸 문장으로 옮기고, 스스로 셈하지 않는다.
+     */
     private fun commentaryFacts(
         teams: List<TeamBuildTeamResult>,
         built: TeamBuildModel,
@@ -102,16 +106,78 @@ class TeamBuildCommandHandler(
         candidates: List<TeamCandidateModel>,
     ): String =
         buildString {
+            val byId = candidates.associateBy { it.riotId }
+            val lanes = TeamBalancer.LANES.map { it.name }
+
             appendLine("## 확정된 편성")
             teams.forEach { team ->
                 appendLine("${team.name} — 평균 Elo ${team.averageElo.roundToInt()}, 기대 승률 ${(team.winProbability * PERCENT).roundToInt()}%")
                 team.members.forEach { member ->
-                    val off = if (member.offRole) " (가능 포지션이 아님)" else ""
+                    val games = byId[member.riotId]?.positionGames.orEmpty()
+                    val here = games[Position.valueOf(member.position)] ?: 0
+                    val total = games.values.sum()
+                    val familiarity =
+                        when {
+                            member.offRole -> "가능 포지션이 아닌 자리"
+                            total == 0 -> "기록 없음"
+                            else -> "이 자리 ${here}판 / 전체 ${total}판"
+                        }
                     appendLine(
-                        "- ${RagDocumentWriter.positionLabel(member.position)}: ${member.riotId} (Elo ${member.elo.roundToInt()})$off",
+                        "- ${RagDocumentWriter.positionLabel(
+                            member.position,
+                        )}: ${member.riotId} (Elo ${member.elo.roundToInt()}, $familiarity)",
                     )
                 }
             }
+
+            appendLine()
+            appendLine("## 라인별 맞대결 (라인 Elo)")
+            lanes.forEach { lane ->
+                val seats =
+                    teams
+                        .map { team ->
+                            team.name to team.members.first { it.position == lane }
+                        }.sortedByDescending { it.second.elo }
+                val gap = (seats.first().second.elo - seats.last().second.elo).roundToInt()
+                appendLine(
+                    "- ${RagDocumentWriter.positionLabel(lane)}: " +
+                        seats.joinToString(" > ") { (team, member) -> "$team ${member.riotId} ${member.elo.roundToInt()}" } +
+                        " (차이 $gap)",
+                )
+            }
+
+            appendLine()
+            appendLine("## 팀별 강한 라인과 약한 라인 (그 라인의 전체 팀 평균과의 차)")
+            val laneAverage = lanes.associateWith { lane -> teams.map { team -> team.members.first { it.position == lane }.elo }.average() }
+            teams.forEach { team ->
+                val edges = team.members.map { it to (it.elo - laneAverage.getValue(it.position)).roundToInt() }
+                val best = edges.maxBy { it.second }
+                val worst = edges.minBy { it.second }
+                // 그 자리를 거의 안 가 본 사람. "갈 수는 있다" 와 "익숙하다" 는 다르다.
+                val unfamiliar =
+                    team.members.mapNotNull { member ->
+                        val games = byId[member.riotId]?.positionGames.orEmpty()
+                        val here = games[Position.valueOf(member.position)] ?: 0
+                        val total = games.values.sum()
+                        when {
+                            member.offRole -> "${member.riotId}(${RagDocumentWriter.positionLabel(member.position)}, 가능 포지션 아님)"
+                            total > 0 && here * UNFAMILIAR_RATIO < total ->
+                                "${member.riotId}(${RagDocumentWriter.positionLabel(member.position)} ${here}판 / 전체 ${total}판)"
+                            else -> null
+                        }
+                    }
+                appendLine("- ${team.name}")
+                appendLine(
+                    "  - 가장 강한 라인: ${RagDocumentWriter.positionLabel(best.first.position)} ${best.first.riotId} " +
+                        "(Elo ${best.first.elo.roundToInt()}, 라인 평균 대비 ${signed(best.second)})",
+                )
+                appendLine(
+                    "  - 가장 약한 라인: ${RagDocumentWriter.positionLabel(worst.first.position)} ${worst.first.riotId} " +
+                        "(Elo ${worst.first.elo.roundToInt()}, 라인 평균 대비 ${signed(worst.second)})",
+                )
+                appendLine("  - 익숙하지 않은 자리에 앉은 사람: ${unfamiliar.ifEmpty { listOf("없음") }.joinToString(", ")}")
+            }
+
             appendLine()
             appendLine("## 편성 조건")
             appendLine("- 팀 평균 Elo 차: ${built.eloSpread.roundToInt()}")
@@ -126,20 +192,27 @@ class TeamBuildCommandHandler(
                 )
             }
             if (built.positionConflict) appendLine("- 가능 포지션만으로는 자리를 다 채울 수 없어서, 일부는 가능 포지션이 아닌 자리에 앉았다.")
+
             appendLine()
-            appendLine("## 플레이어 프로필")
+            appendLine("## 플레이어별 기록 (강점·약점은 같은 포지션 사람들과 비교한 순위다)")
             candidates.forEach { candidate ->
+                appendLine("### ${candidate.riotId}")
                 val profile = ragDocumentQueryPersistencePort.findContent(RagDocumentType.PLAYER_PROFILE, candidate.riotId)
-                appendLine(profile?.take(PROFILE_EXCERPT) ?: "[플레이어] ${candidate.riotId} — 기록 없음(시작 점수로 계산).")
-                appendLine()
+                val facts = profile?.lines()?.filter { line -> PROFILE_LINES.any { line.startsWith(it) } }.orEmpty()
+                if (facts.isEmpty()) appendLine("기록 없음(시작 점수로 계산).") else facts.forEach(::appendLine)
             }
         }
+
+    private fun signed(value: Int) = if (value >= 0) "+$value" else value.toString()
 
     private companion object {
         const val PERCENT = 100
 
-        /** 30 명이면 프로필만으로 컨텍스트를 꽤 쓴다. 앞부분(전적·포지션·주 챔피언)만 준다. */
-        const val PROFILE_EXCERPT = 450
+        /** 그 자리 판수가 전체의 5 분의 1 에 못 미치면 익숙하지 않은 자리로 본다. */
+        const val UNFAMILIAR_RATIO = 5
+
+        /** 프로필 문서에서 해설에 쓸 줄. 전부 주면 30 명일 때 컨텍스트를 다 쓴다. */
+        val PROFILE_LINES = listOf("전적:", "포지션:", "강점:", "약점:", "자주 하는 챔피언:")
 
         val COMMENTARY_SYSTEM =
             """
@@ -150,12 +223,22 @@ class TeamBuildCommandHandler(
             - 숫자는 주어진 것만 쓴다. 새 숫자를 만들거나 어림하지 않는다.
             - 프로필에 없는 사실(성격, 실력 평가 등)을 지어내지 않는다.
 
-            쓸 내용:
-            1. 팀별로 한두 문장 — 누가 중심이고 어느 라인이 강한지, 프로필의 포지션·주 챔피언을 근거로.
-            2. 눈여겨볼 라인 맞대결 한두 개.
-            3. 묶음이나 포지션 제한 때문에 생긴 특징이 있으면 한 문장.
+            아래 형식 그대로 쓴다. 모든 항목에 근거가 된 수치(Elo, 순위, 판수, 승률)를 괄호로 붙인다.
+            수치를 댈 수 없는 말은 쓰지 않는다.
 
-            한국어로, 군더더기 없이 쓴다. 제목이나 표는 쓰지 않는다.
+            **1팀** (평균 Elo, 기대 승률)
+            - 장점: 그 팀의 "가장 강한 라인" 과, 그 팀 선수의 "강점" 줄에 있는 것만. 두세 가지.
+            - 단점: 그 팀의 "가장 약한 라인", "익숙하지 않은 자리에 앉은 사람", 그 팀 선수의 "약점" 줄에 있는 것만. 두세 가지.
+              강한 라인을 단점에 쓰거나 약한 라인을 장점에 쓰지 않는다. 익숙하지 않은 사람이 "없음" 이면 그 얘기는 하지 않는다.
+            (팀마다 반복)
+
+            **핵심 맞대결**
+            - Elo 차가 가장 큰 라인 한두 개와, 차가 가장 작은 접전 라인 하나. 누가 유리한지와 차이.
+
+            **총평**
+            - 어느 팀이 얼마나 유리한지 한 문장. 기대 승률을 그대로 적고, 차이가 5%p 안쪽이면 "거의 비슷하다" 고 쓴다. 과장하지 않는다. 묶음이나 포지션 제한 때문에 생긴 불균형이 있으면 한 문장.
+
+            한국어로, 군더더기 없이 쓴다. 표는 쓰지 않는다.
             """.trimIndent()
     }
 }

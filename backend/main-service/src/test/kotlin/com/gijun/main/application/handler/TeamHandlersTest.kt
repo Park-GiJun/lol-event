@@ -166,7 +166,8 @@ class TeamHandlersTest {
                 }
             }
         val known = (1..10).map { candidate("p$it") }
-        val profiles = mock<RagDocumentQueryPersistencePort> { on { findContent(any(), any()) } doReturn "[플레이어] 저장된 프로필" }
+        val stored = listOf("[플레이어] p", "전적: 10판 6승", "강점: KDA 5.00 — 탑 10명 중 1위.", "같은 팀으로 많이 한 사람: 생략").joinToString("\n")
+        val profiles = mock<RagDocumentQueryPersistencePort> { on { findContent(any(), any()) } doReturn stored }
 
         val result =
             TeamBuildCommandHandler(candidates(known), profiles, llm)
@@ -175,7 +176,11 @@ class TeamHandlersTest {
         assertEquals("1팀은 탑이 강합니다.", result.commentary)
         assertTrue(facts.contains("1팀 — 평균 Elo")) { facts }
         assertTrue(facts.contains("같은 팀으로 묶음: p1, p2")) { facts }
-        assertTrue(facts.contains("[플레이어] 저장된 프로필")) { facts }
+        assertTrue(facts.contains("강점: KDA 5.00 — 탑 10명 중 1위.")) { facts }
+        // 편성과 무관한 줄은 싣지 않는다. 30 명이면 컨텍스트를 다 쓴다.
+        assertFalse(facts.contains("같은 팀으로 많이 한 사람")) { facts }
+        assertTrue(facts.contains("## 라인별 맞대결")) { facts }
+        assertTrue(facts.contains("가장 강한 라인")) { facts }
     }
 
     @Test

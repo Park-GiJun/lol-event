@@ -1,16 +1,13 @@
 package com.gijun.main.application.handler
 
 import com.gijun.main.application.dto.query.GetChampionPageQuery
-import com.gijun.main.application.dto.query.GetSummonerProfileQuery
 import com.gijun.main.application.port.`in`.DescribeChampionUseCase
 import com.gijun.main.application.port.`in`.DescribePlayerUseCase
 import com.gijun.main.application.port.`in`.GetChampionPageUseCase
 import com.gijun.main.application.port.`in`.GetChampionSynergyUseCase
 import com.gijun.main.application.port.`in`.GetDragonChampionsUseCase
-import com.gijun.main.application.port.`in`.GetSummonerProfileUseCase
 import com.gijun.main.application.port.`in`.GetTeamCandidatesUseCase
 import com.gijun.main.domain.match.enums.GameMode
-import com.gijun.main.shared.domain.vo.RiotId
 import org.springframework.stereotype.Service
 
 /**
@@ -23,7 +20,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class RagDescribeQueryHandler(
-    private val getSummonerProfileUseCase: GetSummonerProfileUseCase,
+    private val playerProfileComposer: PlayerProfileComposer,
     private val getChampionPageUseCase: GetChampionPageUseCase,
     private val getChampionSynergyUseCase: GetChampionSynergyUseCase,
     private val getDragonChampionsUseCase: GetDragonChampionsUseCase,
@@ -36,11 +33,7 @@ class RagDescribeQueryHandler(
         return when {
             matched.isEmpty() -> "'$name' 이라는 플레이어를 찾지 못했다. 등록된 사람: ${known.take(MAX_SUGGESTIONS).joinToString(", ")} 등 ${known.size}명."
             matched.size > 1 -> "'$name' 에 맞는 사람이 여럿이다: ${matched.joinToString(", ")}. 누구인지 정확히 알려 달라."
-            else ->
-                RagDocumentWriter.playerProfile(
-                    getSummonerProfileUseCase.getSummonerProfile(GetSummonerProfileQuery(RiotId(matched.single()), SCOPE)),
-                    championNames(),
-                )
+            else -> playerProfileComposer.compose(matched.single(), championNames())
         }
     }
 

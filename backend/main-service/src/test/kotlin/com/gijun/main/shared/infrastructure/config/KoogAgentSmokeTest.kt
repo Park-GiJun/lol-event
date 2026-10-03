@@ -1,12 +1,19 @@
 package com.gijun.main.shared.infrastructure.config
 
+import com.gijun.main.application.dto.command.BuildTeamsCommand
+import com.gijun.main.application.dto.command.BuildTeamsPlayer
 import com.gijun.main.application.dto.query.SearchRagDocumentsQuery
 import com.gijun.main.application.dto.result.EloLeaderboardResult
 import com.gijun.main.application.dto.result.RagDocumentResult
+import com.gijun.main.application.dto.result.TeamCandidatePositionResult
+import com.gijun.main.application.dto.result.TeamCandidateResult
+import com.gijun.main.application.handler.TeamBuildCommandHandler
 import com.gijun.main.application.port.`in`.DescribeChampionUseCase
 import com.gijun.main.application.port.`in`.DescribePlayerUseCase
 import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
+import com.gijun.main.application.port.`in`.GetTeamCandidatesUseCase
 import com.gijun.main.application.port.`in`.SearchRagDocumentsUseCase
+import com.gijun.main.application.port.out.persistence.RagDocumentQueryPersistencePort
 import com.gijun.main.domain.rag.enums.ChatRole
 import com.gijun.main.domain.rag.model.ChatMessageModel
 import com.gijun.main.infrastructure.adapter.`in`.agent.LolAgentTools
@@ -17,6 +24,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.mock
 
 /**
  * 에이전트가 **실제 모델로** tool 을 부르고 그 결과로 답하는지 본다. 집 안 망에서만 돈다.
@@ -57,6 +67,8 @@ class KoogAgentSmokeTest {
                             포지션: 탑 53판 승률 41%, 미드 28판 승률 46%, 정글 18판 승률 50%, 원딜 14판 승률 28%.
                             주 포지션은 탑.
                             서포터는 한 번도 하지 않았다.
+                            강점: 정글에서 18판 승률 50%; 사이온(Sion) 28판 승률 57% (KDA 2.91).
+                            약점: 라인 Elo 1403 — 45명 중 43위 (라인전 106번 중 40승, 승률 38%); 평균 데스 5.6 — 탑 12명 중 10위; 원딜에서 14판 승률 28%.
                             자주 하는 챔피언: 사이온(Sion) 28판 승률 57%, 초가스(Chogath) 8판 승률 25%.
                             """.trimIndent()
                     }
@@ -132,6 +144,47 @@ class KoogAgentSmokeTest {
         println("answer → $answer\ncalls → $calls")
 
         assertTrue(answer.contains("탑")) { answer }
+    }
+
+    @Test
+    fun `어떤 사람인지 물으면 장점과 단점을 tool 이 준 수치와 함께 답한다`() {
+        val answer = chat.answer(emptyList(), "아랑택 어때? 장단점 알려줘")
+        println("answer → $answer\ncalls → $calls")
+
+        assertTrue(answer.contains("장점") && answer.contains("단점")) { answer }
+        // 순위와 승률은 tool 이 준 값 그대로여야 한다.
+        val compact = answer.filterNot { it.isWhitespace() }
+        assertTrue(compact.contains("43위")) { answer }
+        assertTrue(compact.contains("28%")) { answer }
+    }
+
+    @Test
+    fun `팀 편성 해설은 팀마다 장점과 단점을 수치와 함께 쓴다`() {
+        val lanes = listOf("TOP", "JUNGLE", "MID", "ADC", "SUPPORT")
+        val known =
+            (1..10).map { i ->
+                TeamCandidateResult("선수$i#KR1", 1350.0 + i * 35, 40, lanes[i % 5], lanes.map { TeamCandidatePositionResult(it, 8) }, lanes)
+            }
+        val profiles =
+            mock<RagDocumentQueryPersistencePort> {
+                on { findContent(any(), any()) } doReturn
+                    listOf("전적: 40판 22승 18패, 승률 55%.", "강점: KDA 4.10 — 탑 12명 중 2위.", "약점: 시야 점수 14.0 — 탑 12명 중 11위.").joinToString("\n")
+            }
+        val handler =
+            TeamBuildCommandHandler(
+                object : GetTeamCandidatesUseCase {
+                    override fun getTeamCandidates() = known
+                },
+                profiles,
+                KoogLlmCompletionAdapter(executor, config.chatModel(), LlmGate()),
+            )
+
+        val result = handler.buildTeams(BuildTeamsCommand(known.map { BuildTeamsPlayer(it.riotId) }))
+        println("commentary → ${result.commentary}\nerror → ${result.commentaryError}")
+
+        val commentary = requireNotNull(result.commentary) { result.commentaryError ?: "해설 없음" }
+        assertTrue(commentary.contains("장점") && commentary.contains("단점")) { commentary }
+        assertTrue(commentary.contains("1팀") && commentary.contains("2팀")) { commentary }
     }
 
     @Test

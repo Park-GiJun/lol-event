@@ -36,6 +36,7 @@ internal object RagDocumentWriter {
     fun playerProfile(
         result: SummonerProfileResult,
         names: ChampionNames,
+        insights: PlayerInsights,
     ): String {
         val p = result.profile
         val lines = mutableListOf<String>()
@@ -57,6 +58,10 @@ internal object RagDocumentWriter {
             val never = LANE_ORDER.filterNot { it in played }
             if (never.isNotEmpty()) lines += "${never.joinToString(", ") { positionLabel(it) }}는 한 번도 하지 않았다."
         }
+
+        // 판단까지 코드가 끝낸 것이다. 모델은 이 줄을 근거와 함께 옮기기만 한다.
+        lines += "강점: " + insights.strengths.ifEmpty { listOf(NOTHING_STANDS_OUT) }.joinToString("; ") + "."
+        lines += "약점: " + insights.weaknesses.ifEmpty { listOf(NOTHING_STANDS_OUT) }.joinToString("; ") + "."
 
         val champions = result.championStats.sortedByDescending { it.games }.take(TOP_CHAMPIONS)
         if (champions.isNotEmpty()) {
@@ -175,6 +180,7 @@ internal object RagDocumentWriter {
             }
 
     private const val WIN_LINE = 50
+    private const val NOTHING_STANDS_OUT = "같은 포지션 사람들과 견줘 두드러지는 수치가 없다(표본이 적을 수도 있다)"
     private const val TOP_ALLIES = 8
     private const val SECONDS_PER_MINUTE = 60
 }

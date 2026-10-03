@@ -3,24 +3,20 @@ package com.gijun.main.application.handler
 import com.gijun.main.application.dto.command.DeleteRagDocumentCommand
 import com.gijun.main.application.dto.command.IndexRagDocumentCommand
 import com.gijun.main.application.dto.query.GetChampionPageQuery
-import com.gijun.main.application.dto.query.GetSummonerProfileQuery
 import com.gijun.main.application.dto.result.RagIndexSummaryResult
 import com.gijun.main.application.dto.result.StartRagReindexResult
 import com.gijun.main.application.port.`in`.DeleteRagDocumentUseCase
 import com.gijun.main.application.port.`in`.GetChampionPageUseCase
 import com.gijun.main.application.port.`in`.GetChampionSynergyUseCase
 import com.gijun.main.application.port.`in`.GetDragonChampionsUseCase
-import com.gijun.main.application.port.`in`.GetSummonerProfileUseCase
 import com.gijun.main.application.port.`in`.IndexMatchRagDocumentsUseCase
 import com.gijun.main.application.port.`in`.IndexRagDocumentUseCase
 import com.gijun.main.application.port.`in`.StartRagReindexUseCase
-import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
 import com.gijun.main.application.port.out.persistence.RagDocumentQueryPersistencePort
 import com.gijun.main.domain.match.enums.GameMode
 import com.gijun.main.domain.match.model.MatchModel
 import com.gijun.main.domain.rag.enums.RagDocumentType
 import com.gijun.main.shared.domain.vo.MatchId
-import com.gijun.main.shared.domain.vo.RiotId
 import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -37,9 +33,9 @@ import java.util.concurrent.Executors
  */
 @Service
 class RagIndexCommandHandler(
-    private val matchQueryPersistencePort: MatchQueryPersistencePort,
+    private val ragMatchReader: RagMatchReader,
     private val ragDocumentQueryPersistencePort: RagDocumentQueryPersistencePort,
-    private val getSummonerProfileUseCase: GetSummonerProfileUseCase,
+    private val playerProfileComposer: PlayerProfileComposer,
     private val getChampionPageUseCase: GetChampionPageUseCase,
     private val getChampionSynergyUseCase: GetChampionSynergyUseCase,
     private val getDragonChampionsUseCase: GetDragonChampionsUseCase,
@@ -60,7 +56,7 @@ class RagIndexCommandHandler(
     }
 
     override fun indexMatchRagDocuments(matchId: MatchId): RagIndexSummaryResult {
-        val match = matchQueryPersistencePort.findByMatchId(matchId) ?: return RagIndexSummaryResult(0, 0, 0)
+        val match = ragMatchReader.find(matchId) ?: return RagIndexSummaryResult(0, 0, 0)
         if (match.queueId !in SCOPE.queueIds) return RagIndexSummaryResult(0, 0, 0)
 
         val counter = Counter()
@@ -83,7 +79,7 @@ class RagIndexCommandHandler(
 
     private fun reindexAll() {
         try {
-            val matches = matchQueryPersistencePort.findAllWithParticipants(SCOPE.queueIds)
+            val matches = ragMatchReader.findAll(SCOPE.queueIds)
             val tasks = tasksFor(matches, championNames())
             progress.total(tasks.size)
             writeAll(tasks, { progress.recorded(it) }, { progress.failed(it) })
@@ -132,12 +128,7 @@ class RagIndexCommandHandler(
 
         val players =
             matches.flatMap { it.participants }.map { it.riotId }.filter { it.isNotBlank() }.distinct().map { riotId ->
-                Task(RagDocumentType.PLAYER_PROFILE, riotId) {
-                    RagDocumentWriter.playerProfile(
-                        getSummonerProfileUseCase.getSummonerProfile(GetSummonerProfileQuery(RiotId(riotId), SCOPE)),
-                        names,
-                    )
-                }
+                Task(RagDocumentType.PLAYER_PROFILE, riotId) { playerProfileComposer.compose(riotId, names) }
             }
 
         val champions =
