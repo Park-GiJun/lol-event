@@ -48,4 +48,12 @@ class KafkaConfig(
             .partitions(3)
             .replicas(1)
             .build()
+
+    @Bean
+    fun ragIndexTopic(): NewTopic =
+        TopicBuilder
+            .name("lol.rag.index")
+            .partitions(1)
+            .replicas(1)
+            .build()
 }

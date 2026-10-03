@@ -17,9 +17,14 @@ class MatchEventKafkaAdapter(
         kafkaTemplate.send(TOPIC_STATS_REBUILD, matchId.value, PAYLOAD_MATCH_SAVED)
     }
 
+    override fun publishRagIndexRequested(matchId: MatchId) {
+        kafkaTemplate.send(TOPIC_RAG_INDEX, matchId.value, PAYLOAD_MATCH_SAVED)
+    }
+
     companion object {
         const val TOPIC_ELO_CALCULATE = "lol.elo.calculate"
         const val TOPIC_STATS_REBUILD = "lol.stats.rebuild"
+        const val TOPIC_RAG_INDEX = "lol.rag.index"
         private const val PAYLOAD_MATCH_SAVED = "match_saved"
     }
 }

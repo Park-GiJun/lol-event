@@ -73,7 +73,14 @@ class ResponseDtoContractTest {
          * 웹으로 나가지 않는 결과. 배치와 에이전트 tool 이 프로세스 안에서만 쓴다.
          * 웹 어댑터가 내보내게 되면 여기서 빼고 응답 DTO 를 만든다.
          */
-        private val INTERNAL = setOf("IndexRagDocumentResult", "RagDocumentResult")
+        private val INTERNAL =
+            setOf(
+                "IndexRagDocumentResult",
+                "RagDocumentResult",
+                "RagIndexSummaryResult",
+                "ChampionSynergyResult",
+                "AllyChampionStat",
+            )
 
         /** 규칙대로 지으면 이름이 겹치거나 어색해지는 것들. */
         private val SPECIAL =

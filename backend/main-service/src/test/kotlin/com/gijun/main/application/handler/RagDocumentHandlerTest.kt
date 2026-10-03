@@ -99,6 +99,8 @@ class RagDocumentHandlerTest {
     private class FakeEmbedding : TextEmbeddingPort {
         val asked = mutableListOf<String>()
 
+        override fun isEnabled(): Boolean = true
+
         override fun embed(text: String): List<Float> {
             asked += text
             return listOf(text.length.toFloat())
@@ -137,6 +139,10 @@ class RagDocumentHandlerTest {
             lastDocType = docType
             return rows.values.take(limit).map { RagSearchHitModel(it, 0.1, Instant.EPOCH) }
         }
+
+        override fun findSourceKeys(docType: RagDocumentType): List<String> = rows.keys.filter { it.first == docType }.map { it.second }
+
+        override fun countByType(): Map<RagDocumentType, Int> = rows.keys.groupingBy { it.first }.eachCount()
 
         override fun findContent(
             docType: RagDocumentType,

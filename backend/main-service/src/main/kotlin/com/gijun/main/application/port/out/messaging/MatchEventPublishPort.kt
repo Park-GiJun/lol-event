@@ -14,4 +14,7 @@ interface MatchEventPublishPort {
 
     /** 통계 스냅샷을 다시 집계하라. 받는 쪽이 스로틀한다. */
     fun publishStatsRebuildRequested(matchId: MatchId)
+
+    /** 이 경기와, 여기 나온 사람·챔피언의 검색 문서를 다시 쓰라. RAG 가 꺼져 있으면 받는 쪽이 없다. */
+    fun publishRagIndexRequested(matchId: MatchId)
 }

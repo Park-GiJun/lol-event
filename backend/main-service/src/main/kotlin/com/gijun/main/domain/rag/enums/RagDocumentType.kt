@@ -9,6 +9,9 @@ enum class RagDocumentType {
     /** 플레이어 성향 요약. `sourceKey` 는 riotId. */
     PLAYER_PROFILE,
 
+    /** 챔피언 요약 — 누가 하고, 어느 라인에서, 누구에게 강하고 약한지. `sourceKey` 는 챔피언 영문 키. */
+    CHAMPION_PROFILE,
+
     /** 경기 리뷰. `sourceKey` 는 matchId. */
     MATCH_REVIEW,
 }

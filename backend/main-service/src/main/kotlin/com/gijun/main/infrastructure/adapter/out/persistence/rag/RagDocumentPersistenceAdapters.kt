@@ -78,6 +78,15 @@ class RagDocumentQueryPersistenceAdapter(
             .query(CONTENT, { rs, _ -> rs.getString("content") }, docType.name, sourceKey)
             .firstOrNull()
 
+    override fun findSourceKeys(docType: RagDocumentType): List<String> =
+        jdbcTemplate.query(SOURCE_KEYS, { rs, _ -> rs.getString("source_key") }, docType.name)
+
+    override fun countByType(): Map<RagDocumentType, Int> =
+        jdbcTemplate
+            .query(COUNTS) { rs, _ -> rs.getString("doc_type") to rs.getInt("documents") }
+            .mapNotNull { (name, count) -> RagDocumentType.entries.firstOrNull { it.name == name }?.let { it to count } }
+            .toMap()
+
     private fun toHit(
         rs: ResultSet,
         @Suppress("UNUSED_PARAMETER") rowNum: Int,
@@ -111,6 +120,10 @@ class RagDocumentQueryPersistenceAdapter(
              ORDER BY distance
              LIMIT ?
         """
+
+        const val SOURCE_KEYS = "SELECT source_key FROM lol_event.rag_documents WHERE doc_type = ?"
+
+        const val COUNTS = "SELECT doc_type, count(*) AS documents FROM lol_event.rag_documents GROUP BY doc_type"
 
         const val CONTENT = "SELECT content FROM lol_event.rag_documents WHERE doc_type = ? AND source_key = ?"
     }

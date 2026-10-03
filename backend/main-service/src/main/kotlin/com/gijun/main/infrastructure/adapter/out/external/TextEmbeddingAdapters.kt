@@ -15,6 +15,8 @@ class KoogTextEmbeddingAdapter(
     private val embedder: Embedder,
     private val properties: RagProperties,
 ) : TextEmbeddingPort {
+    override fun isEnabled(): Boolean = true
+
     override fun embed(text: String): List<Float> {
         val values = runBlocking { embedder.embed(text) }.values
 
@@ -36,5 +38,7 @@ class KoogTextEmbeddingAdapter(
 @Component
 @ConditionalOnProperty(prefix = "rag", name = ["enabled"], havingValue = "false", matchIfMissing = true)
 class DisabledTextEmbeddingAdapter : TextEmbeddingPort {
+    override fun isEnabled(): Boolean = false
+
     override fun embed(text: String): List<Float> = throw RagDisabledException()
 }

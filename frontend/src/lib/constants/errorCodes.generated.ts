@@ -40,7 +40,11 @@ export const ERROR_CODE = {
 	/** 경기 모드 값이 올바르지 않다 */
 	INVALID_GAME_MODE: 'INVALID_GAME_MODE',
 	/** RAG 가 꺼져 있다 */
-	RAG_DISABLED: 'RAG_DISABLED'
+	RAG_DISABLED: 'RAG_DISABLED',
+	/** 다른 질문을 처리하는 중이다 */
+	RAG_BUSY: 'RAG_BUSY',
+	/** 팀 편성 조건이 올바르지 않다 */
+	INVALID_TEAM_BUILD: 'INVALID_TEAM_BUILD'
 } as const;
 
 /** 백엔드가 내려보낼 수 있는 에러 코드 전부. */

@@ -35,4 +35,9 @@ interface RagDocumentQueryPersistencePort {
         docType: RagDocumentType,
         sourceKey: String,
     ): String?
+
+    /** 그 종류로 저장된 문서의 키 전부. 원본이 사라진 문서를 골라내는 데 쓴다. */
+    fun findSourceKeys(docType: RagDocumentType): List<String>
+
+    fun countByType(): Map<RagDocumentType, Int>
 }

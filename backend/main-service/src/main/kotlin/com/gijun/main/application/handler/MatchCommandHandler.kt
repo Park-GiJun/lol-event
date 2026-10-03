@@ -105,6 +105,7 @@ class MatchCommandHandler(
     private fun publishSaved(matchId: MatchId) {
         matchEventPublishPort.publishRatingRequested(matchId)
         matchEventPublishPort.publishStatsRebuildRequested(matchId)
+        matchEventPublishPort.publishRagIndexRequested(matchId)
     }
 
     /** 참가자 중 아직 멤버가 아닌 사람을 등록한다. PUUID 가 없는 참가자(봇 등)는 건너뛴다. */

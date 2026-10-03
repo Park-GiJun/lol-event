@@ -7,6 +7,9 @@ package com.gijun.main.application.port.out.external
  * 있어서 거리가 아무 뜻도 없다. 임베딩 모델을 바꾸면 쌓아 둔 문서를 전부 다시 임베딩한다.
  */
 interface TextEmbeddingPort {
+    /** `rag.enabled`. false 면 [embed] 는 거절한다. */
+    fun isEnabled(): Boolean
+
     /** @return 길이가 `rag.embedding.dimensions` 인 벡터 */
     fun embed(text: String): List<Float>
 }

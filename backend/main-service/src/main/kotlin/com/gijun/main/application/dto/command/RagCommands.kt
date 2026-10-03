@@ -1,6 +1,7 @@
 package com.gijun.main.application.dto.command
 
 import com.gijun.main.domain.rag.enums.RagDocumentType
+import com.gijun.main.domain.rag.model.ChatMessageModel
 
 data class IndexRagDocumentCommand(
     val docType: RagDocumentType,
@@ -12,4 +13,9 @@ data class IndexRagDocumentCommand(
 data class DeleteRagDocumentCommand(
     val docType: RagDocumentType,
     val sourceKey: String,
+)
+
+data class AskChatCommand(
+    /** 대화 전체. 오래된 것부터, 마지막은 사용자의 질문이어야 한다. */
+    val messages: List<ChatMessageModel>,
 )
