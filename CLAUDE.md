@@ -180,3 +180,44 @@ src/
   `./gradlew generateErrorCodes` 로 다시 만들고, 문구는 `errorMessages.ts` 에 채운다
   (빠뜨리면 타입이 안 맞는다).
 - import 는 `@/` 별칭으로 쓴다. CSS 는 `index.css` 에서만 불러온다.
+
+---
+
+## AI (RAG · 챗봇 · 팀 짜기)
+
+LLM 은 집 안 장비(BC-250)의 llama.cpp 서버 둘이다 — 채팅 `:8080`(모델 `qwen`), 임베딩 `:8081`(bge-m3, 1024 차원).
+Koog 로 붙는다. **기본은 꺼져 있고 `RAG_ENABLED=true` 로 켠다.** 꺼져 있어도 서비스는 그대로 뜨고,
+AI 엔드포인트만 409 `RAG_DISABLED` 를 낸다.
+
+### 원칙 — 숫자는 모델이 만들지 않는다
+
+- **검색 문서**(`lol_event.rag_documents`)의 글은 `RagDocumentWriter` 가 통계 유즈케이스의 결과로 찍어낸다.
+  LLM 으로 글을 만들지 않는다.
+- **챗봇**은 전적·승률·Elo 를 tool(`LolAgentTools`)로만 읽는다. tool 은 저장된 문서가 아니라 지금 통계로 글을 쓴다.
+- **팀 편성**은 `TeamBalancer` 가 계산한다(팀 평균 라인 Elo 를 맞춘다). LLM 은 확정된 편성의 해설만 쓴다.
+  개인 지표나 시너지를 편성 점수에 섞지 않는다 — `RatingValidationResult` 의 검증에서 전부 기준선보다 나빴다.
+
+### 흐름
+
+| 일 | 입구 | 하는 곳 |
+|---|---|---|
+| 경기가 저장되면 그 경기·사람·챔피언 문서를 다시 쓴다 | Kafka `lol.rag.index` → `RagIndexConsumer` | `RagIndexCommandHandler` |
+| 전체를 다시 쓴다(뒤에서 돈다) | `POST /api/admin/rag/reindex`, `GET /api/admin/rag/status` | `RagIndexCommandHandler` |
+| 질문에 답한다 | `POST /api/rag/chat` | `RagChatCommandHandler` → `KoogLlmChatAdapter` |
+| 팀을 짠다 | `GET /api/team-build/candidates`, `POST /api/team-build` | `TeamBuildCommandHandler` |
+
+글이 그대로인 문서는 임베딩을 건너뛴다. 그래서 전체 색인을 여러 번 돌려도 바뀐 문서만 임베딩 서버에 간다.
+
+### 고칠 때
+
+- **tool 을 더하거나 설명을 고치면** `RAG_SMOKE=1 ./gradlew :main-service:test --tests '*KoogAgentSmokeTest' -i`
+  로 실제 모델이 맞는 tool 을 부르는지 본다(집 안 망에서만 돈다). tool 설명은 모델이 읽는 글이다 —
+  한국어 예시까지 적는다.
+- **임베딩 모델을 바꾸면** `rag.embedding.dimensions` 와 `rag_documents.embedding` 의 차원을 같이 바꾸고
+  전체를 다시 색인한다. 다른 모델의 벡터끼리는 거리가 뜻이 없다.
+- **LLM 을 받는 빈**(`PromptExecutor`, `Embedder`)을 직접 주입받는 클래스에는
+  `@ConditionalOnProperty(prefix = "rag", name = ["enabled"], havingValue = "true")` 를 단다.
+  응용 계층은 포트(`TextEmbeddingPort`, `LlmChatPort`, `LlmCompletionPort`)만 받으면 된다 — 꺼져 있을 때의
+  자리 채움이 있다.
+- Postgres 는 `pgvector/pgvector` 이미지여야 한다. 확장이 없으면 `V21` 에서 마이그레이션이 실패해 서비스가 뜨지 않는다.
+  벡터 컬럼과 연산자는 `public.vector`, `OPERATOR(public.<=>)` 로 스키마를 붙여 쓴다.

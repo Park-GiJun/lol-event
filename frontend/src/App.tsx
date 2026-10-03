@@ -49,6 +49,9 @@ const AdminPage = lazy(() =>
 const TeamBuilderPage = lazy(() =>
 	import('@/features/team/TeamBuilderPage').then((m) => ({ default: m.TeamBuilderPage }))
 );
+const TeamAiPage = lazy(() =>
+	import('@/features/team/TeamAiPage').then((m) => ({ default: m.TeamAiPage }))
+);
 const StatsPage = lazy(() =>
 	import('@/features/stats/StatsPage').then((m) => ({ default: m.StatsPage }))
 );
@@ -103,6 +106,7 @@ function App() {
 						<Route path="efficiency" element={<Navigate to="/player-analysis" replace />} />
 						<Route path="reports" element={<StatsPage />} />
 
+						<Route path="team-ai" element={<TeamAiPage />} />
 						<Route path="team-builder" element={<TeamBuilderPage />} />
 						<Route path="members" element={<MembersPage />} />
 						<Route path="lcu" element={<LcuPage />} />

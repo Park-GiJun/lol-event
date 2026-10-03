@@ -28,6 +28,7 @@ import {
 import { getMvpStats, type MvpPlayerStat } from '@/api/stats/rankingStatsApi';
 import { getDuoStats, type DuoStat } from '@/api/stats/teamStatsApi';
 import { DRAGON_QUERY_KEY } from '@/hooks/useDragon';
+import { RagIndexCard } from '@/features/admin/RagIndexCard';
 import { PlayerLink } from '@/components/player/PlayerLink';
 
 const ADMIN_PASSWORD = 'admin1234';
@@ -401,6 +402,8 @@ export function AdminPage() {
 			</div>
 
 			{/* ── 1. 배치 스케쥴러 ──────────────────────── */}
+			<RagIndexCard />
+
 			<section className="stats-section card" style={{ marginBottom: 'var(--spacing-lg)' }}>
 				<div className="section-head">
 					<span className="icon-chip">

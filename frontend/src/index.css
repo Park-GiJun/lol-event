@@ -22,6 +22,8 @@
 @import './styles/components/badge.css';
 @import './styles/components/patterns.css';
 @import './styles/components/feedback.css';
+@import './styles/components/chat.css';
+@import './styles/components/team-ai.css';
 @import './styles/components/grid.css';
 @import './styles/components/admin.css';
 @import './styles/components/popup.css';

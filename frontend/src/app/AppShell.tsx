@@ -1,6 +1,7 @@
 import {
 	BarChartIcon,
 	CalendarIcon,
+	ChatIcon,
 	CloseIcon,
 	ListIcon,
 	MedalIcon,
@@ -22,6 +23,7 @@ import {
 import { useCallback, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { PlayerSearch } from '@/app/PlayerSearch';
+import { ChatWidget } from '@/components/chat/ChatWidget';
 
 /**
  * 데스크탑과 모바일을 한 벌로 처리하는 셸.
@@ -61,6 +63,7 @@ const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
 	{
 		label: '관리',
 		items: [
+			{ to: '/team-ai', icon: ChatIcon, label: 'AI 팀 짜기' },
 			{ to: '/team-builder', icon: ShuffleIcon, label: '팀 빌더' },
 			{ to: '/members', icon: UsersIcon, label: '멤버 관리' },
 			{ to: '/lcu', icon: RadioIcon, label: 'LCU 수집' },
@@ -88,6 +91,7 @@ const TITLES: [string, string][] = [
 	['/sessions', '세션'],
 	['/rankings', '리더보드'],
 	['/members', '멤버 관리'],
+	['/team-ai', 'AI 팀 짜기'],
 	['/team-builder', '팀 빌더'],
 	['/lcu', 'LCU 수집'],
 	['/sync', '동기화'],
@@ -172,6 +176,9 @@ export function AppShell() {
 					</NavLink>
 				))}
 			</nav>
+
+			{/* 챗봇은 화면이 아니라 셸에 붙는다. 어느 화면에서든 떠 있고, 옮겨 다녀도 대화가 이어진다. */}
+			<ChatWidget />
 		</div>
 	);
 }

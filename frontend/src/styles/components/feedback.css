@@ -3,7 +3,8 @@
 .toast-stack {
 	position: fixed;
 	right: var(--spacing-lg);
-	bottom: var(--spacing-lg);
+	/* 오른쪽 아래 구석은 챗봇 버튼 자리다. 그 위에 쌓는다. */
+	bottom: calc(var(--spacing-lg) + 64px);
 	z-index: 1100;
 	display: flex;
 	flex-direction: column;

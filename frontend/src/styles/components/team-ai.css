@@ -1,0 +1,202 @@
+/* AI 팀 짜기 — `features/team/TeamAiPage.tsx`. 관리자 화면의 색인 카드도 안내문 클래스를 같이 쓴다. */
+
+.team-ai-section {
+	margin-bottom: var(--spacing-md);
+}
+
+.team-ai-hint {
+	margin: 0 0 var(--spacing-md);
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-sm);
+	line-height: var(--line-height-relaxed);
+}
+
+.team-ai-problem {
+	margin: var(--spacing-sm) 0;
+	color: var(--color-error);
+	font-size: var(--font-size-sm);
+}
+
+.team-ai-search {
+	width: 100%;
+	max-width: 280px;
+	margin-bottom: var(--spacing-sm);
+	padding: var(--spacing-sm) var(--spacing-md);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	background: var(--color-bg-card);
+	font-size: var(--font-size-sm);
+}
+
+.team-ai-pool {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--spacing-xs);
+	max-height: 220px;
+	overflow-y: auto;
+}
+
+.team-ai-candidate {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	padding: 6px 12px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-full);
+	background: var(--color-bg-card);
+	color: var(--color-text-primary);
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-semibold);
+}
+
+.team-ai-candidate:hover:not(:disabled) {
+	border-color: var(--color-primary);
+	color: var(--color-primary);
+}
+
+.team-ai-candidate:disabled {
+	color: var(--color-text-disabled);
+}
+
+.team-ai-candidate-elo {
+	color: var(--color-text-muted);
+	font-size: var(--font-size-xs);
+	font-weight: var(--font-weight-medium);
+	font-variant-numeric: tabular-nums;
+}
+
+.team-ai-entries {
+	display: flex;
+	flex-direction: column;
+}
+
+.team-ai-entry {
+	display: grid;
+	grid-template-columns: minmax(110px, 1fr) auto auto auto;
+	align-items: center;
+	gap: var(--spacing-md);
+	padding: var(--spacing-sm) 0;
+	border-top: 1px solid var(--color-border-light);
+}
+
+.team-ai-entry-name {
+	display: flex;
+	align-items: baseline;
+	gap: var(--spacing-sm);
+	min-width: 0;
+	font-size: var(--font-size-sm);
+	font-weight: var(--font-weight-semibold);
+}
+
+.team-ai-positions {
+	display: flex;
+	gap: var(--spacing-xs);
+}
+
+.team-ai-position {
+	display: inline-flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1px;
+	width: 38px;
+	padding: 4px 0 2px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	background: var(--color-bg-card);
+	color: var(--color-text-disabled);
+	font-size: var(--font-size-2xs);
+	font-variant-numeric: tabular-nums;
+}
+
+.team-ai-position.on {
+	border-color: var(--color-primary);
+	background: var(--blue-50);
+	color: var(--color-primary-dark);
+}
+
+.team-ai-group {
+	padding: 6px 8px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius-md);
+	background: var(--color-bg-card);
+	font-size: var(--font-size-xs);
+}
+
+.team-ai-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--spacing-md);
+	margin-top: var(--spacing-md);
+	padding-top: var(--spacing-md);
+	border-top: 1px solid var(--color-border-light);
+}
+
+.team-ai-check {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	margin-right: auto;
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-sm);
+}
+
+.team-ai-teams {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: var(--spacing-md);
+}
+
+.team-ai-team {
+	padding: var(--spacing-md);
+	border-radius: var(--radius-lg);
+	background: var(--gray-50);
+}
+
+.team-ai-team-head {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	margin-bottom: var(--spacing-sm);
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-sm);
+}
+
+.team-ai-team-head strong {
+	margin-right: auto;
+	color: var(--color-text-primary);
+	font-size: var(--font-size-md);
+}
+
+.team-ai-member {
+	display: flex;
+	align-items: center;
+	gap: var(--spacing-sm);
+	padding: 5px 0;
+	color: var(--color-text-secondary);
+	font-size: var(--font-size-sm);
+}
+
+.team-ai-member-lane {
+	width: 44px;
+	color: var(--color-text-muted);
+	font-size: var(--font-size-xs);
+}
+
+.team-ai-member-name {
+	margin-right: auto;
+	color: var(--color-text-primary);
+	font-weight: var(--font-weight-semibold);
+}
+
+@media (max-width: 640px) {
+	.team-ai-entry {
+		grid-template-columns: 1fr auto;
+		row-gap: var(--spacing-xs);
+	}
+
+	.team-ai-positions {
+		grid-column: 1 / -1;
+		grid-row: 2;
+	}
+}

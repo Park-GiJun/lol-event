@@ -379,6 +379,25 @@ export function RefreshIcon(props: IconProps) {
 	);
 }
 
+/** 말풍선 — 챗봇 */
+export function ChatIcon(props: IconProps) {
+	return (
+		<svg {...base(props)}>
+			<path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.5 8.6 8.6 0 0 1-3.9-.9L3 21l1.9-5.6A8.4 8.4 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5z" />
+		</svg>
+	);
+}
+
+/** 보내기 */
+export function SendIcon(props: IconProps) {
+	return (
+		<svg {...base(props)}>
+			<path d="m22 2-7 20-4-9-9-4z" />
+			<path d="M22 2 11 13" />
+		</svg>
+	);
+}
+
 /** 검색 */
 export function SearchIcon(props: IconProps) {
 	return (
