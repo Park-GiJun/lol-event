@@ -106,8 +106,77 @@ release.bat
 
 ## 백엔드 API
 
-- 정본은 웹 프론트엔드(`frontend/src/hooks/*`, `frontend/src/lib/types/stats.ts`)다.
+- 정본은 웹 프론트엔드(`frontend/src/api/<도메인>/*Api.ts` — 함수와 응답 타입이 같은 파일에 있다)다.
   데스크탑 모델(`desktop-collector-rs/src/models.rs`)은 거기에 맞춘다.
 - 백엔드가 경로·필드를 정리하는 중이라, 이름이 바뀔 만한 자리에는
   `#[serde(alias = ...)]` 로 옛 이름도 같이 받아 둔다.
 - 비율 필드는 0~1 과 0~100 이 섞여 있다. `models::as_percent` 를 거쳐 쓴다.
+- **경로와 JSON 필드 이름은 수집기가 기대는 계약이다.** 백엔드 구조를 바꿔도 이 둘은 그대로 둔다.
+  응답 DTO 의 필드 이름은 `ResponseDtoContractTest` 가 지킨다.
+
+---
+
+## 백엔드 구조 (`backend/main-service`)
+
+단일 모듈 헥사고날이다. 패키지 루트는 `com.gijun.main`.
+
+```
+domain/<집합>/{model,enums,service,exception}       순수 Kotlin. Spring·JPA 를 모른다.
+application/
+  port/in/            유즈케이스. 인터페이스 하나에 메서드 하나, 이름은 인터페이스와 같다.
+                      파일은 주제별 복수형(`MatchUseCases.kt`).
+  port/out/{persistence,cache,external,messaging,batch}
+  handler/            `*QueryHandler` / `*CommandHandler`. 유즈케이스 여럿을 한 핸들러가 구현한다.
+  dto/{command,query,result}   인자가 둘 이상인 조회는 Query 객체로 받는다.
+infrastructure/
+  adapter/in/web/<영역>/        `*WebAdapter` + `dto/`(`*Request.toCommand()`, `*Response.from()`)
+  adapter/in/{messaging,runner,scheduler}
+  adapter/out/persistence/<집합>/   `*JpaEntity` · `*JpaRepository` · `*PersistenceAdapter`
+  adapter/out/{cache,external,messaging}   외부 HTTP 는 `*KtorPort` / `*KtorAdapter`
+  batch/
+shared/
+  domain/{exception,vo}                  `DomainException`(sealed) · `ErrorCode` · `RiotId`/`MatchId`/`Puuid`
+  infrastructure/{config,web/common}     `CommonApiResponse` · `GlobalExceptionHandler` · `TraceIdFilter`
+```
+
+- **예외**: `DomainException` 의 카테고리가 HTTP status 를 정하고, `ErrorCode` enum 이 코드의 정본이다.
+  코드를 문자열로 쓰지 않는다. enum 상수는 `    NAME("설명"),` 형태를 지킨다 — 프론트 생성기가 읽는다.
+- **응답**: 전부 `CommonApiResponse` 로 싼다. 웹 어댑터는 도메인 모델·Result 를 그대로 내보내지 않고
+  `*Response.from()` 을 거친다.
+- **입력 값**: 경기 모드는 `GameMode` enum(`GameModeConverter`), 식별자는 값 클래스로 받는다.
+  모르는 값은 400 이다.
+- **형식**: ktlint(`backend/.editorconfig`). 와일드카드 import 와 `!!` 를 쓰지 않는다.
+  `./gradlew build` 가 ktlint · 테스트 · `checkErrorCodes` 를 다 돈다.
+- 컨트롤러 클래스에는 `@RequestMapping(..., version = "1.0")` 를 붙인다. `X-API-Version` 헤더가
+  없어도 닿는다 — 이미 배포된 수집기는 헤더를 보내지 않는다.
+
+## 프론트 구조 (`frontend`)
+
+패키지 매니저는 pnpm 이다. 게이트는 `pnpm lint`(prettier + eslint) · `pnpm test` · `pnpm build`(tsc 포함).
+
+```
+src/
+  api/client.ts          axios. 봉투를 풀어 데이터만 돌려주고 실패는 ApiError 로 던진다.
+  api/queryClient.ts     실패 토스트를 여기 한곳에서 낸다.
+  api/<도메인>/*Api.ts    엔드포인트마다 함수 하나 + 그 응답 타입.
+  app/                   AppShell 등 뼈대
+  features/<도메인>/      화면
+  components/common/     어디서나 쓰는 것
+  components/<도메인>/    도메인에 묶인 공용 컴포넌트
+  hooks/                 여러 화면이 같이 쓰는 Query 훅
+  stores/                zustand
+  lib/                   순수 함수 · 상수
+  types/                 여러 도메인이 함께 쓰는 타입만(GameMode, SampleGrade)
+  styles/                theme.css(토큰) → global.css(바탕) → components/*.css
+```
+
+- **서버 데이터는 Query/Mutation 으로만 받는다.** `useEffect` 안에서 조회하지 않는다.
+  `queryFn` 은 `signal` 을 API 함수에 넘긴다.
+- **화면은 실패 문구를 적지 않는다.** `queryClient.ts` 가 토스트로 낸다. 문구를 바꾸려면
+  `meta.errorMessage`, 화면이 직접 말하려면 `meta: SILENT_META`, 저장 성공은 `meta.successMessage`.
+- **주소는 `/api/...` 상대경로다.** dev 는 vite proxy, 운영은 nginx 가 넘긴다. 붙일 백엔드는
+  `.env.local` 의 `VITE_DEV_BE` 로 바꾼다.
+- **에러 코드**는 `errorCodes.generated.ts` 를 고치지 않는다. 백엔드에서
+  `./gradlew generateErrorCodes` 로 다시 만들고, 문구는 `errorMessages.ts` 에 채운다
+  (빠뜨리면 타입이 안 맞는다).
+- import 는 `@/` 별칭으로 쓴다. CSS 는 `index.css` 에서만 불러온다.
