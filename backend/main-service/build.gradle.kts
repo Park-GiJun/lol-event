@@ -1,12 +1,18 @@
 plugins {
     kotlin("plugin.spring")
     kotlin("plugin.jpa")
+    kotlin("plugin.serialization")
     id("org.springframework.boot")
     id("io.spring.dependency-management")
     id("org.jlleitschuh.gradle.ktlint")
 }
 
 extra["springCloudVersion"] = "2025.1.1"
+
+// Spring Boot 의 BOM 이 Kotlin 과 kotlinx 버전을 자기 값으로 끌어내린다. Koog 1.3.0 은 Kotlin 2.3.10 ·
+// serialization 1.10.0 으로 빌드돼 있어서, 낮은 런타임에 올리면 없는 메서드를 부르다 죽는다.
+extra["kotlin.version"] = "2.3.10"
+extra["kotlin-serialization.version"] = "1.10.0"
 
 dependencies {
     implementation(kotlin("reflect"))
@@ -26,9 +32,17 @@ dependencies {
     // 두 스타터는 기동 시 레지스트리 폴링 스레드와 하트비트 스케줄러를 띄운다. 그만큼이 순수 낭비였다.
 
     // Ktor Client
-    implementation("io.ktor:ktor-client-core:3.1.1")
-    implementation("io.ktor:ktor-client-cio:3.1.1")
-    implementation("io.ktor:ktor-client-content-negotiation:3.1.1")
+    implementation("io.ktor:ktor-client-core:3.3.3")
+    implementation("io.ktor:ktor-client-cio:3.3.3")
+    implementation("io.ktor:ktor-client-content-negotiation:3.3.3")
+
+    // Koog (LLM 에이전트)
+    implementation("ai.koog:agents-core:1.3.0")
+    implementation("ai.koog:agents-tools:1.3.0")
+    implementation("ai.koog:prompt-executor-openai-client:1.3.0")
+    implementation("ai.koog:embeddings-llm:1.3.0")
+    // Koog 는 HTTP 구현을 런타임에 찾는다. 이게 없으면 클라이언트를 만드는 순간 죽는다. 엔진은 아래 Ktor CIO 를 쓴다.
+    runtimeOnly("ai.koog:http-client-ktor:1.3.0")
 
     // Database
     runtimeOnly("org.postgresql:postgresql")
