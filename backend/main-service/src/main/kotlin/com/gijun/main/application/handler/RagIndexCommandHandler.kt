@@ -76,7 +76,13 @@ class RagIndexCommandHandler(
     override fun startRagReindex(): StartRagReindexResult {
         if (!textEmbeddingPort.isEnabled()) throw RagDisabledException()
         if (!progress.tryStart()) return StartRagReindexResult(started = false)
-        executor.execute(::reindexAll)
+        try {
+            executor.execute(::reindexAll)
+        } catch (e: RuntimeException) {
+            // 맡기지 못했는데 "도는 중" 으로 남으면, 다시 뜰 때까지 색인을 시작할 수 없다.
+            progress.finish(error = e.message ?: e.javaClass.simpleName)
+            throw e
+        }
         return StartRagReindexResult(started = true)
     }
 
@@ -89,9 +95,11 @@ class RagIndexCommandHandler(
             removeOrphans(tasks)
             progress.finish()
             log.info("RAG 전체 색인 끝 — {}", progress.snapshot())
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
+            // Error(메모리 부족 등)까지 잡는다. 어떻게 끝나든 "도는 중" 을 풀어야 다음 색인을 시작할 수 있다.
             log.error("RAG 전체 색인이 중단됐다", e)
             progress.finish(error = e.message ?: e.javaClass.simpleName)
+            if (e is Error) throw e
         }
     }
 
@@ -101,15 +109,22 @@ class RagIndexCommandHandler(
         onDone: (embedded: Boolean) -> Unit,
         onFailed: (reason: String) -> Unit,
     ) {
+        var failuresInARow = 0
         tasks.forEach { task ->
             try {
                 val result = indexRagDocumentUseCase.indexRagDocument(IndexRagDocumentCommand(task.docType, task.sourceKey, task.write()))
                 onDone(result.embedded)
+                failuresInARow = 0
             } catch (e: RagDisabledException) {
                 throw e
             } catch (e: Exception) {
                 log.warn("RAG 문서를 쓰지 못했다 — {} {}: {}", task.docType, task.sourceKey, e.message)
                 onFailed("${task.docType} ${task.sourceKey}: ${e.message ?: e.javaClass.simpleName}")
+                // 연달아 실패하면 임베딩 서버가 죽은 것이다. 남은 문서마다 타임아웃을 기다리면 Kafka 컨슈머가
+                // 몇 분씩 묶여 파티션을 빼앗긴다. 그만두고, 놓친 문서는 다음 색인이 메운다.
+                if (++failuresInARow >= MAX_FAILURES_IN_A_ROW) {
+                    error("연달아 $MAX_FAILURES_IN_A_ROW 건 실패해 색인을 멈췄다. 마지막 오류: ${e.message ?: e.javaClass.simpleName}")
+                }
             }
         }
     }
@@ -184,5 +199,6 @@ class RagIndexCommandHandler(
 
     private companion object {
         val SCOPE = GameMode.ALL
+        const val MAX_FAILURES_IN_A_ROW = 3
     }
 }

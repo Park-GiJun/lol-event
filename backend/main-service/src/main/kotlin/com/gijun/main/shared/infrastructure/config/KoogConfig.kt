@@ -74,7 +74,7 @@ class KoogConfig(
             settings =
                 OpenAIClientSettings(
                     baseUrl = properties.chat.baseUrl,
-                    timeoutConfig = ConnectionTimeoutConfig(requestTimeoutMillis = properties.chat.requestTimeoutMillis),
+                    timeoutConfig = timeouts(properties.chat.requestTimeoutMillis),
                 ),
         )
 
@@ -86,7 +86,7 @@ class KoogConfig(
             settings =
                 OpenAIClientSettings(
                     baseUrl = properties.embedding.baseUrl,
-                    timeoutConfig = ConnectionTimeoutConfig(requestTimeoutMillis = properties.embedding.requestTimeoutMillis),
+                    timeoutConfig = timeouts(properties.embedding.requestTimeoutMillis),
                 ),
         )
 
@@ -103,11 +103,16 @@ class KoogConfig(
         @Qualifier(EMBEDDING) embeddingModel: LLModel,
     ): Embedder = LLMEmbedder(embeddingClient, embeddingModel)
 
+    /** 장비가 꺼져 있으면 연결에서 바로 실패하게 한다. 기본값은 길어서 요청마다 한참 기다린다. */
+    private fun timeouts(requestTimeoutMillis: Long) =
+        ConnectionTimeoutConfig(requestTimeoutMillis = requestTimeoutMillis, connectTimeoutMillis = CONNECT_TIMEOUT_MILLIS)
+
     companion object {
         const val CHAT = "ragChat"
         const val EMBEDDING = "ragEmbedding"
 
         /** bge-m3 가 한 번에 읽는 토큰 수. */
         private const val EMBEDDING_CONTEXT_LENGTH = 8_192L
+        private const val CONNECT_TIMEOUT_MILLIS = 5_000L
     }
 }
