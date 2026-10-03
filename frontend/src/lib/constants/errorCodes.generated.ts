@@ -38,7 +38,9 @@ export const ERROR_CODE = {
 	/** 식별자 형식이 올바르지 않다 */
 	INVALID_IDENTIFIER: 'INVALID_IDENTIFIER',
 	/** 경기 모드 값이 올바르지 않다 */
-	INVALID_GAME_MODE: 'INVALID_GAME_MODE'
+	INVALID_GAME_MODE: 'INVALID_GAME_MODE',
+	/** RAG 가 꺼져 있다 */
+	RAG_DISABLED: 'RAG_DISABLED'
 } as const;
 
 /** 백엔드가 내려보낼 수 있는 에러 코드 전부. */

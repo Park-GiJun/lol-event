@@ -24,7 +24,11 @@ class ResponseDtoContractTest {
     fun `모든 결과 DTO 에 짝이 되는 응답 DTO 가 있다`() {
         assertTrue(results.size > MIN_EXPECTED_RESULTS, "결과 DTO 를 못 찾았다 — 스캔 경로를 확인한다 (${results.size} 개)")
 
-        val missing = results.mapNotNull { it.simpleName }.filterNot { responseNameOf(it) in responses }
+        val missing =
+            results
+                .mapNotNull { it.simpleName }
+                .filterNot { it in INTERNAL }
+                .filterNot { responseNameOf(it) in responses }
         assertTrue(missing.isEmpty(), "응답 DTO 가 없는 결과 DTO: $missing")
     }
 
@@ -64,6 +68,12 @@ class ResponseDtoContractTest {
     private companion object {
         /** 결과 DTO 는 150 개쯤이다. 스캔이 조용히 0 개를 돌려주면 위 검사가 전부 통과해 버린다. */
         private const val MIN_EXPECTED_RESULTS = 100
+
+        /**
+         * 웹으로 나가지 않는 결과. 배치와 에이전트 tool 이 프로세스 안에서만 쓴다.
+         * 웹 어댑터가 내보내게 되면 여기서 빼고 응답 DTO 를 만든다.
+         */
+        private val INTERNAL = setOf("IndexRagDocumentResult", "RagDocumentResult")
 
         /** 규칙대로 지으면 이름이 겹치거나 어색해지는 것들. */
         private val SPECIAL =

@@ -28,7 +28,8 @@ export const ERROR_MESSAGE: Record<ErrorCode, string> = {
 	[ERROR_CODE.RIOT_API_KEY_EXPIRED]: 'Riot API 키가 만료됐습니다. 키를 갱신해 주세요.',
 	[ERROR_CODE.INVALID_SESSION_DATE]: '세션 날짜 형식이 올바르지 않습니다.',
 	[ERROR_CODE.INVALID_IDENTIFIER]: '주소가 올바르지 않습니다.',
-	[ERROR_CODE.INVALID_GAME_MODE]: '경기 모드 값이 올바르지 않습니다.'
+	[ERROR_CODE.INVALID_GAME_MODE]: '경기 모드 값이 올바르지 않습니다.',
+	[ERROR_CODE.RAG_DISABLED]: '질문 기능이 지금 꺼져 있습니다.'
 };
 
 /**
