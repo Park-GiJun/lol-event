@@ -37,12 +37,6 @@ export function RagIndexCard() {
 				<span className="section-head-title">AI 검색 문서</span>
 			</div>
 
-			{status && !status.enabled && (
-				<p className="team-ai-problem">
-					AI 기능이 꺼져 있습니다(서버의 RAG_ENABLED). 켜기 전에는 색인도 질문도 되지 않습니다.
-				</p>
-			)}
-
 			<p className="team-ai-hint">
 				저장된 문서:{' '}
 				{counts.length === 0
@@ -68,7 +62,7 @@ export function RagIndexCard() {
 			<button
 				className="btn btn-secondary"
 				onClick={() => reindex.mutate()}
-				disabled={!status?.enabled || status.running || reindex.isPending}
+				disabled={!status || status.running || reindex.isPending}
 			>
 				<RefreshIcon size={14} /> {status?.running ? '색인 중…' : '전체 다시 색인'}
 			</button>

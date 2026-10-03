@@ -6,12 +6,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * RAG(질의응답) 설정. 값은 `application.yaml` 의 `rag.*` 에 있다.
  *
  * LLM 은 집 안 장비(BC-250)의 llama.cpp 서버 둘이다 — 둘 다 OpenAI 호환 API 를 낸다.
- * 그 장비가 꺼져 있어도 통계 사이트는 떠야 하므로 기본은 꺼 둔다([enabled]).
+ * 스위치는 없다. 그 장비가 꺼져 있으면 AI 기능만 `RAG_UNAVAILABLE` 로 실패하고 나머지는 그대로 돈다
+ * — 클라이언트는 부를 때 연결하므로 기동에는 영향이 없다.
  */
 @ConfigurationProperties(prefix = "rag")
 data class RagProperties(
-    /** false 면 Koog 빈을 하나도 만들지 않는다. */
-    val enabled: Boolean = false,
     val chat: Chat = Chat(),
     val embedding: Embedding = Embedding(),
 ) {

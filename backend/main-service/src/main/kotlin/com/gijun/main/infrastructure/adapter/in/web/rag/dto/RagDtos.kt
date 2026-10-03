@@ -27,8 +27,6 @@ data class StartRagReindexResponse(
 
 @Schema(description = "색인 상태")
 data class RagIndexStatusResponse(
-    @field:Schema(description = "RAG 가 켜져 있는지")
-    val enabled: Boolean,
     val running: Boolean,
     @field:Schema(description = "이번(또는 마지막) 전체 색인이 쓸 문서 수")
     val total: Int,
@@ -45,7 +43,6 @@ data class RagIndexStatusResponse(
     companion object {
         fun from(result: RagIndexStatusResult) =
             RagIndexStatusResponse(
-                enabled = result.enabled,
                 running = result.running,
                 total = result.total,
                 processed = result.processed,

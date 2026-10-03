@@ -14,13 +14,11 @@ import com.gijun.main.application.port.`in`.GetSummonerProfileUseCase
 import com.gijun.main.application.port.`in`.IndexMatchRagDocumentsUseCase
 import com.gijun.main.application.port.`in`.IndexRagDocumentUseCase
 import com.gijun.main.application.port.`in`.StartRagReindexUseCase
-import com.gijun.main.application.port.out.external.TextEmbeddingPort
 import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
 import com.gijun.main.application.port.out.persistence.RagDocumentQueryPersistencePort
 import com.gijun.main.domain.match.enums.GameMode
 import com.gijun.main.domain.match.model.MatchModel
 import com.gijun.main.domain.rag.enums.RagDocumentType
-import com.gijun.main.domain.rag.exception.RagDisabledException
 import com.gijun.main.shared.domain.vo.MatchId
 import com.gijun.main.shared.domain.vo.RiotId
 import jakarta.annotation.PreDestroy
@@ -41,7 +39,6 @@ import java.util.concurrent.Executors
 class RagIndexCommandHandler(
     private val matchQueryPersistencePort: MatchQueryPersistencePort,
     private val ragDocumentQueryPersistencePort: RagDocumentQueryPersistencePort,
-    private val textEmbeddingPort: TextEmbeddingPort,
     private val getSummonerProfileUseCase: GetSummonerProfileUseCase,
     private val getChampionPageUseCase: GetChampionPageUseCase,
     private val getChampionSynergyUseCase: GetChampionSynergyUseCase,
@@ -63,7 +60,6 @@ class RagIndexCommandHandler(
     }
 
     override fun indexMatchRagDocuments(matchId: MatchId): RagIndexSummaryResult {
-        if (!textEmbeddingPort.isEnabled()) throw RagDisabledException()
         val match = matchQueryPersistencePort.findByMatchId(matchId) ?: return RagIndexSummaryResult(0, 0, 0)
         if (match.queueId !in SCOPE.queueIds) return RagIndexSummaryResult(0, 0, 0)
 
@@ -74,7 +70,6 @@ class RagIndexCommandHandler(
     }
 
     override fun startRagReindex(): StartRagReindexResult {
-        if (!textEmbeddingPort.isEnabled()) throw RagDisabledException()
         if (!progress.tryStart()) return StartRagReindexResult(started = false)
         try {
             executor.execute(::reindexAll)
@@ -115,8 +110,6 @@ class RagIndexCommandHandler(
                 val result = indexRagDocumentUseCase.indexRagDocument(IndexRagDocumentCommand(task.docType, task.sourceKey, task.write()))
                 onDone(result.embedded)
                 failuresInARow = 0
-            } catch (e: RagDisabledException) {
-                throw e
             } catch (e: Exception) {
                 log.warn("RAG 문서를 쓰지 못했다 — {} {}: {}", task.docType, task.sourceKey, e.message)
                 onFailed("${task.docType} ${task.sourceKey}: ${e.message ?: e.javaClass.simpleName}")

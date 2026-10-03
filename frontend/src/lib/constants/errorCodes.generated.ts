@@ -39,8 +39,8 @@ export const ERROR_CODE = {
 	INVALID_IDENTIFIER: 'INVALID_IDENTIFIER',
 	/** 경기 모드 값이 올바르지 않다 */
 	INVALID_GAME_MODE: 'INVALID_GAME_MODE',
-	/** RAG 가 꺼져 있다 */
-	RAG_DISABLED: 'RAG_DISABLED',
+	/** LLM 서버에 닿지 못했다 */
+	RAG_UNAVAILABLE: 'RAG_UNAVAILABLE',
 	/** 다른 질문을 처리하는 중이다 */
 	RAG_BUSY: 'RAG_BUSY',
 	/** 팀 편성 조건이 올바르지 않다 */

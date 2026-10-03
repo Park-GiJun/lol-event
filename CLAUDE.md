@@ -186,8 +186,8 @@ src/
 ## AI (RAG · 챗봇 · 팀 짜기)
 
 LLM 은 집 안 장비(BC-250)의 llama.cpp 서버 둘이다 — 채팅 `:8080`(모델 `qwen`), 임베딩 `:8081`(bge-m3, 1024 차원).
-Koog 로 붙는다. **기본은 꺼져 있고 `RAG_ENABLED=true` 로 켠다.** 꺼져 있어도 서비스는 그대로 뜨고,
-AI 엔드포인트만 409 `RAG_DISABLED` 를 낸다.
+Koog 로 붙는다. **스위치는 없다 — 항상 켜져 있다.** 그 장비가 꺼져 있어도 서비스는 그대로 뜨고
+(클라이언트는 부를 때 연결한다), AI 엔드포인트만 409 `RAG_UNAVAILABLE` 을 낸다.
 
 ### 원칙 — 숫자는 모델이 만들지 않는다
 
@@ -215,9 +215,6 @@ AI 엔드포인트만 409 `RAG_DISABLED` 를 낸다.
   한국어 예시까지 적는다.
 - **임베딩 모델을 바꾸면** `rag.embedding.dimensions` 와 `rag_documents.embedding` 의 차원을 같이 바꾸고
   전체를 다시 색인한다. 다른 모델의 벡터끼리는 거리가 뜻이 없다.
-- **LLM 을 받는 빈**(`PromptExecutor`, `Embedder`)을 직접 주입받는 클래스에는
-  `@ConditionalOnProperty(prefix = "rag", name = ["enabled"], havingValue = "true")` 를 단다.
-  응용 계층은 포트(`TextEmbeddingPort`, `LlmChatPort`, `LlmCompletionPort`)만 받으면 된다 — 꺼져 있을 때의
-  자리 채움이 있다.
+- 응용 계층은 Koog 를 직접 받지 않고 포트(`TextEmbeddingPort`, `LlmChatPort`, `LlmCompletionPort`)만 받는다.
 - Postgres 는 `pgvector/pgvector` 이미지여야 한다. 확장이 없으면 `V21` 에서 마이그레이션이 실패해 서비스가 뜨지 않는다.
   벡터 컬럼과 연산자는 `public.vector`, `OPERATOR(public.<=>)` 로 스키마를 붙여 쓴다.

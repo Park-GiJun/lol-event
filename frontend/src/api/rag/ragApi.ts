@@ -1,4 +1,4 @@
-/** AI — 챗봇과 검색 문서 색인. LLM 장비가 꺼져 있으면 409 `RAG_DISABLED` 가 온다. */
+/** AI — 챗봇과 검색 문서 색인. LLM 장비에 닿지 못하면 409 `RAG_UNAVAILABLE` 이 온다. */
 
 import type { AxiosRequestConfig } from 'axios';
 import { api } from '@/api/client';
@@ -23,8 +23,6 @@ export function askChat(messages: ChatMessage[], config?: AxiosRequestConfig) {
 }
 
 export interface RagIndexStatus {
-	/** RAG 가 켜져 있는지. false 면 색인도 질문도 안 된다. */
-	enabled: boolean;
 	running: boolean;
 	/** 이번(또는 마지막) 전체 색인이 쓸 문서 수. */
 	total: number;

@@ -18,7 +18,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
  */
 @EnabledIfEnvironmentVariable(named = "RAG_SMOKE", matches = "1")
 class KoogConnectivityTest {
-    private val properties = RagProperties(enabled = true)
+    private val properties = RagProperties()
     private val config = KoogConfig(properties)
 
     @Test

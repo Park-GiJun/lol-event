@@ -15,7 +15,7 @@ import com.gijun.main.application.port.out.persistence.PositionCount
 import com.gijun.main.application.port.out.persistence.RagDocumentQueryPersistencePort
 import com.gijun.main.domain.match.enums.Position
 import com.gijun.main.domain.rag.enums.RagDocumentType
-import com.gijun.main.domain.rag.exception.RagDisabledException
+import com.gijun.main.domain.rag.exception.RagUnavailableException
 import com.gijun.main.domain.rating.service.RatingMath
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -179,8 +179,8 @@ class TeamHandlersTest {
     }
 
     @Test
-    fun `LLM 이 꺼져 있어도 편성은 돌려준다`() {
-        val llm = mock<LlmCompletionPort> { on { complete(any(), any()) } doThrow RagDisabledException() }
+    fun `LLM 장비가 꺼져 있어도 편성은 돌려준다`() {
+        val llm = mock<LlmCompletionPort> { on { complete(any(), any()) } doThrow RagUnavailableException() }
         val known = (1..10).map { candidate("p$it") }
 
         val result = buildHandler(known, llm).buildTeams(command(known.map { it.riotId }, commentary = true))

@@ -9,18 +9,16 @@ import ai.koog.prompt.llm.LLModel
 import com.gijun.main.application.port.out.external.LlmChatPort
 import com.gijun.main.application.port.out.external.LlmCompletionPort
 import com.gijun.main.domain.rag.enums.ChatRole
-import com.gijun.main.domain.rag.exception.RagDisabledException
+import com.gijun.main.domain.rag.exception.RagUnavailableException
 import com.gijun.main.domain.rag.model.ChatMessageModel
 import com.gijun.main.infrastructure.adapter.`in`.agent.LolAgentTools
 import com.gijun.main.shared.infrastructure.config.KoogConfig
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 /** tool 없이 글만 받는다. */
 @Component
-@ConditionalOnProperty(prefix = "rag", name = ["enabled"], havingValue = "true")
 class KoogLlmCompletionAdapter(
     private val promptExecutor: PromptExecutor,
     @Qualifier(KoogConfig.CHAT) private val chatModel: LLModel,
@@ -32,16 +30,18 @@ class KoogLlmCompletionAdapter(
     ): String =
         gate.enter {
             runBlocking {
-                promptExecutor
-                    .execute(
-                        prompt =
-                            prompt("completion") {
-                                system(system)
-                                user(user)
-                            },
-                        model = chatModel,
-                        tools = emptyList(),
-                    ).textContent()
+                reachingLlm {
+                    promptExecutor
+                        .execute(
+                            prompt =
+                                prompt("completion") {
+                                    system(system)
+                                    user(user)
+                                },
+                            model = chatModel,
+                            tools = emptyList(),
+                        ).textContent()
+                }
             }
         }
 }
@@ -55,7 +55,6 @@ class KoogLlmCompletionAdapter(
  * 에이전트는 한 번 쓰고 버린다. 대화를 서버가 기억하지 않으므로 다시 쓸 상태가 없다.
  */
 @Component
-@ConditionalOnProperty(prefix = "rag", name = ["enabled"], havingValue = "true")
 class KoogLlmChatAdapter(
     private val promptExecutor: PromptExecutor,
     @Qualifier(KoogConfig.CHAT) private val chatModel: LLModel,
@@ -89,7 +88,7 @@ class KoogLlmChatAdapter(
                         ),
                     toolRegistry = toolRegistry,
                 )
-            runBlocking { agent.run(question) }
+            reachingLlm { runBlocking { agent.run(question) } }
         }
 
     private companion object {
@@ -125,19 +124,13 @@ class KoogLlmChatAdapter(
     }
 }
 
-/** `rag.enabled=false` 일 때의 자리 채움. 이유는 [DisabledTextEmbeddingAdapter] 와 같다. */
-@Component
-@ConditionalOnProperty(prefix = "rag", name = ["enabled"], havingValue = "false", matchIfMissing = true)
-class DisabledLlmAdapter :
-    LlmCompletionPort,
-    LlmChatPort {
-    override fun complete(
-        system: String,
-        user: String,
-    ): String = throw RagDisabledException()
-
-    override fun answer(
-        history: List<ChatMessageModel>,
-        question: String,
-    ): String = throw RagDisabledException()
-}
+/**
+ * LLM 호출이 실패하면(장비가 꺼짐, 시간 초과, 모델이 깨진 답을 냄) 원인을 감싸 한 가지 예외로 올린다.
+ * 그대로 두면 500 이 나가고 화면은 "서버 오류" 라고만 말한다. 이건 서버가 아니라 LLM 장비의 사정이다.
+ */
+private inline fun <T> reachingLlm(block: () -> T): T =
+    try {
+        block()
+    } catch (e: Exception) {
+        throw RagUnavailableException(e)
+    }

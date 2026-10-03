@@ -10,7 +10,6 @@ import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
 import com.gijun.main.application.port.`in`.SearchRagDocumentsUseCase
 import com.gijun.main.domain.rag.enums.RagDocumentType
 import org.slf4j.LoggerFactory
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import kotlin.math.roundToInt
 
@@ -23,7 +22,6 @@ import kotlin.math.roundToInt
  *   "찾지 못했다" 는 글을 받으면 모델이 다른 이름으로 다시 시도하거나 사용자에게 되묻는다.
  */
 @Component
-@ConditionalOnProperty(prefix = "rag", name = ["enabled"], havingValue = "true")
 @LLMDescription("리그 오브 레전드 내전 기록을 조회하는 도구 모음")
 class LolAgentTools(
     private val describePlayerUseCase: DescribePlayerUseCase,

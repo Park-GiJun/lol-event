@@ -2,21 +2,16 @@ package com.gijun.main.infrastructure.adapter.out.external
 
 import ai.koog.embeddings.base.Embedder
 import com.gijun.main.application.port.out.external.TextEmbeddingPort
-import com.gijun.main.domain.rag.exception.RagDisabledException
 import com.gijun.main.shared.infrastructure.config.RagProperties
 import kotlinx.coroutines.runBlocking
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 /** 임베딩 서버(bge-m3)에 Koog 로 물어본다. */
 @Component
-@ConditionalOnProperty(prefix = "rag", name = ["enabled"], havingValue = "true")
 class KoogTextEmbeddingAdapter(
     private val embedder: Embedder,
     private val properties: RagProperties,
 ) : TextEmbeddingPort {
-    override fun isEnabled(): Boolean = true
-
     override fun embed(text: String): List<Float> {
         val values = runBlocking { embedder.embed(text) }.values
 
@@ -27,18 +22,4 @@ class KoogTextEmbeddingAdapter(
         }
         return values.map { it.toFloat() }
     }
-}
-
-/**
- * `rag.enabled=false` 일 때의 자리 채움.
- *
- * 이게 없으면 꺼 둔 상태에서 [TextEmbeddingPort] 를 받는 핸들러가 빈을 못 찾아 **서비스가 뜨지 않는다.**
- * 통계 사이트는 LLM 장비와 상관없이 떠야 하므로, 빈은 두고 부를 때 거절한다.
- */
-@Component
-@ConditionalOnProperty(prefix = "rag", name = ["enabled"], havingValue = "false", matchIfMissing = true)
-class DisabledTextEmbeddingAdapter : TextEmbeddingPort {
-    override fun isEnabled(): Boolean = false
-
-    override fun embed(text: String): List<Float> = throw RagDisabledException()
 }

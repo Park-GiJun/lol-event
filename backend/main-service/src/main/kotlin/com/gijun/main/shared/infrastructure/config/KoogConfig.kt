@@ -11,7 +11,6 @@ import ai.koog.prompt.llm.LLMCapability
 import ai.koog.prompt.llm.LLMProvider
 import ai.koog.prompt.llm.LLModel
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -21,13 +20,9 @@ import org.springframework.context.annotation.Configuration
  *
  * 채팅과 임베딩은 **다른 서버**(포트)라 클라이언트도 둘이다. 한 클라이언트로 합치면 임베딩 요청이
  * 채팅 서버로 간다.
- *
- * `rag.enabled=false` 면 이 클래스의 빈이 하나도 없다. 이 빈을 받는 쪽도 같은 조건을 달아야
- * 꺼 둔 상태에서 기동이 된다.
  */
 @Configuration
 @EnableConfigurationProperties(RagProperties::class)
-@ConditionalOnProperty(prefix = "rag", name = ["enabled"], havingValue = "true")
 class KoogConfig(
     private val properties: RagProperties,
 ) {

@@ -99,8 +99,6 @@ class RagDocumentHandlerTest {
     private class FakeEmbedding : TextEmbeddingPort {
         val asked = mutableListOf<String>()
 
-        override fun isEnabled(): Boolean = true
-
         override fun embed(text: String): List<Float> {
             asked += text
             return listOf(text.length.toFloat())

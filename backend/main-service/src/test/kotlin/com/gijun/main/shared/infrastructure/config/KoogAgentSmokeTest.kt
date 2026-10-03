@@ -33,7 +33,6 @@ class KoogAgentSmokeTest {
     private val config =
         KoogConfig(
             RagProperties(
-                enabled = true,
                 chat =
                     RagProperties.Chat(
                         baseUrl =

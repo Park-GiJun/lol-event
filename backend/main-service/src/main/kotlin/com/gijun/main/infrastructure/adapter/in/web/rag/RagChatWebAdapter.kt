@@ -31,7 +31,7 @@ class RagChatWebAdapter(
         summary = "질문하기",
         description =
             "대화 전체를 보내면 마지막 질문에 답합니다. 서버는 대화를 기억하지 않습니다.\n\n" +
-                "답 하나에 수십 초가 걸릴 수 있습니다. LLM 장비가 꺼져 있으면 409 RAG_DISABLED, 줄이 길면 409 RAG_BUSY 입니다.",
+                "답 하나에 수십 초가 걸릴 수 있습니다. LLM 장비에 닿지 못하면 409 RAG_UNAVAILABLE, 줄이 길면 409 RAG_BUSY 입니다.",
     )
     fun askChat(
         @Valid @RequestBody request: AskChatRequest,

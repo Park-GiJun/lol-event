@@ -2,7 +2,6 @@ package com.gijun.main.infrastructure.adapter.out.external
 
 import ai.koog.embeddings.base.Embedder
 import ai.koog.embeddings.base.Vector
-import com.gijun.main.domain.rag.exception.RagDisabledException
 import com.gijun.main.shared.infrastructure.config.RagProperties
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -24,12 +23,7 @@ class TextEmbeddingAdaptersTest {
         assertThrows(IllegalStateException::class.java) { adapter.embed("x") }
     }
 
-    @Test
-    fun `꺼 둔 자리 채움은 부르면 거절한다`() {
-        assertThrows(RagDisabledException::class.java) { DisabledTextEmbeddingAdapter().embed("x") }
-    }
-
-    private fun properties(dimensions: Int) = RagProperties(enabled = true, embedding = RagProperties.Embedding(dimensions = dimensions))
+    private fun properties(dimensions: Int) = RagProperties(embedding = RagProperties.Embedding(dimensions = dimensions))
 
     private fun fixedEmbedder(values: List<Double>) =
         object : Embedder {

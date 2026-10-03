@@ -44,8 +44,6 @@ data class StartRagReindexResult(
 )
 
 data class RagIndexStatusResult(
-    /** `rag.enabled`. false 면 색인도 질문도 안 된다. */
-    val enabled: Boolean,
     val running: Boolean,
     /** 이번(또는 마지막) 전체 색인이 쓸 문서 수. */
     val total: Int,
