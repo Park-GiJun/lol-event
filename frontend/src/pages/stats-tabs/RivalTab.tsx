@@ -1,27 +1,16 @@
 import { FlameIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { RivalMatchupResult, RivalMatchupEntry } from '../../lib/types/stats';
+import { type RivalMatchupEntry, getRivalMatchup } from '@/api/stats/teamStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function RivalTab({ mode }: { mode: string }) {
+export default function RivalTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
-	const [data, setData] = useState<RivalMatchupResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<RivalMatchupResult>(`/stats/rival-matchup?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['rival-matchup', mode],
+		queryFn: ({ signal }) => getRivalMatchup(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

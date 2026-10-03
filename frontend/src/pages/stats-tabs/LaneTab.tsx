@@ -1,21 +1,19 @@
 import { POSITIONS, positionLabel, type Position } from '@/lib/position';
 import { POSITION_ICON } from '@/components/icons/positionIcon';
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type {
-	LaneLeaderboardResult,
-	PlayerLaneStat,
-	TimelineAverages
-} from '../../lib/types/stats';
+import { useLaneLeaderboard } from '@/hooks/useLaneLeaderboard';
+import type { PlayerLaneStat } from '@/api/stats/rankingStatsApi';
+import type { TimelineAverages } from '@/api/stats/timelineStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
-import { useDragon } from '../../context/DragonContext';
+import { useDragon } from '@/hooks/useDragon';
 import { PlayerLink } from '../../components/common/PlayerLink';
 import { ChampionLink } from '../../components/common/ChampionLink';
 import { Stat } from '@/components/ds/Stat';
 import { Diff15 } from '@/components/ds/Timeline15';
 import { useTimelineLane } from '@/hooks/usePlayerTimeline';
 import { RankBadge, ChampImg, WinRateBar } from './shared';
+import type { GameMode } from '@/types';
 
 /** 라인마다 대표로 하나 더 보여줄 열. 키는 백엔드 Position 과 같아야 한다. */
 const LANE_KEY_COL: Record<
@@ -62,31 +60,13 @@ function LaneTimelineSummary({ lane, summary }: { lane: string; summary: Timelin
 	);
 }
 
-export default function LaneTab({ mode }: { mode: string }) {
+export default function LaneTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
 	const { champions } = useDragon();
 	const [selectedLane, setSelectedLane] = useState<string>('TOP');
-	const [data, setData] = useState<LaneLeaderboardResult | null>(null);
-	const [loading, setLoading] = useState(false);
+	const { data, isLoading: loading } = useLaneLeaderboard(selectedLane, mode);
 	// 15분 지표는 부가 열이다. 못 불러오면 그 열만 '-' 로 비운다.
 	const { data: timeline } = useTimelineLane(selectedLane, mode);
-
-	const load = useCallback(
-		async (lane: string) => {
-			setLoading(true);
-			setData(null);
-			try {
-				setData(await api.get<LaneLeaderboardResult>(`/stats/lane?lane=${lane}&mode=${mode}`));
-			} finally {
-				setLoading(false);
-			}
-		},
-		[mode]
-	);
-
-	useEffect(() => {
-		load(selectedLane);
-	}, [load, selectedLane]);
 
 	const keyCol = LANE_KEY_COL[selectedLane as Position];
 	const timelineByPlayer = new Map(

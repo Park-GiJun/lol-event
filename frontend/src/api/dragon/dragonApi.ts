@@ -1,3 +1,29 @@
+/** Data Dragon 정적 데이터(챔피언 · 아이템 · 룬 · 스펠). 패치 때만 바뀐다. */
+
+import type { AxiosRequestConfig } from 'axios';
+import { api } from '@/api/client';
+
+export function getDragonChampions(config?: AxiosRequestConfig) {
+	return api.get<DragonChampion[]>('/api/ddragon/champions', config);
+}
+
+export function getDragonItems(config?: AxiosRequestConfig) {
+	return api.get<DragonItem[]>('/api/ddragon/items', config);
+}
+
+export function getDragonRunes(config?: AxiosRequestConfig) {
+	return api.get<DragonRune[]>('/api/ddragon/runes', config);
+}
+
+export function getDragonSpells(config?: AxiosRequestConfig) {
+	return api.get<DragonSummonerSpell[]>('/api/ddragon/spells', config);
+}
+
+/** 최신 버전을 받아 DB 와 서버 캐시를 갈아 끼운다. */
+export function syncDataDragon() {
+	return api.post<DragonSyncResponse>('/api/ddragon/sync');
+}
+
 export interface DragonSyncResponse {
 	version: string;
 	champions: number;

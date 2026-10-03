@@ -1,23 +1,23 @@
 import { POSITIONS as POS } from '@/lib/position';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../../lib/api/api';
-import type {
-	PositionChampionPoolResult,
-	PlayerPositionEntry,
-	PositionChampEntry
-} from '../../lib/types/stats';
+import {
+	type PlayerPositionEntry,
+	type PositionChampEntry,
+	getPositionChampionPool
+} from '@/api/stats/playstyleStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
-import { useDragon } from '../../context/DragonContext';
+import { useDragon } from '@/hooks/useDragon';
 import { PlayerLink } from '../../components/common/PlayerLink';
+import type { GameMode } from '@/types';
 
-export default function PositionPoolTab({ mode }: { mode: string }) {
+export default function PositionPoolTab({ mode }: { mode: GameMode }) {
 	const { champions } = useDragon();
 	const [selectedPos, setSelectedPos] = useState('TOP');
 	const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
 	const { data, isLoading } = useQuery({
-		queryKey: ['pos-pool', mode],
-		queryFn: () => api.get<PositionChampionPoolResult>(`/stats/position-champion-pool?mode=${mode}`)
+		queryKey: ['position-champion-pool', mode],
+		queryFn: ({ signal }) => getPositionChampionPool(mode, { signal })
 	});
 	if (isLoading) return <LoadingCenter />;
 	if (!data)

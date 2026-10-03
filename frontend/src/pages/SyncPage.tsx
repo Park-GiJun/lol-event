@@ -5,58 +5,57 @@ import {
 	SwordsIcon,
 	ZapIcon
 } from '@/components/icons/LolIcons';
-import { useState, useEffect, useCallback } from 'react';
-import { api } from '../lib/api/api';
-import type {
-	DragonSyncResponse,
-	DragonChampion,
-	DragonItem,
-	DragonSummonerSpell
-} from '../lib/types/dragon';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+	getDragonChampions,
+	getDragonItems,
+	getDragonSpells,
+	syncDataDragon,
+	type DragonChampion,
+	type DragonItem,
+	type DragonSummonerSpell
+} from '@/api/dragon/dragonApi';
+import { DRAGON_QUERY_KEY } from '@/hooks/useDragon';
 import { Spinner } from '../components/common/Spinner';
 
 type Tab = 'champions' | 'items' | 'spells';
 
+// 아직 안 왔을 때의 빈 목록. 매 렌더마다 새 배열을 만들지 않게 밖에 둔다.
+const NO_CHAMPIONS: DragonChampion[] = [];
+const NO_ITEMS: DragonItem[] = [];
+const NO_SPELLS: DragonSummonerSpell[] = [];
+
 export function SyncPage() {
-	const [syncing, setSyncing] = useState(false);
-	const [syncResult, setSyncResult] = useState<DragonSyncResponse | null>(null);
 	const [tab, setTab] = useState<Tab>('champions');
 
-	const [champions, setChampions] = useState<DragonChampion[]>([]);
-	const [items, setItems] = useState<DragonItem[]>([]);
-	const [spells, setSpells] = useState<DragonSummonerSpell[]>([]);
-	const [loadingData, setLoadingData] = useState(false);
+	// 키는 useDragon 과 같다 — 앱이 이미 받아 둔 목록을 그대로 쓰고, 동기화 뒤에는 함께 갱신된다.
+	const queryClient = useQueryClient();
+	const championsQuery = useQuery({
+		queryKey: [...DRAGON_QUERY_KEY, 'champions'],
+		queryFn: ({ signal }) => getDragonChampions({ signal })
+	});
+	const itemsQuery = useQuery({
+		queryKey: [...DRAGON_QUERY_KEY, 'items'],
+		queryFn: ({ signal }) => getDragonItems({ signal })
+	});
+	const spellsQuery = useQuery({
+		queryKey: [...DRAGON_QUERY_KEY, 'spells'],
+		queryFn: ({ signal }) => getDragonSpells({ signal })
+	});
+	const champions = championsQuery.data ?? NO_CHAMPIONS;
+	const items = itemsQuery.data ?? NO_ITEMS;
+	const spells = spellsQuery.data ?? NO_SPELLS;
+	const loadingData = championsQuery.isFetching || itemsQuery.isFetching || spellsQuery.isFetching;
 
-	const loadCachedData = useCallback(async () => {
-		setLoadingData(true);
-		try {
-			const [ch, it, sp] = await Promise.all([
-				api.get<DragonChampion[]>('/ddragon/champions'),
-				api.get<DragonItem[]>('/ddragon/items'),
-				api.get<DragonSummonerSpell[]>('/ddragon/spells')
-			]);
-			setChampions(ch);
-			setItems(it);
-			setSpells(sp);
-		} finally {
-			setLoadingData(false);
-		}
-	}, []);
-
-	useEffect(() => {
-		loadCachedData();
-	}, [loadCachedData]);
-
-	const handleSync = async () => {
-		setSyncing(true);
-		try {
-			const result = await api.post<DragonSyncResponse>('/ddragon/sync', {});
-			setSyncResult(result);
-			await loadCachedData();
-		} finally {
-			setSyncing(false);
-		}
-	};
+	const sync = useMutation({
+		mutationFn: syncDataDragon,
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: DRAGON_QUERY_KEY }),
+		meta: { successMessage: 'Data Dragon 을 동기화했습니다.' }
+	});
+	const syncing = sync.isPending;
+	const syncResult = sync.data ?? null;
+	const handleSync = () => sync.mutate();
 
 	return (
 		<div className="t-page">

@@ -1,10 +1,10 @@
 import { CrownIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { LateGameResult, LateGamePlayerEntry } from '../../lib/types/stats';
+import { type LateGamePlayerEntry, getLateGame } from '@/api/stats/combatStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { RankBadge } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
 function formatTime(seconds: number): string {
 	const m = Math.floor(seconds / 60);
@@ -12,23 +12,12 @@ function formatTime(seconds: number): string {
 	return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-export default function LateGameTab({ mode }: { mode: string }) {
+export default function LateGameTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
-	const [data, setData] = useState<LateGameResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<LateGameResult>(`/stats/late-game?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['late-game', mode],
+		queryFn: ({ signal }) => getLateGame(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

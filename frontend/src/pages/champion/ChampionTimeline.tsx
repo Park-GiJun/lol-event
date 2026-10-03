@@ -6,7 +6,7 @@ import { Stat } from '@/components/ds/Stat';
 import { Diff15 } from '@/components/ds/Timeline15';
 import { positionLabel } from '@/lib/position';
 import { diffColor, signed } from '@/lib/timeline';
-import type { TimelineChampionGame } from '@/lib/types/stats';
+import type { TimelineChampionGame } from '@/api/stats/timelineStatsApi';
 
 /**
  * 챔피언 15분 지표.

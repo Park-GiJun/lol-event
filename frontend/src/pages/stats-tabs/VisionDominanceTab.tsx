@@ -1,28 +1,17 @@
 import { EyeIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { VisionDominanceResult, VisionPlayerEntry } from '../../lib/types/stats';
+import { type VisionPlayerEntry, getVisionDominance } from '@/api/stats/roleStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { RankBadge } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function VisionDominanceTab({ mode }: { mode: string }) {
+export default function VisionDominanceTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
-	const [data, setData] = useState<VisionDominanceResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<VisionDominanceResult>(`/stats/vision-dominance?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['vision-dominance', mode],
+		queryFn: ({ signal }) => getVisionDominance(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

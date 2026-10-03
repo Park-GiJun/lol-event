@@ -1,8 +1,8 @@
 import { FlameIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
-import { api } from '../../lib/api/api';
-import type { ChaosMatchResult, ChaosMatchEntry } from '../../lib/types/stats';
+import { type ChaosMatchEntry, getChaosMatch } from '@/api/stats/combatStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
 const CHAOS_TAG_COLORS: Record<string, string> = {
 	혈전: '#e74c3c',
@@ -20,22 +20,11 @@ function formatDuration(min: number): string {
 	return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
-export default function ChaosTab({ mode }: { mode: string }) {
-	const [data, setData] = useState<ChaosMatchResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<ChaosMatchResult>(`/stats/chaos-match?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+export default function ChaosTab({ mode }: { mode: GameMode }) {
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['chaos-match', mode],
+		queryFn: ({ signal }) => getChaosMatch(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

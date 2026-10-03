@@ -109,27 +109,6 @@
 	background: var(--color-bg-secondary);
 }
 
-/* -- Error Alert -- */
-.error-alert {
-	display: flex;
-	align-items: center;
-	gap: var(--spacing-md);
-	color: var(--color-error);
-	padding: var(--spacing-sm);
-	background: rgba(229, 72, 77, 0.06);
-	border: 1px solid rgba(229, 72, 77, 0.15);
-	border-radius: var(--radius-md);
-}
-
-.error-alert-icon {
-	flex-shrink: 0;
-}
-
-.error-alert-message {
-	font-size: var(--font-size-sm);
-	line-height: var(--line-height-normal);
-}
-
 @keyframes modal-fade-in {
 	from {
 		opacity: 0;

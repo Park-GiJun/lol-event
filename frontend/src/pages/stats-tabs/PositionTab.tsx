@@ -1,31 +1,20 @@
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { PositionBadgeResult, PositionBadgeEntry } from '../../lib/types/stats';
+import { type PositionBadgeEntry, getPositionBadge } from '@/api/stats/playstyleStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
-import { useDragon } from '../../context/DragonContext';
+import { useDragon } from '@/hooks/useDragon';
 import { ChampImg } from './shared';
 import { positionLabel, type Position } from '@/lib/position';
 import { POSITION_ICON } from '@/components/icons/positionIcon';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function PositionTab({ mode }: { mode: string }) {
+export default function PositionTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
 	const { champions } = useDragon();
-	const [data, setData] = useState<PositionBadgeResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<PositionBadgeResult>(`/stats/position-badge?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['position-badge', mode],
+		queryFn: ({ signal }) => getPositionBadge(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

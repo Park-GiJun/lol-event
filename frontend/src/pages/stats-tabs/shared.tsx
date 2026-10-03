@@ -1,6 +1,7 @@
-import { useDragon } from '../../context/DragonContext';
+import type { GameMode } from '@/types';
+import { useDragon } from '@/hooks/useDragon';
 import { ChampionLink } from '../../components/common/ChampionLink';
-import type { ChampionPickStat, PlayerLeaderStat } from '../../lib/types/stats';
+import type { ChampionPickStat, PlayerLeaderStat } from '@/api/stats/overviewStatsApi';
 import { useNavigate } from 'react-router-dom';
 import { PlayerLink } from '../../components/common/PlayerLink';
 
@@ -241,7 +242,7 @@ export function HallCard({
 	label: string;
 	stat: PlayerLeaderStat | null;
 	basis: 'per-min' | 'per-match' | 'total';
-	mode?: string;
+	mode?: GameMode;
 }) {
 	const navigate = useNavigate();
 	if (!stat)

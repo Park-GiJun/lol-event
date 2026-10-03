@@ -95,3 +95,89 @@ ktlint {
 tasks.named("bootRun") {
     dependsOn("ktlintCheck")
 }
+
+// ── FE 에러 코드 생성 ────────────────────────────────────────────────────
+// `ErrorCode.kt` 를 파싱해 프론트의 `errorCodes.generated.ts` 를 만든다. 컴파일 산출물이 아니라
+// 소스를 읽는 이유는 이 task 가 **컴파일·클래스패스·Spring 컨텍스트에 기대지 않게** 하기 위함이다
+// (생성기를 main 소스셋에 두면 프로덕션 jar 에 섞이고, 별도 소스셋은 이 한 줄짜리 일에 과하다).
+//
+// 대신 파싱이 성립하려면 enum 상수 형태가 `    NAME("설명"),` 여야 한다 — 형태가 깨지면 0 건을
+// 읽고 task 가 실패한다(조용히 빈 파일을 쓰지 않는다).
+
+val errorCodeSource = file("src/main/kotlin/com/gijun/main/shared/domain/exception/ErrorCode.kt")
+val errorCodeTsFile = file("$rootDir/../frontend/src/lib/constants/errorCodes.generated.ts")
+
+// companion object 안의 COMMON 목록은 들여쓰기가 깊어(16칸) 걸리지 않는다.
+val errorCodeEntryPattern = Regex("""^ {4}([A-Z][A-Z0-9_]*)\("(.*)"\),$""")
+
+fun readErrorCodes(): List<Pair<String, String>> {
+    require(errorCodeSource.isFile) { "ErrorCode.kt 가 없다: $errorCodeSource" }
+    val entries =
+        errorCodeSource.readLines().mapNotNull { line ->
+            errorCodeEntryPattern.find(line)?.let { it.groupValues[1] to it.groupValues[2] }
+        }
+    require(entries.isNotEmpty()) {
+        "ErrorCode.kt 에서 코드를 하나도 읽지 못했다 — enum 상수가 `    NAME(\"설명\"),` 형태인지 확인한다."
+    }
+    val duplicated = entries.groupBy { it.first }.filterValues { it.size > 1 }.keys
+    require(duplicated.isEmpty()) { "중복된 에러 코드: $duplicated" }
+    return entries
+}
+
+// prettier 설정을 따른다 — 탭 들여쓰기 · 작은따옴표 · trailingComma none.
+fun renderErrorCodeTs(): String =
+    buildString {
+        appendLine("/**")
+        appendLine(" * 에러 코드 — **백엔드의 `ErrorCode` enum 에서 생성된다. 직접 고치지 않는다.**")
+        appendLine(" *")
+        appendLine(" * 정본: `backend/main-service/src/main/kotlin/com/gijun/main/shared/domain/exception/ErrorCode.kt`")
+        appendLine(" * 재생성: backend 에서 `./gradlew generateErrorCodes`")
+        appendLine(" *")
+        appendLine(" * 화면에 띄울 문구는 여기 없다 — `errorMessages.ts` 가 소유한다.")
+        appendLine(" * 아래 주석은 백엔드가 적어 둔 설명으로, 문구를 쓸 때 참고하는 값이다.")
+        appendLine(" */")
+        appendLine()
+        appendLine("export const ERROR_CODE = {")
+        readErrorCodes().forEach { (code, description) ->
+            appendLine("\t/** $description */")
+            appendLine("\t$code: '$code',")
+        }
+        appendLine("} as const;")
+        appendLine()
+        appendLine("/** 백엔드가 내려보낼 수 있는 에러 코드 전부. */")
+        appendLine("export type ErrorCode = (typeof ERROR_CODE)[keyof typeof ERROR_CODE];")
+    }.replace(",\n} as const;", "\n} as const;") // trailingComma: none
+
+tasks.register("generateErrorCodes") {
+    group = "codegen"
+    description = "ErrorCode enum 에서 프론트의 errorCodes.generated.ts 를 만든다."
+    inputs.file(errorCodeSource)
+    outputs.file(errorCodeTsFile)
+    doLast {
+        errorCodeTsFile.parentFile.mkdirs()
+        errorCodeTsFile.writeText(renderErrorCodeTs())
+        logger.lifecycle("에러 코드 ${readErrorCodes().size} 종을 생성했다 — $errorCodeTsFile")
+    }
+}
+
+tasks.register("checkErrorCodes") {
+    group = "verification"
+    description = "프론트 생성물이 ErrorCode enum 과 어긋나지 않는지 본다."
+    inputs.file(errorCodeSource)
+    doLast {
+        // 개행은 정규화해서 비교한다 — git autocrlf 가 CRLF 로 바꿔 두면 내용이 같아도 어긋난다.
+        val expected = renderErrorCodeTs().replace("\r\n", "\n")
+        val actual = errorCodeTsFile.takeIf { it.isFile }?.readText()?.replace("\r\n", "\n")
+        check(actual == expected) {
+            "프론트 에러 코드 생성물이 ErrorCode enum 과 다르다 — `./gradlew generateErrorCodes` 를 돌리고 같이 커밋한다.\n" +
+                "  대상: $errorCodeTsFile"
+        }
+    }
+}
+
+// 프론트 디렉터리가 있을 때만 검사에 건다 — 백엔드만 체크아웃한 곳에서 빌드가 깨지지 않게.
+if (file("$rootDir/../frontend/src").isDirectory) {
+    tasks.named("check") {
+        dependsOn("checkErrorCodes")
+    }
+}

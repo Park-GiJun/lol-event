@@ -1,12 +1,11 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { PlayerDetailStats } from '../../lib/types/stats';
-import { useDragon } from '../../context/DragonContext';
-
-// 모듈 레벨 캐시 — 리렌더링 시에도 재요청 없음
-const cache = new Map<string, PlayerDetailStats>();
+import { useQuery } from '@tanstack/react-query';
+import { SILENT_META } from '@/api/queryClient';
+import { getPlayerStats, type PlayerDetailStats } from '@/api/stats/playerStatsApi';
+import type { GameMode } from '@/types';
+import { useDragon } from '@/hooks/useDragon';
 
 function PlayerPopupContent({ riotId, data }: { riotId: string; data: PlayerDetailStats }) {
 	const { champions } = useDragon();
@@ -135,15 +134,19 @@ interface PlayerLinkProps {
 	riotId: string;
 	children: React.ReactNode;
 	className?: string;
-	mode?: string;
+	mode?: GameMode;
 }
 
 export function PlayerLink({ riotId, children, className, mode = 'normal' }: PlayerLinkProps) {
 	const [visible, setVisible] = useState(false);
 	const [pos, setPos] = useState({ x: 0, y: 0, flipY: false });
-	const [data, setData] = useState<PlayerDetailStats | null>(null);
-	const [loadError, setLoadError] = useState(false);
-	const [loading, setLoading] = useState(false);
+	// 올렸을 때만 받는다. 부가 정보라 실패해도 알리지 않고 팝업 안에서만 말한다.
+	const { data, isError: loadError } = useQuery({
+		queryKey: ['player-stats', riotId, mode],
+		queryFn: ({ signal }) => getPlayerStats(riotId, mode, { signal }),
+		enabled: visible,
+		meta: SILENT_META
+	});
 	const triggerRef = useRef<HTMLSpanElement>(null);
 	const showTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 	const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -155,27 +158,6 @@ export function PlayerLink({ riotId, children, className, mode = 'normal' }: Pla
 			clearTimeout(hideTimer.current);
 		};
 	}, []);
-
-	const fetchData = useCallback(async () => {
-		const key = `${riotId}:${mode}`;
-		if (cache.has(key)) {
-			setData(cache.get(key)!);
-			return;
-		}
-		setLoading(true);
-		setLoadError(false);
-		try {
-			const result = await api.get<PlayerDetailStats>(
-				`/stats/player/${encodeURIComponent(riotId)}?mode=${mode}`
-			);
-			cache.set(key, result);
-			setData(result);
-		} catch {
-			setLoadError(true);
-		} finally {
-			setLoading(false);
-		}
-	}, [riotId, mode]);
 
 	function handleMouseEnter() {
 		clearTimeout(hideTimer.current);
@@ -189,7 +171,6 @@ export function PlayerLink({ riotId, children, className, mode = 'normal' }: Pla
 			const y = flipY ? rect.top - POPUP_H - 4 : rect.bottom + 4;
 			setPos({ x, y, flipY });
 			setVisible(true);
-			fetchData();
 		}, 220);
 	}
 
@@ -221,7 +202,7 @@ export function PlayerLink({ riotId, children, className, mode = 'normal' }: Pla
 							<div className="popup-loading" style={{ color: 'var(--color-error)' }}>
 								데이터를 불러올 수 없습니다.
 							</div>
-						) : loading || !data ? (
+						) : !data ? (
 							<div className="popup-loading">
 								<span className="popup-loading-dot" />
 								{riotId.split('#')[0]} 로딩 중…

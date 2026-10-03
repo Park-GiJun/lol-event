@@ -1,5 +1,11 @@
-import { BaronIcon, DragonIcon, MinionIcon, NexusIcon, TurretIcon } from './LolIcons';
-import type { IconComponent } from './LolIcons';
+import {
+	BaronIcon,
+	DragonIcon,
+	MinionIcon,
+	NexusIcon,
+	TurretIcon,
+	type IconComponent
+} from './LolIcons';
 
 /**
  * 오브젝트 종류 -> 아이콘. 키는 백엔드 `ObjectiveEntry.kind` 와 같다.

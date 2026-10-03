@@ -4,7 +4,7 @@ import { Stat } from '@/components/ds/Stat';
 import { SkullIcon, SwordsIcon } from '@/components/icons/LolIcons';
 import { OBJECTIVE_ICON, objectiveLabel } from '@/components/icons/objectiveIcon';
 import { formatClock } from '@/lib/chart';
-import type { MatchTimeline } from '@/lib/types/match';
+import type { MatchTimeline } from '@/api/match/matchApi';
 
 /**
  * 경기 한 판의 흐름.

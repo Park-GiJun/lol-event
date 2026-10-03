@@ -1,30 +1,25 @@
 import { useState } from 'react';
-import { api } from '../../lib/api/api';
-import type { PlayerComparisonResult, PlayerStatSnapshot } from '../../lib/types/stats';
+import { useQuery } from '@tanstack/react-query';
+import { getPlayerComparison, type PlayerStatSnapshot } from '@/api/stats/playerStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { Button } from '../../components/common/Button';
+import type { GameMode } from '@/types';
 
-export default function CompareTab({ mode }: { mode: string }) {
+export default function CompareTab({ mode }: { mode: GameMode }) {
 	const [p1Input, setP1Input] = useState('');
 	const [p2Input, setP2Input] = useState('');
-	const [data, setData] = useState<PlayerComparisonResult | null>(null);
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+	// 입력하는 동안에는 조회하지 않는다. '비교' 를 누른 조합만 키가 된다.
+	const [pair, setPair] = useState<{ p1: string; p2: string } | null>(null);
+	const { data, isFetching: loading } = useQuery({
+		queryKey: ['compare', pair?.p1, pair?.p2, mode],
+		queryFn: ({ signal }) => getPlayerComparison(pair!.p1, pair!.p2, mode, { signal }),
+		enabled: !!pair
+	});
 
-	const load = async () => {
-		if (!p1Input.trim() || !p2Input.trim()) return;
-		setLoading(true);
-		setError(null);
-		try {
-			const result = await api.get<PlayerComparisonResult>(
-				`/stats/compare?player1=${encodeURIComponent(p1Input.trim())}&player2=${encodeURIComponent(p2Input.trim())}&mode=${mode}`
-			);
-			setData(result);
-		} catch {
-			setError('데이터를 불러오지 못했습니다.');
-		} finally {
-			setLoading(false);
-		}
+	const load = () => {
+		const p1 = p1Input.trim();
+		const p2 = p2Input.trim();
+		if (p1 && p2) setPair({ p1, p2 });
 	};
 
 	const StatRow = ({
@@ -199,9 +194,6 @@ export default function CompareTab({ mode }: { mode: string }) {
 				</Button>
 			</div>
 
-			{error && (
-				<p style={{ color: 'var(--color-loss)', fontSize: 'var(--font-size-sm)' }}>{error}</p>
-			)}
 			{loading && <LoadingCenter />}
 
 			{data && !loading && (

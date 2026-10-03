@@ -1,8 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { WeeklyAwardsResult } from '../../lib/types/stats';
+import { type WeeklyAwardsResult, getWeeklyAwards } from '@/api/stats/overviewStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
 const AWARD_LABELS: Record<string, string> = {
 	mostDeaths: '단일 경기 최다 사망',
@@ -15,23 +15,12 @@ const AWARD_LABELS: Record<string, string> = {
 	mostGamesChampion: '챔피언 장인'
 };
 
-export default function AwardsTab({ mode }: { mode: string }) {
+export default function AwardsTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
-	const [data, setData] = useState<WeeklyAwardsResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<WeeklyAwardsResult>(`/stats/awards?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['awards', mode],
+		queryFn: ({ signal }) => getWeeklyAwards(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

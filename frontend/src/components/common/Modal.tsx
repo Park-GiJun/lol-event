@@ -1,6 +1,5 @@
-import { memo, useEffect, useId } from 'react';
+import { memo, useEffect, useId, type ReactNode } from 'react';
 import { CloseIcon } from '@/components/icons/LolIcons';
-import type { ReactNode } from 'react';
 
 interface ModalProps {
 	isOpen: boolean;

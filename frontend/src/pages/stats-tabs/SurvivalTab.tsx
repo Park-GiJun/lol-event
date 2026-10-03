@@ -1,28 +1,17 @@
 import { LaneTopIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { SurvivalIndexResult, SurvivalIndexEntry } from '../../lib/types/stats';
+import { type SurvivalIndexEntry, getSurvivalIndex } from '@/api/stats/playstyleStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { RankBadge } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function SurvivalTab({ mode }: { mode: string }) {
+export default function SurvivalTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
-	const [data, setData] = useState<SurvivalIndexResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<SurvivalIndexResult>(`/stats/survival-index?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['survival-index', mode],
+		queryFn: ({ signal }) => getSurvivalIndex(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

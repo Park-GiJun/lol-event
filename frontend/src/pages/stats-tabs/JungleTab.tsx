@@ -1,29 +1,18 @@
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { JungleDominanceResult, JungleDominanceEntry } from '../../lib/types/stats';
+import { type JungleDominanceEntry, getJungleDominance } from '@/api/stats/roleStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
-import { useDragon } from '../../context/DragonContext';
+import { useDragon } from '@/hooks/useDragon';
 import { RankBadge, ChampImg } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function JungleTab({ mode }: { mode: string }) {
+export default function JungleTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
 	const { champions } = useDragon();
-	const [data, setData] = useState<JungleDominanceResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<JungleDominanceResult>(`/stats/jungle-dominance?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['jungle-dominance', mode],
+		queryFn: ({ signal }) => getJungleDominance(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

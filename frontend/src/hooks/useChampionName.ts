@@ -1,4 +1,4 @@
-import { useDragon } from '@/context/DragonContext';
+import { useDragon } from '@/hooks/useDragon';
 
 /** 챔피언 한글명. DataDragon 이 아직 안 왔으면 영문 키로 대체한다. */
 export function useChampionName(championId: number, fallback: string) {

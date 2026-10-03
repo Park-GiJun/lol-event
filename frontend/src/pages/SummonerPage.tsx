@@ -5,7 +5,7 @@ import { ChampionIcon, ChampionLabel, PersonLink } from '@/components/ds/Champio
 import { Rate, RecentForm, Stat, WinBar } from '@/components/ds/Stat';
 import { InlineError } from '@/components/common/InlineError';
 import { fmt, parseRiotId } from '@/lib/lol';
-import type { SummonerOpponent, SummonerTeammate } from '@/lib/types/page';
+import type { SummonerOpponent, SummonerTeammate } from '@/api/page/pageApi';
 import { positionLabel } from '@/lib/position';
 import { LaneForm } from './summoner/LaneForm';
 import { TimelineStats } from './summoner/TimelineStats';
@@ -14,7 +14,7 @@ import { Diff15 } from '@/components/ds/Timeline15';
 
 /** 전체 경기 기준인 다른 열과 표본이 다르다는 걸 열 제목 툴팁으로 밝힌다. */
 const TIMELINE_COL_HINT = '15분 지표. 타임라인이 있는 경기(새 수집기)만 센다';
-import type { EloRankEntry } from '@/lib/types/stats';
+import type { EloRankEntry } from '@/api/rating/ratingApi';
 
 type Tab = 'overview' | 'champions' | 'people';
 

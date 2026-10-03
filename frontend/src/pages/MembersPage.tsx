@@ -1,65 +1,66 @@
 import { TrashIcon, UserPlusIcon, UsersIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
-import { api } from '../lib/api/api';
+import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+	deleteMember,
+	getMembers,
+	registerMember,
+	registerMembers,
+	type Member
+} from '@/api/member/memberApi';
 import { PlayerLink } from '../components/common/PlayerLink';
-import type { Member, BulkRegisterResponse } from '../lib/types/member';
 import { Button } from '../components/common/Button';
 import { Input, Textarea } from '../components/common/Input';
 import { Modal } from '../components/common/Modal';
 import { LoadingCenter } from '../components/common/Spinner';
 
+const MEMBERS_QUERY_KEY = ['members'] as const;
+const NO_MEMBERS: Member[] = [];
+
 export function MembersPage() {
-	const [members, setMembers] = useState<Member[]>([]);
-	const [loading, setLoading] = useState(true);
 	const [showRegister, setShowRegister] = useState(false);
 	const [showBulk, setShowBulk] = useState(false);
 	const [riotId, setRiotId] = useState('');
 	const [bulkInput, setBulkInput] = useState('');
-	const [submitting, setSubmitting] = useState(false);
-	const [bulkResult, setBulkResult] = useState<BulkRegisterResponse | null>(null);
+	const queryClient = useQueryClient();
+	const { data: members = NO_MEMBERS, isLoading: loading } = useQuery({
+		queryKey: MEMBERS_QUERY_KEY,
+		queryFn: ({ signal }) => getMembers({ signal })
+	});
+	const refresh = () => queryClient.invalidateQueries({ queryKey: MEMBERS_QUERY_KEY });
 
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setMembers(await api.get<Member[]>('/members'));
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+	const register = useMutation({
+		mutationFn: registerMember,
+		onSuccess: refresh,
+		meta: { successMessage: '멤버를 등록했습니다.' }
+	});
+	// 건별 결과를 화면이 표로 보여 주므로 성공 알림은 따로 내지 않는다.
+	const bulk = useMutation({ mutationFn: registerMembers, onSuccess: refresh });
+	const remove = useMutation({
+		mutationFn: deleteMember,
+		onSuccess: refresh,
+		meta: { successMessage: '멤버를 삭제했습니다.' }
+	});
+	const submitting = register.isPending || bulk.isPending;
+	const bulkResult = bulk.data ?? null;
 
-	useEffect(() => {
-		load();
-	}, [load]);
-
-	const handleRegister = async () => {
+	const handleRegister = () => {
 		if (!riotId.includes('#')) return;
-		setSubmitting(true);
-		try {
-			await api.post('/members/register', { riotId });
-			setRiotId('');
-			setShowRegister(false);
-			load();
-		} finally {
-			setSubmitting(false);
-		}
+		register.mutate(riotId, {
+			onSuccess: () => {
+				setRiotId('');
+				setShowRegister(false);
+			}
+		});
 	};
 
-	const handleBulk = async () => {
-		const ids = bulkInput.split('\n').filter((l) => l.trim());
-		setSubmitting(true);
-		try {
-			const res = await api.post<BulkRegisterResponse>('/members/register-bulk', { riotIds: ids });
-			setBulkResult(res);
-			load();
-		} finally {
-			setSubmitting(false);
-		}
+	const handleBulk = () => {
+		bulk.mutate(bulkInput.split('\n').filter((l) => l.trim()));
 	};
 
-	const handleDelete = async (puuid: string) => {
+	const handleDelete = (puuid: string) => {
 		if (!confirm('삭제하시겠습니까?')) return;
-		await api.delete(`/members/${puuid}`);
-		load();
+		remove.mutate(puuid);
 	};
 
 	return (
@@ -153,7 +154,7 @@ export function MembersPage() {
 				isOpen={showBulk}
 				onClose={() => {
 					setShowBulk(false);
-					setBulkResult(null);
+					bulk.reset();
 				}}
 				title="일괄 등록"
 				size="md"
@@ -171,7 +172,7 @@ export function MembersPage() {
 						<Button
 							onClick={() => {
 								setShowBulk(false);
-								setBulkResult(null);
+								bulk.reset();
 							}}
 						>
 							닫기

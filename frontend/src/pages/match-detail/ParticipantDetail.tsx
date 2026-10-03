@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { Participant } from '@/lib/types/match';
+import type { Participant } from '@/api/match/matchApi';
 import { DragonIcon, TurretIcon, WardIcon, MinionIcon } from '@/components/icons/LolIcons';
 
 function n(v: number) {

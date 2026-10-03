@@ -1,32 +1,21 @@
 import { TrophyIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { MvpStatsResult, MvpPlayerStat } from '../../lib/types/stats';
+import { type MvpPlayerStat, getMvpStats } from '@/api/stats/rankingStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
-import { useDragon } from '../../context/DragonContext';
+import { useDragon } from '@/hooks/useDragon';
 import { PlayerLink } from '../../components/common/PlayerLink';
 import { ChampionLink } from '../../components/common/ChampionLink';
 import { RankBadge, ChampImg } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function MvpTab({ mode }: { mode: string }) {
+export default function MvpTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
 	const { champions } = useDragon();
-	const [data, setData] = useState<MvpStatsResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<MvpStatsResult>(`/stats/mvp?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['mvp', mode],
+		queryFn: ({ signal }) => getMvpStats(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

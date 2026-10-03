@@ -1,9 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
-import { lazy, Suspense, useEffect, useState } from 'react';
-import { setErrorHandler } from './lib/api/api';
-import { DragonProvider } from './context/DragonContext';
+import { lazy, Suspense } from 'react';
 import { AppLayout } from './components/layout/AppLayout';
-import { ErrorModal } from './components/common/ErrorModal';
+import { ToastContainer } from './components/common/ToastContainer';
 import { LoadingCenter } from './components/common/Spinner';
 
 // 개편된 화면
@@ -65,99 +63,84 @@ function RedirectParam({ to, param }: { to: string; param: string }) {
 }
 
 function App() {
-	const [error, setError] = useState<{ title: string; message: string } | null>(null);
-
-	// 렌더 본문에서 모듈 전역을 갈아끼우면 매 렌더마다 핸들러가 새로 박히고,
-	// StrictMode 의 이중 렌더에서는 버려질 렌더의 setState 가 등록된다. 커밋 이후로 옮긴다.
-	useEffect(() => {
-		setErrorHandler((title, message) => setError({ title, message }));
-	}, []);
-
 	return (
-		<DragonProvider>
-			<BrowserRouter>
-				<Suspense fallback={<LoadingCenter />}>
-					<Routes>
-						<Route element={<AppLayout />}>
-							<Route index element={<HomePage />} />
+		<BrowserRouter>
+			<Suspense fallback={<LoadingCenter />}>
+				<Routes>
+					<Route element={<AppLayout />}>
+						<Route index element={<HomePage />} />
 
-							<Route path="players" element={<PlayersPage />} />
-							<Route path="players/:riotId" element={<SummonerPage />} />
+						<Route path="players" element={<PlayersPage />} />
+						<Route path="players/:riotId" element={<SummonerPage />} />
 
-							<Route path="champions" element={<ChampionListPage />} />
-							<Route path="champions/:champion" element={<ChampionPage />} />
+						<Route path="champions" element={<ChampionListPage />} />
+						<Route path="champions/:champion" element={<ChampionPage />} />
 
-							<Route path="matches" element={<MatchesPage />} />
-							<Route path="matches/:matchId" element={<MatchDetailPage />} />
+						<Route path="matches" element={<MatchesPage />} />
+						<Route path="matches/:matchId" element={<MatchDetailPage />} />
 
-							<Route path="sessions" element={<SessionsPage />} />
-							<Route path="sessions/:date" element={<SessionDetailPage />} />
+						<Route path="sessions" element={<SessionsPage />} />
+						<Route path="sessions/:date" element={<SessionDetailPage />} />
 
-							<Route path="rankings" element={<RankingsPage />} />
-							<Route path="player-analysis" element={<PlayerAnalysisPage />} />
-							<Route path="champion-analysis" element={<ChampionAnalysisPage />} />
-							<Route path="hall" element={<HallOfFamePage />} />
-							{/* 경기 분석·효율 분석은 명예의 전당과 선수 분석으로 흡수됐다. */}
-							<Route path="match-analysis" element={<Navigate to="/hall" replace />} />
-							<Route path="efficiency" element={<Navigate to="/player-analysis" replace />} />
-							<Route path="reports" element={<StatsPage />} />
+						<Route path="rankings" element={<RankingsPage />} />
+						<Route path="player-analysis" element={<PlayerAnalysisPage />} />
+						<Route path="champion-analysis" element={<ChampionAnalysisPage />} />
+						<Route path="hall" element={<HallOfFamePage />} />
+						{/* 경기 분석·효율 분석은 명예의 전당과 선수 분석으로 흡수됐다. */}
+						<Route path="match-analysis" element={<Navigate to="/hall" replace />} />
+						<Route path="efficiency" element={<Navigate to="/player-analysis" replace />} />
+						<Route path="reports" element={<StatsPage />} />
 
-							<Route path="team-builder" element={<TeamBuilderPage />} />
-							<Route path="members" element={<MembersPage />} />
-							<Route path="lcu" element={<LcuPage />} />
-							<Route path="sync" element={<SyncPage />} />
-							<Route path="admin" element={<AdminPage />} />
+						<Route path="team-builder" element={<TeamBuilderPage />} />
+						<Route path="members" element={<MembersPage />} />
+						<Route path="lcu" element={<LcuPage />} />
+						<Route path="sync" element={<SyncPage />} />
+						<Route path="admin" element={<AdminPage />} />
 
-							{/* 예전 경로. 데스크탑/모바일 두 벌이던 시절 링크를 그대로 살려 둔다. */}
-							<Route path="player-stats" element={<Navigate to="/players" replace />} />
-							<Route
-								path="player-stats/:riotId"
-								element={<RedirectParam to="/players" param="riotId" />}
-							/>
-							<Route
-								path="stats/player/:riotId"
-								element={<RedirectParam to="/players" param="riotId" />}
-							/>
-							<Route
-								path="stats/champion/:champion"
-								element={<RedirectParam to="/champions" param="champion" />}
-							/>
+						{/* 예전 경로. 데스크탑/모바일 두 벌이던 시절 링크를 그대로 살려 둔다. */}
+						<Route path="player-stats" element={<Navigate to="/players" replace />} />
+						<Route
+							path="player-stats/:riotId"
+							element={<RedirectParam to="/players" param="riotId" />}
+						/>
+						<Route
+							path="stats/player/:riotId"
+							element={<RedirectParam to="/players" param="riotId" />}
+						/>
+						<Route
+							path="stats/champion/:champion"
+							element={<RedirectParam to="/champions" param="champion" />}
+						/>
 
-							<Route path="m" element={<Navigate to="/" replace />} />
-							<Route path="m/stats" element={<Navigate to="/rankings" replace />} />
-							<Route path="m/matches" element={<Navigate to="/matches" replace />} />
-							<Route
-								path="m/match/:matchId"
-								element={<RedirectParam to="/matches" param="matchId" />}
-							/>
-							<Route path="m/players" element={<Navigate to="/players" replace />} />
-							<Route
-								path="m/player/:riotId"
-								element={<RedirectParam to="/players" param="riotId" />}
-							/>
-							<Route path="m/champions" element={<Navigate to="/champions" replace />} />
-							<Route
-								path="m/champion/:champion"
-								element={<RedirectParam to="/champions" param="champion" />}
-							/>
-							<Route path="m/members" element={<Navigate to="/members" replace />} />
-							<Route path="m/admin" element={<Navigate to="/admin" replace />} />
-							<Route path="m/sync" element={<Navigate to="/sync" replace />} />
-							<Route path="m/lcu" element={<Navigate to="/lcu" replace />} />
-							<Route path="m/more" element={<Navigate to="/" replace />} />
+						<Route path="m" element={<Navigate to="/" replace />} />
+						<Route path="m/stats" element={<Navigate to="/rankings" replace />} />
+						<Route path="m/matches" element={<Navigate to="/matches" replace />} />
+						<Route
+							path="m/match/:matchId"
+							element={<RedirectParam to="/matches" param="matchId" />}
+						/>
+						<Route path="m/players" element={<Navigate to="/players" replace />} />
+						<Route
+							path="m/player/:riotId"
+							element={<RedirectParam to="/players" param="riotId" />}
+						/>
+						<Route path="m/champions" element={<Navigate to="/champions" replace />} />
+						<Route
+							path="m/champion/:champion"
+							element={<RedirectParam to="/champions" param="champion" />}
+						/>
+						<Route path="m/members" element={<Navigate to="/members" replace />} />
+						<Route path="m/admin" element={<Navigate to="/admin" replace />} />
+						<Route path="m/sync" element={<Navigate to="/sync" replace />} />
+						<Route path="m/lcu" element={<Navigate to="/lcu" replace />} />
+						<Route path="m/more" element={<Navigate to="/" replace />} />
 
-							<Route path="*" element={<Navigate to="/" replace />} />
-						</Route>
-					</Routes>
-				</Suspense>
-				<ErrorModal
-					isOpen={!!error}
-					title={error?.title ?? ''}
-					message={error?.message ?? ''}
-					onClose={() => setError(null)}
-				/>
-			</BrowserRouter>
-		</DragonProvider>
+						<Route path="*" element={<Navigate to="/" replace />} />
+					</Route>
+				</Routes>
+			</Suspense>
+			<ToastContainer />
+		</BrowserRouter>
 	);
 }
 

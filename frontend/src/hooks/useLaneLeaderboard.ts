@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api/api';
-import type { LaneLeaderboardResult } from '@/lib/types/stats';
+import { getLaneLeaderboard } from '@/api/stats/rankingStatsApi';
+import type { GameMode } from '@/types';
 
-export function useLaneLeaderboard(lane: string) {
+export function useLaneLeaderboard(lane: string, mode?: GameMode) {
 	return useQuery({
-		queryKey: ['lane-leaderboard', lane],
-		queryFn: () => api.get<LaneLeaderboardResult>(`/stats/lane?lane=${lane}`),
+		queryKey: ['lane-leaderboard', lane, mode],
+		queryFn: ({ signal }) => getLaneLeaderboard(lane, mode, { signal }),
 		enabled: lane !== 'ALL'
 	});
 }

@@ -16,9 +16,9 @@ import {
 	TrophyIcon,
 	UserIcon,
 	UsersIcon,
-	UsersThreeIcon
+	UsersThreeIcon,
+	type IconComponent
 } from '@/components/icons/LolIcons';
-import type { IconComponent } from '@/components/icons/LolIcons';
 import { useCallback, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { PlayerSearch } from './PlayerSearch';

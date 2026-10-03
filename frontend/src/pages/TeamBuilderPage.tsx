@@ -1,15 +1,12 @@
 import { CloseIcon, RefreshIcon, UsersIcon } from '@/components/icons/LolIcons';
-import { useState, useEffect } from 'react';
-import { api } from '../lib/api/api';
-import type {
-	StatsResponse,
-	PlayerStats,
-	MvpStatsResult,
-	MvpPlayerStat,
-	DuoStatsResult,
-	DuoStat,
-	EloLeaderboardResult
-} from '../lib/types/stats';
+import { useEffect, useMemo, useState } from 'react';
+import { useDuoStats } from '@/hooks/useDuoStats';
+import { useLeaderboard } from '@/hooks/useLeaderboard';
+import { usePlayers } from '@/hooks/usePlayers';
+import { useQuery } from '@tanstack/react-query';
+import { getMvpStats, type MvpPlayerStat } from '@/api/stats/rankingStatsApi';
+import type { PlayerStats } from '@/api/stats/playerStatsApi';
+import type { DuoStat } from '@/api/stats/teamStatsApi';
 import { PlayerLink } from '../components/common/PlayerLink';
 
 // ── 타입 ─────────────────────────────────────────────────────
@@ -193,13 +190,33 @@ function PlayerChip({
 	);
 }
 
+// 아직 안 왔을 때의 빈 목록. 매 렌더마다 새 배열을 만들면 pool 을 채우는 effect 가 계속 다시 돈다.
+const NO_STATS: PlayerStats[] = [];
+const NO_MVP: MvpPlayerStat[] = [];
+const NO_DUOS: DuoStat[] = [];
+
 // ── 메인 페이지 ───────────────────────────────────────────────
 export function TeamBuilderPage() {
-	const [allStats, setAllStats] = useState<PlayerStats[]>([]);
-	const [mvpStats, setMvpStats] = useState<MvpPlayerStat[]>([]);
-	const [duoData, setDuoData] = useState<DuoStat[]>([]);
-	const [eloMap, setEloMap] = useState<Map<string, number>>(new Map());
-	const [loading, setLoading] = useState(true);
+	// 넷 다 따로 실패할 수 있다 — 하나가 안 와도 나머지로 편성은 된다.
+	const statsQuery = usePlayers('normal');
+	const mvpQuery = useQuery({
+		queryKey: ['mvp', 'normal'],
+		queryFn: ({ signal }) => getMvpStats('normal', { signal })
+	});
+	const duoQuery = useDuoStats('normal', 1);
+	const eloQuery = useLeaderboard();
+
+	const allStats = statsQuery.data?.stats ?? NO_STATS;
+	const mvpStats = mvpQuery.data?.rankings ?? NO_MVP;
+	const duoData = duoQuery.data?.duos ?? NO_DUOS;
+	// 편성 보조는 계산이라 표시값이 아니라 **원값**을 쓴다. 수축값을 계산에 되먹이면
+	// 표본 적은 사람이 실제보다 평범해 보여 균형이 흐려진다.
+	const eloMap = useMemo(
+		() => new Map((eloQuery.data?.players ?? []).map((p) => [p.riotId, p.laneElo])),
+		[eloQuery.data]
+	);
+	const loading =
+		statsQuery.isLoading || mvpQuery.isLoading || duoQuery.isLoading || eloQuery.isLoading;
 	const [teams, setTeams] = useState<TeamMap>({
 		pool: [],
 		team1: [],
@@ -209,35 +226,8 @@ export function TeamBuilderPage() {
 	});
 	const [dragOver, setDragOver] = useState<TeamKey | null>(null);
 
-	async function loadAll() {
-		setLoading(true);
-		const [sr, mr, dr, er] = await Promise.allSettled([
-			api.get<StatsResponse>('/stats'),
-			api.get<MvpStatsResult>('/stats/mvp'),
-			api.get<DuoStatsResult>('/stats/duo?minGames=1'),
-			api.get<EloLeaderboardResult>('/stats/elo')
-		]);
-		if (sr.status === 'fulfilled') setAllStats((sr.value as StatsResponse).stats);
-		if (mr.status === 'fulfilled') setMvpStats((mr.value as MvpStatsResult).rankings);
-		if (dr.status === 'fulfilled') setDuoData((dr.value as DuoStatsResult).duos);
-		if (er.status === 'fulfilled') {
-			const map = new Map<string, number>();
-			// 편성 보조는 계산이라 표시값이 아니라 **원값**을 쓴다. 수축값을 계산에 되먹이면
-			// 표본 적은 사람이 실제보다 평범해 보여 균형이 흐려진다.
-			(er.value as EloLeaderboardResult).players.forEach((p) => map.set(p.riotId, p.laneElo));
-			setEloMap(map);
-		}
-		setLoading(false);
-	}
-
-	// eslint-disable-next-line react-hooks/set-state-in-effect
-	useEffect(() => {
-		loadAll();
-	}, []);
-
 	useEffect(() => {
 		if (allStats.length) {
-			// eslint-disable-next-line react-hooks/set-state-in-effect
 			setTeams((prev) => ({ ...prev, pool: allStats.map((s) => s.riotId) }));
 		}
 	}, [allStats]);

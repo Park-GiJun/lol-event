@@ -1,4 +1,4 @@
-import type { Match, Participant } from './types/match';
+import type { Match, Participant } from '@/api/match/matchApi';
 
 // ── 게임 시간 포맷 (초 → "mm:ss") ─────────────────────────────────────────
 export function fmt(secs: number): string {

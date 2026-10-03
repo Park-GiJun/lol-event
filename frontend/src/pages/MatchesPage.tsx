@@ -4,7 +4,7 @@ import { useMatches } from '@/hooks/useMatches';
 import { ChampionIcon, PersonLink } from '@/components/ds/Champion';
 import { InlineError } from '@/components/common/InlineError';
 import { fmt } from '@/lib/lol';
-import type { MatchSummary, ParticipantSummary } from '@/lib/types/match';
+import type { MatchSummary, ParticipantSummary } from '@/api/match/matchApi';
 import { byPosition } from '@/lib/position';
 
 function dayKey(ms: number) {

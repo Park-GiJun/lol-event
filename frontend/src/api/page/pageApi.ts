@@ -1,22 +1,74 @@
 /**
- * 화면 단위 집계 응답 타입.
+ * 화면 단위 집계.
  *
- * 지표 단위 엔드포인트(stats/*)는 그대로 남아 분석 탭들이 계속 쓰고,
- * 홈·소환사·챔피언 세 화면만 여기 타입을 쓴다.
+ * 예전에는 홈이 6번, 소환사 화면이 5번 왕복했고 그중 듀오·라이벌은 전체 조합(각 57KB)을
+ * 받아 화면에서 한 명 것만 골라 썼다. 이제 서버가 걸러서 한 번에 준다.
  */
-import type { MatchSummary, Position } from './match';
-import type {
-	ChampionDetailStats,
-	ChampionTierEntry,
-	EloRankEntry,
-	ChampionLaneStrength,
-	MatchupStat,
-	OverviewStats,
-	SampleGrade,
-	WeeklyAwardsResult
-} from './stats';
 
-// ── 홈 ──────────────────────────────────────────────────────────
+import type { AxiosRequestConfig } from 'axios';
+import { api } from '@/api/client';
+import type { MaybePosition as Position } from '@/lib/position';
+import type { GameMode, SampleGrade } from '@/types';
+import type { MatchSummary } from '@/api/match/matchApi';
+import type { EloRankEntry } from '@/api/rating/ratingApi';
+import type { ChampionDetailStats, ChampionTierEntry } from '@/api/stats/championStatsApi';
+import type { OverviewStats, WeeklyAwardsResult } from '@/api/stats/overviewStatsApi';
+
+export function getHome(mode: GameMode, config?: AxiosRequestConfig) {
+	return api.get<HomeResult>('/api/home', { params: { mode }, ...config });
+}
+
+export function getSummonerProfile(riotId: string, mode: GameMode, config?: AxiosRequestConfig) {
+	return api.get<SummonerProfileResult>(`/api/summoner/${encodeURIComponent(riotId)}`, {
+		params: { mode },
+		...config
+	});
+}
+
+export function getChampionPage(champion: string, mode: GameMode, config?: AxiosRequestConfig) {
+	return api.get<ChampionPageResult>(`/api/champions/${encodeURIComponent(champion)}`, {
+		params: { mode },
+		...config
+	});
+}
+
+/** 같은 라인 상대와의 평균 격차. 양수면 이 챔피언이 앞선다. */
+export interface LaneGap {
+	goldDiff: number;
+	csDiff: number;
+	damageDiff: number;
+	killDiff: number;
+	visionDiff: number;
+}
+
+/**
+ * 챔피언 x 라인 단위 라인전 지표.
+ * 개별 상성은 표본이 중앙 1경기라 못 읽는다. 축을 하나 위로 올린 값이다.
+ */
+export interface ChampionLaneStrength {
+	champion: string;
+	championId: number;
+	position: string;
+	games: number;
+	wins: number;
+	winRate: number;
+	adjustedWinRate: number;
+	sampleGrade: SampleGrade;
+	gap: LaneGap;
+}
+
+/** 개별 상성. 최소 표본을 넘긴 것만 내려온다. */
+export interface MatchupStat {
+	opponent: string;
+	opponentId: number;
+	position: string;
+	games: number;
+	wins: number;
+	winRate: number;
+	adjustedWinRate: number;
+	sampleGrade: SampleGrade;
+	gap: LaneGap;
+}
 
 export interface HomePeriod {
 	firstMatchAt: number | null;
@@ -36,8 +88,6 @@ export interface HomeResult {
 	recentMatches: MatchSummary[];
 	period: HomePeriod;
 }
-
-// ── 소환사 ───────────────────────────────────────────────────────
 
 export interface SummonerProfile {
 	riotId: string;
@@ -157,8 +207,6 @@ export interface SummonerProfileResult {
 	/** 상대 팀으로 만난 사람들. 맞붙은 경기 수 순. */
 	opponents: SummonerOpponent[];
 }
-
-// ── 챔피언 ───────────────────────────────────────────────────────
 
 export interface ChampionPageResult {
 	detail: ChampionDetailStats;

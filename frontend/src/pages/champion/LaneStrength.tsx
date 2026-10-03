@@ -1,6 +1,5 @@
-import type { ChampionLaneStrength, LaneGap } from '@/lib/types/stats';
-import { positionLabel } from '@/lib/position';
-import type { Position } from '@/lib/position';
+import type { ChampionLaneStrength, LaneGap } from '@/api/page/pageApi';
+import { positionLabel, type Position } from '@/lib/position';
 import { POSITION_ICON } from '@/components/icons/positionIcon';
 
 /** 격차 한 칸. 양수는 파랑, 음수는 빨강. 0 이면 굳이 물들이지 않는다. */

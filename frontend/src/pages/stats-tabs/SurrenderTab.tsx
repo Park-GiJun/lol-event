@@ -1,27 +1,16 @@
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { SurrenderAnalysisResult, SurrenderPlayerEntry } from '../../lib/types/stats';
+import { type SurrenderPlayerEntry, getSurrenderAnalysis } from '@/api/stats/combatStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { RankBadge } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function SurrenderTab({ mode }: { mode: string }) {
+export default function SurrenderTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
-	const [data, setData] = useState<SurrenderAnalysisResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<SurrenderAnalysisResult>(`/stats/surrender-analysis?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['surrender-analysis', mode],
+		queryFn: ({ signal }) => getSurrenderAnalysis(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

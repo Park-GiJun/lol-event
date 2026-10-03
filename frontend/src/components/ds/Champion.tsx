@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useDragon } from '@/context/DragonContext';
+import { useDragon } from '@/hooks/useDragon';
 import { useChampionName } from '@/hooks/useChampionName';
 import { parseRiotId } from '@/lib/lol';
 

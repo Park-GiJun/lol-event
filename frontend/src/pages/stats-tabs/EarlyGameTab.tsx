@@ -1,28 +1,16 @@
 import { SwordsIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
-import { api } from '../../lib/api/api';
-import type { EarlyGameDominanceResult, EarlyGameDominanceEntry } from '../../lib/types/stats';
+import { type EarlyGameDominanceEntry, getEarlyGameDominance } from '@/api/stats/gameFlowStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { PlayerLink } from '../../components/common/PlayerLink';
 import { RankBadge } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function EarlyGameTab({ mode }: { mode: string }) {
-	const [data, setData] = useState<EarlyGameDominanceResult | null>(null);
-	const [loading, setLoading] = useState(false);
-
-	const load = useCallback(async () => {
-		if (data) return;
-		setLoading(true);
-		try {
-			setData(await api.get<EarlyGameDominanceResult>(`/stats/early-game?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode, data]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+export default function EarlyGameTab({ mode }: { mode: GameMode }) {
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['early-game', mode],
+		queryFn: ({ signal }) => getEarlyGameDominance(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

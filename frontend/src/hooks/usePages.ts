@@ -1,35 +1,28 @@
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api/api';
-import type { ChampionPageResult, HomeResult, SummonerProfileResult } from '@/lib/types/page';
+import { getChampionPage, getHome, getSummonerProfile } from '@/api/page/pageApi';
+import type { GameMode } from '@/types';
 
-/**
- * 화면 단위 집계 훅.
- *
- * 예전에는 홈이 6번, 소환사 화면이 5번 왕복했고 그중 듀오·라이벌은 전체 조합(각 57KB)을
- * 받아 화면에서 한 명 것만 골라 썼다. 이제 서버가 걸러서 한 번에 준다.
- */
+/** 화면 단위 집계 훅. 한 화면이 한 번만 왕복한다 — 배경은 `@/api/page/pageApi` 참고. */
 
-export function useHome(mode: string = 'all') {
+export function useHome(mode: GameMode = 'all') {
 	return useQuery({
 		queryKey: ['home', mode],
-		queryFn: () => api.get<HomeResult>(`/home?mode=${mode}`)
+		queryFn: ({ signal }) => getHome(mode, { signal })
 	});
 }
 
-export function useSummoner(riotId: string, mode: string = 'all') {
+export function useSummoner(riotId: string, mode: GameMode = 'all') {
 	return useQuery({
 		queryKey: ['summoner', riotId, mode],
-		queryFn: () =>
-			api.get<SummonerProfileResult>(`/summoner/${encodeURIComponent(riotId)}?mode=${mode}`),
+		queryFn: ({ signal }) => getSummonerProfile(riotId, mode, { signal }),
 		enabled: !!riotId
 	});
 }
 
-export function useChampionPage(champion: string, mode: string = 'all') {
+export function useChampionPage(champion: string, mode: GameMode = 'all') {
 	return useQuery({
 		queryKey: ['champion-page', champion, mode],
-		queryFn: () =>
-			api.get<ChampionPageResult>(`/champions/${encodeURIComponent(champion)}?mode=${mode}`),
+		queryFn: ({ signal }) => getChampionPage(champion, mode, { signal }),
 		enabled: !!champion
 	});
 }

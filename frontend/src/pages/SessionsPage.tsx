@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useSessions } from '@/hooks/useSessions';
 import { InlineError } from '@/components/common/InlineError';
 import { LoadingCenter } from '@/components/common/Spinner';
-import type { SessionEntry } from '@/lib/types/stats';
+import type { SessionEntry } from '@/api/stats/sessionApi';
 
 /**
  * 세션 목록 — 하루치 내전 하나가 한 줄이다.

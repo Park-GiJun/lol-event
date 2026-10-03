@@ -6,7 +6,7 @@ import { Stat } from '@/components/ds/Stat';
 import { InlineError } from '@/components/common/InlineError';
 import { LoadingCenter } from '@/components/common/Spinner';
 import { diffColor, signed } from '@/lib/timeline';
-import type { SessionDetailResult, SessionMatchEntry } from '@/lib/types/stats';
+import type { SessionDetailResult, SessionMatchEntry } from '@/api/stats/sessionApi';
 
 /**
  * 하루치 내전.

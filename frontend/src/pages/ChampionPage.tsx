@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useChampionPage } from '@/hooks/usePages';
-import { useDragon } from '@/context/DragonContext';
+import { useDragon } from '@/hooks/useDragon';
 import { ChampionIcon, PersonLink } from '@/components/ds/Champion';
 import { Rate, Stat, TierBadge, WinBar } from '@/components/ds/Stat';
 import { InlineError } from '@/components/common/InlineError';

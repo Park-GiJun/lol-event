@@ -13,33 +13,34 @@ import {
 } from '@/components/icons/LolIcons';
 import { POSITIONS } from '@/lib/position';
 import { useState, useEffect, useRef } from 'react';
-import { api } from '../lib/api/api';
-import type {
-	StatsResponse,
-	PlayerStats,
-	MvpStatsResult,
-	MvpPlayerStat,
-	DuoStatsResult,
-	DuoStat,
-	PlayerDetailStats,
-	LaneStat,
-	EloRankEntry,
-	EloLeaderboardResult
-} from '../lib/types/stats';
-import type { ReassignPositionsResult } from '../lib/types/member';
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import { SILENT_META } from '@/api/queryClient';
+import { getBatchStatus, triggerBatch, triggerItemStats } from '@/api/batch/batchApi';
+import { syncDataDragon } from '@/api/dragon/dragonApi';
+import { reassignPositions } from '@/api/match/matchApi';
+import { getEloLeaderboard, resetRatings, type EloRankEntry } from '@/api/rating/ratingApi';
+import {
+	getPlayerStats,
+	getStats,
+	type PlayerStats,
+	type LaneStat
+} from '@/api/stats/playerStatsApi';
+import { getMvpStats, type MvpPlayerStat } from '@/api/stats/rankingStatsApi';
+import { getDuoStats, type DuoStat } from '@/api/stats/teamStatsApi';
+import { DRAGON_QUERY_KEY } from '@/hooks/useDragon';
 import { PlayerLink } from '../components/common/PlayerLink';
 import '../styles/pages/monitoring.css';
 
 const ADMIN_PASSWORD = 'admin1234';
 const SESSION_KEY = 'monitoring_auth';
 
-interface BatchStatus {
-	playerSnapshotCount: number;
-	championSnapshotCount: number;
-	championItemSnapshotCount: number;
-	lastAggregatedAt: string | null;
-	message: string;
-}
+const BATCH_STATUS_KEY = ['batch-status'] as const;
+
+// 아직 안 왔을 때의 빈 목록. 매 렌더마다 새 배열을 만들면 pool 을 채우는 effect 가 계속 다시 돈다.
+const NO_STATS: PlayerStats[] = [];
+const NO_MVP: MvpPlayerStat[] = [];
+const NO_DUOS: DuoStat[] = [];
+const NO_ELO: EloRankEntry[] = [];
 
 type TeamKey = 'pool' | 'team1' | 'team2' | 'team3' | 'team4';
 type TeamMap = Record<TeamKey, string[]>;
@@ -120,7 +121,6 @@ export function AdminPage() {
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	// batch
-	const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
 	const [triggering, setTriggering] = useState(false);
 	const [triggerMsg, setTriggerMsg] = useState('');
 	const [triggeringItems, setTriggeringItems] = useState(false);
@@ -133,16 +133,58 @@ export function AdminPage() {
 	const [eloResetMsg, setEloResetMsg] = useState('');
 	const [posReassigning, setPosReassigning] = useState(false);
 	const [posReassignMsg, setPosReassignMsg] = useState('');
-	const [eloLeaderboard, setEloLeaderboard] = useState<EloRankEntry[]>([]);
-	const [eloLoading, setEloLoading] = useState(false);
 
 	// data
-	const [allStats, setAllStats] = useState<PlayerStats[]>([]);
-	const [mvpStats, setMvpStats] = useState<MvpPlayerStat[]>([]);
-	const [duoData, setDuoData] = useState<DuoStat[]>([]);
-	const [posMap, setPosMap] = useState<Record<string, LaneStat[]>>({});
-	const [posLoading, setPosLoading] = useState(false);
-	const [posLoaded, setPosLoaded] = useState(false);
+	// 로그인한 뒤에만 받는다. 넷 다 따로 실패할 수 있다 — 하나가 안 와도 나머지 구역은 뜬다.
+	const queryClient = useQueryClient();
+	const statsQuery = useQuery({
+		queryKey: ['players', 'normal'],
+		queryFn: ({ signal }) => getStats('normal', { signal }),
+		enabled: authed
+	});
+	const mvpQuery = useQuery({
+		queryKey: ['mvp', 'normal'],
+		queryFn: ({ signal }) => getMvpStats('normal', { signal }),
+		enabled: authed
+	});
+	const duoQuery = useQuery({
+		queryKey: ['duo', 'normal', 1],
+		queryFn: ({ signal }) => getDuoStats('normal', 1, { signal }),
+		enabled: authed
+	});
+	const batchQuery = useQuery({
+		queryKey: BATCH_STATUS_KEY,
+		queryFn: ({ signal }) => getBatchStatus({ signal }),
+		enabled: authed
+	});
+	const eloQuery = useQuery({
+		queryKey: ['leaderboard'],
+		queryFn: ({ signal }) => getEloLeaderboard({ signal }),
+		enabled: authed
+	});
+	const allStats = statsQuery.data?.stats ?? NO_STATS;
+	const mvpStats = mvpQuery.data?.rankings ?? NO_MVP;
+	const duoData = duoQuery.data?.duos ?? NO_DUOS;
+	const batchStatus = batchQuery.data ?? null;
+	const eloLeaderboard = eloQuery.data?.players ?? NO_ELO;
+	const eloLoading = eloQuery.isFetching;
+
+	// 포지션 표는 사람 수만큼 조회가 나가서, 버튼을 눌렀을 때만 받는다.
+	const [posRequested, setPosRequested] = useState(false);
+	const posQueries = useQueries({
+		queries: (posRequested ? allStats : []).map((s) => ({
+			queryKey: ['player-stats', s.riotId, 'normal'],
+			queryFn: ({ signal }: { signal: AbortSignal }) =>
+				getPlayerStats(s.riotId, 'normal', { signal }),
+			meta: SILENT_META
+		}))
+	});
+	const posLoading = posRequested && posQueries.some((q) => q.isLoading);
+	const posLoaded = posRequested && !posLoading;
+	const posMap: Record<string, LaneStat[]> = {};
+	posQueries.forEach((q, i) => {
+		if (q.data) posMap[allStats[i].riotId] = q.data.laneStats;
+	});
 
 	// team builder
 	const [teams, setTeams] = useState<TeamMap>({
@@ -159,8 +201,6 @@ export function AdminPage() {
 			inputRef.current?.focus();
 			return;
 		}
-		loadAll();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [authed]);
 
 	// allStats 로드 완료 시 pool 초기화
@@ -170,30 +210,19 @@ export function AdminPage() {
 		}
 	}, [allStats]);
 
-	async function loadAll() {
-		const [sr, mr, dr, br] = await Promise.allSettled([
-			api.get<StatsResponse>('/stats'),
-			api.get<MvpStatsResult>('/stats/mvp'),
-			api.get<DuoStatsResult>('/stats/duo?minGames=1'),
-			api.get<BatchStatus>('/batch/status')
-		]);
-		if (sr.status === 'fulfilled') setAllStats((sr.value as StatsResponse).stats);
-		if (mr.status === 'fulfilled') setMvpStats((mr.value as MvpStatsResult).rankings);
-		if (dr.status === 'fulfilled') setDuoData((dr.value as DuoStatsResult).duos);
-		if (br.status === 'fulfilled') setBatchStatus(br.value as BatchStatus);
-		loadEloLeaderboard();
+	function loadAll() {
+		statsQuery.refetch();
+		mvpQuery.refetch();
+		duoQuery.refetch();
+		batchQuery.refetch();
+		eloQuery.refetch();
 	}
 
-	async function loadEloLeaderboard() {
-		setEloLoading(true);
-		try {
-			const res = await api.get<EloLeaderboardResult>('/stats/elo');
-			setEloLeaderboard(res.players);
-		} catch {
-			/* 조용히 실패 */
-		} finally {
-			setEloLoading(false);
-		}
+	const loadEloLeaderboard = () => eloQuery.refetch();
+
+	/** 집계는 요청만 받고 뒤에서 돈다. 조금 기다렸다가 상태를 다시 읽는다. */
+	function refreshBatchStatusLater(delayMs: number) {
+		setTimeout(() => queryClient.invalidateQueries({ queryKey: BATCH_STATUS_KEY }), delayMs);
 	}
 
 	async function resetElo() {
@@ -206,7 +235,7 @@ export function AdminPage() {
 		setEloResetting(true);
 		setEloResetMsg('');
 		try {
-			await api.post('/admin/elo/reset', {});
+			await resetRatings();
 			setEloResetMsg('Elo 재집계 완료! 리더보드를 새로고침합니다...');
 			await loadEloLeaderboard();
 		} catch {
@@ -216,7 +245,7 @@ export function AdminPage() {
 		}
 	}
 
-	async function reassignPositions() {
+	async function handleReassignPositions() {
 		if (
 			!window.confirm(
 				'저장된 모든 매치를 스캔해 포지션이 깨진 팀만 재배정합니다.\n완료 후 Elo 재집계를 권장합니다. 계속하시겠습니까?'
@@ -226,7 +255,7 @@ export function AdminPage() {
 		setPosReassigning(true);
 		setPosReassignMsg('');
 		try {
-			const r = await api.post<ReassignPositionsResult>('/admin/positions/reassign', {});
+			const r = await reassignPositions();
 			setPosReassignMsg(
 				`완료: ${r.teamsFixed}개 팀 수정 / 참가자 ${r.participantsUpdated}명 갱신 ` +
 					`(스캔 매치 ${r.matchesScanned}, 칼바람 제외 ${r.matchesSkippedAram}, 정상 팀 ${r.teamsAlreadyValid}). ` +
@@ -239,32 +268,15 @@ export function AdminPage() {
 		}
 	}
 
-	async function loadPositions() {
-		if (posLoaded || posLoading || !allStats.length) return;
-		setPosLoading(true);
-		const results = await Promise.allSettled(
-			allStats.map((s) =>
-				api
-					.get<PlayerDetailStats>(`/stats/player/${encodeURIComponent(s.riotId)}`)
-					.then((r) => ({ riotId: s.riotId, laneStats: r.laneStats }))
-			)
-		);
-		const map: Record<string, LaneStat[]> = {};
-		results.forEach((r) => {
-			if (r.status === 'fulfilled') map[r.value.riotId] = r.value.laneStats;
-		});
-		setPosMap(map);
-		setPosLoaded(true);
-		setPosLoading(false);
-	}
+	const loadPositions = () => setPosRequested(true);
 
-	async function triggerBatch() {
+	async function handleTriggerBatch() {
 		setTriggering(true);
 		setTriggerMsg('');
 		try {
-			await api.post('/batch/trigger', {});
+			await triggerBatch();
 			setTriggerMsg('배치 실행 요청이 전송되었습니다.');
-			setTimeout(async () => setBatchStatus(await api.get<BatchStatus>('/batch/status')), 2000);
+			refreshBatchStatusLater(2000);
 		} catch {
 			setTriggerMsg('배치 실행에 실패했습니다.');
 		} finally {
@@ -276,9 +288,10 @@ export function AdminPage() {
 		setClearingCache(true);
 		setClearCacheMsg('');
 		try {
-			await Promise.all([api.post('/ddragon/sync', {}), api.post('/batch/trigger', {})]);
+			await Promise.all([syncDataDragon(), triggerBatch()]);
+			queryClient.invalidateQueries({ queryKey: DRAGON_QUERY_KEY });
 			setClearCacheMsg('전체 캐시가 초기화되었습니다.');
-			setTimeout(async () => setBatchStatus(await api.get<BatchStatus>('/batch/status')), 2000);
+			refreshBatchStatusLater(2000);
 		} catch {
 			setClearCacheMsg('캐시 초기화에 실패했습니다.');
 		} finally {
@@ -286,13 +299,13 @@ export function AdminPage() {
 		}
 	}
 
-	async function triggerItemStats() {
+	async function handleTriggerItemStats() {
 		setTriggeringItems(true);
 		setTriggerItemMsg('');
 		try {
-			await api.post('/batch/trigger-item-stats', {});
+			await triggerItemStats();
 			setTriggerItemMsg('아이템 통계 집계가 완료되었습니다.');
-			setTimeout(async () => setBatchStatus(await api.get<BatchStatus>('/batch/status')), 1000);
+			refreshBatchStatusLater(1000);
 		} catch {
 			setTriggerItemMsg('아이템 통계 집계에 실패했습니다.');
 		} finally {
@@ -400,7 +413,7 @@ export function AdminPage() {
 					</span>
 				</div>
 				<div className="admin-action-row">
-					<button className="btn btn-primary" onClick={triggerBatch} disabled={triggering}>
+					<button className="btn btn-primary" onClick={handleTriggerBatch} disabled={triggering}>
 						<PlayIcon size={14} />
 						{triggering ? '실행 중...' : '배치 수동 실행'}
 					</button>
@@ -419,7 +432,7 @@ export function AdminPage() {
 				<div className="admin-action-row">
 					<button
 						className="btn btn-secondary"
-						onClick={triggerItemStats}
+						onClick={handleTriggerItemStats}
 						disabled={triggeringItems}
 					>
 						<PlayIcon size={14} />
@@ -487,7 +500,7 @@ export function AdminPage() {
 				<div className="admin-action-row">
 					<button
 						className="btn btn-secondary"
-						onClick={reassignPositions}
+						onClick={handleReassignPositions}
 						disabled={posReassigning}
 					>
 						<MapPinIcon size={14} />

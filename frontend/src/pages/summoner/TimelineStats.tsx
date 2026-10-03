@@ -4,7 +4,7 @@ import { ChampionIcon } from '@/components/ds/Champion';
 import { DivergingArea, MapScatter, Sparkline } from '@/components/ds/Chart';
 import { Stat } from '@/components/ds/Stat';
 import { diffColor, signed } from '@/lib/timeline';
-import type { PlayerTimelineGame, PlayerTimelineResult } from '@/lib/types/stats';
+import type { PlayerTimelineGame, PlayerTimelineResult } from '@/api/stats/timelineStatsApi';
 
 /**
  * 초반 격차 카드 — 타임라인이 있는 경기에서만 나오는 개인 지표.

@@ -1,29 +1,18 @@
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { SupportImpactResult, SupportImpactEntry } from '../../lib/types/stats';
+import { type SupportImpactEntry, getSupportImpact } from '@/api/stats/roleStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
-import { useDragon } from '../../context/DragonContext';
+import { useDragon } from '@/hooks/useDragon';
 import { RankBadge, ChampImg } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function SupportTab({ mode }: { mode: string }) {
+export default function SupportTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
 	const { champions } = useDragon();
-	const [data, setData] = useState<SupportImpactResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<SupportImpactResult>(`/stats/support-impact?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['support-impact', mode],
+		queryFn: ({ signal }) => getSupportImpact(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

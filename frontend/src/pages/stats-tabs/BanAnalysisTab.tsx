@@ -1,16 +1,16 @@
 import { BanIcon } from '@/components/icons/LolIcons';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../../lib/api/api';
-import type { BanAnalysisResult, BanEntry } from '../../lib/types/stats';
+import { type BanEntry, getBanAnalysis } from '@/api/stats/championStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
-import { useDragon } from '../../context/DragonContext';
+import { useDragon } from '@/hooks/useDragon';
 import { ChampionLink } from '../../components/common/ChampionLink';
+import type { GameMode } from '@/types';
 
-export default function BanAnalysisTab({ mode }: { mode: string }) {
+export default function BanAnalysisTab({ mode }: { mode: GameMode }) {
 	const { champions } = useDragon();
 	const { data, isLoading } = useQuery({
 		queryKey: ['ban-analysis', mode],
-		queryFn: () => api.get<BanAnalysisResult>(`/stats/ban-analysis?mode=${mode}`)
+		queryFn: ({ signal }) => getBanAnalysis(mode, { signal })
 	});
 	if (isLoading) return <LoadingCenter />;
 	if (!data || data.topBanned.length === 0)

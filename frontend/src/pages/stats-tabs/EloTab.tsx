@@ -1,8 +1,7 @@
 import { TrophyIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { EloLeaderboardResult, EloRankEntry } from '../../lib/types/stats';
+import { useLeaderboard } from '@/hooks/useLeaderboard';
+import type { EloRankEntry } from '@/api/rating/ratingApi';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { PlayerLink } from '../../components/common/PlayerLink';
 import { RankBadge } from './shared';
@@ -44,15 +43,7 @@ function gapColor(gap: number): string {
 
 export default function EloTab() {
 	const navigate = useNavigate();
-	const [data, setData] = useState<EloLeaderboardResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	useEffect(() => {
-		api
-			.get<EloLeaderboardResult>('/stats/elo')
-			.then(setData)
-			.finally(() => setLoading(false));
-	}, []);
+	const { data, isLoading: loading } = useLeaderboard();
 
 	if (loading) return <LoadingCenter />;
 	if (!data || data.players.length === 0)

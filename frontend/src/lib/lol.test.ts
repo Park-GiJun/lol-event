@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { calcMvp, fmt, parseRiotId } from './lol';
-import type { Match, Participant } from './types/match';
+import type { Match, Participant } from '@/api/match/matchApi';
 
 /** 테스트에서 보는 필드만 채운 참가자. 나머지는 MVP 계산에 안 쓰인다. */
 function participant(

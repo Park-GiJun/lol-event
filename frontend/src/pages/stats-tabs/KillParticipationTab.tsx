@@ -1,14 +1,14 @@
 import { ZapIcon } from '@/components/icons/LolIcons';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../../lib/api/api';
-import type { KillParticipationResult, KillParticipationEntry } from '../../lib/types/stats';
+import { type KillParticipationEntry, getKillParticipation } from '@/api/stats/rankingStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { PlayerLink } from '../../components/common/PlayerLink';
+import type { GameMode } from '@/types';
 
-export default function KillParticipationTab({ mode }: { mode: string }) {
+export default function KillParticipationTab({ mode }: { mode: GameMode }) {
 	const { data, isLoading } = useQuery({
-		queryKey: ['kp-ranking', mode],
-		queryFn: () => api.get<KillParticipationResult>(`/stats/kill-participation?mode=${mode}`)
+		queryKey: ['kill-participation', mode],
+		queryFn: ({ signal }) => getKillParticipation(mode, { signal })
 	});
 	if (isLoading) return <LoadingCenter />;
 	if (!data || data.rankings.length === 0)

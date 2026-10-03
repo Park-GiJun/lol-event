@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useTimelineStats } from '@/hooks/usePlayerTimeline';
-import type { TimelineAverages } from '@/lib/types/stats';
+import type { TimelineAverages } from '@/api/stats/timelineStatsApi';
 import { LoadingCenter } from '@/components/common/Spinner';
 import { PersonLink } from '@/components/ds/Champion';
 import { Stat } from '@/components/ds/Stat';
 import { Diff15 } from '@/components/ds/Timeline15';
 import { positionLabel } from '@/lib/position';
+import type { GameMode } from '@/types';
 
 /**
  * 초반 격차 — 타임라인이 있어야만 볼 수 있는 지표.
@@ -109,7 +110,7 @@ function KdaCell({ s }: { s: TimelineAverages }) {
 	);
 }
 
-export default function TimelineTab({ mode }: { mode: string }) {
+export default function TimelineTab({ mode }: { mode: GameMode }) {
 	const { data, isPending, error } = useTimelineStats(mode);
 	const [sort, setSort] = useState<SortKey>('avgGoldDiff15');
 	const [desc, setDesc] = useState(true);

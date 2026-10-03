@@ -1,12 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../../lib/api/api';
-import type { TimePatternResult, DayPatternEntry, HourPatternEntry } from '../../lib/types/stats';
+import {
+	type DayPatternEntry,
+	type HourPatternEntry,
+	getTimePattern
+} from '@/api/stats/gameFlowStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
+import type { GameMode } from '@/types';
 
-export default function TimePatternTab({ mode }: { mode: string }) {
+export default function TimePatternTab({ mode }: { mode: GameMode }) {
 	const { data, isLoading } = useQuery({
 		queryKey: ['time-pattern', mode],
-		queryFn: () => api.get<TimePatternResult>(`/stats/time-pattern?mode=${mode}`)
+		queryFn: ({ signal }) => getTimePattern(mode, { signal })
 	});
 	if (isLoading) return <LoadingCenter />;
 	if (!data)

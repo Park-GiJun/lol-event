@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api/api';
-import type { StatsResponse } from '@/lib/types/stats';
+import { getStats } from '@/api/stats/playerStatsApi';
+import type { GameMode } from '@/types';
 
-export function usePlayers(mode = 'normal') {
+export function usePlayers(mode: GameMode = 'normal') {
 	return useQuery({
 		queryKey: ['players', mode],
-		queryFn: () => api.get<StatsResponse>(`/stats?mode=${mode}`)
+		queryFn: ({ signal }) => getStats(mode, { signal })
 	});
 }

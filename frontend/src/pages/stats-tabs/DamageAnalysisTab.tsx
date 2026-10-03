@@ -1,10 +1,10 @@
 import { SwordsIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { DamageAnalysisResult, DamagePlayerEntry } from '../../lib/types/stats';
+import { type DamagePlayerEntry, getDamageAnalysis } from '@/api/stats/combatStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { RankBadge } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
 // 데미지 유형/프로필 구분색 — 의미상 고정된 분류 색이라 유지한다.
 const DMG_PHYSICAL = '#f97316';
@@ -77,23 +77,12 @@ function LegendDot({ color, label }: { color: string; label: string }) {
 	);
 }
 
-export default function DamageAnalysisTab({ mode }: { mode: string }) {
+export default function DamageAnalysisTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
-	const [data, setData] = useState<DamageAnalysisResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<DamageAnalysisResult>(`/stats/damage-analysis?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['damage-analysis', mode],
+		queryFn: ({ signal }) => getDamageAnalysis(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

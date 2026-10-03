@@ -4,7 +4,7 @@ import { useMatch } from '@/hooks/useMatches';
 import { ChampionIcon, ItemIcons, PersonLink } from '@/components/ds/Champion';
 import { InlineError } from '@/components/common/InlineError';
 import { calcMvp, fmt } from '@/lib/lol';
-import type { Match, Participant } from '@/lib/types/match';
+import type { Match, Participant } from '@/api/match/matchApi';
 import { byPosition, positionLabel } from '@/lib/position';
 import { ParticipantDetail, Highlights } from './match-detail/ParticipantDetail';
 import { MatchTimelineCard } from './match-detail/MatchTimelineCard';

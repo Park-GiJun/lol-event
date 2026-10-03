@@ -1,27 +1,15 @@
 import { TimerIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
-import { api } from '../../lib/api/api';
-import type { GameLengthTendencyResult, GameLengthTendencyEntry } from '../../lib/types/stats';
+import { type GameLengthTendencyEntry, getGameLengthTendency } from '@/api/stats/gameFlowStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { PlayerLink } from '../../components/common/PlayerLink';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function GameLengthTab({ mode }: { mode: string }) {
-	const [data, setData] = useState<GameLengthTendencyResult | null>(null);
-	const [loading, setLoading] = useState(false);
-
-	const load = useCallback(async () => {
-		if (data) return;
-		setLoading(true);
-		try {
-			setData(await api.get<GameLengthTendencyResult>(`/stats/game-length-tendency?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode, data]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+export default function GameLengthTab({ mode }: { mode: GameMode }) {
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['game-length-tendency', mode],
+		queryFn: ({ signal }) => getGameLengthTendency(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

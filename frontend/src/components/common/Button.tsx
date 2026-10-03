@@ -1,6 +1,5 @@
-import { memo } from 'react';
+import { memo, type ReactNode } from 'react';
 import { LoaderIcon } from '@/components/icons/LolIcons';
-import type { ReactNode } from 'react';
 
 interface ButtonProps {
 	children: ReactNode;

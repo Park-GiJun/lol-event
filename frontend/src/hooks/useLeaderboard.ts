@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api/api';
-import type { EloLeaderboardResult } from '@/lib/types/stats';
+import { getEloLeaderboard } from '@/api/rating/ratingApi';
 
 export function useLeaderboard() {
 	return useQuery({
 		queryKey: ['leaderboard'],
-		queryFn: () => api.get<EloLeaderboardResult>('/stats/elo')
+		queryFn: ({ signal }) => getEloLeaderboard({ signal })
 	});
 }

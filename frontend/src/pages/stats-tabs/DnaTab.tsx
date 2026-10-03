@@ -1,8 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { PlaystyleDnaResult, PlaystyleDnaEntry } from '../../lib/types/stats';
+import { type PlaystyleDnaEntry, getPlaystyleDna } from '@/api/stats/playstyleStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
 const DNA_LABELS: { key: keyof PlaystyleDnaEntry; label: string; color: string }[] = [
 	{ key: 'aggression', label: '공격성', color: '#e74c3c' },
@@ -13,23 +13,12 @@ const DNA_LABELS: { key: keyof PlaystyleDnaEntry; label: string; color: string }
 	{ key: 'visionControl', label: '시야', color: '#1abc9c' }
 ];
 
-export default function DnaTab({ mode }: { mode: string }) {
+export default function DnaTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
-	const [data, setData] = useState<PlaystyleDnaResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<PlaystyleDnaResult>(`/stats/playstyle-dna?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['playstyle-dna', mode],
+		queryFn: ({ signal }) => getPlaystyleDna(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

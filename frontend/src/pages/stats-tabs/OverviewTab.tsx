@@ -1,30 +1,20 @@
 import { TrophyIcon, BanIcon, TrendingUpIcon, MedalIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { OverviewStats, PlayerLeaderStat } from '../../lib/types/stats';
+import { type PlayerLeaderStat, getOverviewStats } from '@/api/stats/overviewStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
-import { useDragon } from '../../context/DragonContext';
+import { useDragon } from '@/hooks/useDragon';
 import { ChampPickCard, HallCard } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function OverviewTab({ mode }: { mode: string }) {
-	const [data, setData] = useState<OverviewStats | null>(null);
-	const [loading, setLoading] = useState(true);
+export default function OverviewTab({ mode }: { mode: GameMode }) {
 	const { champions } = useDragon();
 	const navigate = useNavigate();
 
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<OverviewStats>(`/stats/overview?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['overview', mode],
+		queryFn: ({ signal }) => getOverviewStats(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

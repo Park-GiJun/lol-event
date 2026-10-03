@@ -1,28 +1,16 @@
 import { SwordsIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
-import { api } from '../../lib/api/api';
-import type { ComebackIndexResult, ComebackIndexEntry } from '../../lib/types/stats';
+import { type ComebackIndexEntry, getComebackIndex } from '@/api/stats/gameFlowStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { PlayerLink } from '../../components/common/PlayerLink';
 import { RankBadge } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function ComebackTab({ mode }: { mode: string }) {
-	const [data, setData] = useState<ComebackIndexResult | null>(null);
-	const [loading, setLoading] = useState(false);
-
-	const load = useCallback(async () => {
-		if (data) return;
-		setLoading(true);
-		try {
-			setData(await api.get<ComebackIndexResult>(`/stats/comeback?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode, data]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+export default function ComebackTab({ mode }: { mode: GameMode }) {
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['comeback', mode],
+		queryFn: ({ signal }) => getComebackIndex(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

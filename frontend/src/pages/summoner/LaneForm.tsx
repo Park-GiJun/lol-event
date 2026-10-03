@@ -1,5 +1,5 @@
 import { usePlayerEloHistory } from '@/hooks/usePlayerEloHistory';
-import type { EloHistoryEntry } from '@/lib/types/stats';
+import type { EloHistoryEntry } from '@/api/rating/ratingApi';
 
 /**
  * 라인전 폼 시계열.

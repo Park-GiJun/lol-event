@@ -1,7 +1,7 @@
-import { Suspense, useState } from 'react';
-import type { ComponentType } from 'react';
+import { Suspense, useState, type ComponentType } from 'react';
 import { LoadingCenter } from '@/components/common/Spinner';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import type { GameMode } from '@/types';
 
 /**
  * 분석 화면들의 공용 껍데기.
@@ -19,7 +19,7 @@ export interface TabDef {
 	/** 탭 이름만으로 무엇을 보는지 안 읽히는 지표가 많다. 있으면 내용 위에 한 줄로 띄운다. */
 	hint?: string;
 	/** 탭 내용. mode 를 받는 기존 탭 컴포넌트를 그대로 넘긴다. */
-	component: ComponentType<{ mode: string }>;
+	component: ComponentType<{ mode: GameMode }>;
 }
 
 /** 기존 탭들이 기대하는 값. 백엔드에서 normal 과 동일하게 처리된다. */

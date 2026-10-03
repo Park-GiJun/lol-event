@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { SampleGrade } from '@/lib/types/stats';
+import type { SampleGrade } from '@/types';
 
 /**
  * 비율 지표를 표본과 묶어서 보여주는 컴포넌트들.

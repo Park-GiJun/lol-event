@@ -1,4 +1,42 @@
+/** 경기 — 목록(페이지) · 단건 · 타임라인. */
+
+import type { AxiosRequestConfig } from 'axios';
+import { api } from '@/api/client';
 import type { MaybePosition as Position } from '@/lib/position';
+import type { GameMode } from '@/types';
+
+export function getMatchPage(
+	mode: GameMode,
+	page: number,
+	size: number,
+	config?: AxiosRequestConfig
+) {
+	return api.get<MatchPage>('/api/matches/page', { params: { mode, page, size }, ...config });
+}
+
+export function getMatch(matchId: string, config?: AxiosRequestConfig) {
+	return api.get<Match>(`/api/matches/${encodeURIComponent(matchId)}`, config);
+}
+
+/** 타임라인이 없는 경기도 404 가 아니라 `hasTimeline: false` 로 정상 응답이 온다. */
+export function getMatchTimeline(matchId: string, config?: AxiosRequestConfig) {
+	return api.get<MatchTimeline>(`/api/matches/${encodeURIComponent(matchId)}/timeline`, config);
+}
+
+/** 저장된 전 경기의 포지션을 다시 배정한다(관리자). */
+export function reassignPositions() {
+	return api.post<ReassignPositionsResult>('/api/admin/positions/reassign');
+}
+
+export interface ReassignPositionsResult {
+	matchesScanned: number;
+	matchesSkippedAram: number;
+	teamsScanned: number;
+	teamsAlreadyValid: number;
+	teamsFixed: number;
+	participantsUpdated: number;
+}
+
 export interface Participant {
 	/**
 	 * 포지션 재배정 백필 결과.
@@ -153,9 +191,6 @@ export interface Team {
 	firstDragon: boolean;
 }
 
-/** 백엔드 Position enum 을 그대로 따른다. 정의는 @/lib/position 한 곳에만 둔다. */
-export type { Position };
-
 export interface Match {
 	matchId: string;
 	queueId: number;
@@ -170,15 +205,6 @@ export interface Match {
 	participants: Participant[];
 	teams: Team[];
 }
-
-export interface SaveMatchesResponse {
-	saved: number;
-	skipped: number;
-	total: number;
-}
-
-// ── 목록 화면 전용 요약 타입 ────────────────────────────────────
-// 상세 Participant 는 114개 필드라 목록에서 그대로 받으면 154경기에 3.6MB가 된다.
 
 export interface ParticipantSummary {
 	puuid: string | null;
@@ -237,17 +263,6 @@ export interface MatchPage {
 	totalPages: number;
 	hasNext: boolean;
 }
-
-// ──────────────── 경기 타임라인 ────────────────
-//
-// GET /api/matches/{matchId}/timeline
-//
-// 단위 규약
-//  - 시간은 ms. `...ByMinute` 목록은 **index = 분**이다.
-//  - 좌표는 0~14,870 (협곡 미니맵 스케일). y 는 위로 갈수록 커진다 — 그리려면 뒤집어야 한다.
-//  - 비율은 0~100.
-//
-// 응답이 100KB 급이라 경기 상세 화면에서만 부른다. 목록에는 싣지 않는다.
 
 export interface MapPointDto {
 	x: number;

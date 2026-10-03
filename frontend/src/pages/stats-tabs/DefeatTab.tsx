@@ -1,28 +1,17 @@
 import { SkullIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { DefeatContributionResult, DefeatContributionEntry } from '../../lib/types/stats';
+import { type DefeatContributionEntry, getDefeatContribution } from '@/api/stats/playstyleStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { RankBadge } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function DefeatTab({ mode }: { mode: string }) {
+export default function DefeatTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
-	const [data, setData] = useState<DefeatContributionResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<DefeatContributionResult>(`/stats/defeat-contribution?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['defeat-contribution', mode],
+		queryFn: ({ signal }) => getDefeatContribution(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

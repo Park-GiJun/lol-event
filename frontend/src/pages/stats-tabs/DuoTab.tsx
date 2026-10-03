@@ -1,30 +1,21 @@
 import { HandshakeIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api/api';
-import type { DuoStatsResult, DuoStat } from '../../lib/types/stats';
+import { type DuoStat, getDuoStats } from '@/api/stats/teamStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
 import { PlayerLink } from '../../components/common/PlayerLink';
 import { RankBadge, WinRateBar } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function DuoTab({ mode }: { mode: string }) {
+export default function DuoTab({ mode }: { mode: GameMode }) {
 	const navigate = useNavigate();
-	const [data, setData] = useState<DuoStatsResult | null>(null);
-	const [loading, setLoading] = useState(true);
 	const [minGames, setMinGames] = useState(2);
 
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<DuoStatsResult>(`/stats/duo?mode=${mode}&minGames=${minGames}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode, minGames]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['duo', mode, minGames],
+		queryFn: ({ signal }) => getDuoStats(mode, minGames, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

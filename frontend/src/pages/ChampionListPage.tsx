@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useChampionTier } from '@/hooks/useChampions';
-import { useDragon } from '@/context/DragonContext';
+import { useDragon } from '@/hooks/useDragon';
 import { ChampionIcon } from '@/components/ds/Champion';
 import { Rate, TierBadge, WinBar } from '@/components/ds/Stat';
 import { InlineError } from '@/components/common/InlineError';

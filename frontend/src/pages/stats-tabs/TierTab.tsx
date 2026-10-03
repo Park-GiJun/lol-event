@@ -1,10 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
-import { api } from '../../lib/api/api';
-import type { ChampionTierResult, ChampionTierEntry } from '../../lib/types/stats';
+import { type ChampionTierEntry, getChampionTier } from '@/api/stats/championStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
-import { useDragon } from '../../context/DragonContext';
+import { useDragon } from '@/hooks/useDragon';
 import { ChampionLink } from '../../components/common/ChampionLink';
 import { ChampImg } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
 const TIER_COLORS: Record<string, string> = {
 	S: '#FFD700',
@@ -14,24 +14,13 @@ const TIER_COLORS: Record<string, string> = {
 	D: '#f87171'
 };
 
-export default function TierTab({ mode }: { mode: string }) {
-	const [data, setData] = useState<ChampionTierResult | null>(null);
-	const [loading, setLoading] = useState(false);
+export default function TierTab({ mode }: { mode: GameMode }) {
 	const { champions } = useDragon();
 
-	const load = useCallback(async () => {
-		if (data) return;
-		setLoading(true);
-		try {
-			setData(await api.get<ChampionTierResult>(`/stats/champion-tier?mode=${mode}&minGames=3`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode, data]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['champion-tier', mode, 3],
+		queryFn: ({ signal }) => getChampionTier(mode, 3, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;

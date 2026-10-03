@@ -1,32 +1,21 @@
 import { BarChartIcon, StarIcon } from '@/components/icons/LolIcons';
-import { useEffect, useState, useCallback } from 'react';
-import { api } from '../../lib/api/api';
-import type {
-	MultiKillHighlightsResult,
-	MultiKillEvent,
-	PlayerMultiKillStat
-} from '../../lib/types/stats';
+import {
+	type MultiKillEvent,
+	type PlayerMultiKillStat,
+	getMultiKillHighlights
+} from '@/api/stats/combatStatsApi';
 import { LoadingCenter } from '../../components/common/Spinner';
-import { useDragon } from '../../context/DragonContext';
+import { useDragon } from '@/hooks/useDragon';
 import { RankBadge, ChampImg } from './shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
 
-export default function MultikillTab({ mode }: { mode: string }) {
+export default function MultikillTab({ mode }: { mode: GameMode }) {
 	const { champions } = useDragon();
-	const [data, setData] = useState<MultiKillHighlightsResult | null>(null);
-	const [loading, setLoading] = useState(true);
-
-	const load = useCallback(async () => {
-		setLoading(true);
-		try {
-			setData(await api.get<MultiKillHighlightsResult>(`/stats/multikill-highlights?mode=${mode}`));
-		} finally {
-			setLoading(false);
-		}
-	}, [mode]);
-
-	useEffect(() => {
-		load();
-	}, [load]);
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['multikill-highlights', mode],
+		queryFn: ({ signal }) => getMultiKillHighlights(mode, { signal })
+	});
 
 	if (loading) return <LoadingCenter />;
 	if (!data) return null;
