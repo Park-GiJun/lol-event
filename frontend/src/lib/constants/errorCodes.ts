@@ -8,9 +8,9 @@
  * 조용히 false 가 되어 분기가 통째로 죽는다. 상수를 쓰면 컴파일 단계에서 걸린다.
  */
 
-import type { ErrorCode } from './errorCodes.generated';
+import type { ErrorCode } from '@/lib/constants/errorCodes.generated';
 
-export { ERROR_CODE, type ErrorCode } from './errorCodes.generated';
+export { ERROR_CODE, type ErrorCode } from '@/lib/constants/errorCodes.generated';
 
 /**
  * `ApiError` 가 실어 나르는 코드의 타입.

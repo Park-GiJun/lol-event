@@ -15,7 +15,7 @@ import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { errorMessageOf } from '@/lib/constants/errorMessages';
 import { showToast } from '@/stores/toastStore';
-import { ApiError } from './client';
+import { ApiError } from '@/api/client';
 
 /** Query/Mutation `meta` 로 넘길 수 있는 항목. */
 export interface AppQueryMeta extends Record<string, unknown> {

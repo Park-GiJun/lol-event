@@ -1,0 +1,95 @@
+import { LaneTopIcon } from '@/components/icons/LolIcons';
+import { useNavigate } from 'react-router-dom';
+import { type SurvivalIndexEntry, getSurvivalIndex } from '@/api/stats/playstyleStatsApi';
+import { LoadingCenter } from '@/components/common/Spinner';
+import { RankBadge } from '@/features/stats/tabs/shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
+
+export default function SurvivalTab({ mode }: { mode: GameMode }) {
+	const navigate = useNavigate();
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['survival-index', mode],
+		queryFn: ({ signal }) => getSurvivalIndex(mode, { signal })
+	});
+
+	if (loading) return <LoadingCenter />;
+	if (!data) return null;
+
+	return (
+		<div>
+			<div className="section-head">
+				<LaneTopIcon size={16} />
+				<span className="section-head-title">얼마나 잘 버티나 — 높을수록 팀의 방패</span>
+			</div>
+			<div className="table-wrapper">
+				<table className="table member-stats-table">
+					<thead>
+						<tr>
+							<th style={{ width: 36 }}>#</th>
+							<th>플레이어</th>
+							<th className="table-number">판수</th>
+							<th className="table-number">팀이 맞은 딜 중 내 몫</th>
+							<th className="table-number">막아낸 피해 비율</th>
+							<th className="table-number">버티기 점수</th>
+						</tr>
+					</thead>
+					<tbody>
+						{data.rankings.map((p: SurvivalIndexEntry, i) => (
+							<tr
+								key={p.riotId}
+								className="member-stats-row"
+								onClick={() => navigate(`/player-stats/${encodeURIComponent(p.riotId)}`)}
+							>
+								<td>
+									<RankBadge rank={i + 1} />
+								</td>
+								<td>
+									<div
+										style={{
+											fontWeight: 'var(--font-weight-bold)',
+											fontSize: 'var(--font-size-sm)'
+										}}
+									>
+										{p.riotId.split('#')[0]}
+									</div>
+									<div
+										style={{
+											fontSize: 'var(--font-size-2xs)',
+											color: 'var(--color-text-disabled)'
+										}}
+									>
+										#{p.riotId.split('#')[1]}
+									</div>
+								</td>
+								<td className="table-number">{p.games}</td>
+								<td className="table-number">{(p.avgTankShare * 100).toFixed(1)}%</td>
+								<td className="table-number">{(p.avgMitigationRatio * 100).toFixed(1)}%</td>
+								<td
+									className="table-number"
+									style={{ fontWeight: 700, color: 'var(--color-primary)' }}
+								>
+									{p.survivalIndex.toFixed(1)}
+								</td>
+							</tr>
+						))}
+						{!data.rankings.length && (
+							<tr>
+								<td
+									colSpan={6}
+									style={{
+										textAlign: 'center',
+										padding: 'var(--spacing-2xl) 0',
+										color: 'var(--color-text-secondary)'
+									}}
+								>
+									데이터 없음
+								</td>
+							</tr>
+						)}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	);
+}

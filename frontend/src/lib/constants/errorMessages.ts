@@ -11,7 +11,7 @@
  * 문구는 사용자가 **다음에 무엇을 할지** 알 수 있게 쓴다. 코드명을 그대로 옮기지 않는다.
  */
 
-import { ERROR_CODE, type AnyErrorCode, type ErrorCode } from './errorCodes';
+import { ERROR_CODE, type AnyErrorCode, type ErrorCode } from '@/lib/constants/errorCodes';
 
 export const ERROR_MESSAGE: Record<ErrorCode, string> = {
 	[ERROR_CODE.NOT_FOUND]: '찾는 내용이 없습니다.',

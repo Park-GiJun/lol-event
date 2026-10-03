@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { POSITIONS, byPosition, positionLabel, positionOrder } from './position';
+import { POSITIONS, byPosition, positionLabel, positionOrder } from '@/lib/position';
 
 describe('positionLabel', () => {
 	it('백엔드 포지션 다섯 개를 모두 한글로 옮긴다', () => {

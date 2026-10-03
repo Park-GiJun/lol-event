@@ -1,0 +1,500 @@
+import { CloseIcon, RefreshIcon, UsersIcon } from '@/components/icons/LolIcons';
+import { useEffect, useMemo, useState } from 'react';
+import { useDuoStats } from '@/hooks/useDuoStats';
+import { useLeaderboard } from '@/hooks/useLeaderboard';
+import { usePlayers } from '@/hooks/usePlayers';
+import { useQuery } from '@tanstack/react-query';
+import { getMvpStats, type MvpPlayerStat } from '@/api/stats/rankingStatsApi';
+import type { PlayerStats } from '@/api/stats/playerStatsApi';
+import type { DuoStat } from '@/api/stats/teamStatsApi';
+import { PlayerLink } from '@/components/player/PlayerLink';
+
+// ── 타입 ─────────────────────────────────────────────────────
+type TeamKey = 'pool' | 'team1' | 'team2' | 'team3' | 'team4';
+type TeamMap = Record<TeamKey, string[]>;
+
+const TEAM_META: Record<
+	Exclude<TeamKey, 'pool'>,
+	{ label: string; main: string; bg: string; border: string }
+> = {
+	team1: {
+		label: '팀 1',
+		main: '#4A9EFF',
+		bg: 'rgba(74,158,255,0.08)',
+		border: 'rgba(74,158,255,0.35)'
+	},
+	team2: {
+		label: '팀 2',
+		main: '#FF6B6B',
+		bg: 'rgba(255,107,107,0.08)',
+		border: 'rgba(255,107,107,0.35)'
+	},
+	team3: {
+		label: '팀 3',
+		main: '#51CF66',
+		bg: 'rgba(81,207,102,0.08)',
+		border: 'rgba(81,207,102,0.35)'
+	},
+	team4: {
+		label: '팀 4',
+		main: '#CC5DE8',
+		bg: 'rgba(204,93,232,0.08)',
+		border: 'rgba(204,93,232,0.35)'
+	}
+};
+
+// ── 예상 승률 계산 (Elo + WR + KDA + 듀오시너지) ─────────────
+function calcExpectedWR(
+	members: string[],
+	allStats: PlayerStats[],
+	eloMap: Map<string, number>,
+	duos: DuoStat[]
+): number {
+	if (!members.length) return 0;
+
+	// 기본 승률
+	const baseWR =
+		members.reduce((sum, id) => {
+			return sum + (allStats.find((s) => s.riotId === id)?.winRate ?? 50);
+		}, 0) /
+		members.length /
+		100;
+
+	// Elo 보정 (1500 기준, 최대 ±8%)
+	const avgElo = members.reduce((sum, id) => sum + (eloMap.get(id) ?? 1500), 0) / members.length;
+	const eloBonus = Math.max(-0.08, Math.min(0.08, ((avgElo - 1500) / 500) * 0.08));
+
+	// KDA 보정 (3.0 기준, 최대 ±4%)
+	const avgKDA =
+		members.reduce((sum, id) => {
+			return sum + (allStats.find((s) => s.riotId === id)?.kda ?? 3);
+		}, 0) / members.length;
+	const kdaBonus = Math.max(-0.04, Math.min(0.04, ((avgKDA - 3) / 10) * 0.04));
+
+	// 듀오 시너지 보정
+	const duoRates: number[] = [];
+	for (let i = 0; i < members.length; i++) {
+		for (let j = i + 1; j < members.length; j++) {
+			const [a, b] = [members[i], members[j]];
+			const d = duos.find(
+				(x) => (x.player1 === a && x.player2 === b) || (x.player1 === b && x.player2 === a)
+			);
+			if (d) duoRates.push(d.winRate / 100);
+		}
+	}
+	const synergy = duoRates.length
+		? (duoRates.reduce((a, b) => a + b, 0) / duoRates.length - 0.5) * 0.15
+		: 0;
+
+	return Math.min(Math.max(baseWR + eloBonus + kdaBonus + synergy, 0.05), 0.95);
+}
+
+// ── DropZone ─────────────────────────────────────────────────
+interface DropZoneProps {
+	teamKey: TeamKey;
+	dragOver: TeamKey | null;
+	onDragOverChange: (k: TeamKey | null) => void;
+	onDrop: (to: TeamKey, riotId: string, from: TeamKey) => void;
+	style?: React.CSSProperties;
+	className?: string;
+	children: React.ReactNode;
+}
+function DropZone({
+	teamKey,
+	onDragOverChange,
+	onDrop,
+	style,
+	className,
+	children
+}: DropZoneProps) {
+	return (
+		<div
+			className={className}
+			style={style}
+			onDragOver={(e) => {
+				e.preventDefault();
+				onDragOverChange(teamKey);
+			}}
+			onDragLeave={(e) => {
+				if (!e.currentTarget.contains(e.relatedTarget as Node)) onDragOverChange(null);
+			}}
+			onDrop={(e) => {
+				e.preventDefault();
+				onDrop(
+					teamKey,
+					e.dataTransfer.getData('riotId'),
+					e.dataTransfer.getData('from') as TeamKey
+				);
+			}}
+		>
+			{children}
+		</div>
+	);
+}
+
+// ── PlayerChip ───────────────────────────────────────────────
+interface PlayerChipProps {
+	riotId: string;
+	from: TeamKey;
+	allStats: PlayerStats[];
+	mvpStats: MvpPlayerStat[];
+	eloMap: Map<string, number>;
+	color: string;
+	className?: string;
+	onRemove?: () => void;
+}
+function PlayerChip({
+	riotId,
+	from,
+	allStats,
+	mvpStats,
+	eloMap,
+	color,
+	onRemove
+}: PlayerChipProps) {
+	const stat = allStats.find((s) => s.riotId === riotId);
+	const mvp = mvpStats.find((m) => m.riotId === riotId);
+	const elo = eloMap.get(riotId);
+	return (
+		<div
+			className="player-chip"
+			draggable
+			onDragStart={(e) => {
+				e.dataTransfer.setData('riotId', riotId);
+				e.dataTransfer.setData('from', from);
+				e.dataTransfer.effectAllowed = 'move';
+			}}
+			style={{ border: `1px solid ${color}44`, background: `${color}11` }}
+		>
+			<div>
+				<div className="player-chip-name" style={{ color }}>
+					{riotId.split('#')[0]}
+				</div>
+				<div className="player-chip-meta">
+					WR {stat?.winRate.toFixed(0) ?? '—'}%{elo != null ? ` · Elo ${elo.toFixed(0)}` : ''}
+					{mvp ? ` · MVP ${mvp.avgMvpScore.toFixed(1)}` : ''}
+				</div>
+			</div>
+			{onRemove && (
+				<button
+					className="player-chip-remove"
+					onClick={(e) => {
+						e.stopPropagation();
+						onRemove();
+					}}
+				>
+					<CloseIcon size={12} />
+				</button>
+			)}
+		</div>
+	);
+}
+
+// 아직 안 왔을 때의 빈 목록. 매 렌더마다 새 배열을 만들면 pool 을 채우는 effect 가 계속 다시 돈다.
+const NO_STATS: PlayerStats[] = [];
+const NO_MVP: MvpPlayerStat[] = [];
+const NO_DUOS: DuoStat[] = [];
+
+// ── 메인 페이지 ───────────────────────────────────────────────
+export function TeamBuilderPage() {
+	// 넷 다 따로 실패할 수 있다 — 하나가 안 와도 나머지로 편성은 된다.
+	const statsQuery = usePlayers('normal');
+	const mvpQuery = useQuery({
+		queryKey: ['mvp', 'normal'],
+		queryFn: ({ signal }) => getMvpStats('normal', { signal })
+	});
+	const duoQuery = useDuoStats('normal', 1);
+	const eloQuery = useLeaderboard();
+
+	const allStats = statsQuery.data?.stats ?? NO_STATS;
+	const mvpStats = mvpQuery.data?.rankings ?? NO_MVP;
+	const duoData = duoQuery.data?.duos ?? NO_DUOS;
+	// 편성 보조는 계산이라 표시값이 아니라 **원값**을 쓴다. 수축값을 계산에 되먹이면
+	// 표본 적은 사람이 실제보다 평범해 보여 균형이 흐려진다.
+	const eloMap = useMemo(
+		() => new Map((eloQuery.data?.players ?? []).map((p) => [p.riotId, p.laneElo])),
+		[eloQuery.data]
+	);
+	const loading =
+		statsQuery.isLoading || mvpQuery.isLoading || duoQuery.isLoading || eloQuery.isLoading;
+	const [teams, setTeams] = useState<TeamMap>({
+		pool: [],
+		team1: [],
+		team2: [],
+		team3: [],
+		team4: []
+	});
+	const [dragOver, setDragOver] = useState<TeamKey | null>(null);
+
+	useEffect(() => {
+		if (allStats.length) {
+			setTeams((prev) => ({ ...prev, pool: allStats.map((s) => s.riotId) }));
+		}
+	}, [allStats]);
+
+	function onDrop(to: TeamKey, riotId: string, from: TeamKey) {
+		setDragOver(null);
+		if (!riotId || from === to) return;
+		if (to !== 'pool' && teams[to].length >= 5) return;
+		setTeams((prev) => {
+			const next = { ...prev };
+			next[from] = prev[from].filter((id) => id !== riotId);
+			next[to] = [...prev[to], riotId];
+			return next;
+		});
+	}
+
+	function removeFromTeam(riotId: string, from: TeamKey) {
+		setTeams((prev) => ({
+			...prev,
+			[from]: prev[from].filter((id) => id !== riotId),
+			pool: from !== 'pool' ? [...prev.pool, riotId] : prev.pool
+		}));
+	}
+
+	function resetTeams() {
+		setTeams({ pool: allStats.map((s) => s.riotId), team1: [], team2: [], team3: [], team4: [] });
+	}
+
+	return (
+		<div className="t-page">
+			<div
+				className="hero-banner flex items-center justify-between"
+				style={{ marginBottom: 'var(--spacing-md)' }}
+			>
+				<div>
+					<div className="hero-eyebrow">Team Builder</div>
+					<h1 className="hero-title">팀 빌더</h1>
+					<p className="hero-subtitle">
+						드래그&드롭으로 4팀 구성 · 예상 승률 = WR + Elo + KDA + 듀오시너지
+					</p>
+				</div>
+				<button className="btn btn-secondary btn-sm" onClick={resetTeams}>
+					<RefreshIcon size={14} />
+					초기화
+				</button>
+			</div>
+
+			{loading ? (
+				<div
+					className="card"
+					style={{
+						padding: 'var(--spacing-xl)',
+						textAlign: 'center',
+						color: 'var(--color-text-secondary)'
+					}}
+				>
+					데이터 로딩 중...
+				</div>
+			) : (
+				<>
+					{/* 플레이어 풀 */}
+					<div className="card" style={{ marginBottom: 'var(--spacing-md)' }}>
+						<DropZone
+							teamKey="pool"
+							dragOver={dragOver}
+							onDragOverChange={setDragOver}
+							onDrop={onDrop}
+							className={`team-pool-zone${dragOver === 'pool' ? ' drag-active' : ''}`}
+						>
+							<div className="team-pool-label">미배정 플레이어 ({teams.pool.length}명)</div>
+							<div className="grid-16">
+								{teams.pool.length === 0 && (
+									<span className="col-span-16 team-drop-hint">모든 플레이어 배정 완료</span>
+								)}
+								{teams.pool.map((id) => (
+									<PlayerChip
+										key={id}
+										riotId={id}
+										from="pool"
+										allStats={allStats}
+										mvpStats={mvpStats}
+										eloMap={eloMap}
+										color="var(--color-text-primary)"
+										className="col-span-2"
+									/>
+								))}
+							</div>
+						</DropZone>
+					</div>
+
+					{/* 4팀 그리드 */}
+					<div className="grid-16">
+						{(Object.keys(TEAM_META) as Exclude<TeamKey, 'pool'>[]).map((tk) => {
+							const meta = TEAM_META[tk];
+							const members = teams[tk];
+							const wr = calcExpectedWR(members, allStats, eloMap, duoData);
+							const teamDuos = duoData
+								.filter((d) => members.includes(d.player1) && members.includes(d.player2))
+								.sort((a, b) => b.winRate - a.winRate);
+							const avgElo = members.length
+								? members.reduce((s, id) => s + (eloMap.get(id) ?? 1500), 0) / members.length
+								: null;
+							const wrColor =
+								wr >= 0.6 ? 'var(--color-win)' : wr < 0.45 ? 'var(--color-loss)' : meta.main;
+
+							return (
+								<DropZone
+									key={tk}
+									teamKey={tk}
+									dragOver={dragOver}
+									className="col-span-8 team-drop-zone"
+									onDragOverChange={setDragOver}
+									onDrop={onDrop}
+									style={{
+										border: `1px solid ${dragOver === tk ? meta.main : meta.border}`,
+										background: dragOver === tk ? meta.bg.replace('0.08', '0.14') : meta.bg
+									}}
+								>
+									{/* 팀 헤더 */}
+									<div className="team-header">
+										<div>
+											<span className="team-label" style={{ color: meta.main }}>
+												{meta.label}
+											</span>
+											{avgElo != null && (
+												<div className="team-elo-sub">평균 Elo {avgElo.toFixed(0)}</div>
+											)}
+										</div>
+										{members.length > 0 && (
+											<div className="team-wr-display">
+												<div className="team-wr-value" style={{ color: wrColor }}>
+													{(wr * 100).toFixed(1)}%
+												</div>
+												<div className="team-wr-label">예상 승률</div>
+											</div>
+										)}
+									</div>
+
+									{/* 승률 게이지 */}
+									{members.length > 0 && (
+										<div className="team-wr-bar-track">
+											<div
+												className="team-wr-bar-fill"
+												style={{ width: `${wr * 100}%`, background: wrColor }}
+											/>
+										</div>
+									)}
+
+									{/* 플레이어 칩 */}
+									<div className="grid-16" style={{ minHeight: 'var(--spacing-xl)' }}>
+										{members.length === 0 && (
+											<span className="col-span-16 team-drop-hint">여기에 드롭</span>
+										)}
+										{members.map((id) => (
+											<PlayerChip
+												key={id}
+												riotId={id}
+												from={tk}
+												allStats={allStats}
+												mvpStats={mvpStats}
+												eloMap={eloMap}
+												color={meta.main}
+												className="col-span-2"
+												onRemove={() => removeFromTeam(id, tk)}
+											/>
+										))}
+									</div>
+
+									{/* 듀오 시너지 */}
+									{teamDuos.length > 0 && (
+										<div
+											className="team-duo-section"
+											style={{ borderTop: `1px solid ${meta.border}` }}
+										>
+											<div className="team-duo-title">듀오 시너지</div>
+											<div
+												style={{
+													display: 'flex',
+													flexDirection: 'column',
+													gap: 'var(--spacing-2xs)'
+												}}
+											>
+												{teamDuos.map((d) => (
+													<div key={`${d.player1}-${d.player2}`} className="team-duo-item">
+														<span className="team-duo-names">
+															{d.player1.split('#')[0]} + {d.player2.split('#')[0]}
+														</span>
+														<span
+															className="team-duo-wr"
+															style={{
+																color:
+																	d.winRate >= 60
+																		? 'var(--color-win)'
+																		: d.winRate < 45
+																			? 'var(--color-loss)'
+																			: 'var(--color-text-primary)'
+															}}
+														>
+															{d.winRate.toFixed(1)}% ({d.games}판)
+														</span>
+													</div>
+												))}
+											</div>
+										</div>
+									)}
+								</DropZone>
+							);
+						})}
+					</div>
+
+					{/* 전체 듀오 시너지 참고 */}
+					{duoData.length > 0 && (
+						<div className="card" style={{ marginTop: 'var(--spacing-md)' }}>
+							<div className="section-head">
+								<span className="icon-chip">
+									<UsersIcon size={14} />
+								</span>
+								<span className="section-head-title">듀오 시너지 전체 참고</span>
+							</div>
+							<div className="grid-16">
+								{[...duoData]
+									.sort((a, b) => b.winRate - a.winRate)
+									.slice(0, 20)
+									.map((d) => (
+										<div
+											key={`${d.player1}-${d.player2}`}
+											className="duo-ref-card col-span-4"
+											style={{
+												borderColor:
+													d.winRate >= 60
+														? 'var(--color-win)'
+														: d.winRate < 45
+															? 'var(--color-loss)'
+															: 'var(--color-border)'
+											}}
+										>
+											<div className="duo-ref-players">
+												<PlayerLink riotId={d.player1}>{d.player1.split('#')[0]}</PlayerLink>
+												<span className="text-secondary" style={{ margin: '0 var(--spacing-xs)' }}>
+													+
+												</span>
+												<PlayerLink riotId={d.player2}>{d.player2.split('#')[0]}</PlayerLink>
+											</div>
+											<div className="duo-ref-stats">
+												<span
+													style={{
+														fontWeight: 'var(--font-weight-bold)',
+														color:
+															d.winRate >= 60
+																? 'var(--color-win)'
+																: d.winRate < 45
+																	? 'var(--color-loss)'
+																	: 'var(--color-text-primary)'
+													}}
+												>
+													{d.winRate.toFixed(1)}%
+												</span>
+												<span className="text-disabled">{d.games}판</span>
+												<span className="text-disabled">KDA {d.kda.toFixed(1)}</span>
+											</div>
+										</div>
+									))}
+							</div>
+						</div>
+					)}
+				</>
+			)}
+		</div>
+	);
+}

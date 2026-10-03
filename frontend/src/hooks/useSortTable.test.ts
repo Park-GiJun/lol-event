@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { useSortTable } from './useSortTable';
+import { useSortTable } from '@/hooks/useSortTable';
 
 type Key = 'winRate' | 'games';
 const rows = [

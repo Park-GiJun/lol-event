@@ -1,0 +1,144 @@
+import { MedalIcon } from '@/components/icons/LolIcons';
+import { useNavigate } from 'react-router-dom';
+import { type ChampionCertEntry, getChampionCertificate } from '@/api/stats/championStatsApi';
+import { LoadingCenter } from '@/components/common/Spinner';
+import { useDragon } from '@/hooks/useDragon';
+import { ChampImg } from '@/features/stats/tabs/shared';
+import { useQuery } from '@tanstack/react-query';
+import type { GameMode } from '@/types';
+
+export default function CertificateTab({ mode }: { mode: GameMode }) {
+	const navigate = useNavigate();
+	const { champions } = useDragon();
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ['champion-certificate', mode],
+		queryFn: ({ signal }) => getChampionCertificate(mode, { signal })
+	});
+
+	if (loading) return <LoadingCenter />;
+	if (!data) return null;
+
+	return (
+		<div>
+			<div className="section-head">
+				<MedalIcon size={16} />
+				<span className="section-head-title">챔피언 장인 인증</span>
+			</div>
+			<p
+				style={{
+					fontSize: 'var(--font-size-xs)',
+					color: 'var(--color-text-secondary)',
+					marginBottom: 'var(--spacing-md)'
+				}}
+			>
+				일정 판수 이상 + 높은 KDA + 승률 조건 충족 시 장인 인증
+			</p>
+			<div
+				style={{
+					display: 'grid',
+					gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+					gap: 'var(--spacing-sm)'
+				}}
+			>
+				{data.certifiedMasters.map((cert: ChampionCertEntry) => {
+					const nameKo = champions.get(cert.championId)?.nameKo ?? cert.champion;
+					return (
+						<div
+							key={`${cert.riotId}-${cert.champion}`}
+							className="card"
+							style={{
+								padding: 'var(--spacing-md)',
+								borderLeft: '3px solid var(--color-primary)',
+								cursor: 'pointer',
+								boxShadow: '0 0 16px rgba(var(--color-primary-rgb), 0.06)',
+								transition:
+									'border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast)'
+							}}
+							onClick={() => navigate(`/player-stats/${encodeURIComponent(cert.riotId)}`)}
+						>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									gap: 'var(--spacing-sm)',
+									marginBottom: 'var(--spacing-sm)'
+								}}
+							>
+								<ChampImg
+									championId={cert.championId}
+									champion={cert.champion}
+									size={40}
+									style={{
+										borderRadius: 'var(--radius-md)',
+										boxShadow: '0 0 10px rgba(var(--color-primary-rgb), 0.15)'
+									}}
+								/>
+								<div>
+									<div
+										style={{
+											fontWeight: 'var(--font-weight-extrabold)',
+											fontSize: 'var(--font-size-sm)'
+										}}
+									>
+										{cert.riotId.split('#')[0]}
+									</div>
+									<div
+										style={{
+											fontSize: 'var(--font-size-xs)',
+											color: 'var(--color-text-secondary)',
+											marginTop: 1
+										}}
+									>
+										{nameKo}
+									</div>
+								</div>
+								<span
+									style={{
+										marginLeft: 'auto',
+										fontSize: 18,
+										filter: 'drop-shadow(0 0 4px rgba(var(--color-primary-rgb), 0.4))'
+									}}
+								></span>
+							</div>
+							<div
+								style={{
+									display: 'flex',
+									gap: 'var(--spacing-sm)',
+									fontSize: 'var(--font-size-xs)',
+									fontVariantNumeric: 'tabular-nums'
+								}}
+							>
+								<span style={{ color: 'var(--color-text-secondary)' }}>{cert.games}판</span>
+								<span
+									style={{
+										fontWeight: 700,
+										color: cert.winRate >= 60 ? 'var(--color-win)' : 'var(--color-primary)'
+									}}
+								>
+									{cert.winRate}%
+								</span>
+								<span style={{ color: 'var(--color-text-secondary)' }}>
+									KDA{' '}
+									<span style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>
+										{cert.kda.toFixed(2)}
+									</span>
+								</span>
+							</div>
+						</div>
+					);
+				})}
+				{!data.certifiedMasters.length && (
+					<p
+						style={{
+							fontSize: 'var(--font-size-sm)',
+							color: 'var(--color-text-secondary)',
+							gridColumn: '1/-1'
+						}}
+					>
+						인증된 장인이 없습니다
+					</p>
+				)}
+			</div>
+		</div>
+	);
+}

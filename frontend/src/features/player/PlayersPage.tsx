@@ -1,0 +1,125 @@
+import { useMemo, useState } from 'react';
+import { useLeaderboard } from '@/hooks/useLeaderboard';
+import { PersonLink } from '@/components/champion/Champion';
+import { PlacementBadge } from '@/components/common/PlacementBadge';
+import { Rate, WinBar } from '@/components/common/Stat';
+import { InlineError } from '@/components/common/InlineError';
+
+export function PlayersPage() {
+	const { data, isPending, error, refetch } = useLeaderboard();
+	const [q, setQ] = useState('');
+
+	const filtered = useMemo(() => {
+		const players = data?.players ?? [];
+		const needle = q.trim().toLowerCase();
+		if (!needle) return players;
+		return players.filter((p) => p.riotId.toLowerCase().includes(needle));
+	}, [data, q]);
+
+	if (isPending) {
+		return (
+			<div className="t-page">
+				<h1 className="t-page-title">플레이어</h1>
+				<div className="t-skel" style={{ height: 480, borderRadius: 16 }} />
+			</div>
+		);
+	}
+
+	if (error || !data) {
+		return (
+			<div className="t-page">
+				<InlineError message="플레이어 목록을 불러오지 못했습니다." onRetry={() => refetch()} />
+			</div>
+		);
+	}
+
+	return (
+		<div className="t-page">
+			<div className="t-page-head">
+				<h1 className="t-page-title">플레이어</h1>
+				<p className="t-page-sub">
+					순위 {data.rankedCount}명 · 배치 중 {data.placementCount}명{' · '}순위에 들려면 라인
+					맞대결 {data.minDuels}회 이상
+				</p>
+			</div>
+
+			<div className="t-search" style={{ maxWidth: 340 }}>
+				<input
+					value={q}
+					onChange={(e) => setQ(e.target.value)}
+					placeholder="닉네임으로 찾기"
+					aria-label="플레이어 검색"
+					style={{ paddingLeft: 12 }}
+				/>
+			</div>
+
+			{/*
+        배치 중인 사람도 한 표에 같이 둔다. 순위만 매기지 않을 뿐이다.
+        예전에는 아래에 별도 카드로 떼어 놨는데, 검색으로 사람을 찾을 때 두 표를 다 뒤져야 했고
+        아래쪽 표만 보고 있으면 왜 순위가 없는지 알 길이 없었다. 뱃지가 그 역할을 대신한다.
+        서버가 순위 있는 사람을 먼저 주므로 순서는 그대로 두면 된다.
+      */}
+			<section className="t-card">
+				{filtered.length === 0 ? (
+					<p className="t-empty">
+						{q ? '찾는 플레이어가 없습니다.' : '아직 경기가 쌓이지 않았습니다.'}
+					</p>
+				) : (
+					<div className="t-tablewrap">
+						<table className="t-table">
+							<thead>
+								<tr>
+									<th className="t-rank">#</th>
+									<th>플레이어</th>
+									<th className="t-num">Elo</th>
+									<th style={{ width: 90 }}>승률</th>
+									<th>전적</th>
+									<th>연속</th>
+								</tr>
+							</thead>
+							<tbody>
+								{filtered.map((p) => (
+									<tr key={p.riotId} style={p.placement ? { opacity: 0.65 } : undefined}>
+										<td className="t-rank">
+											{p.placement ? (
+												<span style={{ color: 'var(--color-text-disabled)' }}>–</span>
+											) : (
+												p.rank
+											)}
+										</td>
+										<td>
+											<PersonLink riotId={p.riotId} />
+											{p.placement && <PlacementBadge minDuels={data.minDuels} />}
+										</td>
+										<td className="t-num">
+											<b>{Math.round(p.laneEloDisplay)}</b>
+										</td>
+										{/* winRate 는 0~1 로 온다. 아래 두 컴포넌트는 백분율을 받는다. */}
+										<td>
+											<WinBar winRate={p.winRate * 100} />
+										</td>
+										<td>
+											<Rate
+												value={Math.round(p.winRate * 100)}
+												games={p.games}
+												grade={p.sampleGrade}
+											/>
+										</td>
+										<td>
+											{p.winStreak > 1 && (
+												<span className="t-chip t-chip-win">{p.winStreak}연승</span>
+											)}
+											{p.lossStreak > 1 && (
+												<span className="t-chip t-chip-loss">{p.lossStreak}연패</span>
+											)}
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				)}
+			</section>
+		</div>
+	);
+}

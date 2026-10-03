@@ -1,6 +1,6 @@
 import { AxiosError, type AxiosAdapter, type AxiosResponse } from 'axios';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, api, client } from './client';
+import { ApiError, api, client } from '@/api/client';
 
 const originalAdapter = client.defaults.adapter;
 

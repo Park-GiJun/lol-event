@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { AlertCircleIcon } from '@/components/icons/LolIcons';
-import { Button } from './Button';
+import { Button } from '@/components/common/Button';
 
 export interface InlineErrorProps {
 	message: string;

@@ -5,7 +5,7 @@ import {
 	NexusIcon,
 	TurretIcon,
 	type IconComponent
-} from './LolIcons';
+} from '@/components/icons/LolIcons';
 
 /**
  * 오브젝트 종류 -> 아이콘. 키는 백엔드 `ObjectiveEntry.kind` 와 같다.

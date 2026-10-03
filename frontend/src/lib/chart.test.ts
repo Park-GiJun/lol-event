@@ -8,7 +8,7 @@ import {
 	mapToSvg,
 	niceScale,
 	timeFraction
-} from './chart';
+} from '@/lib/chart';
 
 describe('niceScale', () => {
 	it('500 단위로 올려 잡는다', () => {

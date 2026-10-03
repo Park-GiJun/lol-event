@@ -1,4 +1,10 @@
-import { LaneTopIcon, LaneJungleIcon, LaneMidIcon, LaneAdcIcon, LaneSupportIcon } from './LolIcons';
+import {
+	LaneTopIcon,
+	LaneJungleIcon,
+	LaneMidIcon,
+	LaneAdcIcon,
+	LaneSupportIcon
+} from '@/components/icons/LolIcons';
 
 /**
  * 포지션 코드 -> 아이콘. 키는 @/lib/position 의 Position 과 같다.

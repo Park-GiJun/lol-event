@@ -1,0 +1,237 @@
+/* 디자인 토큰 — 색 · 간격 · 모서리 · 그림자 · 글꼴. 값은 여기서만 정하고, 나머지 CSS 는 var(--…) 로만 쓴다. */
+
+:root {
+	/* ================================================================
+   * GRAY RAMP — 토스 특유의 푸른기 도는 회색. 순수 무채색이 아니다.
+   * 화면 구분은 선이 아니라 이 램프의 인접 두 단계로 만든다.
+   * ================================================================ */
+	--gray-0: #ffffff;
+	--gray-50: #f9fafb;
+	--gray-100: #f2f4f6;
+	--gray-200: #e5e8eb;
+	--gray-300: #d1d6db;
+	--gray-400: #b0b8c1;
+	--gray-500: #8b95a1;
+	--gray-600: #6b7684;
+	--gray-700: #4e5968;
+	--gray-800: #333d4b;
+	--gray-900: #191f28;
+
+	/* ================================================================
+   * BLUE — 포인트는 하나뿐이다. 링크 · 선택 · 진행 전부 이 파랑.
+   * ================================================================ */
+	--blue-50: #ebf3fe;
+	--blue-100: #c9e2ff;
+	--blue-300: #6ba6f8;
+	--blue-500: #3182f6;
+	--blue-600: #1b64da;
+	--blue-700: #1957b8;
+
+	/* ================================================================
+   * PRIMARY ACCENT
+   * ================================================================ */
+	--color-primary: #3182f6;
+	--color-primary-light: #6ba6f8;
+	--color-primary-dark: #1b64da;
+	--color-primary-hover: #1b64da;
+	--color-primary-rgb: 49, 130, 246;
+
+	--color-secondary: #6b7684;
+
+	/* ================================================================
+   * SEMANTIC COLORS
+   * ================================================================ */
+	--color-success: #00b37e;
+	--color-warning: #f59e0b;
+	--color-error: #e5484d;
+	--color-info: #3182f6;
+
+	/* Win/Loss — 승은 파랑, 패는 빨강.
+   * 초록/빨강 조합은 적록색약에서 구분이 안 되고,
+   * LoL은 이미 블루팀/레드팀 관습이 있어 파랑이 더 자연스럽다. */
+	--color-win: #1b64da;
+	--color-loss: #e5484d;
+	--color-win-bg: #ebf3fe;
+	--color-loss-bg: #fdecec;
+
+	/* Tier colors */
+	--color-tier-s: #1b64da;
+	--color-tier-a: #3182f6;
+	--color-tier-b: #8b95a1;
+	--color-tier-c: #b0b8c1;
+
+	/* ================================================================
+   * BACKGROUNDS — 흰 바탕 위에 회색 면을 얹어 층을 만든다.
+   * ================================================================ */
+	--color-bg-primary: #ffffff;
+	--color-bg-secondary: #ffffff;
+	--color-bg-tertiary: #f9fafb;
+	--color-bg-card: #ffffff;
+	--color-bg-hover: #f2f4f6;
+
+	--bg-base: #f9fafb;
+	--bg-surface: #ffffff;
+	--bg-elevated: #ffffff;
+
+	/* ================================================================
+   * SURFACES — 이전 glassmorphism 자리. 이제 불투명 흰 면이다.
+   * ================================================================ */
+	--glass-bg: #ffffff;
+	--glass-bg-hover: #f9fafb;
+	--glass-border: #e5e8eb;
+	--glass-border-hover: #d1d6db;
+	--glass-blur: 0px;
+	--glass-blur-heavy: 0px;
+
+	/* ================================================================
+   * TEXT
+   * ================================================================ */
+	--color-text-primary: #191f28;
+	--color-text-secondary: #4e5968;
+	--color-text-disabled: #b0b8c1;
+	--color-text-muted: #8b95a1;
+	--color-text-inverse: #ffffff;
+
+	/* ================================================================
+   * BORDERS — 되도록 쓰지 않는다. 쓸 때는 거의 안 보이게.
+   * ================================================================ */
+	--color-border: #e5e8eb;
+	--color-border-light: #f2f4f6;
+	--color-border-focus: var(--color-primary);
+
+	/* ================================================================
+   * LEGACY COLOR ALIASES
+   * ================================================================ */
+	--color-blue: #3182f6;
+	--color-red: #e5484d;
+
+	/* ================================================================
+   * SPACING — 4px base scale
+   * ================================================================ */
+	--spacing-2xs: 2px;
+	--spacing-xs: 4px;
+	--spacing-sm: 8px;
+	--spacing-md: 16px;
+	--spacing-lg: 24px;
+	--spacing-xl: 32px;
+	--spacing-2xl: 48px;
+	--spacing-3xl: 64px;
+
+	/* ================================================================
+   * BORDER RADIUS — 카드는 크게, 컨트롤은 작게.
+   * ================================================================ */
+	--radius-xs: 4px;
+	--radius-sm: 6px;
+	--radius-md: 8px;
+	--radius-lg: 12px;
+	--radius-xl: 16px;
+	--radius-2xl: 20px;
+	--radius-full: 9999px;
+
+	/* ================================================================
+   * SHADOWS — 거의 보이지 않을 만큼 얕게. 카드는 그림자보다 면으로 띄운다.
+   * ================================================================ */
+	--shadow-sm: 0 1px 2px rgba(25, 31, 40, 0.04);
+	--shadow-md: 0 2px 8px rgba(25, 31, 40, 0.06);
+	--shadow-lg: 0 6px 20px rgba(25, 31, 40, 0.08);
+	--shadow-xl: 0 12px 32px rgba(25, 31, 40, 0.1);
+	--shadow-teal: 0 1px 2px rgba(25, 31, 40, 0.04);
+	--shadow-teal-md: 0 2px 8px rgba(25, 31, 40, 0.06);
+	--shadow-teal-lg: 0 6px 20px rgba(25, 31, 40, 0.08);
+	--shadow-glow: 0 0 0 1px rgba(49, 130, 246, 0.16);
+	--shadow-glow-lg: 0 0 0 1px rgba(49, 130, 246, 0.16), 0 4px 16px rgba(49, 130, 246, 0.08);
+	--shadow-card-hover: 0 2px 8px rgba(25, 31, 40, 0.08);
+	--shadow-inset: none;
+
+	/* ================================================================
+   * TYPOGRAPHY — Pretendard 하나로 간다.
+   * 한글 전적 사이트에서 장식 세리프는 숫자 가독성만 해친다.
+   * ================================================================ */
+	--font-family-display:
+		'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+	--font-family:
+		'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+		'Malgun Gothic', sans-serif;
+	--font-family-mono: 'Pretendard Variable', Pretendard, ui-monospace, 'SFMono-Regular', monospace;
+	--font-size-2xs: 11px;
+	--font-size-xs: 12px;
+	--font-size-sm: 13px;
+	--font-size-md: 15px;
+	--font-size-lg: 17px;
+	--font-size-xl: 22px;
+	--font-size-2xl: 28px;
+	--font-size-3xl: 36px;
+	--font-size-hero: 48px;
+
+	/* Font weights */
+	--font-weight-normal: 400;
+	--font-weight-medium: 500;
+	--font-weight-semibold: 600;
+	--font-weight-bold: 700;
+	--font-weight-extrabold: 700;
+	--font-weight-black: 800;
+
+	/* Line heights */
+	--line-height-tight: 1.2;
+	--line-height-snug: 1.35;
+	--line-height-normal: 1.5;
+	--line-height-relaxed: 1.7;
+
+	/* Letter spacing — 큰 숫자일수록 좁게. */
+	--tracking-tight: -0.03em;
+	--tracking-normal: -0.01em;
+	--tracking-wide: 0;
+	--tracking-wider: 0.02em;
+	--tracking-widest: 0.04em;
+
+	/* ================================================================
+   * LAYOUT
+   * ================================================================ */
+	--sidebar-width: 240px;
+	--header-height: 56px;
+	--grid-gap: 12px;
+	--content-max: 1200px;
+
+	/* ================================================================
+   * TRANSITIONS
+   * ================================================================ */
+	--transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+	--transition-normal: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	--transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	--transition-spring: 0.4s cubic-bezier(0.34, 1.4, 0.64, 1);
+
+	/* ================================================================
+   * GRADIENTS — 장식용 그라디언트는 없다. 진행 막대에만 쓴다.
+   * ================================================================ */
+	--gradient-primary: linear-gradient(135deg, #3182f6 0%, #1b64da 100%);
+	--gradient-glow: none;
+	--gradient-surface: none;
+	--gradient-radial-glow: none;
+	--gradient-border: none;
+
+	/* ================================================================
+   * SHADCN CSS variable mapping
+   * ================================================================ */
+	--background: var(--color-bg-primary);
+	--foreground: var(--color-text-primary);
+	--card: var(--color-bg-card);
+	--card-foreground: var(--color-text-primary);
+	--popover: var(--color-bg-primary);
+	--popover-foreground: var(--color-text-primary);
+	--primary: var(--color-primary);
+	--primary-foreground: var(--color-text-inverse);
+	--secondary: var(--color-bg-tertiary);
+	--secondary-foreground: var(--color-text-primary);
+	--muted: var(--color-bg-tertiary);
+	--muted-foreground: var(--color-text-secondary);
+	--accent: var(--color-bg-hover);
+	--accent-foreground: var(--color-text-primary);
+	--destructive: var(--color-error);
+	--destructive-foreground: #ffffff;
+	--border: var(--color-border);
+	--input: var(--color-border);
+	--ring: var(--color-primary);
+	--radius: var(--radius-lg);
+
+	color-scheme: light;
+}

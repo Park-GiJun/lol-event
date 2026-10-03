@@ -1,58 +1,70 @@
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
-import { AppLayout } from './components/layout/AppLayout';
-import { ToastContainer } from './components/common/ToastContainer';
-import { LoadingCenter } from './components/common/Spinner';
+import { AppShell } from '@/app/AppShell';
+import { ToastContainer } from '@/components/common/ToastContainer';
+import { LoadingCenter } from '@/components/common/Spinner';
 
 // 개편된 화면
-const HomePage = lazy(() => import('./pages/HomePage').then((m) => ({ default: m.HomePage })));
+const HomePage = lazy(() =>
+	import('@/features/home/HomePage').then((m) => ({ default: m.HomePage }))
+);
 const SummonerPage = lazy(() =>
-	import('./pages/SummonerPage').then((m) => ({ default: m.SummonerPage }))
+	import('@/features/player/SummonerPage').then((m) => ({ default: m.SummonerPage }))
 );
 const PlayersPage = lazy(() =>
-	import('./pages/PlayersPage').then((m) => ({ default: m.PlayersPage }))
+	import('@/features/player/PlayersPage').then((m) => ({ default: m.PlayersPage }))
 );
 const ChampionListPage = lazy(() =>
-	import('./pages/ChampionListPage').then((m) => ({ default: m.ChampionListPage }))
+	import('@/features/champion/ChampionListPage').then((m) => ({ default: m.ChampionListPage }))
 );
 const ChampionPage = lazy(() =>
-	import('./pages/ChampionPage').then((m) => ({ default: m.ChampionPage }))
+	import('@/features/champion/ChampionPage').then((m) => ({ default: m.ChampionPage }))
 );
 const MatchesPage = lazy(() =>
-	import('./pages/MatchesPage').then((m) => ({ default: m.MatchesPage }))
+	import('@/features/match/MatchesPage').then((m) => ({ default: m.MatchesPage }))
 );
 const MatchDetailPage = lazy(() =>
-	import('./pages/MatchDetailPage').then((m) => ({ default: m.MatchDetailPage }))
+	import('@/features/match/MatchDetailPage').then((m) => ({ default: m.MatchDetailPage }))
 );
 const SessionsPage = lazy(() =>
-	import('./pages/SessionsPage').then((m) => ({ default: m.SessionsPage }))
+	import('@/features/session/SessionsPage').then((m) => ({ default: m.SessionsPage }))
 );
 const SessionDetailPage = lazy(() =>
-	import('./pages/SessionDetailPage').then((m) => ({ default: m.SessionDetailPage }))
+	import('@/features/session/SessionDetailPage').then((m) => ({ default: m.SessionDetailPage }))
 );
 
 // 아직 개편 전인 화면. 새 셸 안에서 그대로 동작한다.
 const MembersPage = lazy(() =>
-	import('./pages/MembersPage').then((m) => ({ default: m.MembersPage }))
+	import('@/features/member/MembersPage').then((m) => ({ default: m.MembersPage }))
 );
-const LcuPage = lazy(() => import('./pages/LcuPage').then((m) => ({ default: m.LcuPage })));
-const SyncPage = lazy(() => import('./pages/SyncPage').then((m) => ({ default: m.SyncPage })));
-const AdminPage = lazy(() => import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })));
+const LcuPage = lazy(() =>
+	import('@/features/admin/LcuPage').then((m) => ({ default: m.LcuPage }))
+);
+const SyncPage = lazy(() =>
+	import('@/features/admin/SyncPage').then((m) => ({ default: m.SyncPage }))
+);
+const AdminPage = lazy(() =>
+	import('@/features/admin/AdminPage').then((m) => ({ default: m.AdminPage }))
+);
 const TeamBuilderPage = lazy(() =>
-	import('./pages/TeamBuilderPage').then((m) => ({ default: m.TeamBuilderPage }))
+	import('@/features/team/TeamBuilderPage').then((m) => ({ default: m.TeamBuilderPage }))
 );
-const StatsPage = lazy(() => import('./pages/StatsPage').then((m) => ({ default: m.StatsPage })));
+const StatsPage = lazy(() =>
+	import('@/features/stats/StatsPage').then((m) => ({ default: m.StatsPage }))
+);
 const RankingsPage = lazy(() =>
-	import('./pages/RankingsPage').then((m) => ({ default: m.RankingsPage }))
+	import('@/features/stats/RankingsPage').then((m) => ({ default: m.RankingsPage }))
 );
 const PlayerAnalysisPage = lazy(() =>
-	import('./pages/PlayerAnalysisPage').then((m) => ({ default: m.PlayerAnalysisPage }))
+	import('@/features/player/PlayerAnalysisPage').then((m) => ({ default: m.PlayerAnalysisPage }))
 );
 const ChampionAnalysisPage = lazy(() =>
-	import('./pages/ChampionAnalysisPage').then((m) => ({ default: m.ChampionAnalysisPage }))
+	import('@/features/champion/ChampionAnalysisPage').then((m) => ({
+		default: m.ChampionAnalysisPage
+	}))
 );
 const HallOfFamePage = lazy(() =>
-	import('./pages/HallOfFamePage').then((m) => ({ default: m.HallOfFamePage }))
+	import('@/features/stats/HallOfFamePage').then((m) => ({ default: m.HallOfFamePage }))
 );
 
 /** 경로에 낀 파라미터를 유지한 채 옮겨 준다. 예전에 공유한 링크가 죽지 않게. */
@@ -67,7 +79,7 @@ function App() {
 		<BrowserRouter>
 			<Suspense fallback={<LoadingCenter />}>
 				<Routes>
-					<Route element={<AppLayout />}>
+					<Route element={<AppShell />}>
 						<Route index element={<HomePage />} />
 
 						<Route path="players" element={<PlayersPage />} />

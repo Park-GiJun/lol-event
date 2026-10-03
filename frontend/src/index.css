@@ -1,7 +1,18 @@
+/*
+ * 스타일의 순서는 이 파일이 소유한다. 컴포넌트·화면에서 CSS 를 따로 import 하지 않는다 —
+ * 그러면 불러오는 순서가 화면을 여는 순서에 따라 달라지고, 같은 우선순위의 규칙이 뒤집힌다.
+ *
+ *   1. 토큰      styles/theme.css
+ *   2. 바탕      styles/global.css
+ *   3. 컴포넌트  styles/components/*.css (주제별 한 파일)
+ */
 @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
 @import 'tailwindcss';
 @plugin "tailwindcss-animate";
+
+@import './styles/theme.css';
 @import './styles/global.css';
+
 @import './styles/components/button.css';
 @import './styles/components/input.css';
 @import './styles/components/modal.css';
@@ -10,13 +21,9 @@
 @import './styles/components/spinner.css';
 @import './styles/components/badge.css';
 @import './styles/components/patterns.css';
-@import './styles/components/sse.css';
 @import './styles/components/feedback.css';
-@import './styles/layouts/grid.css';
-@import './styles/pages/monitoring.css';
+@import './styles/components/grid.css';
+@import './styles/components/admin.css';
 @import './styles/components/popup.css';
-/* 분석 탭 27개가 member-stats-table 등 이 파일의 클래스를 쓰는데,
-   분석 페이지 5개(랭킹·플레이어·챔피언·경기·효율)가 이걸 import 하지 않아 스타일이 빠져 있었다.
-   개별 페이지 import 를 전역으로 올린다. */
-@import './styles/pages/stats.css';
-@import './styles/ds.css';
+@import './styles/components/stats.css';
+@import './styles/components/ds.css';
