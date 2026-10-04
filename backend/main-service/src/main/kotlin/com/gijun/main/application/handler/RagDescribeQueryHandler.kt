@@ -38,19 +38,44 @@ class RagDescribeQueryHandler(
     DescribeChampionUseCase,
     DescribeLaneChampionsUseCase,
     DescribePickUseCase {
+    /**
+     * 이름만으로는 사람인지 챔피언인지 모델이 틀릴 수 있다("도르비이 장단점" 에 챔피언 조회를 부른다).
+     * 그래서 한쪽에서 못 찾으면 다른 쪽을 찾아 **그 기록을 바로 준다** — 되묻게 하면 한 바퀴를 더 돈다.
+     */
     override fun describePlayer(name: String): String {
-        val known = getTeamCandidatesUseCase.getTeamCandidates().map { it.riotId }
+        val known = knownPlayers()
+        return playerText(name, known)
+            ?: championText(name)?.let { "'$name' 은 플레이어가 아니라 챔피언이다. 아래는 그 챔피언의 기록이다.\n$it" }
+            ?: (
+                "'$name' 이라는 플레이어도 챔피언도 찾지 못했다. 등록된 사람: ${known.take(MAX_SUGGESTIONS).joinToString(", ")} 등 ${known.size}명. " +
+                    NO_GUESSING
+            )
+    }
+
+    override fun describeChampion(name: String): String =
+        championText(name)
+            ?: playerText(name, knownPlayers())?.let { "'$name' 은 챔피언이 아니라 플레이어다. 아래는 그 플레이어의 기록이다.\n$it" }
+            ?: "'$name' 이라는 챔피언도 플레이어도 찾지 못했다. $NO_GUESSING"
+
+    private fun knownPlayers() = getTeamCandidatesUseCase.getTeamCandidates().map { it.riotId }
+
+    /** @return 맞는 사람이 없으면 null. 여럿이면 누구인지 되묻는 글. */
+    private fun playerText(
+        name: String,
+        known: List<String>,
+    ): String? {
         val matched = matchPlayers(name, known)
         return when {
-            matched.isEmpty() -> "'$name' 이라는 플레이어를 찾지 못했다. 등록된 사람: ${known.take(MAX_SUGGESTIONS).joinToString(", ")} 등 ${known.size}명."
+            matched.isEmpty() -> null
             matched.size > 1 -> "'$name' 에 맞는 사람이 여럿이다: ${matched.joinToString(", ")}. 누구인지 정확히 알려 달라."
             else -> playerProfileComposer.compose(matched.single(), championNames())
         }
     }
 
-    override fun describeChampion(name: String): String {
+    /** @return 그런 챔피언이 없으면 null. */
+    private fun championText(name: String): String? {
         val names = championNames()
-        val key = names.resolve(name) ?: return "'$name' 이라는 챔피언을 찾지 못했다."
+        val key = names.resolve(name) ?: return null
         val page = getChampionPageUseCase.getChampionPage(GetChampionPageQuery(key, SCOPE))
         if (page.detail.totalGames == 0) return "${names.label(key)}는 내전에서 한 번도 나오지 않았다."
         return RagDocumentWriter.championProfile(page, getChampionSynergyUseCase.getChampionSynergy(key), names)
@@ -114,6 +139,9 @@ class RagDescribeQueryHandler(
     private companion object {
         val SCOPE = GameMode.ALL
         const val MAX_SUGGESTIONS = 10
+
+        /** 못 찾았을 때 모델이 그럴듯한 이름을 지어내 제안하지 않게 글에 적어 준다. */
+        const val NO_GUESSING = "비슷한 이름을 지어내 제안하지 않는다. 이름을 다시 확인해 달라고만 한다."
 
         /** 사람과 모델이 라인을 부르는 말. 띄어쓰기를 빼고 소문자로 맞춘다. */
         val LANE_BY_WORD =

@@ -6,6 +6,7 @@ import ai.koog.agents.core.tools.ToolRegistry
 import ai.koog.prompt.dsl.prompt
 import ai.koog.prompt.executor.model.PromptExecutor
 import ai.koog.prompt.llm.LLModel
+import ai.koog.prompt.params.LLMParams
 import com.gijun.main.application.port.out.external.LlmChatPort
 import com.gijun.main.application.port.out.external.LlmCompletionPort
 import com.gijun.main.domain.rag.enums.ChatRole
@@ -13,6 +14,7 @@ import com.gijun.main.domain.rag.exception.RagUnavailableException
 import com.gijun.main.domain.rag.model.ChatMessageModel
 import com.gijun.main.infrastructure.adapter.`in`.agent.LolAgentTools
 import com.gijun.main.shared.infrastructure.config.KoogConfig
+import com.gijun.main.shared.infrastructure.config.RagProperties
 import kotlinx.coroutines.runBlocking
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
@@ -23,6 +25,7 @@ class KoogLlmCompletionAdapter(
     private val promptExecutor: PromptExecutor,
     @Qualifier(KoogConfig.CHAT) private val chatModel: LLModel,
     private val gate: LlmGate,
+    private val properties: RagProperties,
 ) : LlmCompletionPort {
     override fun complete(
         system: String,
@@ -34,7 +37,7 @@ class KoogLlmCompletionAdapter(
                     promptExecutor
                         .execute(
                             prompt =
-                                prompt("completion") {
+                                prompt("completion", LLMParams(temperature = properties.chat.temperature)) {
                                     system(system)
                                     user(user)
                                 },
@@ -59,6 +62,7 @@ class KoogLlmChatAdapter(
     private val promptExecutor: PromptExecutor,
     @Qualifier(KoogConfig.CHAT) private val chatModel: LLModel,
     private val gate: LlmGate,
+    private val properties: RagProperties,
     tools: LolAgentTools,
 ) : LlmChatPort {
     private val toolRegistry = ToolRegistry { tools(tools) }
@@ -74,7 +78,7 @@ class KoogLlmChatAdapter(
                     agentConfig =
                         AIAgentConfig(
                             prompt =
-                                prompt("lol-chat") {
+                                prompt("lol-chat", LLMParams(temperature = properties.chat.temperature)) {
                                     system(SYSTEM)
                                     history.forEach { message ->
                                         when (message.role) {
@@ -88,12 +92,18 @@ class KoogLlmChatAdapter(
                         ),
                     toolRegistry = toolRegistry,
                 )
-            reachingLlm { runBlocking { agent.run(question) } }
+            // 지난 대화가 있으면 모델이 앞선 답을 흉내 내 tool 없이 바로 답하려 든다(앞선 답에는 tool 을 부른 흔적이 없다).
+            // 시스템 프롬프트의 규칙만으로는 절반쯤 어겼다. 질문 바로 뒤에 다시 적어 준다.
+            val asked = if (history.isEmpty()) question else question + FOLLOW_UP_REMINDER
+            reachingLlm { runBlocking { agent.run(asked) } }
         }
 
     private companion object {
         /** 모델 호출과 tool 실행을 합친 걸음 수의 상한. tool 을 서너 번 부르는 질문까지 넉넉하다. */
         const val MAX_ITERATIONS = 30
+
+        const val FOLLOW_UP_REMINDER =
+            "\n\n(안내: 위 대화에 글자 그대로 나와 있지 않은 전적·포지션·챔피언·순위는 짐작하지 않는다. tool 로 다시 조회한 뒤 답한다.)"
 
         val SYSTEM =
             """
@@ -111,6 +121,8 @@ class KoogLlmChatAdapter(
 
             ## 어떤 tool 을 쓰나
             - 특정 플레이어: get_player
+            - "X 어때", "X 장단점" 처럼 이름만 있고 플레이어인지 챔피언인지 모르겠으면 get_player 를 먼저 부른다.
+              챔피언 이름이었으면 tool 이 그 챔피언의 기록을 대신 준다 — 그 기록으로 답한다.
             - 특정 챔피언(누가 하는지, 승률, 라인 상성·카운터): get_champion
             - "X 잘하는 사람이 누구야": get_champion 의 "많이 한 사람" 을 본다. 거기 나온 사람만 답한다. search_knowledge 로 찾지 않는다.
             - "아군이 X, Y, Z 일 때 미드 뭘 고를까"(아군이 한 명이든 여럿이든, 고를 라인이 정해진 질문): recommend_pick.
@@ -134,6 +146,7 @@ class KoogLlmChatAdapter(
               **장점** — tool 이 준 "강점" 을 수치와 함께 두세 가지
               **단점** — tool 이 준 "약점" 을 수치와 함께 두세 가지
               필요하면 **추천** 한 줄 (어느 포지션·챔피언이 좋은지, 근거와 함께)
+            - "직접 플레이한 X" 는 그 사람이 X 를 골라서 낸 성적이다. "X 를 상대로" 나 "X 에게 약하다" 로 바꿔 쓰지 않는다.
             - 강점·약점은 tool 이 이미 가려 준 것만 쓴다. 다른 숫자를 보고 스스로 "잘한다/못한다" 를 판정하지 않는다.
             - 챔피언 픽을 물으면 후보마다 판수와 승률을 같이 적고, 판수가 많은 것을 앞에 둔다.
             - 단순한 사실 질문("몇 판 했어?")에는 형식 없이 한두 문장으로 답한다.

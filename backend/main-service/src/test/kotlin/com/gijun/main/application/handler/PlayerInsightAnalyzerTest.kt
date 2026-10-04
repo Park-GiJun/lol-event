@@ -80,8 +80,8 @@ class PlayerInsightAnalyzerTest {
         assertTrue(insights.weaknesses.contains("원딜에서 14판 승률 28%"))
         assertTrue(insights.weaknesses.contains("탑에서 53판 승률 41%"))
         assertTrue(insights.strengths.contains("정글에서 18판 승률 60%"))
-        assertTrue(insights.strengths.contains("사이온(Sion) 28판 승률 57% (KDA 2.5)"))
-        assertTrue(insights.weaknesses.contains("초가스(Chogath) 8판 승률 25% (KDA 2.5)"))
+        assertTrue(insights.strengths.contains("직접 플레이한 사이온(Sion) 28판 승률 57% (KDA 2.5)"))
+        assertTrue(insights.weaknesses.contains("직접 플레이한 초가스(Chogath) 8판 승률 25% (KDA 2.5)"))
     }
 
     @Test

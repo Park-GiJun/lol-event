@@ -23,6 +23,11 @@ data class RagProperties(
         val apiKey: String = "none",
         val contextLength: Long = 32_768,
         val maxOutputTokens: Long = 2_048,
+        /**
+         * 낮게 둔다. 주지 않으면 llama-server 기본값으로 돌아 같은 질문에 tool 을 부를 때와 안 부를 때가 갈린다 —
+         * 이어지는 질문에서 tool 없이 숫자를 지어내는 답이 네 번에 한 번꼴로 나왔다.
+         */
+        val temperature: Double = 0.2,
         /** 답변 하나가 수십 초 걸린다. tool 을 여러 번 부르면 더 길어진다. */
         val requestTimeoutMillis: Long = 120_000,
     )

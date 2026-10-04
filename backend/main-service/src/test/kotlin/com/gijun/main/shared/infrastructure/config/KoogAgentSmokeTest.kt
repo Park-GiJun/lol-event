@@ -43,16 +43,15 @@ import org.mockito.kotlin.mock
  */
 @EnabledIfEnvironmentVariable(named = "RAG_SMOKE", matches = "1")
 class KoogAgentSmokeTest {
-    private val config =
-        KoogConfig(
-            RagProperties(
-                chat =
-                    RagProperties.Chat(
-                        baseUrl =
-                            System.getenv("RAG_SMOKE_CHAT_URL") ?: RagProperties.Chat().baseUrl,
-                    ),
-            ),
+    private val properties =
+        RagProperties(
+            chat =
+                RagProperties.Chat(
+                    baseUrl =
+                        System.getenv("RAG_SMOKE_CHAT_URL") ?: RagProperties.Chat().baseUrl,
+                ),
         )
+    private val config = KoogConfig(properties)
     private val client = config.chatClient()
     private val executor = config.promptExecutor(client)
     private val calls = mutableListOf<String>()
@@ -70,8 +69,8 @@ class KoogAgentSmokeTest {
                             포지션: 탑 53판 승률 41%, 미드 28판 승률 46%, 정글 18판 승률 50%, 원딜 14판 승률 28%.
                             주 포지션은 탑.
                             서포터는 한 번도 하지 않았다.
-                            강점: 정글에서 18판 승률 50%; 사이온(Sion) 28판 승률 57% (KDA 2.91).
-                            약점: 라인 Elo 1403 — 45명 중 43위 (라인전 106번 중 40승, 승률 38%); 평균 데스 5.6 — 탑 12명 중 10위; 원딜에서 14판 승률 28%.
+                            강점: 정글에서 18판 승률 50%; 직접 플레이한 사이온(Sion) 28판 승률 57% (KDA 2.91).
+                            약점: 라인 Elo 1403 — 45명 중 43위 (라인전 106번 중 40승, 승률 38%); 평균 데스 5.6 — 탑 12명 중 10위; 원딜에서 14판 승률 28%; 직접 플레이한 초가스(Chogath) 8판 승률 25% (KDA 1.80).
                             자주 하는 챔피언: 사이온(Sion) 28판 승률 57%, 초가스(Chogath) 8판 승률 25%.
                             """.trimIndent()
                     }
@@ -135,7 +134,7 @@ class KoogAgentSmokeTest {
                 },
         )
 
-    private val chat = KoogLlmChatAdapter(executor, config.chatModel(), LlmGate(), tools)
+    private val chat = KoogLlmChatAdapter(executor, config.chatModel(), LlmGate(), properties, tools)
 
     @Test
     fun `플레이어 질문에 get_player 를 부르고 그 내용으로 답한다`() {
@@ -205,6 +204,8 @@ class KoogAgentSmokeTest {
         val answer = chat.answer(history, "그 사람 주 포지션은?")
         println("answer → $answer\ncalls → $calls")
 
+        // 지난 대화에 주 포지션은 없다. tool 없이 답하면 지어낸 것이다.
+        assertTrue(calls.any { it.startsWith("player:") && it.contains("아랑택") }) { "get_player 를 다시 부르지 않았다: $calls" }
         assertTrue(answer.contains("탑")) { answer }
     }
 
@@ -217,7 +218,10 @@ class KoogAgentSmokeTest {
         // 순위와 승률은 tool 이 준 값 그대로여야 한다.
         val compact = answer.filterNot { it.isWhitespace() }
         assertTrue(compact.contains("43위")) { answer }
-        assertTrue(compact.contains("28%")) { answer }
+        // 약점은 넷 중 두세 개를 고른다. 어느 것을 골랐든 승률은 tool 이 준 값이어야 한다.
+        assertTrue(compact.contains("28%") || compact.contains("25%")) { answer }
+        // 초가스는 본인이 플레이한 챔피언이다. "초가스를 상대로 약하다" 로 뒤집어 읽으면 안 된다.
+        assertTrue(listOf("초가스에약", "초가스를상대", "초가스상대", "상대가잘").none { compact.contains(it) }) { answer }
     }
 
     @Test
@@ -238,7 +242,7 @@ class KoogAgentSmokeTest {
                     override fun getTeamCandidates() = known
                 },
                 profiles,
-                KoogLlmCompletionAdapter(executor, config.chatModel(), LlmGate()),
+                KoogLlmCompletionAdapter(executor, config.chatModel(), LlmGate(), properties),
             )
 
         val result = handler.buildTeams(BuildTeamsCommand(known.map { BuildTeamsPlayer(it.riotId) }))
@@ -251,7 +255,7 @@ class KoogAgentSmokeTest {
 
     @Test
     fun `tool 없는 완성은 준 글만으로 답한다`() {
-        val completion = KoogLlmCompletionAdapter(executor, config.chatModel(), LlmGate())
+        val completion = KoogLlmCompletionAdapter(executor, config.chatModel(), LlmGate(), properties)
 
         val answer = completion.complete("아래 사실만으로 한 문장으로 답한다.", "사실: 1팀 평균 Elo 1500, 2팀 평균 Elo 1480.\n질문: 어느 팀이 더 높은가?")
         println("completion → $answer")

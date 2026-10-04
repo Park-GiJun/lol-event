@@ -157,12 +157,13 @@ internal object PlayerInsightAnalyzer {
         strengths: MutableList<String>,
         weaknesses: MutableList<String>,
     ) {
+        // "직접 플레이한" 을 꼭 붙인다. 챔피언 이름만 적으면 모델이 "그 챔피언을 상대로 약하다" 로 읽는다.
         val played = profile.championStats.filter { it.games >= CHAMPION_MIN_GAMES }
         played.filter { it.winRate >= GOOD_WIN_RATE }.maxByOrNull { it.winRate }?.let {
-            strengths += "${names.label(it.champion)} ${it.games}판 승률 ${it.winRate}% (KDA ${it.kda})"
+            strengths += "직접 플레이한 ${names.label(it.champion)} ${it.games}판 승률 ${it.winRate}% (KDA ${it.kda})"
         }
         played.filter { it.winRate <= BAD_WIN_RATE }.minByOrNull { it.winRate }?.let {
-            weaknesses += "${names.label(it.champion)} ${it.games}판 승률 ${it.winRate}% (KDA ${it.kda})"
+            weaknesses += "직접 플레이한 ${names.label(it.champion)} ${it.games}판 승률 ${it.winRate}% (KDA ${it.kda})"
         }
     }
 
