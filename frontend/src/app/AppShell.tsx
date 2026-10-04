@@ -46,7 +46,8 @@ const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
 			{ to: '/players', icon: UserIcon, label: '플레이어' },
 			{ to: '/champions', icon: TrophyIcon, label: '챔피언' },
 			{ to: '/matches', icon: ListIcon, label: '경기' },
-			{ to: '/sessions', icon: CalendarIcon, label: '세션' }
+			{ to: '/sessions', icon: CalendarIcon, label: '세션' },
+			{ to: '/chat', icon: ChatIcon, label: 'AI 챗봇' }
 		]
 	},
 	{
@@ -91,6 +92,7 @@ const TITLES: [string, string][] = [
 	['/sessions', '세션'],
 	['/rankings', '리더보드'],
 	['/members', '멤버 관리'],
+	['/chat', 'AI 챗봇'],
 	['/team-ai', 'AI 팀 짜기'],
 	['/team-builder', '팀 빌더'],
 	['/lcu', 'LCU 수집'],

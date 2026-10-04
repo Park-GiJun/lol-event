@@ -11,15 +11,25 @@ import type { ChatMessage } from '@/api/rag/ragApi';
 interface ChatState {
 	open: boolean;
 	messages: ChatMessage[];
+	/** 답을 기다리는 중. */
+	pending: boolean;
+	/** 마지막 질문이 실패한 이유. 다시 묻거나 대화를 지우면 사라진다. */
+	failure: string | null;
 	setOpen: (open: boolean) => void;
 	append: (message: ChatMessage) => void;
 	clear: () => void;
+	setPending: (pending: boolean) => void;
+	setFailure: (failure: string | null) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
 	open: false,
 	messages: [],
+	pending: false,
+	failure: null,
 	setOpen: (open) => set({ open }),
 	append: (message) => set((s) => ({ messages: [...s.messages, message] })),
-	clear: () => set({ messages: [] })
+	clear: () => set({ messages: [] }),
+	setPending: (pending) => set({ pending }),
+	setFailure: (failure) => set({ failure })
 }));
