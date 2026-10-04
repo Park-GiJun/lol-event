@@ -76,3 +76,16 @@ data class AllyChampionStat(
     val wins: Int,
     val winRate: Int,
 )
+
+/** 한 라인의 후보 챔피언 하나가, 물어본 아군들과 같은 팀이었던 전적. */
+data class AllyPickStat(
+    val champion: String,
+    /** 아군별 전적. 같이 한 적 없는 아군은 빠진다. 같이 한 판이 많은 순. */
+    val withAllies: List<AllyChampionStat>,
+    /** [withAllies] 의 판수 합. 한 판에 아군 둘과 같이 했으면 두 번 센다. */
+    val games: Int,
+    val wins: Int,
+    val winRate: Int,
+    /** 표본을 50% 쪽으로 당긴 승률. 정렬은 이 값으로 한다. */
+    val adjustedWinRate: Double,
+)

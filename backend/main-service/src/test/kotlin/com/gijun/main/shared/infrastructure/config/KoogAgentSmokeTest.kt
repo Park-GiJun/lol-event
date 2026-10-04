@@ -2,6 +2,7 @@ package com.gijun.main.shared.infrastructure.config
 
 import com.gijun.main.application.dto.command.BuildTeamsCommand
 import com.gijun.main.application.dto.command.BuildTeamsPlayer
+import com.gijun.main.application.dto.query.DescribePickQuery
 import com.gijun.main.application.dto.query.SearchRagDocumentsQuery
 import com.gijun.main.application.dto.result.EloLeaderboardResult
 import com.gijun.main.application.dto.result.RagDocumentResult
@@ -10,6 +11,7 @@ import com.gijun.main.application.dto.result.TeamCandidateResult
 import com.gijun.main.application.handler.TeamBuildCommandHandler
 import com.gijun.main.application.port.`in`.DescribeChampionUseCase
 import com.gijun.main.application.port.`in`.DescribeLaneChampionsUseCase
+import com.gijun.main.application.port.`in`.DescribePickUseCase
 import com.gijun.main.application.port.`in`.DescribePlayerUseCase
 import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
 import com.gijun.main.application.port.`in`.GetTeamCandidatesUseCase
@@ -107,6 +109,19 @@ class KoogAgentSmokeTest {
                             """.trimIndent()
                     }
                 },
+            describePickUseCase =
+                object : DescribePickUseCase {
+                    override fun describePick(query: DescribePickQuery): String {
+                        calls += "pick:${query.position}:${query.allies.joinToString("|") { it.trim() }}"
+                        return """
+                            [픽 추천] ${query.position} — 아군: ${query.allies.joinToString(", ") { it.trim() }}
+                            이 라인에 섰던 챔피언만 골랐다. 판수는 아군마다 따로 세어 더했고, 판수가 적은 승률은 50% 쪽으로 당겨서 줄 세웠다.
+                            1위 말자하(Malzahar) — 아군과 합쳐 9판 6승, 승률 66% (사이온(Sion)와 4판 3승, 룰루(Lulu)와 5판 3승). 미드 전체 16판 승률 62%.
+                            2위 룰루(Lulu) — 아군과 합쳐 7판 5승, 승률 71% (징크스(Jinx)와 7판 5승). 서포터 전체 20판 승률 60%.
+                            3위 빅토르(Viktor) — 아군과 합쳐 6판 3승, 승률 50% (사이온(Sion)와 6판 3승). 미드 전체 30판 승률 63%.
+                            """.trimIndent()
+                    }
+                },
             getEloLeaderboardUseCase =
                 object : GetEloLeaderboardUseCase {
                     override fun getEloLeaderboard(minDuels: Int) = EloLeaderboardResult(emptyList(), minDuels, 0, 0)
@@ -151,11 +166,11 @@ class KoogAgentSmokeTest {
     }
 
     @Test
-    fun `아군 챔피언 질문에 get_champion_allies 를 부른다`() {
+    fun `아군 하나와 고를 라인을 주면 recommend_pick 을 부른다`() {
         val answer = chat.answer(emptyList(), "우리 원딜이 징크스인데 서폿 뭐 하면 좋아?")
         println("answer → $answer\ncalls → $calls")
 
-        assertTrue(calls.any { it.startsWith("allies:") }) { "get_champion_allies 를 부르지 않았다: $calls" }
+        assertTrue(calls.any { it.startsWith("pick:") && it.contains("징크스") }) { "recommend_pick 을 부르지 않았다: $calls" }
         assertTrue(answer.contains("룰루")) { answer }
     }
 
@@ -168,6 +183,16 @@ class KoogAgentSmokeTest {
         assertTrue(answer.contains("아리") && answer.contains("신드라")) { answer }
         // 영문 이름을 소리 나는 대로 옮긴 표기가 섞이면 안 된다.
         assertTrue(listOf("아흐리", "아리이", "레블랑").none { answer.contains(it) }) { answer }
+    }
+
+    @Test
+    fun `아군이 여럿이면 전부 한 번에 넣어 recommend_pick 을 부른다`() {
+        val answer = chat.answer(emptyList(), "아군이 탑 - 사이온 정글 - 자르반 원딜 - 유나라 서폿 - 룰루일때 미드 챔피언은 뭘하는게 좋아?")
+        println("answer → $answer\ncalls → $calls")
+
+        val pick = calls.singleOrNull { it.startsWith("pick:") } ?: error("recommend_pick 을 한 번만 불러야 한다: $calls")
+        listOf("사이온", "자르반", "유나라", "룰루").forEach { ally -> assertTrue(pick.contains(ally)) { "아군 $ally 이 빠졌다: $pick" } }
+        assertTrue(answer.contains("말자하")) { answer }
     }
 
     @Test

@@ -1,10 +1,14 @@
 package com.gijun.main.application.handler
 
+import com.gijun.main.application.dto.query.DescribePickQuery
+import com.gijun.main.application.dto.query.GetAllyPicksQuery
 import com.gijun.main.application.dto.query.GetChampionPageQuery
 import com.gijun.main.application.dto.query.GetLaneChampionsQuery
 import com.gijun.main.application.port.`in`.DescribeChampionUseCase
 import com.gijun.main.application.port.`in`.DescribeLaneChampionsUseCase
+import com.gijun.main.application.port.`in`.DescribePickUseCase
 import com.gijun.main.application.port.`in`.DescribePlayerUseCase
+import com.gijun.main.application.port.`in`.GetAllyPicksUseCase
 import com.gijun.main.application.port.`in`.GetChampionPageUseCase
 import com.gijun.main.application.port.`in`.GetChampionSynergyUseCase
 import com.gijun.main.application.port.`in`.GetDragonChampionsUseCase
@@ -29,9 +33,11 @@ class RagDescribeQueryHandler(
     private val getDragonChampionsUseCase: GetDragonChampionsUseCase,
     private val getTeamCandidatesUseCase: GetTeamCandidatesUseCase,
     private val getLaneChampionsUseCase: GetLaneChampionsUseCase,
+    private val getAllyPicksUseCase: GetAllyPicksUseCase,
 ) : DescribePlayerUseCase,
     DescribeChampionUseCase,
-    DescribeLaneChampionsUseCase {
+    DescribeLaneChampionsUseCase,
+    DescribePickUseCase {
     override fun describePlayer(name: String): String {
         val known = getTeamCandidatesUseCase.getTeamCandidates().map { it.riotId }
         val matched = matchPlayers(name, known)
@@ -63,6 +69,29 @@ class RagDescribeQueryHandler(
         val ranked = getLaneChampionsUseCase.getLaneChampions(GetLaneChampionsQuery(lane, SCOPE))
         return RagDocumentWriter.laneChampions(lane, ranked, championNames())
     }
+
+    override fun describePick(query: DescribePickQuery): String {
+        val lane = LANE_BY_WORD[normalize(query.position)] ?: return "'${query.position}' 은 모르는 라인이다. 탑, 정글, 미드, 원딜, 서포터 중 하나로 알려 달라."
+        val names = championNames()
+
+        // 모델이 "탑 사이온" 처럼 라인을 붙여 보내기도 한다. 라인 말은 떼고 챔피언 이름만 본다.
+        val asked = query.allies.map(::withoutLaneWords).filter { it.isNotEmpty() }
+        val resolved = asked.associateWith { names.resolve(it) }
+        val unknown = resolved.filterValues { it == null }.keys
+        val allies = resolved.values.filterNotNull().distinct()
+        if (allies.isEmpty()) return "아군 챔피언을 찾지 못했다: ${asked.joinToString(", ")}. 이름을 다시 확인해 달라."
+
+        val picks = getAllyPicksUseCase.getAllyPicks(GetAllyPicksQuery(lane, allies))
+        val laneStats = getLaneChampionsUseCase.getLaneChampions(GetLaneChampionsQuery(lane, SCOPE)).associateBy { it.champion }
+        val text = RagDocumentWriter.pickRecommendation(lane, allies, picks, laneStats, names)
+        return if (unknown.isEmpty()) text else "$text\n찾지 못한 챔피언 이름(빼고 계산했다): ${unknown.joinToString(", ")}."
+    }
+
+    private fun withoutLaneWords(name: String): String =
+        name
+            .split(' ', '-', ':', '(', ')')
+            .filter { it.isNotBlank() && normalize(it) !in LANE_BY_WORD }
+            .joinToString(" ")
 
     /** 전체 일치 → '#' 앞부분 일치 → 포함 순으로 좁힌다. 띄어쓰기와 대소문자는 보지 않는다. */
     private fun matchPlayers(

@@ -113,7 +113,10 @@ class KoogLlmChatAdapter(
             - 특정 플레이어: get_player
             - 특정 챔피언(누가 하는지, 승률, 라인 상성·카운터): get_champion
             - "X 잘하는 사람이 누구야": get_champion 의 "많이 한 사람" 을 본다. 거기 나온 사람만 답한다. search_knowledge 로 찾지 않는다.
-            - "아군이 X 일 때 뭘 고를까": get_champion_allies 로 X 와 같은 팀일 때 성적이 좋은 챔피언을 본다.
+            - "아군이 X, Y, Z 일 때 미드 뭘 고를까"(아군이 한 명이든 여럿이든, 고를 라인이 정해진 질문): recommend_pick.
+              질문에 나온 아군 챔피언을 **전부** 한 번에 넣는다. 한 명만 넣거나 아군마다 따로 부르지 않는다.
+              답은 tool 이 준 순위 그대로 쓴다 — 그 라인 챔피언만 들어 있다.
+            - 고를 라인 없이 "X 랑 잘 맞는 챔피언": get_champion_allies.
             - "X 를 상대로 뭘 고를까"(카운터 픽): get_champion 의 "약했던 상대" 를 본다.
             - 라인만 정해진 챔피언 질문("미드에서 승률 높은 챔피언", "탑 뭐가 좋아"): get_lane_champions. 한 번만 부르면 된다 —
               챔피언을 하나씩 get_champion 으로 뒤지지 않는다.

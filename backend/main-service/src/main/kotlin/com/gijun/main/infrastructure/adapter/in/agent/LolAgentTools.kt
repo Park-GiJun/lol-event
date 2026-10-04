@@ -3,9 +3,11 @@ package com.gijun.main.infrastructure.adapter.`in`.agent
 import ai.koog.agents.core.tools.annotations.LLMDescription
 import ai.koog.agents.core.tools.annotations.Tool
 import ai.koog.agents.core.tools.reflect.ToolSet
+import com.gijun.main.application.dto.query.DescribePickQuery
 import com.gijun.main.application.dto.query.SearchRagDocumentsQuery
 import com.gijun.main.application.port.`in`.DescribeChampionUseCase
 import com.gijun.main.application.port.`in`.DescribeLaneChampionsUseCase
+import com.gijun.main.application.port.`in`.DescribePickUseCase
 import com.gijun.main.application.port.`in`.DescribePlayerUseCase
 import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
 import com.gijun.main.application.port.`in`.SearchRagDocumentsUseCase
@@ -28,6 +30,7 @@ class LolAgentTools(
     private val describePlayerUseCase: DescribePlayerUseCase,
     private val describeChampionUseCase: DescribeChampionUseCase,
     private val describeLaneChampionsUseCase: DescribeLaneChampionsUseCase,
+    private val describePickUseCase: DescribePickUseCase,
     private val getEloLeaderboardUseCase: GetEloLeaderboardUseCase,
     private val searchRagDocumentsUseCase: SearchRagDocumentsUseCase,
 ) : ToolSet {
@@ -51,11 +54,27 @@ class LolAgentTools(
     ): String = guarded("get_champion", name) { describeChampionUseCase.describeChampion(name) }
 
     @Tool("get_champion_allies")
-    @LLMDescription("이 챔피언과 같은 팀이었던 챔피언별 판수와 승률. '아군이 이 챔피언일 때 무엇을 고르면 좋은가' 에 쓴다.")
+    @LLMDescription("이 챔피언과 같은 팀이었던 챔피언별 판수와 승률(라인 구분 없음). 고를 라인이 정해져 있으면 이것 말고 recommend_pick 을 쓴다.")
     fun getChampionAllies(
         @LLMDescription("아군 챔피언 이름. 한글이나 영문 모두 된다.")
         name: String,
     ): String = guarded("get_champion_allies", name) { describeChampionUseCase.describeChampionAllies(name) }
+
+    @Tool("recommend_pick")
+    @LLMDescription(
+        "아군 챔피언이 정해졌을 때 한 라인에서 고를 챔피언 추천: 그 라인 챔피언별로, 아군들과 같은 팀이었던 판수와 승률. " +
+            "'아군이 탑 사이온, 정글 자르반, 서폿 룰루일 때 미드 뭐 해', '우리 원딜이 징크스인데 서폿 뭐 하면 좋아' 처럼 " +
+            "아군이 한 명 이상이고 고를 라인이 정해진 질문에 쓴다. 아군은 전부 한 번에 넣는다.",
+    )
+    fun recommendPick(
+        @LLMDescription("고를 라인. '탑', '정글', '미드', '원딜', '서포터' 중 하나.")
+        position: String,
+        @LLMDescription("아군 챔피언 이름을 쉼표로 이어 쓴다. 예: '사이온, 자르반, 유나라, 룰루'.")
+        allies: String,
+    ): String =
+        guarded("recommend_pick", "$position ← $allies") {
+            describePickUseCase.describePick(DescribePickQuery(position, allies.split(',', '，', '、', '/')))
+        }
 
     @Tool("get_lane_champions")
     @LLMDescription(

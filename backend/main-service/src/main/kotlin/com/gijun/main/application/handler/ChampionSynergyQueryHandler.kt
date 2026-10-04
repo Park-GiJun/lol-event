@@ -1,10 +1,15 @@
 package com.gijun.main.application.handler
 
+import com.gijun.main.application.dto.query.GetAllyPicksQuery
 import com.gijun.main.application.dto.result.AllyChampionStat
+import com.gijun.main.application.dto.result.AllyPickStat
 import com.gijun.main.application.dto.result.ChampionSynergyResult
+import com.gijun.main.application.port.`in`.GetAllyPicksUseCase
 import com.gijun.main.application.port.`in`.GetChampionSynergyUseCase
 import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
 import com.gijun.main.domain.match.enums.GameMode
+import com.gijun.main.domain.match.service.PositionResolver
+import com.gijun.main.domain.stats.service.RankingScore
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -18,7 +23,8 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional(readOnly = true)
 class ChampionSynergyQueryHandler(
     private val matchQueryPersistencePort: MatchQueryPersistencePort,
-) : GetChampionSynergyUseCase {
+) : GetChampionSynergyUseCase,
+    GetAllyPicksUseCase {
     override fun getChampionSynergy(champion: String): ChampionSynergyResult {
         val games = HashMap<String, Int>()
         val wins = HashMap<String, Int>()
@@ -45,6 +51,39 @@ class ChampionSynergyQueryHandler(
                 }.sortedWith(compareByDescending<AllyChampionStat> { it.games }.thenByDescending { it.winRate })
                 .take(MAX_ALLIES)
         return ChampionSynergyResult(champion, appearances, allies)
+    }
+
+    override fun getAllyPicks(query: GetAllyPicksQuery): List<AllyPickStat> {
+        val wanted = query.allies.toSet()
+        val games = HashMap<String, HashMap<String, Int>>()
+        val wins = HashMap<String, HashMap<String, Int>>()
+
+        matchQueryPersistencePort.findAllWithParticipants(GameMode.ALL.queueIds).forEach { match ->
+            match.participants
+                // 아군으로 이미 뽑힌 챔피언은 후보가 될 수 없다.
+                .filter { PositionResolver.resolve(it) == query.position && it.champion !in wanted }
+                .forEach { self ->
+                    match.participants
+                        .filter { it.teamId == self.teamId && it.champion in wanted }
+                        .forEach { ally ->
+                            games.getOrPut(self.champion) { HashMap() }.merge(ally.champion, 1, Int::plus)
+                            if (self.win) wins.getOrPut(self.champion) { HashMap() }.merge(ally.champion, 1, Int::plus)
+                        }
+                }
+        }
+
+        return games
+            .map { (champion, byAlly) ->
+                val withAllies =
+                    byAlly
+                        .map { (ally, played) ->
+                            val won = wins[champion]?.get(ally) ?: 0
+                            AllyChampionStat(ally, played, won, won * PERCENT / played)
+                        }.sortedByDescending { it.games }
+                val total = withAllies.sumOf { it.games }
+                val won = withAllies.sumOf { it.wins }
+                AllyPickStat(champion, withAllies, total, won, won * PERCENT / total, RankingScore.shrunkWinRate(won, total))
+            }.sortedWith(compareByDescending<AllyPickStat> { it.adjustedWinRate }.thenByDescending { it.games })
     }
 
     private companion object {

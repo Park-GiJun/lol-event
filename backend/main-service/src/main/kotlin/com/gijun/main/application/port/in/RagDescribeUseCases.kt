@@ -1,5 +1,7 @@
 package com.gijun.main.application.port.`in`
 
+import com.gijun.main.application.dto.query.DescribePickQuery
+
 interface DescribePlayerUseCase {
     /**
      * 플레이어 한 명의 기록을 글로. 지금 통계로 그 자리에서 쓴다(저장된 문서가 아니다).
@@ -16,6 +18,14 @@ interface DescribeLaneChampionsUseCase {
      * @param position 사람이 쓰는 대로 받는다 — "미드", "mid", "MID". 모르는 라인이면 그 사실을 말하는 글을 돌려준다.
      */
     fun describeLaneChampions(position: String): String
+}
+
+interface DescribePickUseCase {
+    /**
+     * 아군 챔피언이 정해졌을 때 한 라인에서 고를 챔피언을 글로.
+     * 못 알아본 라인이나 챔피언 이름은 그 사실을 글에 적어 돌려준다.
+     */
+    fun describePick(query: DescribePickQuery): String
 }
 
 interface DescribeChampionUseCase {

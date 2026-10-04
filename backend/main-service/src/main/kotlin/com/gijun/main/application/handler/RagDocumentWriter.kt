@@ -1,5 +1,6 @@
 package com.gijun.main.application.handler
 
+import com.gijun.main.application.dto.result.AllyPickStat
 import com.gijun.main.application.dto.result.ChampionLaneStrength
 import com.gijun.main.application.dto.result.ChampionPageResult
 import com.gijun.main.application.dto.result.ChampionSynergyResult
@@ -172,6 +173,38 @@ internal object RagDocumentWriter {
         return lines.joinToString("\n")
     }
 
+    /**
+     * 아군이 정해졌을 때 한 라인에서 고를 챔피언. [picks] 는 이미 보정 승률 순이다.
+     *
+     * @param laneStats 그 라인의 챔피언별 전체 성적. 아군과의 기록이 얇을 때 같이 보라고 붙인다.
+     */
+    fun pickRecommendation(
+        position: String,
+        allies: List<String>,
+        picks: List<AllyPickStat>,
+        laneStats: Map<String, ChampionLaneStrength>,
+        names: ChampionNames,
+    ): String {
+        val lane = positionLabel(position)
+        val head = "[픽 추천] $lane — 아군: ${allies.joinToString(", ") { names.label(it) }}"
+        val enough = picks.filter { it.games >= RankingScore.MIN_GAMES }
+        if (enough.isEmpty()) {
+            return "$head\n이 아군들과 같은 팀으로 ${RankingScore.MIN_GAMES}판 이상 나온 $lane 챔피언이 없다. " +
+                "조합 기록으로는 추천할 수 없다 — $lane 전체 순위(get_lane_champions)로 답한다."
+        }
+
+        val lines = mutableListOf(head)
+        lines += "${lane}에 섰던 챔피언만 골랐다. 판수는 아군마다 따로 세어 더했고, 판수가 적은 승률은 50% 쪽으로 당겨서 줄 세웠다."
+        enough.take(TOP_PICKS).forEachIndexed { index, pick ->
+            val detail = pick.withAllies.joinToString(", ") { "${names.label(it.champion)}와 ${it.games}판 ${it.wins}승" }
+            val own = laneStats[pick.champion]?.let { " $lane 전체 ${it.games}판 승률 ${it.winRate}%." } ?: ""
+            lines += "${index + 1}위 ${names.label(pick.champion)} — 아군과 합쳐 ${pick.games}판 ${pick.wins}승, 승률 ${pick.winRate}% ($detail).$own"
+        }
+        val unseen = allies.filter { ally -> enough.none { pick -> pick.withAllies.any { it.champion == ally } } }
+        if (unseen.isNotEmpty()) lines += "위 후보들과 같이 한 기록이 없는 아군: ${unseen.joinToString(", ") { names.label(it) }}."
+        return lines.joinToString("\n")
+    }
+
     fun matchReview(
         match: MatchModel,
         names: ChampionNames,
@@ -211,6 +244,7 @@ internal object RagDocumentWriter {
     private const val NOTHING_STANDS_OUT = "같은 포지션 사람들과 견줘 두드러지는 수치가 없다(표본이 적을 수도 있다)"
     private const val TOP_ALLIES = 8
     private const val TOP_LANE_CHAMPIONS = 10
+    private const val TOP_PICKS = 8
     private const val SECONDS_PER_MINUTE = 60
 }
 

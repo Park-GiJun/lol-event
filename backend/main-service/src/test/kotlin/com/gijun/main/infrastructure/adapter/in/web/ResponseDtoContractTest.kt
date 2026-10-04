@@ -80,6 +80,7 @@ class ResponseDtoContractTest {
                 "RagIndexSummaryResult",
                 "ChampionSynergyResult",
                 "AllyChampionStat",
+                "AllyPickStat",
             )
 
         /** 규칙대로 지으면 이름이 겹치거나 어색해지는 것들. */
