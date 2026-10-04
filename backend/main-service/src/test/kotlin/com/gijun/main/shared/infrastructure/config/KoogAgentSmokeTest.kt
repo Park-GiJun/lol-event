@@ -82,6 +82,7 @@ class KoogAgentSmokeTest {
                             [챔피언] 세라핀(Seraphine)
                             내전 58판 26승, 승률 44%. 티어 D.
                             가는 라인: 서포터 56판 승률 44%, 미드 1판 승률 100%.
+                            많이 한 사람: 도르비이#KR1 31판 승률 51%, 화안시인#KR1 12판 승률 33%.
                             라인전에서 강했던 상대: 노틸러스(Nautilus) 상대로 8판 승률 62%.
                             라인전에서 약했던 상대(카운터): 레오나(Leona) 상대로 6판 승률 16%, 블리츠크랭크(Blitzcrank) 상대로 4판 승률 25%.
                             """.trimIndent()
@@ -137,6 +138,16 @@ class KoogAgentSmokeTest {
 
         assertTrue(calls.any { it.startsWith("champion:") }) { "get_champion 을 부르지 않았다: $calls" }
         assertTrue(answer.contains("레오나")) { answer }
+    }
+
+    @Test
+    fun `챔피언을 누가 잘하는지 물으면 get_champion 의 많이 한 사람으로 답하고 검색하지 않는다`() {
+        val answer = chat.answer(emptyList(), "세라핀을 잘하는 플레이어가 누구여?")
+        println("answer → $answer\ncalls → $calls")
+
+        assertTrue(calls.any { it.startsWith("champion:") }) { "get_champion 을 부르지 않았다: $calls" }
+        assertTrue(calls.none { it.startsWith("search:") }) { "search_knowledge 로 찾으면 그 챔피언을 안 한 사람이 섞인다: $calls" }
+        assertTrue(answer.contains("도르비이")) { answer }
     }
 
     @Test
