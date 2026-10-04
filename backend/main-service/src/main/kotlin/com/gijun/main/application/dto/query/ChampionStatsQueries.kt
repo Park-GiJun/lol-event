@@ -23,3 +23,9 @@ data class GetChampionTierQuery(
     val mode: GameMode,
     val minGames: Int = 3,
 )
+
+/** @param position TOP / JUNGLE / MID / ADC / SUPPORT */
+data class GetLaneChampionsQuery(
+    val position: String,
+    val mode: GameMode,
+)

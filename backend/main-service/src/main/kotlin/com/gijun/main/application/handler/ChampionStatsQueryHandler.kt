@@ -4,6 +4,7 @@ import com.gijun.main.application.dto.query.GetChampionCertificateQuery
 import com.gijun.main.application.dto.query.GetChampionMatchupQuery
 import com.gijun.main.application.dto.query.GetChampionStatsQuery
 import com.gijun.main.application.dto.query.GetChampionTierQuery
+import com.gijun.main.application.dto.query.GetLaneChampionsQuery
 import com.gijun.main.application.dto.result.BanAnalysisResult
 import com.gijun.main.application.dto.result.BanEntry
 import com.gijun.main.application.dto.result.ChampionCertEntry
@@ -24,6 +25,7 @@ import com.gijun.main.application.port.`in`.GetChampionCertificateUseCase
 import com.gijun.main.application.port.`in`.GetChampionMatchupUseCase
 import com.gijun.main.application.port.`in`.GetChampionStatsUseCase
 import com.gijun.main.application.port.`in`.GetChampionTierUseCase
+import com.gijun.main.application.port.`in`.GetLaneChampionsUseCase
 import com.gijun.main.application.port.out.cache.StatsResultCacheQueryPort
 import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
 import com.gijun.main.application.port.out.persistence.StatsCacheQueryPersistencePort
@@ -45,6 +47,7 @@ class ChampionStatsQueryHandler(
     private val statsResultCacheQueryPort: StatsResultCacheQueryPort,
 ) : GetChampionStatsUseCase,
     GetChampionMatchupUseCase,
+    GetLaneChampionsUseCase,
     GetChampionCertificateUseCase,
     GetChampionTierUseCase,
     GetBanAnalysisUseCase {
@@ -271,6 +274,17 @@ class ChampionStatsQueryHandler(
 
                 else -> ChampionMatchupResult("", 0, emptyList(), emptyList(), RankingScore.MIN_GAMES)
             }
+        }
+
+    override fun getLaneChampions(query: GetLaneChampionsQuery): List<ChampionLaneStrength> =
+        statsResultCacheQueryPort.getOrCompute("lane-champions:${query.position}:${query.mode.key}") {
+            buildDuels(query.mode)
+                .filter { it.position == query.position }
+                .groupBy { it.me.champion }
+                .values
+                .flatMap { laneStrength(it) }
+                // 관측 승률로 줄 세우면 1판 1승이 맨 위에 온다. 보정 값으로 세운다.
+                .sortedWith(compareByDescending<ChampionLaneStrength> { it.adjustedWinRate }.thenByDescending { it.games })
         }
 
     // ────────── 라인전 1:1 만들기 ──────────

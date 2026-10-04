@@ -1,11 +1,14 @@
 package com.gijun.main.application.handler
 
 import com.gijun.main.application.dto.query.GetChampionPageQuery
+import com.gijun.main.application.dto.query.GetLaneChampionsQuery
 import com.gijun.main.application.port.`in`.DescribeChampionUseCase
+import com.gijun.main.application.port.`in`.DescribeLaneChampionsUseCase
 import com.gijun.main.application.port.`in`.DescribePlayerUseCase
 import com.gijun.main.application.port.`in`.GetChampionPageUseCase
 import com.gijun.main.application.port.`in`.GetChampionSynergyUseCase
 import com.gijun.main.application.port.`in`.GetDragonChampionsUseCase
+import com.gijun.main.application.port.`in`.GetLaneChampionsUseCase
 import com.gijun.main.application.port.`in`.GetTeamCandidatesUseCase
 import com.gijun.main.domain.match.enums.GameMode
 import org.springframework.stereotype.Service
@@ -25,8 +28,10 @@ class RagDescribeQueryHandler(
     private val getChampionSynergyUseCase: GetChampionSynergyUseCase,
     private val getDragonChampionsUseCase: GetDragonChampionsUseCase,
     private val getTeamCandidatesUseCase: GetTeamCandidatesUseCase,
+    private val getLaneChampionsUseCase: GetLaneChampionsUseCase,
 ) : DescribePlayerUseCase,
-    DescribeChampionUseCase {
+    DescribeChampionUseCase,
+    DescribeLaneChampionsUseCase {
     override fun describePlayer(name: String): String {
         val known = getTeamCandidatesUseCase.getTeamCandidates().map { it.riotId }
         val matched = matchPlayers(name, known)
@@ -53,6 +58,12 @@ class RagDescribeQueryHandler(
         return "${names.label(key)} — 내전 ${synergy.games}판. " + RagDocumentWriter.allies(synergy, names)
     }
 
+    override fun describeLaneChampions(position: String): String {
+        val lane = LANE_BY_WORD[normalize(position)] ?: return "'$position' 은 모르는 라인이다. 탑, 정글, 미드, 원딜, 서포터 중 하나로 알려 달라."
+        val ranked = getLaneChampionsUseCase.getLaneChampions(GetLaneChampionsQuery(lane, SCOPE))
+        return RagDocumentWriter.laneChampions(lane, ranked, championNames())
+    }
+
     /** 전체 일치 → '#' 앞부분 일치 → 포함 순으로 좁힌다. 띄어쓰기와 대소문자는 보지 않는다. */
     private fun matchPlayers(
         name: String,
@@ -74,5 +85,15 @@ class RagDescribeQueryHandler(
     private companion object {
         val SCOPE = GameMode.ALL
         const val MAX_SUGGESTIONS = 10
+
+        /** 사람과 모델이 라인을 부르는 말. 띄어쓰기를 빼고 소문자로 맞춘다. */
+        val LANE_BY_WORD =
+            mapOf(
+                "TOP" to listOf("top", "탑", "탑솔", "탑라인"),
+                "JUNGLE" to listOf("jungle", "jg", "jug", "정글"),
+                "MID" to listOf("mid", "middle", "미드", "미드라인"),
+                "ADC" to listOf("adc", "ad", "bot", "bottom", "원딜", "바텀", "봇"),
+                "SUPPORT" to listOf("support", "sup", "supp", "서포터", "서폿", "서포트"),
+            ).flatMap { (lane, words) -> words.map { it to lane } }.toMap()
     }
 }

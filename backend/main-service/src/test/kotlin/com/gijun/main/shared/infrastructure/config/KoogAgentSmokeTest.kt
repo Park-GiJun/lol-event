@@ -9,6 +9,7 @@ import com.gijun.main.application.dto.result.TeamCandidatePositionResult
 import com.gijun.main.application.dto.result.TeamCandidateResult
 import com.gijun.main.application.handler.TeamBuildCommandHandler
 import com.gijun.main.application.port.`in`.DescribeChampionUseCase
+import com.gijun.main.application.port.`in`.DescribeLaneChampionsUseCase
 import com.gijun.main.application.port.`in`.DescribePlayerUseCase
 import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
 import com.gijun.main.application.port.`in`.GetTeamCandidatesUseCase
@@ -91,6 +92,20 @@ class KoogAgentSmokeTest {
                         return "징크스(Jinx) — 내전 30판. 같은 팀일 때 성적: 룰루(Lulu)와 7판 승률 71%, 레오나(Leona)와 5판 승률 40%."
                     }
                 },
+            describeLaneChampionsUseCase =
+                object : DescribeLaneChampionsUseCase {
+                    override fun describeLaneChampions(position: String): String {
+                        calls += "lane:$position"
+                        return """
+                            [라인] 미드 챔피언 순위 — 3판 이상 나온 14종 중 위에서 3종.
+                            판수가 적은 승률은 50% 쪽으로 당겨서 줄 세웠다. 그래서 승률이 더 높아도 판수가 적으면 아래에 있을 수 있다.
+                            1위 아리(Ahri) — 12판 8승, 승률 66%
+                            2위 신드라(Syndra) — 9판 6승, 승률 66%
+                            3위 르블랑(Leblanc) — 5판 3승, 승률 60%
+                            (3판 미만이라 뺀 챔피언 21종.)
+                            """.trimIndent()
+                    }
+                },
             getEloLeaderboardUseCase =
                 object : GetEloLeaderboardUseCase {
                     override fun getEloLeaderboard(minDuels: Int) = EloLeaderboardResult(emptyList(), minDuels, 0, 0)
@@ -131,6 +146,17 @@ class KoogAgentSmokeTest {
 
         assertTrue(calls.any { it.startsWith("allies:") }) { "get_champion_allies 를 부르지 않았다: $calls" }
         assertTrue(answer.contains("룰루")) { answer }
+    }
+
+    @Test
+    fun `라인만 정해진 챔피언 질문에 get_lane_champions 를 한 번 부르고 한글 이름 그대로 답한다`() {
+        val answer = chat.answer(emptyList(), "미드에서 승률 높은 챔피언 뽑아줘")
+        println("answer → $answer\ncalls → $calls")
+
+        assertTrue(calls.size == 1 && calls.single().startsWith("lane:")) { "get_lane_champions 만 한 번 불러야 한다: $calls" }
+        assertTrue(answer.contains("아리") && answer.contains("신드라")) { answer }
+        // 영문 이름을 소리 나는 대로 옮긴 표기가 섞이면 안 된다.
+        assertTrue(listOf("아흐리", "아리이", "레블랑").none { answer.contains(it) }) { answer }
     }
 
     @Test

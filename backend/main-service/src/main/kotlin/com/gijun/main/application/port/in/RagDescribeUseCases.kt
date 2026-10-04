@@ -9,6 +9,15 @@ interface DescribePlayerUseCase {
     fun describePlayer(name: String): String
 }
 
+interface DescribeLaneChampionsUseCase {
+    /**
+     * 한 라인에서 성적이 좋은 챔피언 순위를 글로.
+     *
+     * @param position 사람이 쓰는 대로 받는다 — "미드", "mid", "MID". 모르는 라인이면 그 사실을 말하는 글을 돌려준다.
+     */
+    fun describeLaneChampions(position: String): String
+}
+
 interface DescribeChampionUseCase {
     /** @param name 한글 이름이나 영문 키. */
     fun describeChampion(name: String): String

@@ -5,6 +5,7 @@ import ai.koog.agents.core.tools.annotations.Tool
 import ai.koog.agents.core.tools.reflect.ToolSet
 import com.gijun.main.application.dto.query.SearchRagDocumentsQuery
 import com.gijun.main.application.port.`in`.DescribeChampionUseCase
+import com.gijun.main.application.port.`in`.DescribeLaneChampionsUseCase
 import com.gijun.main.application.port.`in`.DescribePlayerUseCase
 import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
 import com.gijun.main.application.port.`in`.SearchRagDocumentsUseCase
@@ -26,6 +27,7 @@ import kotlin.math.roundToInt
 class LolAgentTools(
     private val describePlayerUseCase: DescribePlayerUseCase,
     private val describeChampionUseCase: DescribeChampionUseCase,
+    private val describeLaneChampionsUseCase: DescribeLaneChampionsUseCase,
     private val getEloLeaderboardUseCase: GetEloLeaderboardUseCase,
     private val searchRagDocumentsUseCase: SearchRagDocumentsUseCase,
 ) : ToolSet {
@@ -53,6 +55,16 @@ class LolAgentTools(
         @LLMDescription("아군 챔피언 이름. 한글이나 영문 모두 된다.")
         name: String,
     ): String = guarded("get_champion_allies", name) { describeChampionUseCase.describeChampionAllies(name) }
+
+    @Tool("get_lane_champions")
+    @LLMDescription(
+        "한 라인에서 성적이 좋은 챔피언 순위: 챔피언별 판수와 승률, 승률 높은 순. " +
+            "'미드에서 승률 높은 챔피언', '탑 뭐가 좋아', '정글 1티어 챔피언' 처럼 라인만 정해지고 챔피언은 정해지지 않은 질문에 쓴다.",
+    )
+    fun getLaneChampions(
+        @LLMDescription("라인. '탑', '정글', '미드', '원딜', '서포터' 중 하나.")
+        position: String,
+    ): String = guarded("get_lane_champions", position) { describeLaneChampionsUseCase.describeLaneChampions(position) }
 
     @Tool("get_elo_ranking")
     @LLMDescription("라인 Elo 순위표. 위에서부터 count 명의 순위, Elo, 주 포지션, 전적.")

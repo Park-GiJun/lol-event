@@ -1,10 +1,12 @@
 package com.gijun.main.application.handler
 
+import com.gijun.main.application.dto.result.ChampionLaneStrength
 import com.gijun.main.application.dto.result.ChampionPageResult
 import com.gijun.main.application.dto.result.ChampionSynergyResult
 import com.gijun.main.application.dto.result.SummonerProfileResult
 import com.gijun.main.domain.match.model.MatchModel
 import com.gijun.main.domain.match.model.MatchParticipantModel
+import com.gijun.main.domain.stats.service.RankingScore
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -144,6 +146,32 @@ internal object RagDocumentWriter {
             "."
     }
 
+    /**
+     * 한 라인의 챔피언 순위. [ranked] 는 이미 보정 승률 순이다.
+     *
+     * 최소 표본을 못 넘긴 챔피언은 이름을 적지 않고 수만 센다. 이름을 주면 모델이 1판 1승을 "승률 100%" 로 옮긴다.
+     */
+    fun laneChampions(
+        position: String,
+        ranked: List<ChampionLaneStrength>,
+        names: ChampionNames,
+    ): String {
+        val lane = positionLabel(position)
+        if (ranked.isEmpty()) return "$lane 라인 기록이 없다."
+        val enough = ranked.filter { it.games >= RankingScore.MIN_GAMES }
+        if (enough.isEmpty()) return "${lane}에서 ${RankingScore.MIN_GAMES}판 이상 나온 챔피언이 없어 순위를 매길 수 없다."
+
+        val lines = mutableListOf<String>()
+        lines += "[라인] $lane 챔피언 순위 — ${RankingScore.MIN_GAMES}판 이상 나온 ${enough.size}종 중 위에서 ${minOf(enough.size, TOP_LANE_CHAMPIONS)}종."
+        lines += "판수가 적은 승률은 50% 쪽으로 당겨서 줄 세웠다. 그래서 승률이 더 높아도 판수가 적으면 아래에 있을 수 있다."
+        enough.take(TOP_LANE_CHAMPIONS).forEachIndexed { index, entry ->
+            lines += "${index + 1}위 ${names.label(entry.champion)} — ${entry.games}판 ${entry.wins}승, 승률 ${entry.winRate}%"
+        }
+        val skipped = ranked.size - enough.size
+        if (skipped > 0) lines += "(${RankingScore.MIN_GAMES}판 미만이라 뺀 챔피언 ${skipped}종.)"
+        return lines.joinToString("\n")
+    }
+
     fun matchReview(
         match: MatchModel,
         names: ChampionNames,
@@ -182,6 +210,7 @@ internal object RagDocumentWriter {
     private const val WIN_LINE = 50
     private const val NOTHING_STANDS_OUT = "같은 포지션 사람들과 견줘 두드러지는 수치가 없다(표본이 적을 수도 있다)"
     private const val TOP_ALLIES = 8
+    private const val TOP_LANE_CHAMPIONS = 10
     private const val SECONDS_PER_MINUTE = 60
 }
 
