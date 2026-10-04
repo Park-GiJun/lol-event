@@ -10,6 +10,9 @@ interface RatingHistoryQueryPersistencePort {
         limit: Int = 30,
     ): List<RatingHistoryModel>
 
+    /** 전부. 자리 Elo 를 낼 때 쓴다 — 경기마다 열 줄이라 수천 줄 규모다. */
+    fun findAll(): List<RatingHistoryModel>
+
     /** 이 매치가 이미 반영됐는지. Kafka 중복 배달 방어용. */
     fun existsByMatchId(matchId: MatchId): Boolean
 

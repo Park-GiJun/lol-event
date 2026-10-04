@@ -64,6 +64,7 @@ class TeamBuildCommandHandler(
             elo = candidate?.elo ?: RatingMath.START,
             positions = positions,
             positionGames = candidate?.positions.orEmpty().associate { Position.valueOf(it.position) to it.games },
+            seatElo = candidate?.seatElo.orEmpty().mapKeys { Position.valueOf(it.key) },
         )
     }
 
@@ -109,13 +110,14 @@ class TeamBuildCommandHandler(
             val byId = candidates.associateBy { it.riotId }
             val lanes = TeamBalancer.LANES.map { it.name }
 
-            appendLine("## 확정된 편성")
+            appendLine("## 확정된 편성 (팀 평균과 맞대결은 전부 \"이 자리 Elo\" — 그 포지션에서의 라인전 실적을 반영한 값 — 로 계산했다)")
             teams.forEach { team ->
                 appendLine("${team.name} — 평균 Elo ${team.averageElo.roundToInt()}, 기대 승률 ${(team.winProbability * PERCENT).roundToInt()}%")
                 team.members.forEach { member ->
                     val games = byId[member.riotId]?.positionGames.orEmpty()
                     val here = games[Position.valueOf(member.position)] ?: 0
                     val total = games.values.sum()
+                    val overall = byId[member.riotId]?.elo?.roundToInt()
                     val familiarity =
                         when {
                             member.offRole -> "가능 포지션이 아닌 자리"
@@ -125,13 +127,13 @@ class TeamBuildCommandHandler(
                     appendLine(
                         "- ${RagDocumentWriter.positionLabel(
                             member.position,
-                        )}: ${member.riotId} (Elo ${member.elo.roundToInt()}, $familiarity)",
+                        )}: ${member.riotId} (이 자리 Elo ${member.elo.roundToInt()}, 전체 Elo $overall, $familiarity)",
                     )
                 }
             }
 
             appendLine()
-            appendLine("## 라인별 맞대결 (라인 Elo)")
+            appendLine("## 라인별 맞대결 (이 자리 Elo)")
             lanes.forEach { lane ->
                 val seats =
                     teams

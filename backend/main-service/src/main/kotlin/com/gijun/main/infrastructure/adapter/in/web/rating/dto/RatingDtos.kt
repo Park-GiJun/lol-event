@@ -3,6 +3,7 @@ package com.gijun.main.infrastructure.adapter.`in`.web.rating.dto
 import com.gijun.main.application.dto.result.EloHistoryEntry
 import com.gijun.main.application.dto.result.EloLeaderboardResult
 import com.gijun.main.application.dto.result.EloRankEntry
+import com.gijun.main.application.dto.result.LaneDuelValidation
 import com.gijun.main.application.dto.result.PlayerEloHistoryResult
 import com.gijun.main.application.dto.result.PlayerRatingResult
 import com.gijun.main.application.dto.result.PredictionMetrics
@@ -197,6 +198,10 @@ data class ValidationScopeResponse(
     val laneElo: PredictionMetricsResponse,
     @field:Schema(description = "전적 레이팅 팀 평균으로 승패를 예측.")
     val teamElo: PredictionMetricsResponse,
+    @field:Schema(description = "자리 Elo 팀 평균으로 승패를 예측.")
+    val seatElo: PredictionMetricsResponse,
+    @field:Schema(description = "라인 맞대결 하나하나를 맞히는 검증. 자리 Elo 가 쓸모 있는지는 여기서 본다.")
+    val laneDuels: LaneDuelValidationResponse,
 ) {
     companion object {
         fun from(result: ValidationScope) =
@@ -205,6 +210,28 @@ data class ValidationScopeResponse(
                 baseline = PredictionMetricsResponse.from(result.baseline),
                 laneElo = PredictionMetricsResponse.from(result.laneElo),
                 teamElo = PredictionMetricsResponse.from(result.teamElo),
+                seatElo = PredictionMetricsResponse.from(result.seatElo),
+                laneDuels = LaneDuelValidationResponse.from(result.laneDuels),
+            )
+    }
+}
+
+@Schema(name = "LaneDuelValidation")
+data class LaneDuelValidationResponse(
+    val duels: Int,
+    val baseline: PredictionMetricsResponse,
+    @field:Schema(description = "두 사람의 전체 라인 Elo 로 예측.")
+    val laneElo: PredictionMetricsResponse,
+    @field:Schema(description = "두 사람의 자리 Elo 로 예측.")
+    val seatElo: PredictionMetricsResponse,
+) {
+    companion object {
+        fun from(result: LaneDuelValidation) =
+            LaneDuelValidationResponse(
+                duels = result.duels,
+                baseline = PredictionMetricsResponse.from(result.baseline),
+                laneElo = PredictionMetricsResponse.from(result.laneElo),
+                seatElo = PredictionMetricsResponse.from(result.seatElo),
             )
     }
 }

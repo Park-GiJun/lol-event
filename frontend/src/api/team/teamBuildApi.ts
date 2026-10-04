@@ -14,6 +14,8 @@ export interface TeamCandidate {
 	positions: { position: Position; games: number }[];
 	/** 처음에 켜 둘 포지션 — 충분히 가 본 자리. 기록이 없으면 다섯 자리 전부. */
 	defaultPositions: Position[];
+	/** 포지션 → 그 자리에 앉았을 때의 라인 Elo. 편성은 `elo` 가 아니라 이 값으로 팀 강도를 잰다. */
+	seatElo: Record<Position, number>;
 }
 
 export function getTeamCandidates(config?: AxiosRequestConfig) {

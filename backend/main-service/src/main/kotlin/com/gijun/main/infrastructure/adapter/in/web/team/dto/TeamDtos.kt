@@ -18,6 +18,8 @@ data class TeamCandidateResponse(
     val positions: List<TeamCandidatePositionResponse>,
     @field:Schema(description = "화면이 처음에 켜 둘 포지션")
     val defaultPositions: List<String>,
+    @field:Schema(description = "포지션 → 그 자리에 앉았을 때의 라인 Elo. 편성은 이 값으로 팀 강도를 잰다")
+    val seatElo: Map<String, Double>,
 ) {
     companion object {
         fun from(result: TeamCandidateResult) =
@@ -28,6 +30,7 @@ data class TeamCandidateResponse(
                 mainPosition = result.mainPosition,
                 positions = result.positions.map(TeamCandidatePositionResponse::from),
                 defaultPositions = result.defaultPositions,
+                seatElo = result.seatElo,
             )
     }
 }

@@ -124,7 +124,17 @@ data class RatingValidationResult(
     val splitHalf: SplitHalfReliability,
 )
 
-/** 한 평가 구간에서 세 가지 예측기를 나란히 비교한다. */
+/** 라인 맞대결 예측. 값은 전부 로그로스·적중률이고 기준선은 0.6931 / 0.5 다. */
+data class LaneDuelValidation(
+    val duels: Int,
+    val baseline: PredictionMetrics,
+    /** 두 사람의 전체 라인 Elo 로 예측. */
+    val laneElo: PredictionMetrics,
+    /** 두 사람의 자리 Elo 로 예측. */
+    val seatElo: PredictionMetrics,
+)
+
+/** 한 평가 구간에서 예측기들을 나란히 비교한다. */
 data class ValidationScope(
     val games: Int,
     /** 무정보 기준선(항상 0.5). 로그로스 ln2 = 0.6931. 이보다 나쁘면 그 예측기는 해롭다. */
@@ -133,6 +143,13 @@ data class ValidationScope(
     val laneElo: PredictionMetrics,
     /** 전적 레이팅 팀 평균으로 승패를 예측. */
     val teamElo: PredictionMetrics,
+    /** 자리 Elo(그 포지션에서의 라인 실적을 반영한 라인 Elo) 팀 평균으로 승패를 예측. */
+    val seatElo: PredictionMetrics,
+    /**
+     * 라인 맞대결 하나하나를 맞히는 검증. 팀 승패는 편성자가 이미 균형을 맞춘 결과라 둔하다 —
+     * 자리 Elo 가 쓸모 있는지는 **이쪽**에서 [LaneDuelValidation.seatElo] 가 [LaneDuelValidation.laneElo] 보다 낮은지로 본다.
+     */
+    val laneDuels: LaneDuelValidation,
 )
 
 data class PredictionMetrics(

@@ -194,8 +194,11 @@ Koog 로 붙는다. **스위치는 없다 — 항상 켜져 있다.** 그 장비
 - **검색 문서**(`lol_event.rag_documents`)의 글은 `RagDocumentWriter` 가 통계 유즈케이스의 결과로 찍어낸다.
   LLM 으로 글을 만들지 않는다.
 - **챗봇**은 전적·승률·Elo 를 tool(`LolAgentTools`)로만 읽는다. tool 은 저장된 문서가 아니라 지금 통계로 글을 쓴다.
-- **팀 편성**은 `TeamBalancer` 가 계산한다(팀 평균 라인 Elo 를 맞춘다). LLM 은 확정된 편성의 해설만 쓴다.
-  개인 지표나 시너지를 편성 점수에 섞지 않는다 — `RatingValidationResult` 의 검증에서 전부 기준선보다 나빴다.
+- **팀 편성**은 `TeamBalancer` 가 계산한다(팀 평균 **자리 Elo** 를 맞춘다). LLM 은 확정된 편성의 해설만 쓴다.
+  자리 Elo 는 사람 × 포지션별 값이다 — 전체 라인 Elo 에, 그 자리 라인 맞대결에서 기대보다 얼마나 더 이겼는지를
+  표본만큼 얹는다(`SeatRatings`). 같은 사람도 앉는 자리에 따라 값이 다르다.
+  KDA·딜량 같은 개인 지표나 시너지는 편성 점수에 섞지 않는다 — `RatingValidationResult` 의 검증에서 전부 기준선보다 나빴다.
+  자리 Elo 가 쓸모 있는지는 `GET /api/admin/elo/validate` 의 `laneDuels` 에서 `seatElo` 가 `laneElo` 보다 낮은지로 본다.
 
 ### 흐름
 

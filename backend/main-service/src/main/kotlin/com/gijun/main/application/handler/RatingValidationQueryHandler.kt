@@ -1,6 +1,7 @@
 package com.gijun.main.application.handler
 
 import com.gijun.main.application.dto.query.ValidateRatingQuery
+import com.gijun.main.application.dto.result.LaneDuelValidation
 import com.gijun.main.application.dto.result.PredictionMetrics
 import com.gijun.main.application.dto.result.RatingValidationResult
 import com.gijun.main.application.dto.result.SplitHalfReliability
@@ -12,9 +13,11 @@ import com.gijun.main.domain.match.model.MatchModel
 import com.gijun.main.domain.match.service.TimelineParser
 import com.gijun.main.domain.rating.enums.LaneResult
 import com.gijun.main.domain.rating.model.PlayerRatingModel
+import com.gijun.main.domain.rating.model.RatingHistoryModel
 import com.gijun.main.domain.rating.service.LaneScores
 import com.gijun.main.domain.rating.service.RatingEngine
 import com.gijun.main.domain.rating.service.RatingMath
+import com.gijun.main.domain.rating.service.SeatRatings
 import com.gijun.main.domain.session.service.SessionClock
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -56,6 +59,7 @@ class RatingValidationQueryHandler(
         val matches = all.filter(RatingEngine::isRatable)
 
         val ratings = mutableMapOf<String, PlayerRatingModel>()
+        val seats = SeatRatings()
         val overall = ScopeAccumulator()
         val sessionFirst = ScopeAccumulator()
         val duelsByPlayer = mutableMapOf<String, MutableList<Boolean>>()
@@ -78,21 +82,31 @@ class RatingValidationQueryHandler(
                 val repeated = prev != null && sameTeams(match, prev)
 
                 // ── 예측은 반영 **전** 레이팅으로만 ──
-                if (index >= warmup) {
-                    if (excludeRepeatedTeams && repeated) {
-                        excluded++
-                    } else {
-                        val lane = blueProbability(match, ratings) { it.laneElo }
-                        val team = blueProbability(match, ratings) { it.teamElo }
-                        overall.add(blueWon, lane, team)
-                        if (newSession) sessionFirst.add(blueWon, lane, team)
-                    }
+                val evaluated = index >= warmup && !(excludeRepeatedTeams && repeated)
+                if (index >= warmup && !evaluated) excluded++
+                if (evaluated) {
+                    val lane = blueProbability(match, ratings) { _, rating -> rating.laneElo }
+                    val team = blueProbability(match, ratings) { _, rating -> rating.teamElo }
+                    val seat =
+                        blueProbability(match, ratings) { riotId, rating ->
+                            SeatRatings.positionOf(match, riotId)?.let { seats.seatElo(riotId, it, rating.laneElo) } ?: rating.laneElo
+                        }
+                    overall.add(blueWon, lane, team, seat)
+                    if (newSession) sessionFirst.add(blueWon, lane, team, seat)
                 }
 
                 // ── 반영 ──
                 val scored = LaneScores.of(match, TimelineParser.parse(raws[match.matchId]))
                 val outcome = RatingEngine.rate(match, scored, ratings)
                 if (outcome != null) {
+                    // 라인 맞대결 예측도 이 경기를 반영하기 **전** 값으로만 낸다.
+                    if (evaluated) {
+                        duelPredictions(match, outcome.histories, seats).forEach { duel ->
+                            overall.addDuel(duel)
+                            if (newSession) sessionFirst.addDuel(duel)
+                        }
+                    }
+                    seats.addMatch(match, outcome.histories)
                     outcome.ratings.forEach { ratings[it.riotId] = it }
                     outcome.histories.forEach { h ->
                         when (h.laneResult) {
@@ -132,18 +146,48 @@ class RatingValidationQueryHandler(
     private fun blueProbability(
         match: MatchModel,
         ratings: Map<String, PlayerRatingModel>,
-        select: (PlayerRatingModel) -> Double,
+        select: (String, PlayerRatingModel) -> Double,
     ): Double {
         fun avg(teamId: Int) =
             match.participants
                 .filter { it.teamId == teamId && it.riotId.isNotBlank() }
                 .map { p ->
                     val r = ratings[p.riotId]
-                    if (r == null) RatingMath.START else select(r)
+                    if (r == null) RatingMath.START else select(p.riotId, r)
                 }.ifEmpty { listOf(RatingMath.START) }
                 .average()
 
         return RatingMath.expected(avg(RatingEngine.TEAM_BLUE), avg(RatingEngine.TEAM_RED))
+    }
+
+    private class DuelPrediction(
+        val won: Boolean,
+        val laneP: Double,
+        val seatP: Double,
+    )
+
+    /** 성립한 맞대결마다 한 번씩. 한 쌍을 양쪽에서 두 번 세지 않는다. */
+    private fun duelPredictions(
+        match: MatchModel,
+        histories: List<RatingHistoryModel>,
+        seats: SeatRatings,
+    ): List<DuelPrediction> {
+        val byId = histories.associateBy { it.riotId }
+        return histories.mapNotNull { mine ->
+            if (mine.laneResult == LaneResult.NONE) return@mapNotNull null
+            val theirs = mine.laneOpponent?.let { byId[it] } ?: return@mapNotNull null
+            if (mine.riotId >= theirs.riotId) return@mapNotNull null
+            val position = SeatRatings.positionOf(match, mine.riotId) ?: return@mapNotNull null
+            DuelPrediction(
+                won = mine.laneResult == LaneResult.WIN,
+                laneP = RatingMath.expected(mine.laneBefore, theirs.laneBefore),
+                seatP =
+                    RatingMath.expected(
+                        seats.seatElo(mine.riotId, position, mine.laneBefore),
+                        seats.seatElo(theirs.riotId, position, theirs.laneBefore),
+                    ),
+            )
+        }
     }
 
     private fun blueWon(match: MatchModel): Boolean? {
@@ -186,11 +230,30 @@ class RatingValidationQueryHandler(
         private var laneHits = 0.0
         private var teamLoss = 0.0
         private var teamHits = 0.0
+        private var seatLoss = 0.0
+        private var seatHits = 0.0
+
+        private var duels = 0
+        private var duelBaseLoss = 0.0
+        private var duelLaneLoss = 0.0
+        private var duelLaneHits = 0.0
+        private var duelSeatLoss = 0.0
+        private var duelSeatHits = 0.0
+
+        fun addDuel(duel: DuelPrediction) {
+            duels++
+            duelBaseLoss += logLoss(duel.won, 0.5)
+            duelLaneLoss += logLoss(duel.won, duel.laneP)
+            duelLaneHits += hit(duel.won, duel.laneP)
+            duelSeatLoss += logLoss(duel.won, duel.seatP)
+            duelSeatHits += hit(duel.won, duel.seatP)
+        }
 
         fun add(
             blueWon: Boolean,
             laneP: Double,
             teamP: Double,
+            seatP: Double,
         ) {
             games++
             baseLoss += logLoss(blueWon, 0.5)
@@ -199,22 +262,33 @@ class RatingValidationQueryHandler(
             laneHits += hit(blueWon, laneP)
             teamLoss += logLoss(blueWon, teamP)
             teamHits += hit(blueWon, teamP)
+            seatLoss += logLoss(blueWon, seatP)
+            seatHits += hit(blueWon, seatP)
         }
 
         fun toScope() =
             ValidationScope(
                 games = games,
-                baseline = metrics(baseLoss, baseHits),
-                laneElo = metrics(laneLoss, laneHits),
-                teamElo = metrics(teamLoss, teamHits),
+                baseline = metrics(baseLoss, baseHits, games),
+                laneElo = metrics(laneLoss, laneHits, games),
+                teamElo = metrics(teamLoss, teamHits, games),
+                seatElo = metrics(seatLoss, seatHits, games),
+                laneDuels =
+                    LaneDuelValidation(
+                        duels = duels,
+                        baseline = metrics(duelBaseLoss, duels * 0.5, duels),
+                        laneElo = metrics(duelLaneLoss, duelLaneHits, duels),
+                        seatElo = metrics(duelSeatLoss, duelSeatHits, duels),
+                    ),
             )
 
         private fun metrics(
             loss: Double,
             hits: Double,
+            count: Int,
         ) = PredictionMetrics(
-            logLoss = if (games == 0) 0.0 else round4(loss / games),
-            accuracy = if (games == 0) 0.0 else round4(hits / games),
+            logLoss = if (count == 0) 0.0 else round4(loss / count),
+            accuracy = if (count == 0) 0.0 else round4(hits / count),
         )
 
         private fun logLoss(

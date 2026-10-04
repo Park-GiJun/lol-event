@@ -11,12 +11,17 @@ data class TeamCandidateModel(
     val positions: Set<Position>,
     /** 포지션별 지금까지 한 판수. 여러 자리가 되는 사람을 익숙한 자리에 먼저 앉히는 데 쓴다. */
     val positionGames: Map<Position, Int> = emptyMap(),
-)
+    /** 포지션 → 그 자리에 앉았을 때의 라인 Elo. 없는 자리는 [elo] 를 쓴다. */
+    val seatElo: Map<Position, Double> = emptyMap(),
+) {
+    fun eloAt(position: Position): Double = seatElo[position] ?: elo
+}
 
 /** 팀 안의 한 자리. */
 data class TeamSlotModel(
     val riotId: String,
     val position: Position,
+    /** 이 자리에서의 라인 Elo. 같은 사람도 자리에 따라 다르다. */
     val elo: Double,
     /** 갈 수 있다고 한 포지션이 아닌 자리에 앉았다. 조건을 다 맞출 수 없을 때만 생긴다. */
     val offRole: Boolean,

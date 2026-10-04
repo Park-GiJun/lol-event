@@ -20,6 +20,8 @@ class RatingHistoryQueryPersistenceAdapter(
         limit: Int,
     ): List<RatingHistoryModel> = repo.findByRiotIdOrderByGameCreationDesc(riotId.value, PageRequest.of(0, limit)).map { it.toModel() }
 
+    override fun findAll(): List<RatingHistoryModel> = repo.findAll().map { it.toModel() }
+
     override fun existsByMatchId(matchId: MatchId): Boolean = repo.existsByMatchId(matchId.value)
 
     override fun findLatestGameCreation(): Long? = repo.findLatestGameCreation()

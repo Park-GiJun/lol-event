@@ -9,7 +9,7 @@ import com.gijun.main.domain.team.model.TeamSlotModel
 import kotlin.random.Random
 
 /**
- * 사람들을 5 명씩 나눠 **팀 평균 Elo 가 비슷해지게** 편성한다.
+ * 사람들을 5 명씩 나눠 **팀 평균 자리 Elo 가 비슷해지게** 편성한다.
  *
  * 지키는 조건은 둘이다.
  *  1. 같은 팀이어야 하는 묶음은 갈라놓지 않는다.
@@ -21,6 +21,11 @@ import kotlin.random.Random
  * ### 왜 평균 Elo 인가
  * 이 저장소의 검증(`RatingValidationResult`)에서 살아남은 예측기는 라인 Elo 팀 평균 하나였다.
  * 개인 지표나 듀오 시너지를 섞은 모델은 전부 기준선보다 나빴다. 그래서 여기서도 그것만 맞춘다.
+ *
+ * ### 왜 사람의 Elo 가 아니라 자리의 Elo 인가
+ * 라인 Elo 는 사람당 값 하나다. 그대로 쓰면 탑이 주 포지션인 사람을 원딜에 앉혀도 탑 실력으로 계산된다.
+ * 그래서 팀 강도는 **앉힌 자리에서의 라인 Elo**([TeamCandidateModel.eloAt])로 잰다. 그 값은 같은 라인
+ * 맞대결 결과에서 나오므로(`SeatRatings`) 위 원칙 — 개인 지표를 섞지 않는다 — 은 그대로다.
  *
  * ### 어떻게 찾는가
  * 30 명을 6 팀으로 나누는 경우의 수는 전수 탐색이 안 된다. 무작위로 나눈 뒤 두 팀 사이에서 사람을
@@ -246,7 +251,7 @@ object TeamBalancer {
             val slots =
                 LANES.map { lane ->
                     val member = byId.getValue(sorted[seating.order.indexOf(lane)])
-                    TeamSlotModel(member.riotId, lane, member.elo, offRole = lane !in member.positions)
+                    TeamSlotModel(member.riotId, lane, member.eloAt(lane), offRole = lane !in member.positions)
                 }
             return BuiltTeamModel(slots, slots.map { it.elo }.average())
         }
@@ -276,7 +281,7 @@ object TeamBalancer {
                 if (off) offRoles++
                 val total = player.positionGames.values.sum()
                 if (total > 0) familiarity += (player.positionGames[lane] ?: 0).toDouble() / total
-                laneElo[LANES.indexOf(lane)] = player.elo - if (off) OFF_ROLE_ELO_PENALTY else 0.0
+                laneElo[LANES.indexOf(lane)] = player.eloAt(lane) - if (off) OFF_ROLE_ELO_PENALTY else 0.0
             }
             return Seating(order, offRoles, familiarity, laneElo)
         }

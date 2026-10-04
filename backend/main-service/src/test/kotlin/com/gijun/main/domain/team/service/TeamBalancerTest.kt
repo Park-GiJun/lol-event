@@ -37,6 +37,21 @@ class TeamBalancerTest {
     }
 
     @Test
+    fun `팀 강도는 사람의 Elo 가 아니라 앉힌 자리의 Elo 로 잰다`() {
+        // 전체 Elo 는 열 명 다 같다. p1 만 탑에서 200 점 더 세고, 탑만 간다.
+        val strongTop = TeamCandidateModel("p1", 1500.0, setOf(Position.TOP), seatElo = mapOf(Position.TOP to 1700.0))
+        val players = listOf(strongTop) + (2..10).map { player("p$it", 1500.0) }
+
+        val built = TeamBalancer.build(players)
+
+        val slot = built.teams.flatMap { it.slots }.single { it.riotId == "p1" }
+        assertEquals(Position.TOP, slot.position)
+        assertEquals(1700.0, slot.elo)
+        assertEquals(1540.0, built.teams.first().averageElo, 1e-9)
+        assertEquals(40.0, built.eloSpread, 1e-9)
+    }
+
+    @Test
     fun `묶음은 같은 팀에 둔다`() {
         val players = flexible(15)
         val groups = listOf(listOf("p1", "p2", "p3"), listOf("p7", "p12"))

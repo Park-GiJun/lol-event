@@ -9,6 +9,7 @@ import com.gijun.main.application.dto.result.TeamCandidateResult
 import com.gijun.main.application.port.`in`.GetMembersUseCase
 import com.gijun.main.application.port.`in`.GetRatingsUseCase
 import com.gijun.main.application.port.`in`.GetTeamCandidatesUseCase
+import com.gijun.main.application.port.out.cache.StatsResultCacheQueryPort
 import com.gijun.main.application.port.out.external.LlmCompletionPort
 import com.gijun.main.application.port.out.persistence.MatchQueryPersistencePort
 import com.gijun.main.application.port.out.persistence.PositionCount
@@ -233,5 +234,13 @@ class TeamHandlersTest {
                 override fun getRatings(): List<PlayerRatingResult> = emptyList()
             },
         matchQueryPersistencePort = mock<MatchQueryPersistencePort> { on { findPositionCounts() } doReturn positionCounts },
+        ratingHistoryQueryPersistencePort = mock(),
+        statsResultCacheQueryPort =
+            object : StatsResultCacheQueryPort {
+                override fun <T> getOrCompute(
+                    key: String,
+                    compute: () -> T,
+                ): T = compute()
+            },
     )
 }

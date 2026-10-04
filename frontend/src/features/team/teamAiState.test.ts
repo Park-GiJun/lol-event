@@ -13,7 +13,8 @@ const arang: TeamCandidate = {
 		{ position: 'JUNGLE', games: 18 },
 		{ position: 'ADC', games: 14 }
 	],
-	defaultPositions: ['TOP', 'JUNGLE', 'MID', 'ADC']
+	defaultPositions: ['TOP', 'JUNGLE', 'MID', 'ADC'],
+	seatElo: { TOP: 1403, JUNGLE: 1421, MID: 1410, ADC: 1352, SUPPORT: 1371 }
 };
 
 function entries(count: number): Entry[] {

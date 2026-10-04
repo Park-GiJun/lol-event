@@ -11,6 +11,11 @@ data class TeamCandidateResult(
     val positions: List<TeamCandidatePositionResult>,
     /** 화면이 처음에 켜 둘 포지션. 충분히 가 본 자리만 든다. 기록이 없으면 다섯 자리 전부. */
     val defaultPositions: List<String>,
+    /**
+     * 포지션 → 그 자리에 앉았을 때의 라인 Elo. 다섯 자리 전부 든다.
+     * 편성은 [elo] 가 아니라 이 값으로 팀 강도를 잰다. 기록이 없으면 전부 [elo] 와 같다.
+     */
+    val seatElo: Map<String, Double> = emptyMap(),
 )
 
 data class TeamCandidatePositionResult(
