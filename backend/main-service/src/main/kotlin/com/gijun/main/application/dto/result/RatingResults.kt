@@ -132,6 +132,11 @@ data class LaneDuelValidation(
     val laneElo: PredictionMetrics,
     /** 두 사람의 자리 Elo 로 예측. */
     val seatElo: PredictionMetrics,
+    /**
+     * 수축의 사전 표본 수를 바꿔 가며 잰 자리 Elo. 키가 그 값이다.
+     * 적중률은 오르는데 로그로스가 나쁘면 방향은 맞고 **폭이 과한** 것이다 — 그때 더 큰 값을 고른다.
+     */
+    val seatEloByShrink: Map<Int, PredictionMetrics>,
 )
 
 /** 한 평가 구간에서 예측기들을 나란히 비교한다. */
@@ -145,6 +150,8 @@ data class ValidationScope(
     val teamElo: PredictionMetrics,
     /** 자리 Elo(그 포지션에서의 라인 실적을 반영한 라인 Elo) 팀 평균으로 승패를 예측. */
     val seatElo: PredictionMetrics,
+    /** 수축의 사전 표본 수별 자리 Elo 팀 평균 예측. 키가 그 값이다. */
+    val seatEloByShrink: Map<Int, PredictionMetrics>,
     /**
      * 라인 맞대결 하나하나를 맞히는 검증. 팀 승패는 편성자가 이미 균형을 맞춘 결과라 둔하다 —
      * 자리 Elo 가 쓸모 있는지는 **이쪽**에서 [LaneDuelValidation.seatElo] 가 [LaneDuelValidation.laneElo] 보다 낮은지로 본다.

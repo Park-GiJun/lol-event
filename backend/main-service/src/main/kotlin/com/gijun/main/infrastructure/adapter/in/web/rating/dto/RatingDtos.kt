@@ -200,6 +200,8 @@ data class ValidationScopeResponse(
     val teamElo: PredictionMetricsResponse,
     @field:Schema(description = "자리 Elo 팀 평균으로 승패를 예측.")
     val seatElo: PredictionMetricsResponse,
+    @field:Schema(description = "수축의 사전 표본 수별 자리 Elo 팀 평균 예측.")
+    val seatEloByShrink: Map<Int, PredictionMetricsResponse>,
     @field:Schema(description = "라인 맞대결 하나하나를 맞히는 검증. 자리 Elo 가 쓸모 있는지는 여기서 본다.")
     val laneDuels: LaneDuelValidationResponse,
 ) {
@@ -211,6 +213,7 @@ data class ValidationScopeResponse(
                 laneElo = PredictionMetricsResponse.from(result.laneElo),
                 teamElo = PredictionMetricsResponse.from(result.teamElo),
                 seatElo = PredictionMetricsResponse.from(result.seatElo),
+                seatEloByShrink = result.seatEloByShrink.mapValues { PredictionMetricsResponse.from(it.value) },
                 laneDuels = LaneDuelValidationResponse.from(result.laneDuels),
             )
     }
@@ -224,6 +227,8 @@ data class LaneDuelValidationResponse(
     val laneElo: PredictionMetricsResponse,
     @field:Schema(description = "두 사람의 자리 Elo 로 예측.")
     val seatElo: PredictionMetricsResponse,
+    @field:Schema(description = "수축의 사전 표본 수별 자리 Elo 예측. 로그로스가 가장 낮은 값을 고른다.")
+    val seatEloByShrink: Map<Int, PredictionMetricsResponse>,
 ) {
     companion object {
         fun from(result: LaneDuelValidation) =
@@ -232,6 +237,7 @@ data class LaneDuelValidationResponse(
                 baseline = PredictionMetricsResponse.from(result.baseline),
                 laneElo = PredictionMetricsResponse.from(result.laneElo),
                 seatElo = PredictionMetricsResponse.from(result.seatElo),
+                seatEloByShrink = result.seatEloByShrink.mapValues { PredictionMetricsResponse.from(it.value) },
             )
     }
 }

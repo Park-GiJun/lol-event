@@ -87,12 +87,10 @@ class RatingValidationQueryHandler(
                 if (evaluated) {
                     val lane = blueProbability(match, ratings) { _, rating -> rating.laneElo }
                     val team = blueProbability(match, ratings) { _, rating -> rating.teamElo }
-                    val seat =
-                        blueProbability(match, ratings) { riotId, rating ->
-                            SeatRatings.positionOf(match, riotId)?.let { seats.seatElo(riotId, it, rating.laneElo) } ?: rating.laneElo
-                        }
-                    overall.add(blueWon, lane, team, seat)
-                    if (newSession) sessionFirst.add(blueWon, lane, team, seat)
+                    val seat = blueSeatProbability(match, ratings, seats, SeatRatings.SHRINK)
+                    val seatSweep = SHRINK_SWEEP.map { blueSeatProbability(match, ratings, seats, it) }
+                    overall.add(blueWon, lane, team, seat, seatSweep)
+                    if (newSession) sessionFirst.add(blueWon, lane, team, seat, seatSweep)
                 }
 
                 // ── 반영 ──
@@ -164,6 +162,8 @@ class RatingValidationQueryHandler(
         val won: Boolean,
         val laneP: Double,
         val seatP: Double,
+        /** [SHRINK_SWEEP] 순서대로. */
+        val seatSweep: List<Double>,
     )
 
     /** 성립한 맞대결마다 한 번씩. 한 쌍을 양쪽에서 두 번 세지 않는다. */
@@ -186,9 +186,28 @@ class RatingValidationQueryHandler(
                         seats.seatElo(mine.riotId, position, mine.laneBefore),
                         seats.seatElo(theirs.riotId, position, theirs.laneBefore),
                     ),
+                seatSweep =
+                    SHRINK_SWEEP.map { shrink ->
+                        RatingMath.expected(
+                            seats.seatElo(mine.riotId, position, mine.laneBefore, shrink),
+                            seats.seatElo(theirs.riotId, position, theirs.laneBefore, shrink),
+                        )
+                    },
             )
         }
     }
+
+    /** 각자 이 경기에서 선 자리의 Elo 로 낸 블루 기대 승률. 자리를 모르는 사람은 전체 라인 Elo 를 쓴다. */
+    private fun blueSeatProbability(
+        match: MatchModel,
+        ratings: Map<String, PlayerRatingModel>,
+        seats: SeatRatings,
+        shrink: Double,
+    ): Double =
+        blueProbability(match, ratings) { riotId, rating ->
+            val position = SeatRatings.positionOf(match, riotId)
+            if (position == null) rating.laneElo else seats.seatElo(riotId, position, rating.laneElo, shrink)
+        }
 
     private fun blueWon(match: MatchModel): Boolean? {
         val blue = match.participants.filter { it.teamId == RatingEngine.TEAM_BLUE }
@@ -240,6 +259,11 @@ class RatingValidationQueryHandler(
         private var duelSeatLoss = 0.0
         private var duelSeatHits = 0.0
 
+        private val sweepLoss = DoubleArray(SHRINK_SWEEP.size)
+        private val sweepHits = DoubleArray(SHRINK_SWEEP.size)
+        private val duelSweepLoss = DoubleArray(SHRINK_SWEEP.size)
+        private val duelSweepHits = DoubleArray(SHRINK_SWEEP.size)
+
         fun addDuel(duel: DuelPrediction) {
             duels++
             duelBaseLoss += logLoss(duel.won, 0.5)
@@ -247,6 +271,10 @@ class RatingValidationQueryHandler(
             duelLaneHits += hit(duel.won, duel.laneP)
             duelSeatLoss += logLoss(duel.won, duel.seatP)
             duelSeatHits += hit(duel.won, duel.seatP)
+            duel.seatSweep.forEachIndexed { i, p ->
+                duelSweepLoss[i] += logLoss(duel.won, p)
+                duelSweepHits[i] += hit(duel.won, p)
+            }
         }
 
         fun add(
@@ -254,6 +282,7 @@ class RatingValidationQueryHandler(
             laneP: Double,
             teamP: Double,
             seatP: Double,
+            seatSweep: List<Double>,
         ) {
             games++
             baseLoss += logLoss(blueWon, 0.5)
@@ -264,6 +293,10 @@ class RatingValidationQueryHandler(
             teamHits += hit(blueWon, teamP)
             seatLoss += logLoss(blueWon, seatP)
             seatHits += hit(blueWon, seatP)
+            seatSweep.forEachIndexed { i, p ->
+                sweepLoss[i] += logLoss(blueWon, p)
+                sweepHits[i] += hit(blueWon, p)
+            }
         }
 
         fun toScope() =
@@ -273,14 +306,22 @@ class RatingValidationQueryHandler(
                 laneElo = metrics(laneLoss, laneHits, games),
                 teamElo = metrics(teamLoss, teamHits, games),
                 seatElo = metrics(seatLoss, seatHits, games),
+                seatEloByShrink = sweep(sweepLoss, sweepHits, games),
                 laneDuels =
                     LaneDuelValidation(
                         duels = duels,
                         baseline = metrics(duelBaseLoss, duels * 0.5, duels),
                         laneElo = metrics(duelLaneLoss, duelLaneHits, duels),
                         seatElo = metrics(duelSeatLoss, duelSeatHits, duels),
+                        seatEloByShrink = sweep(duelSweepLoss, duelSweepHits, duels),
                     ),
             )
+
+        private fun sweep(
+            loss: DoubleArray,
+            hits: DoubleArray,
+            count: Int,
+        ) = SHRINK_SWEEP.indices.associate { i -> SHRINK_SWEEP[i].toInt() to metrics(loss[i], hits[i], count) }
 
         private fun metrics(
             loss: Double,
@@ -370,6 +411,12 @@ class RatingValidationQueryHandler(
          * 왜 두 정의가 공존하는지는 [SessionClock] KDoc 에 적어 뒀다 — 통일하지 마라.
          */
         const val SESSION_GAP_MS = SessionClock.SESSION_GAP_MS
+
+        /**
+         * 자리 Elo 의 수축을 바꿔 가며 나란히 재 볼 값. 첫 운영 검증에서 10 은 적중률은 올렸지만
+         * 로그로스가 기준선보다 나빴다 — 방향은 맞고 폭이 과했다. 여기서 로그로스가 가장 낮은 값을 고른다.
+         */
+        val SHRINK_SWEEP = listOf(10.0, 20.0, 40.0, 80.0, 160.0)
 
         /** 반분 신뢰도에서 한쪽 반이 이 수 미만이면 그 사람은 뺀다. */
         const val MIN_DUELS_PER_HALF = 5

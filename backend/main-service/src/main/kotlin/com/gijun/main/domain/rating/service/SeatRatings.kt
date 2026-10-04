@@ -81,17 +81,19 @@ class SeatRatings {
 
     /**
      * @param overallElo 그 사람의 전체 라인 Elo 원값.
+     * @param shrink 수축의 사전 표본 수. 검증기가 여러 값을 나란히 재 보려고 받는다 — 편성은 기본값을 쓴다.
      * @return 기록이 전혀 없는 사람은 [overallElo] 그대로.
      */
     fun seatElo(
         riotId: String,
         position: String,
         overallElo: Double,
+        shrink: Double = SHRINK,
     ): Double {
         val mine = cells[riotId] ?: return overallElo
         val cell = mine[position]
         val prior = if (isMain(mine, position)) 0.0 else offRolePrior()
-        val shrunk = ((cell?.residual ?: 0.0) + SHRINK * prior) / ((cell?.duels ?: 0) + SHRINK)
+        val shrunk = ((cell?.residual ?: 0.0) + shrink * prior) / ((cell?.duels ?: 0) + shrink)
         return overallElo + ELO_PER_PROBABILITY * shrunk
     }
 
