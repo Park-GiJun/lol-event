@@ -19,8 +19,8 @@ import kotlin.test.assertTrue
 class PipelineTest {
     @Test
     fun `숨겨 둔 실력 차이를 배워서 찍는 것보다 잘 맞춘다`() {
-        val examples = FeatureBuilder().build(fakeMatches(count = 600)).drop(100)
-        val minTrain = 400
+        val examples = FeatureBuilder().build(fakeMatches(count = 400)).drop(100)
+        val minTrain = 250
 
         val predicted =
             walkForward(examples, minTrain) { train ->

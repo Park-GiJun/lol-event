@@ -5,6 +5,7 @@ import com.gijun.lolml.feature.Example
 import com.gijun.lolml.feature.FeatureBuilder
 import com.gijun.lolml.model.LogisticRegression
 import com.gijun.lolml.model.Standardizer
+import com.gijun.lolml.model.TeamEmbeddingModel
 import com.gijun.lolml.model.sigmoid
 import com.gijun.lolml.model.walkForward
 import kotlin.math.ln
@@ -26,6 +27,35 @@ private val MODELS =
         "자리 라인 승률" to listOf("seatLaneWinRateDiff"),
         "전체 피처" to FeatureBuilder.NAMES,
     )
+
+/** 임베딩 모델은 학습이 느려서 경기마다 다시 학습하지 않고 이만큼 쌓일 때마다 한다. 그 사이에는 직전 모델로 맞춘다. */
+private const val EMBEDDING_REFIT_EVERY = 10
+
+/** 채점 대상 하나. [fit] 은 학습 표본을 받아 "경기 → 블루 승 확률" 을 돌려준다. */
+private class Contender(
+    val name: String,
+    private val refitEvery: Int = 1,
+    val fit: (List<Example>) -> (Example) -> Double,
+) {
+    /** walk-forward 용. [refitEvery] 경기가 쌓일 때만 다시 학습한다 — 어느 쪽이든 맞출 경기보다 앞의 것만 본다. */
+    fun walkForwardFit(): (List<Example>) -> (Example) -> Double {
+        var trainedOn = 0
+        var predict: ((Example) -> Double)? = null
+        return { train ->
+            val current = predict
+            if (current != null && train.size - trainedOn < refitEvery) {
+                current
+            } else {
+                trainedOn = train.size
+                fit(train).also { predict = it }
+            }
+        }
+    }
+}
+
+private val CONTENDERS =
+    MODELS.map { (name, features) -> Contender(name) { train -> Fitted.train(train, features, symmetric = true)::predict } } +
+        Contender("임베딩", EMBEDDING_REFIT_EVERY) { train -> TeamEmbeddingModel().also { it.fit(train) }::predict }
 
 /**
  * 같은 경기들을 walk-forward 로 맞춰 나란히 본다.
@@ -50,22 +80,22 @@ fun printReport(
     printRow("라인 Elo 공식", eloFormula(evaluated, "laneEloDiff"), actual, coin)
     printRow("자리 Elo 공식", eloFormula(evaluated, "seatEloDiff"), actual, coin)
     val predictions =
-        MODELS.map { (name, features) ->
-            val predicted = walkForward(examples, minTrain) { Fitted.train(it, features, symmetric = true)::predict }
-            printRow(name, predicted, actual, coin)
-            name to predicted
+        CONTENDERS.map { contender ->
+            val predicted = walkForward(examples, minTrain, contender.walkForwardFit())
+            printRow(contender.name, predicted, actual, coin)
+            contender.name to predicted
         }
 
     // 전체 경기로 학습한 모델에게 그 경기들을 다시 물어본다. 이미 답을 본 문제라 점수가 좋게 나온다.
-    // walk-forward 점수와의 차이가 곧 "외운 만큼" 이다 — 피처가 많을수록 벌어진다.
+    // walk-forward 점수와의 차이가 곧 "외운 만큼" 이다 — 배울 숫자가 많을수록 벌어진다.
     println()
     println("같은 ${evaluated.size}경기를, 전체 ${examples.size}경기로 학습한 모델로 채점하면 (답을 본 문제)")
     println("%-12s %8s %8s %8s".format("", "본 문제", "안 본 문제", "차이"))
-    for ((name, features) in MODELS) {
-        val fitted = Fitted.train(examples, features, symmetric = true)
-        val seen = logLoss(DoubleArray(evaluated.size) { fitted.predict(evaluated[it]) }, actual)
-        val unseen = logLoss(predictions.first { it.first == name }.second, actual)
-        println("%-12s %8.4f %8.4f %+8.4f".format(name, seen, unseen, unseen - seen))
+    for (contender in CONTENDERS) {
+        val predict = contender.fit(examples)
+        val seen = logLoss(DoubleArray(evaluated.size) { predict(evaluated[it]) }, actual)
+        val unseen = logLoss(predictions.first { it.first == contender.name }.second, actual)
+        println("%-12s %8.4f %8.4f %+8.4f".format(contender.name, seen, unseen, unseen - seen))
     }
 
     val (bestName, bestPredicted) = predictions.minBy { logLoss(it.second, actual) }

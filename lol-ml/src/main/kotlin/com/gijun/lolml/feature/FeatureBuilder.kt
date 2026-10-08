@@ -13,6 +13,9 @@ class Example(
     val features: DoubleArray,
     /** 블루 승 = 1.0 */
     val label: Double,
+    /** 팀 구성. 피처를 거치지 않고 "누가 있었나" 를 직접 배우는 모델이 쓴다. */
+    val blue: List<String> = emptyList(),
+    val red: List<String> = emptyList(),
 )
 
 /**
@@ -48,7 +51,14 @@ class FeatureBuilder {
                     diff(blue, red) { state, position -> state.seatLaneWinRate(position) },
                     offRolePrior().let { prior -> diff(blue, red) { state, position -> state.seatElo(position, prior) } },
                 )
-            val example = Example(match.matchId, features, if (match.blueWin) 1.0 else 0.0)
+            val example =
+                Example(
+                    matchId = match.matchId,
+                    features = features,
+                    label = if (match.blueWin) 1.0 else 0.0,
+                    blue = blue.map { it.playerId },
+                    red = red.map { it.playerId },
+                )
 
             // 2) 피처를 다 뽑은 뒤에야 결과를 반영한다.
             val blueExpected = Elo.expected(blueElo, redElo)
