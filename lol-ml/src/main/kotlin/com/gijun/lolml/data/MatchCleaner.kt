@@ -10,5 +10,36 @@ class MatchCleaner(
     /** 내전 큐만 남긴다. */
     private val queueIds: Set<Int>,
 ) {
-    fun clean(matches: List<Match>): List<Match> = TODO("큐 필터 → 짧은 경기 제외 → 중복 제거 → 5:5 가 아닌 경기 제외")
+    fun clean(matches: List<Match>): List<Match> {
+        val seenIds = HashSet<String>()
+        // 같은 경기가 다른 match_id 로 두 번 들어온 경우. 시작 시각과 열 명이 같으면 같은 경기다.
+        val seenGames = HashSet<Pair<Long, Set<String>>>()
+        return matches.filter { match ->
+            match.queueId in queueIds &&
+                match.gameDurationSec >= minDurationSec &&
+                isFiveVsFive(match) &&
+                seenIds.add(match.matchId) &&
+                seenGames.add(match.gameCreation to match.participants.map { it.playerId }.toSet())
+        }
+    }
+
+    /** 팀마다 다섯, 열 명이 전부 다른 사람, 승패가 팀 안에서는 같고 팀끼리는 반대. */
+    private fun isFiveVsFive(match: Match): Boolean {
+        val blue = match.participants.filter { it.team == Team.BLUE }
+        val red = match.participants.filter { it.team == Team.RED }
+        if (blue.size != TEAM_SIZE || red.size != TEAM_SIZE) return false
+        if (match.participants
+                .map { it.playerId }
+                .toSet()
+                .size != TEAM_SIZE * 2
+        ) {
+            return false
+        }
+        val blueWin = blue.first().win
+        return blue.all { it.win == blueWin } && red.all { it.win != blueWin }
+    }
+
+    private companion object {
+        const val TEAM_SIZE = 5
+    }
 }

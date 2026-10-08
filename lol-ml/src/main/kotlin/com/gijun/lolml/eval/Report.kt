@@ -1,9 +1,161 @@
 package com.gijun.lolml.eval
 
-import com.gijun.lolml.model.Split
+import com.gijun.lolml.feature.Elo
+import com.gijun.lolml.feature.Example
+import com.gijun.lolml.feature.FeatureBuilder
+import com.gijun.lolml.model.LogisticRegression
+import com.gijun.lolml.model.Standardizer
+import com.gijun.lolml.model.sigmoid
+import com.gijun.lolml.model.walkForward
+import kotlin.math.ln
+import kotlin.math.sqrt
+
+private const val LEARNING_RATE = 0.1
+private const val L2 = 0.01
+private const val EPOCHS = 2000
+
+/** 나란히 볼 모델. 이름과, 그 모델이 쓰는 피처. */
+private val MODELS =
+    listOf(
+        "팀 Elo" to listOf("eloDiff"),
+        "라인 Elo" to listOf("laneEloDiff"),
+        "자리 Elo" to listOf("seatEloDiff"),
+        "승률" to listOf("winRateDiff"),
+        "자리 승률" to listOf("seatWinRateDiff"),
+        "라인 승률" to listOf("laneWinRateDiff"),
+        "자리 라인 승률" to listOf("seatLaneWinRateDiff"),
+        "전체 피처" to FeatureBuilder.NAMES,
+    )
 
 /**
- * 세 가지를 같은 테스트셋에서 나란히 본다: 상수 0.5 · Elo 차이만 · 전체 피처.
- * 가중치는 "피처 1 표준편차가 승률을 몇 %p 움직이는지" 로 풀어 쓴다.
+ * 같은 경기들을 walk-forward 로 맞춰 나란히 본다.
+ *
+ * 피처 모델은 전부 bias 없이 학습한다 — 두 팀을 맞바꾸면 확률이 1 − p 가 되어야 하기 때문이다.
+ * "블루 승률만" 은 그 반대로 bias 만 배운 것이라, 진영을 따로 배울 가치가 있는지를 보여 준다.
  */
-fun printReport(split: Split): Unit = TODO()
+fun printReport(
+    examples: List<Example>,
+    minTrain: Int,
+) {
+    val evaluated = examples.drop(minTrain)
+    val actual = labels(evaluated)
+    val coin = DoubleArray(actual.size) { 0.5 }
+
+    println("처음 ${minTrain}경기로 시작해 한 경기씩 늘려 가며 ${evaluated.size}경기를 맞춘다 (블루 승률 %.3f)".format(actual.average()))
+    println()
+    println("%-12s %8s %8s   %s".format("", "logloss", "brier", "0.5 대비 logloss (95% 구간)"))
+    printRow("상수 0.5", coin, actual, coin)
+    printRow("블루 승률만", walkForward(examples, minTrain) { Fitted.train(it, emptyList(), symmetric = false)::predict }, actual, coin)
+    // 학습 없이 Elo 공식에 그대로 넣은 값. "자리 Elo 공식" 이 지금 팀 편성 화면이 보여 주는 기대 승률이다.
+    printRow("라인 Elo 공식", eloFormula(evaluated, "laneEloDiff"), actual, coin)
+    printRow("자리 Elo 공식", eloFormula(evaluated, "seatEloDiff"), actual, coin)
+    val predictions =
+        MODELS.map { (name, features) ->
+            val predicted = walkForward(examples, minTrain) { Fitted.train(it, features, symmetric = true)::predict }
+            printRow(name, predicted, actual, coin)
+            name to predicted
+        }
+
+    // 전체 경기로 학습한 모델에게 그 경기들을 다시 물어본다. 이미 답을 본 문제라 점수가 좋게 나온다.
+    // walk-forward 점수와의 차이가 곧 "외운 만큼" 이다 — 피처가 많을수록 벌어진다.
+    println()
+    println("같은 ${evaluated.size}경기를, 전체 ${examples.size}경기로 학습한 모델로 채점하면 (답을 본 문제)")
+    println("%-12s %8s %8s %8s".format("", "본 문제", "안 본 문제", "차이"))
+    for ((name, features) in MODELS) {
+        val fitted = Fitted.train(examples, features, symmetric = true)
+        val seen = logLoss(DoubleArray(evaluated.size) { fitted.predict(evaluated[it]) }, actual)
+        val unseen = logLoss(predictions.first { it.first == name }.second, actual)
+        println("%-12s %8.4f %8.4f %+8.4f".format(name, seen, unseen, unseen - seen))
+    }
+
+    val (bestName, bestPredicted) = predictions.minBy { logLoss(it.second, actual) }
+    println()
+    println("캘리브레이션 ($bestName — 위에서 logloss 가 가장 낮은 모델)")
+    println("%-11s %6s %8s %8s".format("구간", "경기", "예측", "실제"))
+    for (bin in calibrationTable(bestPredicted, actual)) {
+        println("%.1f ~ %.1f   %6d %8.3f %8.3f".format(bin.from, bin.to, bin.count, bin.meanPredicted, bin.actualWinRate))
+    }
+
+    println()
+    println("피처를 하나씩만 썼을 때의 가중치 (전체 ${examples.size}경기로 학습) — 이 피처가 1 표준편차만큼 블루 쪽으로 기울면")
+    for (name in FeatureBuilder.NAMES) {
+        val fitted = Fitted.train(examples, listOf(name), symmetric = true)
+        val weight = fitted.model.weights[0]
+        println(
+            "%-20s w=%+.3f  블루 승률 %+.1f%%p  (1 표준편차 = %.3f)".format(
+                name,
+                weight,
+                (sigmoid(weight) - 0.5) * 100.0,
+                fitted.standardizer.std[0],
+            ),
+        )
+    }
+}
+
+private fun printRow(
+    name: String,
+    predicted: DoubleArray,
+    actual: DoubleArray,
+    baseline: DoubleArray,
+) {
+    // 경기마다 (이 모델의 벌점 − 기준선의 벌점). 평균이 음수면 기준선보다 낫다.
+    // 구간이 0 을 걸치면 그 차이는 우연일 수 있다.
+    val diffs = DoubleArray(actual.size) { gameLoss(predicted[it], actual[it]) - gameLoss(baseline[it], actual[it]) }
+    val mean = diffs.average()
+    val standardError = sqrt(diffs.sumOf { (it - mean) * (it - mean) } / (diffs.size - 1) / diffs.size)
+    println(
+        "%-12s %8.4f %8.4f   %+.4f (%+.4f ~ %+.4f)".format(
+            name,
+            logLoss(predicted, actual),
+            brierScore(predicted, actual),
+            mean,
+            mean - 1.96 * standardError,
+            mean + 1.96 * standardError,
+        ),
+    )
+}
+
+private fun eloFormula(
+    examples: List<Example>,
+    featureName: String,
+): DoubleArray {
+    val index = FeatureBuilder.NAMES.indexOf(featureName)
+    return DoubleArray(examples.size) { Elo.expected(examples[it].features[index], 0.0) }
+}
+
+private fun gameLoss(
+    predicted: Double,
+    actual: Double,
+): Double = -ln(if (actual == 1.0) predicted else 1.0 - predicted)
+
+private fun labels(examples: List<Example>) = DoubleArray(examples.size) { examples[it].label }
+
+/** 표준화 통계와 모델은 한 쌍이다. 학습 표본에서 구한 통계를 맞출 경기에도 그대로 쓴다. */
+private class Fitted(
+    val model: LogisticRegression,
+    val standardizer: Standardizer,
+    private val featureIndices: List<Int>,
+) {
+    fun predict(example: Example): Double = model.predict(standardizer.transform(pick(example, featureIndices)))
+
+    companion object {
+        /** @param symmetric true 면 bias 도 평균 빼기도 없다. 피처가 전부 0 이면 정확히 0.5 를 낸다. */
+        fun train(
+            train: List<Example>,
+            featureNames: List<String>,
+            symmetric: Boolean,
+        ): Fitted {
+            val featureIndices = featureNames.map { FeatureBuilder.NAMES.indexOf(it) }
+            val raw = train.map { pick(it, featureIndices) }
+            val standardizer = Standardizer.fit(raw, center = !symmetric)
+            val model = LogisticRegression(LEARNING_RATE, L2, EPOCHS, fitBias = !symmetric)
+            model.fit(raw.map { standardizer.transform(it) }, labels(train))
+            return Fitted(model, standardizer, featureIndices)
+        }
+
+        private fun pick(
+            example: Example,
+            featureIndices: List<Int>,
+        ) = DoubleArray(featureIndices.size) { example.features[featureIndices[it]] }
+    }
+}

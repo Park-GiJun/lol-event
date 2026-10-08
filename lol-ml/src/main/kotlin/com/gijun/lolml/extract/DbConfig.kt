@@ -8,6 +8,13 @@ data class DbConfig(
 ) {
     companion object {
         /** `LOL_ML_DB_URL` · `LOL_ML_DB_USER` · `LOL_ML_DB_PASSWORD` */
-        fun fromEnv(): DbConfig = TODO()
+        fun fromEnv(): DbConfig =
+            DbConfig(
+                jdbcUrl = env("LOL_ML_DB_URL"),
+                user = env("LOL_ML_DB_USER"),
+                password = env("LOL_ML_DB_PASSWORD"),
+            )
+
+        private fun env(name: String): String = System.getenv(name)?.takeIf { it.isNotBlank() } ?: error("환경변수 $name 이 없다")
     }
 }

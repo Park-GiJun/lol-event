@@ -15,11 +15,11 @@ data class Match(
     val gameDurationSec: Int,
     val participants: List<Participant>,
 ) {
-    val blueWin: Boolean get() = TODO("블루팀 참가자의 win")
+    val blueWin: Boolean get() = participants.first { it.team == Team.BLUE }.win
 }
 
 data class Participant(
-    /** 사람을 가르는 키. Riot ID 가 바뀌어도 같은 사람이면 같아야 한다 — [MatchCleaner] 가 맞춘다. */
+    /** 사람을 가르는 키. Riot ID 가 바뀌어도 같은 사람이면 같아야 한다 — 추출할 때 puuid 를 넣는다. */
     val playerId: String,
     val team: Team,
     val position: Position,
@@ -30,4 +30,8 @@ data class Participant(
     val kills: Int,
     val deaths: Int,
     val assists: Int,
+    /** 경기 종료 시점 누적 골드. 라인 맞대결의 승자를 가리는 재료다. */
+    val gold: Int,
+    /** 받아낸(감소시킨) 피해. 골드만 보면 탱커가 구조적으로 불리해서 같이 본다. */
+    val damageSelfMitigated: Int,
 )
