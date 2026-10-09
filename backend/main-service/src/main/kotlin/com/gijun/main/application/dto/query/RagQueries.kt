@@ -30,3 +30,9 @@ data class SearchRagDocumentsQuery(
         const val MAX_LIMIT = 20
     }
 }
+
+/** 사람이 쓴 그대로의 이름 다섯씩. **탑 · 정글 · 미드 · 원딜 · 서포터 순서다.** */
+data class DescribeMatchPredictionQuery(
+    val blue: List<String>,
+    val red: List<String>,
+)

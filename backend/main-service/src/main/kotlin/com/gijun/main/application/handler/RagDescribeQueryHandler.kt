@@ -64,7 +64,7 @@ class RagDescribeQueryHandler(
         name: String,
         known: List<String>,
     ): String? {
-        val matched = matchPlayers(name, known)
+        val matched = PlayerNames.match(name, known)
         return when {
             matched.isEmpty() -> null
             matched.size > 1 -> "'$name' 에 맞는 사람이 여럿이다: ${matched.joinToString(", ")}. 누구인지 정확히 알려 달라."
@@ -118,21 +118,7 @@ class RagDescribeQueryHandler(
             .filter { it.isNotBlank() && normalize(it) !in LANE_BY_WORD }
             .joinToString(" ")
 
-    /** 전체 일치 → '#' 앞부분 일치 → 포함 순으로 좁힌다. 띄어쓰기와 대소문자는 보지 않는다. */
-    private fun matchPlayers(
-        name: String,
-        known: List<String>,
-    ): List<String> {
-        val wanted = normalize(name)
-        if (wanted.isEmpty()) return emptyList()
-        return known.filter { normalize(it) == wanted }.ifEmpty {
-            known.filter { normalize(it.substringBefore('#')) == wanted }.ifEmpty {
-                known.filter { normalize(it).contains(wanted) }
-            }
-        }
-    }
-
-    private fun normalize(text: String) = text.filterNot { it.isWhitespace() }.lowercase()
+    private fun normalize(text: String) = PlayerNames.normalize(text)
 
     private fun championNames() = ChampionNames(getDragonChampionsUseCase.getDragonChampions().associate { it.championKey to it.nameKo })
 

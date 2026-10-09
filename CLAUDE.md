@@ -200,6 +200,11 @@ Koog 로 붙는다. **스위치는 없다 — 항상 켜져 있다.** 그 장비
   KDA·딜량 같은 개인 지표나 시너지는 편성 점수에 섞지 않는다 — `RatingValidationResult` 의 검증에서 전부 기준선보다 나빴다.
   자리 Elo 가 쓸모 있는지는 `GET /api/admin/elo/validate` 의 `laneDuels` 에서 `seatElo` 가 `laneElo` 보다 낮은지로 본다.
 
+- **승률 예측**은 `lol-ml` 이 학습한 모델(`resources/ml/win-model.json`)이 낸다. 챗봇 tool `predict_match` 만 쓴다.
+  피처는 `SeatLaneRecords`(자리 라인 승률)와 `TierScores`(랭크 티어)가 `lol-ml` 과 **같은 공식으로** 만든다 —
+  한쪽을 고치면 다른 쪽도 고치고 `lol-ml` 에서 `export` 를 다시 돌린다(`lol-ml/CLAUDE.md` 의 "서비스로 넘기기").
+  **레이팅·편성과는 따로다.** 편성 화면의 기대 승률은 여전히 자리 Elo 이고, 이 모델은 Elo 를 읽지도 바꾸지도 않는다.
+
 ### 흐름
 
 | 일 | 입구 | 하는 곳 |
@@ -208,6 +213,7 @@ Koog 로 붙는다. **스위치는 없다 — 항상 켜져 있다.** 그 장비
 | 전체를 다시 쓴다(뒤에서 돈다) | `POST /api/admin/rag/reindex`, `GET /api/admin/rag/status` | `RagIndexCommandHandler` |
 | 질문에 답한다 | `POST /api/rag/chat` | `RagChatCommandHandler` → `KoogLlmChatAdapter` |
 | 팀을 짠다 | `GET /api/team-build/candidates`, `POST /api/team-build` | `TeamBuildCommandHandler` |
+| 두 팀의 승률을 예측한다 | 챗봇 tool `predict_match` | `MatchPredictionQueryHandler` (티어는 `PlayerTierKtorAdapter` 가 Riot API 에서 받아 6시간 기억한다) |
 
 글이 그대로인 문서는 임베딩을 건너뛴다. 그래서 전체 색인을 여러 번 돌려도 바뀐 문서만 임베딩 서버에 간다.
 

@@ -3,10 +3,12 @@ package com.gijun.main.infrastructure.adapter.`in`.agent
 import ai.koog.agents.core.tools.annotations.LLMDescription
 import ai.koog.agents.core.tools.annotations.Tool
 import ai.koog.agents.core.tools.reflect.ToolSet
+import com.gijun.main.application.dto.query.DescribeMatchPredictionQuery
 import com.gijun.main.application.dto.query.DescribePickQuery
 import com.gijun.main.application.dto.query.SearchRagDocumentsQuery
 import com.gijun.main.application.port.`in`.DescribeChampionUseCase
 import com.gijun.main.application.port.`in`.DescribeLaneChampionsUseCase
+import com.gijun.main.application.port.`in`.DescribeMatchPredictionUseCase
 import com.gijun.main.application.port.`in`.DescribePickUseCase
 import com.gijun.main.application.port.`in`.DescribePlayerUseCase
 import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
@@ -31,6 +33,7 @@ class LolAgentTools(
     private val describeChampionUseCase: DescribeChampionUseCase,
     private val describeLaneChampionsUseCase: DescribeLaneChampionsUseCase,
     private val describePickUseCase: DescribePickUseCase,
+    private val describeMatchPredictionUseCase: DescribeMatchPredictionUseCase,
     private val getEloLeaderboardUseCase: GetEloLeaderboardUseCase,
     private val searchRagDocumentsUseCase: SearchRagDocumentsUseCase,
 ) : ToolSet {
@@ -99,6 +102,41 @@ class LolAgentTools(
                 "${entry.rank}위 ${entry.riotId} — Elo ${entry.laneElo.roundToInt()}, $position, ${entry.games}판 ${entry.wins}승 ${entry.losses}패"
             } + "\n(순위에 든 사람 ${board.rankedCount}명. 라인 맞대결 ${board.minDuels}번 미만은 배치 중이라 빠졌다.)"
         }
+
+    @Tool("predict_match")
+    @LLMDescription(
+        "두 팀 열 명이 정해졌을 때 어느 팀이 이길지 예측한다: 블루와 레드의 승리 확률과 그 근거(자리별 라인 승률, 랭크 티어). " +
+            "'이 팀으로 하면 누가 이겨', '블루 탑 아랑택 정글 도르비이 ... 레드 탑 화안시인 ... 승률 어때' 처럼 두 팀의 사람이 전부 나온 질문에 쓴다. " +
+            "열 명과 각자의 라인을 다 알아야 한다. 빠진 사람이 있으면 부르지 말고 사용자에게 물어본다. 챔피언이 아니라 플레이어 이름을 넣는다.",
+    )
+    fun predictMatch(
+        @LLMDescription("블루팀 탑 플레이어 이름. Riot ID 전체('아랑택#아랑택')나 '#' 앞부분('아랑택')만 넣어도 된다.")
+        blueTop: String,
+        @LLMDescription("블루팀 정글 플레이어 이름.")
+        blueJungle: String,
+        @LLMDescription("블루팀 미드 플레이어 이름.")
+        blueMid: String,
+        @LLMDescription("블루팀 원딜 플레이어 이름.")
+        blueAdc: String,
+        @LLMDescription("블루팀 서포터 플레이어 이름.")
+        blueSupport: String,
+        @LLMDescription("레드팀 탑 플레이어 이름.")
+        redTop: String,
+        @LLMDescription("레드팀 정글 플레이어 이름.")
+        redJungle: String,
+        @LLMDescription("레드팀 미드 플레이어 이름.")
+        redMid: String,
+        @LLMDescription("레드팀 원딜 플레이어 이름.")
+        redAdc: String,
+        @LLMDescription("레드팀 서포터 플레이어 이름.")
+        redSupport: String,
+    ): String {
+        val blue = listOf(blueTop, blueJungle, blueMid, blueAdc, blueSupport)
+        val red = listOf(redTop, redJungle, redMid, redAdc, redSupport)
+        return guarded("predict_match", "${blue.joinToString(", ")} vs ${red.joinToString(", ")}") {
+            describeMatchPredictionUseCase.describeMatchPrediction(DescribeMatchPredictionQuery(blue, red))
+        }
+    }
 
     @Tool("search_knowledge")
     @LLMDescription(

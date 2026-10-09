@@ -1,5 +1,6 @@
 package com.gijun.main.application.port.`in`
 
+import com.gijun.main.application.dto.query.DescribeMatchPredictionQuery
 import com.gijun.main.application.dto.query.DescribePickQuery
 
 interface DescribePlayerUseCase {
@@ -34,4 +35,12 @@ interface DescribeChampionUseCase {
 
     /** 같은 팀이었던 챔피언별 성적을 글로. */
     fun describeChampionAllies(name: String): String
+}
+
+interface DescribeMatchPredictionUseCase {
+    /**
+     * 두 팀이 정해졌을 때 픽 전 승률 예측을 글로. 확률은 `lol-ml` 이 학습한 모델이 낸다.
+     * 이름을 못 찾았거나 다섯 명이 아니면 그 사실을 말하는 글을 돌려준다.
+     */
+    fun describeMatchPrediction(query: DescribeMatchPredictionQuery): String
 }

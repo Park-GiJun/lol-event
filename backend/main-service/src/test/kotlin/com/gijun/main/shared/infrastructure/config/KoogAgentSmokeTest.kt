@@ -2,6 +2,7 @@ package com.gijun.main.shared.infrastructure.config
 
 import com.gijun.main.application.dto.command.BuildTeamsCommand
 import com.gijun.main.application.dto.command.BuildTeamsPlayer
+import com.gijun.main.application.dto.query.DescribeMatchPredictionQuery
 import com.gijun.main.application.dto.query.DescribePickQuery
 import com.gijun.main.application.dto.query.SearchRagDocumentsQuery
 import com.gijun.main.application.dto.result.EloLeaderboardResult
@@ -11,6 +12,7 @@ import com.gijun.main.application.dto.result.TeamCandidateResult
 import com.gijun.main.application.handler.TeamBuildCommandHandler
 import com.gijun.main.application.port.`in`.DescribeChampionUseCase
 import com.gijun.main.application.port.`in`.DescribeLaneChampionsUseCase
+import com.gijun.main.application.port.`in`.DescribeMatchPredictionUseCase
 import com.gijun.main.application.port.`in`.DescribePickUseCase
 import com.gijun.main.application.port.`in`.DescribePlayerUseCase
 import com.gijun.main.application.port.`in`.GetEloLeaderboardUseCase
@@ -121,6 +123,20 @@ class KoogAgentSmokeTest {
                             """.trimIndent()
                     }
                 },
+            describeMatchPredictionUseCase =
+                object : DescribeMatchPredictionUseCase {
+                    override fun describeMatchPrediction(query: DescribeMatchPredictionQuery): String {
+                        calls += "predict:${query.blue.joinToString("|") { it.trim() }}:${query.red.joinToString("|") { it.trim() }}"
+                        return """
+                            [승률 예측] 블루 57% · 레드 43% — 블루가 조금 유리하다
+                            픽 전 기준이다. 챔피언, 조합, 상성, 같은 팀끼리의 호흡은 보지 않았다.
+                            계산에 들어간 것은 아래 두 가지뿐이다.
+                            - 자리 라인 승률(그 자리에서 맞상대보다 더 크게 성장한 비율. 표본이 적으면 평소 승률 쪽으로 당겼다): 블루 평균 52%, 레드 평균 48% → 블루가 3.6%p 높다.
+                            - 랭크 게임 티어: 블루 평균 EMERALD III, 레드 평균 PLATINUM I → 블루가 0.2티어 높다.
+                            주의: 내전 160경기로 학습한 모델이다. 표본이 적어서 검증에서 동전 던지기보다 낫다고 확정하지 못했다. 참고용이라는 말을 꼭 붙인다.
+                            """.trimIndent()
+                    }
+                },
             getEloLeaderboardUseCase =
                 object : GetEloLeaderboardUseCase {
                     override fun getEloLeaderboard(minDuels: Int) = EloLeaderboardResult(emptyList(), minDuels, 0, 0)
@@ -192,6 +208,28 @@ class KoogAgentSmokeTest {
         val pick = calls.singleOrNull { it.startsWith("pick:") } ?: error("recommend_pick 을 한 번만 불러야 한다: $calls")
         listOf("사이온", "자르반", "유나라", "룰루").forEach { ally -> assertTrue(pick.contains(ally)) { "아군 $ally 이 빠졌다: $pick" } }
         assertTrue(answer.contains("말자하")) { answer }
+    }
+
+    @Test
+    fun `두 팀 열 명이 나오면 predict_match 를 라인 순서대로 부르고 tool 이 준 확률과 판정을 그대로 쓴다`() {
+        val answer =
+            chat.answer(
+                emptyList(),
+                "블루 탑 가나 정글 다라 미드 마바 원딜 사아 서폿 자차, 레드 탑 카타 정글 파하 미드 거너 원딜 더러 서폿 머버. 누가 이겨?",
+            )
+        println("answer → $answer\ncalls → $calls")
+
+        assertEquals(listOf("predict:가나|다라|마바|사아|자차:카타|파하|거너|더러|머버"), calls.filter { it.startsWith("predict:") })
+        assertTrue(answer.contains("57")) { answer }
+        assertTrue(answer.contains("참고")) { answer }
+    }
+
+    @Test
+    fun `한 팀만 나온 승패 질문에는 predict_match 를 부르지 않고 되묻는다`() {
+        val answer = chat.answer(emptyList(), "탑 가나 정글 다라 미드 마바 원딜 사아 서폿 자차 이 팀 이길 수 있어?")
+        println("answer → $answer\ncalls → $calls")
+
+        assertTrue(calls.none { it.startsWith("predict:") }) { "상대 팀을 모르는데 predict_match 를 불렀다: $calls" }
     }
 
     @Test

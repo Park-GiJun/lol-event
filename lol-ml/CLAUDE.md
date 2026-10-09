@@ -16,7 +16,7 @@
 1. **1단계 — 로지스틱 회귀 직접 구현** (끝)
 2. **2단계 — Kotlin autograd 엔진** (micrograd 포팅: `Value` 클래스 + `backward()`), 작은 MLP로 플레이어 임베딩(팀케미) 학습 (끝 — `autograd/Value.kt` · `Mlp.kt` · `model/TeamEmbeddingModel.kt`)
 3. ~~텐서 엔진 / Vector API 최적화~~ — AX 목표 대비 ROI 낮아 보류
-4. RAG 파이프라인: 학습한 승률 모델을 RAG tool로 연결
+4. RAG 파이프라인: 학습한 승률 모델을 RAG tool로 연결 (끝 — 아래 "서비스로 넘기기")
 5. lab-service에 같은 임베딩/RAG 스택 재사용
 
 ## 데이터 원칙
@@ -80,7 +80,20 @@
 - 라인 Elo 를 1500 대신 티어에서 출발시키면(한 티어 = 100점, 결과를 보기 전에 정했다) 공식 그대로 0.6663 이다(라인 Elo 공식 0.6828).
 - 기존 모델과 경기마다 맞대어도 다섯 쌍 모두 티어 쪽이 낫지만(−0.016 ~ −0.033) 구간은 전부 0 을 걸친다. 가장 가까운 것이 티어 라인 Elo 공식 vs 라인 Elo 공식: −0.0165 (−0.0349 ~ +0.0018).
 - 여전히 어느 것도 95% 구간이 0 을 벗어나지 못했다. 그리고 티어가 들어간 숫자는 위의 누수만큼 낙관적이다.
-- RAG tool 로 연결할 후보는 "자리 라인 승률 + 티어" 다.
+- RAG tool 로 연결한 것은 "자리 라인 승률 + 티어" 다.
+
+## 서비스로 넘기기
+**학습은 여기서 하고 서비스(`backend/main-service`)는 숫자만 받아 계산한다.**
+
+- `./gradlew run --args="export"` 가 전체 경기로 학습한 계수를 `backend/main-service/src/main/resources/ml/win-model.json` 에 쓴다. 그 파일을 커밋하고 서비스를 배포하면 반영된다.
+    - 계수는 가중치 ÷ 표준편차다(bias 도 평균 빼기도 없는 모델이라 표준화를 계수에 접어 넣을 수 있다). 수축 상수(`PlayerState.PRIOR`)와 티어 평균도 같이 싣는다.
+- 서비스는 챗봇 tool `predict_match` 로 쓴다. 피처는 서비스가 **같은 공식을 따로 구현해** 지금 기록으로 만든다.
+    - `feature/LaneDuels` · `PlayerState.seatLaneWinRate` · `data/MatchCleaner` ↔ 서비스의 `domain/prediction/service/SeatLaneRecords`
+    - `feature/TierPrior.score` ↔ 서비스의 `TierScores`
+    - **한쪽 공식을 고치면 다른 쪽도 고치고 `export` 를 다시 돌린다.** 어긋나면 계수가 뜻을 잃는다. 같은 스냅샷을 양쪽에 넣어 74명 × 5자리의 자리 라인 승률이 소수 12자리까지 같은 것을 확인했다(2026-10-09).
+    - 서비스의 레이팅 이력은 타임라인이 있으면 15분 시점으로 라인 승자를 가린다. 여기는 늘 종료 시점 값이라 서비스도 이력을 쓰지 않고 따로 센다.
+- 사람 키는 양쪽 다 puuid 다(비어 있는 옛 기록만 Riot ID). 서비스의 다른 통계는 Riot ID 로 가르지만 `SeatLaneRecords` 만은 여기와 맞춘다 — Riot ID 를 바꾼 사람의 기록이 둘로 갈리지 않는다.
+- 서비스의 티어는 물을 때 Riot API 에서 받는 **그날의 값**이라 누수가 없다. 누수는 여기 평가 숫자에만 있다.
 
 ## 정해진 것
 - DB: PostgreSQL, 데이터베이스 `lol_event` 의 스키마 `lol_event` (`stocksimulator` DB 안의 같은 이름 스키마는 V10 에서 멈춘 옛 것이다).

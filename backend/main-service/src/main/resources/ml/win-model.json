@@ -1,0 +1,9 @@
+{
+  "seatLaneWinRateCoefficient": 5.000101170941366,
+  "tierCoefficient": 0.8675385668811129,
+  "shrinkPrior": 10.0,
+  "tierMean": 4.651315789473685,
+  "trainedMatches": 160,
+  "lastGameCreation": 1791294446212,
+  "exportedAt": "2026-10-09T06:27:19.455728400Z"
+}

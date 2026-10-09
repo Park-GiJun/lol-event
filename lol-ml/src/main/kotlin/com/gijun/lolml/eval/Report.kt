@@ -219,7 +219,7 @@ private fun gameLoss(
 private fun labels(examples: List<Example>) = DoubleArray(examples.size) { examples[it].label }
 
 /** 표준화 통계와 모델은 한 쌍이다. 학습 표본에서 구한 통계를 맞출 경기에도 그대로 쓴다. */
-private class Fitted(
+internal class Fitted(
     val model: LogisticRegression,
     val standardizer: Standardizer,
     private val featureIndices: List<Int>,

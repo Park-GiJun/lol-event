@@ -9,14 +9,17 @@ import com.gijun.lolml.data.RankWriter
 import com.gijun.lolml.data.SnapshotFormat
 import com.gijun.lolml.data.SnapshotReader
 import com.gijun.lolml.data.SnapshotWriter
+import com.gijun.lolml.eval.ModelExport
 import com.gijun.lolml.eval.printReport
 import com.gijun.lolml.extract.DbConfig
 import com.gijun.lolml.extract.MatchExtractor
 import com.gijun.lolml.extract.PlayerExtractor
 import com.gijun.lolml.extract.RiotApi
+import com.gijun.lolml.feature.Example
 import com.gijun.lolml.feature.FeatureBuilder
 import com.gijun.lolml.feature.TierPrior
 import java.nio.file.Files
+import java.nio.file.Path
 import kotlin.system.exitProcess
 
 /** 5v5 내전(소환사의 협곡). 서비스의 `GameMode.NORMAL` 과 같은 범위다. */
@@ -24,6 +27,9 @@ private val CUSTOM_QUEUE_IDS = setOf(0, 3130)
 
 /** 서비스의 레이팅 검증과 같은 기준이다. 이보다 짧으면 다시하기·초반 AFK 로 본다. */
 private const val MIN_DURATION_SEC = 600
+
+/** 서비스가 읽는 자리. lol-ml 에서 실행한다고 본 상대 경로다. */
+private val DEFAULT_EXPORT_PATH: Path = Path.of("..", "backend", "main-service", "src", "main", "resources", "ml", "win-model.json")
 
 private const val SOLO_QUEUE = "RANKED_SOLO_5x5"
 private const val FLEX_QUEUE = "RANKED_FLEX_SR"
@@ -43,6 +49,7 @@ private const val MIN_TRAIN_MATCHES = 60
  *   ./gradlew run --args="extract"   운영 DB → data/ 스냅샷
  *   ./gradlew run --args="ranks"     운영 DB 의 Riot ID → Riot API → data/ 의 티어 스냅샷
  *   ./gradlew run --args="train"     스냅샷 → 피처 → walk-forward 학습·평가
+ *   ./gradlew run --args="export"    스냅샷 → 전체 경기로 학습한 모델 → 백엔드 resources 의 JSON
  */
 fun main(args: Array<String>) {
     when (args.firstOrNull()) {
@@ -58,8 +65,12 @@ fun main(args: Array<String>) {
             runTrain()
         }
 
+        "export" -> {
+            runExport(args.getOrNull(1)?.let(Path::of) ?: DEFAULT_EXPORT_PATH)
+        }
+
         else -> {
-            System.err.println("usage: extract | ranks | train")
+            System.err.println("usage: extract | ranks | train | export [파일]| ranks | train")
             exitProcess(1)
         }
     }
@@ -91,6 +102,19 @@ private fun runRanks() {
 }
 
 private fun runTrain() {
+    val (_, _, examples) = prepare()
+    printReport(examples, MIN_TRAIN_MATCHES)
+}
+
+private fun runExport(path: Path) {
+    val (cleaned, tiers, examples) = prepare()
+    path.parent?.let { Files.createDirectories(it) }
+    Files.writeString(path, ModelExport.json(examples, tiers, cleaned.last().gameCreation))
+    println("${examples.size}경기로 학습한 모델 → $path")
+}
+
+/** 스냅샷을 읽어 정제하고 피처까지 만든다.  (정제한 경기, 티어, 예열을 뺀 표본) */
+private fun prepare(): Triple<List<Match>, TierPrior, List<Example>> {
     val raw = SnapshotReader(SnapshotFormat.DEFAULT_PATH).read()
     val cleaned = MatchCleaner(MIN_DURATION_SEC, CUSTOM_QUEUE_IDS).clean(raw)
     println("스냅샷 ${raw.size}경기 → 정제 후 ${cleaned.size}경기 → 예열 $WARMUP_MATCHES 경기 제외")
@@ -102,5 +126,5 @@ private fun runTrain() {
 
     val examples = FeatureBuilder(tiers).build(cleaned).drop(WARMUP_MATCHES)
     require(examples.size > MIN_TRAIN_MATCHES) { "학습할 경기가 너무 적다: ${examples.size}" }
-    printReport(examples, MIN_TRAIN_MATCHES)
+    return Triple(cleaned, tiers, examples)
 }

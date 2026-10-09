@@ -18,7 +18,9 @@ class TierPrior(
         ranks
             .mapNotNull { (playerId, rank) -> (rank.solo ?: rank.flex)?.let { playerId to score(it) } }
             .toMap()
-    private val mean = if (scores.isEmpty()) 0.0 else scores.values.average()
+
+    /** 티어를 아는 사람들의 평균 점수. 모르는 사람에게 주는 값이다. */
+    val mean = if (scores.isEmpty()) 0.0 else scores.values.average()
 
     /** 평균적인 사람이 0. 한 티어 위면 +1. 티어를 모르는 사람은 0. */
     fun centered(playerId: String): Double = (scores[playerId] ?: mean) - mean
