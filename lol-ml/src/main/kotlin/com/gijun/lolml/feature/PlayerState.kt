@@ -6,7 +6,9 @@ import kotlin.math.ln
 import kotlin.math.max
 
 /** 한 사람의 "지금까지" 상태. 경기가 끝날 때마다 [FeatureBuilder] 가 갱신한다. */
-class PlayerState {
+class PlayerState(
+    initialTierLaneElo: Double = Elo.INITIAL,
+) {
     var elo: Double = Elo.INITIAL
         private set
     var games: Int = 0
@@ -19,6 +21,10 @@ class PlayerState {
     var laneDuels: Int = 0
         private set
     private var laneWins = 0
+
+    /** 라인 Elo 와 같은 맞대결로 움직이되, 1500 이 아니라 랭크 게임 티어에서 출발한다([TierPrior]). */
+    var tierLaneElo: Double = initialTierLaneElo
+        private set
 
     private val recentKdas = ArrayDeque<Double>()
     private val seats = HashMap<Position, Seat>()
@@ -128,8 +134,11 @@ class PlayerState {
         /** 맞대결 전 라인 Elo 로 낸, 이 사람이 이길 기대 확률. */
         expected: Double,
         newLaneElo: Double,
+        /** 따로 주지 않으면 라인 Elo 와 같이 움직인다. */
+        newTierLaneElo: Double = newLaneElo,
     ) {
         laneElo = newLaneElo
+        tierLaneElo = newTierLaneElo
         laneDuels += 1
         val seat = seats.getOrPut(position) { Seat() }
         seat.laneDuels += 1
