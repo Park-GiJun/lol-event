@@ -16,7 +16,7 @@ data class RagProperties(
 ) {
     data class Chat(
         /** `/v1` 을 붙이지 않는다 — 경로는 Koog 가 붙인다. */
-        val baseUrl: String = "http://172.30.1.54:8080",
+        val baseUrl: String = "http://172.30.1.18:8080",
         /** llama-server 의 `--alias`. */
         val model: String = "qwen",
         /** llama-server 에 `--api-key` 를 걸기 전까지는 아무 값이나 통한다. */
@@ -33,7 +33,7 @@ data class RagProperties(
     )
 
     data class Embedding(
-        val baseUrl: String = "http://172.30.1.54:8081",
+        val baseUrl: String = "http://172.30.1.18:8081",
         val model: String = "pqnet/bge-m3-gguf:F16",
         val apiKey: String = "none",
         /** bge-m3 의 차원. `V21` 마이그레이션의 `vector(1024)` 와 같아야 한다. */

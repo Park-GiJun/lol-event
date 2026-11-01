@@ -58,7 +58,8 @@ dependencies {
     implementation("org.redisson:redisson:3.52.0")
 
     // Kafka
-    implementation("org.springframework.kafka:spring-kafka")
+    // Boot 4 는 자동 설정이 모듈로 갈라졌다. spring-kafka 만 넣으면 @KafkaListener 가 처리되지 않아 컨슈머가 뜨지 않는다.
+    implementation("org.springframework.boot:spring-boot-starter-kafka")
 
     // Kotlin Jackson
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
