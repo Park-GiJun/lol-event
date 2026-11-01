@@ -104,6 +104,19 @@ release.bat
 
 ---
 
+## 서버 배포 (Jenkins)
+
+백엔드·프론트 배포는 루트의 `Jenkinsfile` 이 한다. 잡은 홈서버 Jenkins(`:8090`)의 `lol-event` 이고,
+`master` 를 2분마다 폴링한다. 손으로 돌릴 때는 `SERVICE`(all/backend/frontend)를 고른다.
+
+- 게이트(gradle build, pnpm lint/test/build)가 하나라도 실패하면 컨테이너를 건드리지 않는다.
+- 배포·비밀 디렉터리는 `~/jenkins/docker-compose.yml` 에서 호스트와 같은 경로로 Jenkins 에 마운트돼 있다.
+- `lol-main-service` 는 Pinpoint agent 를 달고 뜬다(`lol-main-service` / `lol-main-1`, 웹 UI `:8089`).
+  agent 파일은 `pinpoint-docker_data-volume` 볼륨에 있고, jar 파일명에 버전이 들어 있어
+  Pinpoint 를 올리면 `Jenkinsfile` 의 `PINPOINT_OPTS` 도 같이 고친다.
+
+---
+
 ## 백엔드 API
 
 - 정본은 웹 프론트엔드(`frontend/src/api/<도메인>/*Api.ts` — 함수와 응답 타입이 같은 파일에 있다)다.
