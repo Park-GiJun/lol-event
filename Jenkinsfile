@@ -31,14 +31,8 @@ pipeline {
         NGINX_IMAGE = 'nginx:1.30.6-alpine'
         NODE_IMAGE = 'node:22-slim'
 
-        // 힙은 512m 지만 Pinpoint agent 가 힙 밖에서 메모리를 더 쓴다.
         MAIN_JVM = '-Xmx512m -XX:MaxMetaspaceSize=256m -Xss512k -XX:+ExitOnOutOfMemoryError'
-        MAIN_MEM = '1536m'
-
-        // agent 파일은 Pinpoint 스택의 볼륨에 들어 있다. 서비스는 host 네트워크라 collector 를 127.0.0.1 로 본다.
-        // 버전을 올릴 때는 파일명도 같이 바꾼다.
-        PINPOINT_VOLUME = 'pinpoint-docker_data-volume'
-        PINPOINT_OPTS = '-javaagent:/pinpoint-agent/pinpoint-bootstrap-3.1.1.jar -Dpinpoint.agentId=lol-main-1 -Dpinpoint.applicationName=lol-main-service -Dpinpoint.profiler.profiles.active=release -Dprofiler.transport.grpc.collector.ip=127.0.0.1 -Dprofiler.kafka.producer.enable=true -Dprofiler.kafka.consumer.enable=true -Dprofiler.springkafka.consumer.enable=true -Dprofiler.springkafka.container.enable=true'
+        MAIN_MEM = '1280m'
     }
 
     stages {
@@ -94,9 +88,9 @@ pipeline {
                         -m "$MAIN_MEM" \
                         -v "$DEPLOY_DIR/main-service.jar:/app.jar:ro" \
                         -v "$CONFIG_DIR:/config:ro" \
-                        -v "$PINPOINT_VOLUME:/pinpoint-agent:ro" \
+\
                         --env-file "$ENV_FILE" \
-                        "$JAVA_IMAGE" java $PINPOINT_OPTS $MAIN_JVM -jar /app.jar \
+                        "$JAVA_IMAGE" java $MAIN_JVM -jar /app.jar \
                         --spring.profiles.active=prd \
                         --spring.config.additional-location=file:/config/
 

@@ -111,9 +111,9 @@ release.bat
 
 - 게이트(gradle build, pnpm lint/test/build)가 하나라도 실패하면 컨테이너를 건드리지 않는다.
 - 배포·비밀 디렉터리는 `~/jenkins/docker-compose.yml` 에서 호스트와 같은 경로로 Jenkins 에 마운트돼 있다.
-- `lol-main-service` 는 Pinpoint agent 를 달고 뜬다(`lol-main-service` / `lol-main-1`, 웹 UI `:8089`).
-  agent 파일은 `pinpoint-docker_data-volume` 볼륨에 있고, jar 파일명에 버전이 들어 있어
-  Pinpoint 를 올리면 `Jenkinsfile` 의 `PINPOINT_OPTS` 도 같이 고친다.
+- 지표 · 로그는 lab-server 의 Grafana(`https://gijun.net/grafana/`, 대시보드 "lol-event 서비스")에서 본다.
+  lab Prometheus 가 `host.docker.internal:8081/actuator/prometheus` 를 긁고, 로그는 Alloy 가 컨테이너 로그를 Loki 로 보낸다.
+  2026-11-06 에 홈서버 Pinpoint 를 내려서 agent 는 붙이지 않는다. `backend/monitoring/` 은 옛 로컬용 스택이다.
 
 ---
 
